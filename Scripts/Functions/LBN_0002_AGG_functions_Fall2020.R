@@ -1,5 +1,5 @@
 ###Loading Data Sets--------------------------
-#Test here
+#Change test
 myCSV_func = function(folderPath, fileName) {
   fullPath = paste0(folderPath, fileName)
   cat("\n", file = fullPath, append = TRUE) #in theory, this should add a blank line at the end and avoid the "incomplete final line" error
