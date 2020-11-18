@@ -1,4 +1,4 @@
-#Loading Data Sets
+###Loading Data Sets--------------------------
 myCSV_func = function(folderPath, fileName) {
   fullPath = paste0(folderPath, fileName)
   cat("\n", file = fullPath, append = TRUE) #in theory, this should add a blank line at the end and avoid the "incomplete final line" error
@@ -24,7 +24,7 @@ format_dates = function(column){
   as.Date(column, format = "%Y-%m-%d")
 }
 
-### TASK FUNCTIONS
+### TASK FUNCTIONS ------------------------
 LBN_tasks_func <- function(
   df,
   id_var,
@@ -37,6 +37,12 @@ LBN_tasks_func <- function(
   }
   cat(paste0("+ ", df[[id_var]][val], "\n\n"))
 }
+
+## Dam_tasks
+#Provide the text for the task as a string, 
+#provide the value which tells the function which row to reference (val from loop)
+#because this is the dams, default to the Dam_dates dataframe
+#default to the Dam_ID column
 
 Dam_tasks <- function(
   task_text,
@@ -51,6 +57,8 @@ Dam_tasks <- function(
   cat(paste0("+ ", df[[id_var]][val], "\n\n"))
 }
 
+#If Count equals 1, add a new life
+#Reset Count to 0
 printLine_func <- function(Count){
   if(Count == 1) cat("\n")
   Count <<- 0
@@ -58,20 +66,25 @@ printLine_func <- function(Count){
 
 # printLine_func(Count)
 
+#Sequence along all of the values in the Dam_ID column
 Dam_seq <- function(){
   seq_along(Dam_dates$Dam_ID)
 }
 
+#only check mouse if there is not a value (is.na) in the Sac_or_stop column
 sac_stop <- function(val){
   is.na(Dam_dates$Sac_or_stop[val])
 }
 
+#Check if the date for a given variable is equal to Day
+#uses Dam_dates
 Dam_day_equals <- function(Day, var, val){
   Day == Dam_dates[[var]][val]
 }
 
 # Dam_day_equals("2020-11-30", "Breed_date", 1)
 
+#Check if Day is greater than or equal to the date of a variable
 Dam_day_greater <- function(Day, var, val){
   Day >= Dam_dates[[var]][val]
 }
@@ -79,6 +92,7 @@ Dam_day_greater <- function(Day, var, val){
 # Dam_day_greater("2020-12-13", "mass_check", 1)
 # Dam_day_greater("2020-11-11", "mass_check", 1)
 
+#Check that the variable for this mouse is not na
 Dam_not.na <- function(var, val){
   !is.na(Dam_dates[[var]][val])
 }
@@ -86,6 +100,7 @@ Dam_not.na <- function(var, val){
 # Dam_not.na("Breed_date", 1)
 # Dam_not.na("Sac_or_stop", 1)
 
+#Check that the variable for this mouse is na
 Dam_is.na <- function(var, val){
   is.na(Dam_dates[[var]][val])
 }
@@ -93,6 +108,11 @@ Dam_is.na <- function(var, val){
 # Dam_is.na("Sac_or_stop", 2)
 # Dam_is.na("mass_G12", 1)
 
+#Prining output for offspring tasks
+#provide the text to print for the task
+#provide the value (from val in the script)
+#defaults to the Off_dates df
+#defaults to the Mouse_ID column
 Off_tasks <- function(
   task_text,
   val,
@@ -100,12 +120,15 @@ Off_tasks <- function(
   id_var = "Mouse_ID"
 ){
   if(Count == 0){
+    #Only print this the first time that the task occurs.
+    #Then change the counter to 1
     cat(paste0("*", task_text, ":* \n\n"))
     Count <<- 1
   }
   cat(paste0("+ ", df[[id_var]][val], "\n\n"))
 }
 
+#Sequence along the Mouse_ID column
 Off_seq <- function(){
   seq_along(Off_dates$Mouse_ID)
 }

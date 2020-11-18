@@ -165,7 +165,7 @@ LBN_data
 
 ```
 
-```{r Dam-Dates, echo=FALSE, paged.print=TRUE}
+```{r Dam-Dates, include=FALSE}
 #Dam and Litter Dates
 
 dateToday <- Sys.Date()
@@ -356,6 +356,7 @@ conditionalFormatting(datesWB,
                       style = createStyle(bgFill = "#C6EFCE"))
 
 #if start AGD < end AGD
+
 
 #if mass dates
 
