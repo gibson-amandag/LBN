@@ -1,0 +1,697 @@
+---
+title: "R Notebook"
+output:
+  html_notebook: default
+  word_document: default
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r Load Packages, include=FALSE}
+library(tidyverse)
+library(readr)
+library(rlang)
+library(purrr)
+library(scales)
+library(knitr)
+#library(flextable) #error with data.table
+library(officer)
+library(GGally)
+library(dplyr)
+library(ggfortify)
+```
+
+```{r My Theme, include=FALSE}
+my_theme = theme(
+      text = element_text(size=24),
+      legend.title = element_blank(),
+      legend.position = "bottom",
+      panel.background = element_rect(fill = "transparent"), # bg of the panel
+      plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
+      panel.grid.major = element_blank(), # get rid of major grid
+      panel.grid.minor = element_blank(), # get rid of minor grid
+      legend.background = element_rect(fill = "transparent"), # get rid of legend bg
+      legend.box.background = element_rect(fill = "transparent"), # get rid of legend panel bg
+      axis.line = element_line(colour = "black")
+    )
+```
+
+```{r Loading}
+#Type "Windows" or "Mac"
+WhatComp = "Mac"
+
+#Data File Names (end in .csv)
+OffspringDemoName = "Offspring demographics_cohort2.csv"
+OffspringMassName = "Offspring mass_cohort2.csv"
+DamInfoName = "Dam info_cohort2.csv"
+OffspringMaturationName = "Offspring maturation_cohort2.csv"
+OffspringPostParaName = "Offspring post-paradigm_cohort2.csv"
+OffspringAcuteStressName = "Offspring acute stress_cohort2.csv"
+OffspringChronicStressName = "Offspring chronic stress_cohort2.csv"
+
+#Functions Script (ends in .R)
+FunctionsFileName = "LBN_functions_Fall2020.R"
+
+if(WhatComp == "Mac"){
+  FolderPath =  "/Users/amandagibson/OneDrive - Umich/Moenter lab/Experimental Data/LBN/Cohort 2/"
+}
+
+if(WhatComp == "Windows"){
+  FolderPath = "C:/Users/percs/OneDrive - Umich/Moenter lab/Experimental Data/LBN/Cohort 2/"
+}
+
+#Where R Notebook and R Functions files are saved
+ScriptsFolder = paste0(FolderPath, "R_Scripts/")
+
+#Where CSV files are saved
+CSV_folder = paste0(FolderPath, "CSV_Files/")
+
+#Where output, like plots, should be saved
+LBN_path = paste0(FolderPath, "R_Output/")
+
+#Load the KNDy Functions
+source(paste0(ScriptsFolder, FunctionsFileName))
+
+#Load dataset
+Offspring_demo = myCSV_func(CSV_folder, OffspringDemoName)
+Offspring_mass = myCSV_func(CSV_folder, OffspringMassName)
+Dam_info = myCSV_func(CSV_folder, DamInfoName)
+Offspring_maturation = myCSV_func(CSV_folder, OffspringMaturationName)
+Offspring_post_para = myCSV_func(CSV_folder, OffspringPostParaName)
+Offspring_acute_stress = myCSV_func(CSV_folder, OffspringAcuteStressName)
+Offspring_chronic_stress = myCSV_func(CSV_folder, OffspringChronicStressName)
+
+```
+
+```{r Format Dates, include=FALSE}
+#Reformat dates into year-month-day
+
+Dam_info$Dam_DOB = format_dates(Dam_info$Dam_DOB)
+Dam_info$Breed_date = format_dates(Dam_info$Breed_date)
+Dam_info$Plug_date = format_dates(Dam_info$Plug_date)
+Dam_info$DOB = format_dates(Dam_info$DOB)
+Dam_info$Sac_or_stop = format_dates(Dam_info$Sac_or_stop)
+
+Offspring_acute_stress$Stress_date = format_dates(Offspring_acute_stress$Stress_date)
+
+Offspring_maturation$Estrus_day = format_dates(Offspring_maturation$Estrus_day)
+Offspring_maturation$VO_day = format_dates(Offspring_maturation$VO_day)
+Offspring_maturation$PreputialSep_day = format_dates(Offspring_maturation$PreputialSep_day)
+
+Dam_info$Dam_ID = as.character(Dam_info$Dam_ID)
+Offspring_demo$Dam_ID = as.character(Offspring_demo$Dam_ID)
+Dam_info
+
+
+#find which variables are categorized as logical
+logicals = unlist(lapply(Offspring_mass, is.logical))
+
+#Turn these into numeric variables
+Offspring_mass[,logicals] = lapply(Offspring_mass[,logicals], as.numeric)
+
+```
+
+```{r Combine in One Dataframe, eval=FALSE, include=FALSE}
+#Combine all of the data into a single dataframe. Will add NAs where there isn't data
+#can add ,by = ... to tell what column to join on
+#not including dam info
+# LBN_data = Offspring_demo %>%
+#   full_join(Offspring_acute_stress) %>%
+#   full_join(Offspring_chronic_stress) %>%
+#   full_join(Offspring_mass) %>%
+#   full_join(Offspring_maturation) %>%
+#   full_join(Offspring_post_para)
+# 
+# LBN_data
+
+#If want to join only certain columns from one dataframe, use select() first
+
+```
+
+``` {r Offspring Demographics}
+
+Dam_info_for_offspring = Dam_info %>%
+  select(Dam_ID, Dam_cage, Treatment, Strain, Dam_Strain, Sire, DOB, Avg_litter_mass_P2, Litter_size_P2, Litter_size_P9)
+
+Offspring_demo = Offspring_demo %>%
+  left_join(Dam_info_for_offspring)
+Offspring_demo
+
+```
+
+
+
+```{r Plot mass for all pups}
+#Add the treatment and sex information to the offspring mass dataframe
+Offspring_mass = Offspring_demo %>%
+  select(Mouse_ID, Treatment, Sex, Avg_litter_mass_P2, Litter_size_P2, Litter_size_P9, Dam_ID, Strain, Dam_Strain) %>%
+  full_join(Offspring_mass)
+
+#Plotting for all offspring - linetype by strain, color by treatment
+#Add "by_strain = FALSE" as an argument to plot average for all regardless of strain
+funcs_to_plot_mass(Offspring_mass)
+Offspring_mass_long
+Offspring_mass_summary
+Offspring_mass_plot + labs(title = "Pup Mass")
+
+```
+
+```{r Group by Dam}
+
+Offspring_mass_by_dam = Offspring_mass %>%
+  group_by(Dam_ID)
+
+#summarize by dam
+Offspring_mass_by_dam %>%
+  summarise_if(is.numeric, list(~mean(., na.rm = TRUE), ~sd(., na.rm = TRUE)))
+
+Avg_mass_by_litter = Offspring_mass_by_dam%>%
+  summarise_if(is.numeric, mean, na.rm = TRUE)
+
+Avg_mass_by_litter = Dam_info %>%
+  select(Dam_ID, Treatment, Dam_Strain) %>%
+  right_join(Avg_mass_by_litter)
+
+Avg_mass_by_litter
+```
+
+```{r Plot by Dam}
+#Plotting summarized by dam (litter)
+#Add "by_strain = FALSE" as an argument to plot average for all regardless of strain
+funcs_to_plot_mass(Avg_mass_by_litter, Dam_ID)
+Avg_mass_by_litter_long
+Avg_mass_by_litter_summary
+Avg_mass_by_litter_plot + labs(title = "Mass by Litter Average") 
+
+```
+
+```{r Plot only GFP-2 Offspring}
+
+GFP2_mass = Offspring_mass %>%
+  filter(Strain == "GFP-2")
+
+#Add "by_strain = FALSE" as an argument to plot average for all regardless of strain
+funcs_to_plot_mass(GFP2_mass)
+GFP2_mass_long
+GFP2_mass_summary
+GFP2_mass_plot + labs(title = "GFP-2 Pup Mass")
+```
+
+```{r Plot only GFP2 by Dam}
+
+GFP2_mass_by_litter = GFP2_mass %>%
+  group_by(Dam_ID)%>%
+  summarise_if(is.numeric, mean, na.rm = TRUE)
+
+GFP2_mass_by_litter = Dam_info %>%
+  select(Dam_ID, Treatment, Dam_Strain) %>%
+  right_join(GFP2_mass_by_litter)
+
+GFP2_mass_by_litter
+
+#Add "by_strain = FALSE" as an argument to plot average for all regardless of strain
+funcs_to_plot_mass(GFP2_mass_by_litter, Dam_ID)
+GFP2_mass_by_litter_long
+GFP2_mass_by_litter_summary
+GFP2_mass_by_litter_plot + labs(title = "GFP-2 Mass by Litter")
+
+```
+
+```{r Plot only GFP-3 Offspring}
+
+GFP3_mass = Offspring_mass %>%
+  filter(Strain == "GFP-3")
+
+#Add "by_strain = FALSE" as an argument to plot average for all regardless of strain
+funcs_to_plot_mass(GFP3_mass)
+GFP3_mass_long
+GFP3_mass_summary
+GFP3_mass_plot + labs(title = "GFP-3 pups mass")
+```
+
+```{r Plot only GFP3 by Dam}
+
+GFP3_mass_by_litter = GFP3_mass %>%
+  group_by(Dam_ID)%>%
+  summarise_if(is.numeric, mean, na.rm = TRUE)
+
+GFP3_mass_by_litter = Dam_info %>%
+  select(Dam_ID, Treatment, Dam_Strain) %>%
+  right_join(GFP3_mass_by_litter)
+
+GFP3_mass_by_litter
+
+#Add "by_strain = FALSE" as an argument to plot average for all regardless of strain
+funcs_to_plot_mass(GFP3_mass_by_litter, Dam_ID)
+GFP3_mass_by_litter_long
+GFP3_mass_by_litter_summary
+GFP3_mass_by_litter_plot + labs(title = "GFP-3 Mass by Litter")
+
+```
+
+```{r Group by treatment and summarize}
+Offspring_mass_by_treatment = Offspring_mass %>%
+  group_by(Treatment)
+Offspring_mass_by_treatment
+
+Offspring_mass_by_treatment %>%
+  summarise_if(is.numeric, list(~mean(., na.rm = TRUE), ~sd(., na.rm = TRUE)))
+
+#By Strain
+Offspring_mass_by_treat_strain = Offspring_mass %>%
+  group_by(Treatment, Strain)
+
+Offspring_mass_by_treat_strain %>%
+  summarise_if(is.numeric, list(~mean(., na.rm = TRUE), ~sd(., na.rm = TRUE)))
+
+Offspring_demo %>%
+  group_by(Treatment, Dam_Strain, Sex) %>%
+  summarize(n())
+```
+
+
+```{r Dam Mass Change }
+Dam_mass = Dam_info %>%
+  select(Dam_ID, Treatment, Dam_Strain, Dam_Mass_P2, Dam_Mass_P9, Dam_Mass_P21) %>%
+  mutate(Dam_Mass_Change_2_9 = Dam_Mass_P9 - Dam_Mass_P2,
+         Dam_Mass_Change_9_21 = Dam_Mass_P21 - Dam_Mass_P9)
+
+Dam_mass
+
+Dam_mass %>%
+  group_by(Treatment, Dam_Strain) %>%
+  summarise_if(is.numeric, list(~mean(., na.rm = TRUE), ~sd(., na.rm = TRUE)))
+
+#Add "by_strain = FALSE" as an argument to plot average for all regardless of strain
+funcs_to_plot_dam_mass(Dam_mass)
+Dam_mass_long
+Dam_mass_plot
+
+#By chance, two of the LBN dams had small litter size, and they were also the lowest body mass
+ggplot(Dam_info, aes(x = Litter_size_P2, y = Dam_Mass_P2)) +
+  geom_point()
+
+```
+
+```{r Plot mass for all male pups}
+
+Male_offspring_mass = Offspring_mass %>%
+  filter(Sex == "M")
+
+#Plotting for all offspring - shape by strain, color by treatment
+funcs_to_plot_mass(Male_offspring_mass)
+Male_offspring_mass_long
+Male_offspring_mass_summary
+Male_offspring_mass_plot + labs(title = "Male Pup Mass")
+
+```
+
+```{r Plot mass for all female pups}
+
+Female_offspring_mass = Offspring_mass %>%
+  filter(Sex == "F")
+
+#Plotting for all offspring - shape by strain, color by treatment
+funcs_to_plot_mass(Female_offspring_mass)
+Female_offspring_mass_long
+Female_offspring_mass_summary
+Female_offspring_mass_plot + labs(title = "Female Pup Mass")
+
+```
+
+```{r Pup Loss}
+Dam_pup_loss = Dam_info %>%
+  select(Dam_ID, Treatment, Strain, Litter_size_P2, Litter_size_P9) %>%
+  mutate(Pup_loss = Litter_size_P9 - Litter_size_P2)
+
+Dam_pup_loss %>%
+  group_by(Treatment, Strain) %>%
+  summarize(Mean_Pup_loss = mean(Pup_loss, na.rm = TRUE),
+            n())
+
+#Also, keep in mind that one of the LBN cages had to be ended early because dam was not caring for pups, and only one pup was left. But this dam had already lost pups before the start of the paradigm, and only started with three pups
+```
+
+
+
+
+```{r eval=FALSE, include=FALSE}
+view(Offspring_mass)
+```
+
+
+```{r Offspring Maturation}
+Offspring_maturation = Offspring_maturation %>%
+  left_join(select(Offspring_demo, Mouse_ID, Sex, Treatment, Strain, Dam_Strain, DOB)) %>%
+  left_join(select(Offspring_mass, Mouse_ID, Mass_P22, Mass_P23, Mass_P24, Mass_P70, Mass_P71, Mass_P72))
+
+Offspring_maturation = Offspring_maturation %>%
+  mutate(AGD_wean = (AGD_P22 + AGD_P23 + AGD_P24) / 3,
+         AGD_adult = (AGD_P70 + AGD_P71 + AGD_P72) / 3,
+         Mass_wean = (Mass_P22 + Mass_P23 + Mass_P24) / 3,
+         Mass_adult = (Mass_P70 + Mass_P71 + Mass_P72) / 3,
+         AGD_wean_by_mass = AGD_wean / Mass_wean,
+         AGD_adult_by_mass = AGD_adult / Mass_adult,
+         VO_age = as.numeric(VO_day - DOB), #if don't include as.numeric it will output in days
+         Estrus_age = as.numeric(Estrus_day - DOB),
+         PreputialSep_age = as.numeric(PreputialSep_day - DOB))
+
+Offspring_maturation
+
+Offspring_maturation_grouped = Offspring_maturation %>%
+  group_by(Sex, Treatment, Strain)
+
+Offspring_maturation_grouped %>%
+    summarise_if(is.numeric, list(~mean(., na.rm = TRUE), ~sd(., na.rm = TRUE), ~n()))
+
+AGD_avgs = Offspring_maturation_grouped %>%
+  summarize(Number = n(),
+            AGD_wean_avg = mean(AGD_wean, na.rm = TRUE),
+            AGD_wean_by_mass_avg = mean(AGD_wean_by_mass, na.rm = TRUE),
+            AGD_wean_sd = sd(AGD_wean, na.rm = TRUE),
+            AGD_wean_by_mass_sd = sd(AGD_wean_by_mass, na.rm = TRUE),
+            AGD_adult_avg = mean(AGD_adult, na.rm = TRUE),
+            AGD_adult_by_mass_avg = mean(AGD_adult_by_mass, na.rm = TRUE),
+            AGD_adult_sd = sd(AGD_adult, na.rm = TRUE),
+            AGD_adult_by_mass_sd = sd(AGD_adult_by_mass, na.rm = TRUE),
+            )
+AGD_avgs
+
+VO_avgs = Offspring_maturation_grouped %>%
+  filter(Sex == "F") %>%
+  summarize(Number = n(),
+            VO_age_avg = mean(VO_age, na.rm = TRUE),
+            VO_age_sd = sd(VO_age, na.rm = TRUE),
+            VO_mass_avg = mean(VO_mass, na.rm = TRUE),
+            VO_mass_sd = sd(VO_mass, na.rm = TRUE)
+            )
+VO_avgs
+
+Estrus_avgs = Offspring_maturation_grouped %>%
+  filter(Sex == "F") %>%
+  summarize(Number = n(),
+            Estrus_age_avg = mean(Estrus_age, na.rm = TRUE),
+            Estrus_age_sd = sd(Estrus_age, na.rm = TRUE),
+            Estrus_mass_avg = mean(Estrus_mass, na.rm = TRUE),
+            Estrus_mass_sd = sd(Estrus_mass, na.rm = TRUE)
+            )
+Estrus_avgs
+
+PreputialSep_avgs = Offspring_maturation_grouped %>%
+  filter(Sex == "M") %>%
+  summarize(Number = n(),
+            PreputialSep_age_avg = mean(PreputialSep_age, na.rm = TRUE),
+            PreputialSep_age_sd = sd(PreputialSep_age, na.rm = TRUE),
+            PreputialSep_mass_avg = mean(PreputialSep_mass, na.rm = TRUE),
+            PreputialSep_mass_sd = sd(PreputialSep_mass, na.rm = TRUE)
+            )
+PreputialSep_avgs
+
+
+```
+
+```{r Cumulative Frequency Plots}
+
+PPS_plot = cum_freq_plot(Offspring_maturation, PreputialSep_age, "Preputial Separation")
+PPS_plot
+VO_plot = cum_freq_plot(Offspring_maturation, VO_age, "Vaginal Opening")
+VO_plot
+First_Estrus_plot = cum_freq_plot(Offspring_maturation, Estrus_age, "First Estrus")
+First_Estrus_plot
+
+```
+
+
+```{r Puberty Dot Plots}
+VO_dot_plot = puberty_plot_func(Offspring_maturation, VO_age, ytitle = "Age at Vaginal Opening \n(Days)")
+VO_dot_plot
+First_Estrus_dot_plot = puberty_plot_func(Offspring_maturation, Estrus_age, ytitle = "Age at First Estrus \n(Days)")
+First_Estrus_dot_plot
+PPS_dot_plot = puberty_plot_func(Offspring_maturation, PreputialSep_age, ytitle = "Age at Preputial Separation \n(Days)")
+PPS_dot_plot
+
+VO_mass_plot = puberty_plot_func(Offspring_maturation, VO_mass, ytitle = "Mass at Vaginal Opening (g)")
+VO_mass_plot
+First_estrus_mass_plot = puberty_plot_func(Offspring_maturation, Estrus_mass, ytitle = "Mass at First Estrus (g)")
+First_estrus_mass_plot
+PPS_mass_plot = puberty_plot_func(Offspring_maturation, PreputialSep_mass, ytitle = "Mass at Preputial Separation (g)")
+PPS_mass_plot
+```
+
+
+
+```{r P21 Dam Cort}
+Dam_cort_P21 = Dam_info %>%
+  drop_na(Treatment) %>%
+  select(Dam_ID, Treatment, Dam_Strain, Cort_dam_P21) %>%
+  group_by(Treatment)%>%
+  summarize(Mean_Cort = mean(Cort_dam_P21, na.rm = TRUE),
+            sd_Cort = sd(Cort_dam_P21, na.rm = TRUE))
+
+Dam_cort_P21_plot = puberty_plot_func(drop_na(Dam_info, Treatment), Cort_dam_P21, "Corticosterone (ng/mL)")
+Dam_cort_P21_plot
+
+# Dam_cort_P21_plot = Dam_info %>%
+#   drop_na(Treatment)%>%
+#   ggplot(aes(x = Treatment, y = Cort_dam_P21)) +
+#   geom_point(size = 2)+
+#   stat_summary(fun.y = mean, geom = "point", colour = "red") + 
+#   stat_summary(geom = "errorbar", fun.data = mean_se, position = "dodge", width = 0.2, colour = "red")+
+#   labs(y = "Corticosterone (ng/mL)", title = "Dam Morning Basal Corticosterone on P21")+
+#   my_theme
+  
+```
+
+```{r t-tests puberty}
+t.test(PreputialSep_age ~ Treatment, Offspring_maturation)
+t.test(Estrus_age ~ Treatment, Offspring_maturation)
+t.test(VO_age ~ Treatment, Offspring_maturation)
+
+# t.test(PreputialSep_age ~ Treatment, filter(Offspring_maturation, Dam_Strain == "CBA"))
+# t.test(Estrus_age ~ Treatment, filter(Offspring_maturation, Dam_Strain == "CBA"))
+# t.test(VO_age ~ Treatment, filter(Offspring_maturation, Dam_Strain == "CBA"))
+# 
+# t.test(PreputialSep_age ~ Treatment, filter(Offspring_maturation, Dam_Strain == "B6"))
+# t.test(Estrus_age ~ Treatment, filter(Offspring_maturation, Dam_Strain == "B6"))
+# t.test(VO_age ~ Treatment, filter(Offspring_maturation, Dam_Strain == "B6"))
+```
+
+Acute Stress Paradigm
+```{r Add demographic info to acute stress df}
+
+Offspring_acute_stress = Offspring_acute_stress %>%
+  left_join(Offspring_demo%>%
+              select(
+                Mouse_ID,
+                Ear_tag,
+                Sex,
+                Treatment,
+                Strain,
+                DOB
+              ))
+Offspring_acute_stress
+```
+
+```{r Acute Stress Summary Info}
+Acute_stress_summary = Offspring_acute_stress %>%
+  group_by(Treatment, Stress_treatment)%>%
+  summarize(Number = n(),
+            Mean_pre_cort = mean(Cort_pre, na.rm = TRUE),
+            sd_pre_cort = sd(Cort_pre, na.rm = TRUE),
+            Mean_post_cort = mean(Cort_post, na.rm = TRUE),
+            sd_post_cort = sd(Cort_post, na.rm = TRUE)
+  )
+Acute_stress_summary
+
+```
+
+```{r Acute Stress Plot}
+#Use gather to make this a long form table to plot. One column for cort, and another that tells whether it was pre or post
+Acute_stress_long_form = Offspring_acute_stress %>%
+    gather(key = "Time", value = "Cort", c(Cort_pre, Cort_post), factor_key=TRUE)
+
+#Create a new column "Time_hr" for the corresponding time at which the cort sample was taken to be able to plot on a continuous x-scale
+Acute_stress_long_form = Acute_stress_long_form %>%
+    mutate(Time_hr = case_when(Time == "Cort_pre" ~ 0,
+                           Time == "Cort_post" ~ 5)
+    )
+
+Acute_stress_plot = interaction_plot(Acute_stress_long_form, Cort, "Cort (ng/mL)")
+Acute_stress_plot
+
+```
+
+
+
+```{r Plot saving, eval=FALSE, include=FALSE}
+
+#make consistent y-axis for the GFP2/GFP3 plots
+GFP2_mass_plot = GFP2_mass_plot + expand_limits(y = 26)
+GFP3_mass_plot = GFP3_mass_plot + expand_limits(y = 26)
+
+day = Sys.Date()
+xlimit = 72
+
+LBN_save_func(Avg_mass_by_litter_plot, "Offspring Mass by Litter ")
+
+LBN_save_func(Offspring_mass_plot, "Offspring Mass ")
+
+LBN_save_func(GFP2_mass_by_litter_plot, "Mass of Offspring of B6 Dams by Litter ")
+
+LBN_save_func(GFP2_mass_plot, "Mass of Offspring of B6 Dams ")
+
+LBN_save_func(GFP3_mass_by_litter_plot, "Mass of Offspring of CBA Dams by Litter ")
+
+LBN_save_func(GFP3_mass_plot, "Mass of Offspring of CBA Dams ")
+
+LBN_save_func(Male_offspring_mass_plot, "Male Mass ")
+
+LBN_save_func(Female_offspring_mass_plot, "Female Mass ")
+
+LBN_puberty_dot_save_func(Dam_cort_P21_plot, "Dam P21 Cort ")
+
+LBN_save_func_2(First_Estrus_plot, "First Estrus ")
+
+LBN_save_func_2(VO_plot, "Vaginal Opening ")
+
+LBN_save_func_2(PPS_plot, "Preputial Separation ")
+
+LBN_save_func_2(Acute_stress_plot, "Acute Stress Female Cort")
+LBN_save_func_pdf(Acute_stress_plot, "Acute Stress Female Cort")
+
+xlimit = 22
+LBN_save_func(Dam_mass_plot, "Dam Mass ")
+
+LBN_puberty_dot_save_func(VO_dot_plot, "VO Dot ")
+LBN_puberty_dot_save_func(First_Estrus_dot_plot, "FirstE Dot ")
+LBN_puberty_dot_save_func(PPS_dot_plot, "PPS Dot ")
+
+dot_limit = 45
+VO_dot_plot_same = VO_dot_plot + expand_limits(y = dot_limit)
+First_Estrus_dot_plot_same = First_Estrus_dot_plot + expand_limits(y = dot_limit)
+PPS_dot_plot_same = PPS_dot_plot + expand_limits(y = dot_limit)
+
+LBN_puberty_dot_save_func(VO_dot_plot_same, "VO Dot same ")
+LBN_puberty_dot_save_func(First_Estrus_dot_plot_same, "FirstE Dot same ")
+LBN_puberty_dot_save_func(PPS_dot_plot_same, "PPS Dot same ")
+
+LBN_puberty_dot_save_func(VO_mass_plot, "VO Mass ")
+LBN_puberty_dot_save_func(First_estrus_mass_plot, "FirstE Mass ")
+LBN_puberty_dot_save_func(PPS_mass_plot, "PPS Mass ")
+```
+
+
+```{r}
+F_Offspring_demo = 
+  Offspring_demo %>%
+  filter(Sex == "F") %>%
+  select(Mouse_ID, Ear_tag, Wean_Cage_Number, Treatment, Dam_Strain, DOB)%>%
+  mutate(Age_today = as.numeric(Sys.Date()-DOB))
+
+view(F_Offspring_demo)
+
+```
+
+
+
+Extra/superfluous 
+
+```{r eval=FALSE, include=FALSE}
+#Add the treatment and sex information to the offspring mass dataframe
+Offspring_mass = Offspring_demo %>%
+  select(Mouse_ID, Treatment, Sex, Avg_litter_mass_P2, Litter_size_P2, Litter_size_P9, Dam_ID, Strain) %>%
+  full_join(Offspring_mass)
+
+#Make a long-form dataframe to be able to graph appropriately
+# key = the new column to be created
+# value = the value to be recorded for each iteration of the key; here this is mass
+# What columns correspond to the key
+# Make this new key column a factor
+offspring_mass_long = Offspring_mass %>%
+  gather(key = "day", value = "Mass", c(Mass_P9:Mass_P72, Avg_litter_mass_P2), factor_key=TRUE)
+offspring_mass_long
+
+#Create a new column "PND" for the corresponding post-natal day on which the mass was taken to be able to plot on a continuous x-scale
+offspring_mass_long = offspring_mass_long %>%
+  mutate(PND = case_when(day == "Avg_litter_mass_P2" ~ 2,
+                         day == "Mass_P9" ~ 9,
+                         day == "Mass_P10" ~ 10,
+                         day == "Mass_P11" ~ 11,
+                         day == "Mass_P12" ~ 12,
+                         day == "Mass_P13" ~ 13,
+                         day == "Mass_P15" ~ 15,
+                         day == "Mass_P17" ~ 17,
+                         day == "Mass_P19" ~ 19,
+                         day == "Mass_P21" ~ 21,
+                         day == "Mass_P22" ~ 22,
+                         day == "Mass_P23" ~ 23,
+                         day == "Mass_P28" ~ 28,
+                         day == "Mass_P35" ~ 35,
+                         day == "Mass_P42" ~ 42,
+                         day == "Mass_P49" ~ 49,
+                         day == "Mass_P56" ~ 56,
+                         day == "Mass_P63" ~ 63,
+                         day == "Mass_P70" ~ 70,
+                         day == "Mass_P71" ~ 71,
+                         day == "Mass_P72" ~ 72)
+  )
+
+Mass_summary = offspring_mass_long %>%
+  group_by(Treatment, day) %>%
+  summarize(mean = mean(Mass, na.rm = TRUE),
+            sd = sd(Mass, na.rm = TRUE),
+            n = n(),
+            sem = sd/sqrt(n))
+Mass_summary
+
+#depending on number trying to plot, can add "aes(shape = Mouse_ID)" to geom_point
+
+ggplot(offspring_mass_long, aes(PND, Mass, color = Treatment)) +
+  geom_point(alpha = .5, aes(shape = Strain), size = 2)+
+  stat_summary(fun.y = mean, geom = "line", linetype = "dotted", size = 1, aes(group = Treatment)) +
+  stat_summary(fun.y = mean, geom = "point",  shape = 18, size = 3, aes(group = Treatment)) +
+  stat_summary(geom = "errorbar", fun.data = mean_se, position = position_dodge(width = .4), size = .7, aes(group = Treatment))+
+  my_theme
+
+
+# PPS_bins = seq(21, 40, by = 1)
+# 
+# cum_freq_func_PPS = function(treatment){
+#   PPS = Offspring_maturation %>%
+#     filter(Sex == "M", Treatment == treatment) %>%
+#     select(PreputialSep_age)
+#   PPS = PPS$PreputialSep_age
+#   PPS_cut = cut(PPS, PPS_bins, right = FALSE)
+#   PPS_freq = table(PPS_cut)
+#   PPS_cumfreq = cumsum(PPS_freq)
+#   cbind(PPS_cumfreq)
+# }
+# 
+# PPS_CON_cum_freq = cum_freq_func_PPS("Control")
+# PPS_LBN_cum_freq = cum_freq_func_PPS("LBN")
+# 
+# PPS_cum_freq = cbind(PPS_CON_cumfreq, PPS_LBN_cum_freq)
+# 
+# PPS_cum_freq
+
+
+
+# PreputialSep = Offspring_maturation %>%
+#   filter(Sex == "M") %>%
+#   select(Mouse_ID, Treatment, Strain, PreputialSep_age) %>%
+#   mutate(PreputialSep_cut = cut(PreputialSep_age, PreputialSep_bins, right = FALSE))
+
+PreputialSep = Offspring_maturation %>%
+  filter(Sex == "M") %>%
+  select(Mouse_ID, Treatment, Dam_Strain, PreputialSep_age)
+
+VO = Offspring_maturation %>%
+  filter(Sex == "F") %>%
+  select(Mouse_ID, Treatment, Dam_Strain, VO_age)
+
+First_Estrus = Offspring_maturation %>%
+  filter(Sex == "F") %>%
+  select(Mouse_ID, Treatment, Dam_Strain, Estrus_age)
+```

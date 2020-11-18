@@ -1,0 +1,894 @@
+---
+title: "Keeping Track of LBN Tasks"
+output:
+  html_notebook: default
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+---
+
+```{r Load Packages, include=FALSE}
+library(tidyverse)
+library(readr)
+library(rlang)
+library(purrr)
+library(scales)
+library(knitr)
+#library(flextable) #error with data.table
+library(officer)
+library(GGally)
+library(dplyr)
+library(ggfortify)
+library(openxlsx)
+library(lubridate)
+
+
+```
+
+```{r Inputs for Tracking Output, echo=TRUE}
+#Change these
+StartDate = Sys.Date()
+numDays = 20
+```
+
+
+```{r Loading, include=FALSE}
+
+#Data File Name
+LBN_DataName = "LBN_Cohort2_data.xlsx"
+
+#Sheet Names
+DemoName_dam = "Demo_dam"
+DemoName_off = "Demo_off"
+MassName_off = "Mass_off"
+MaturationName_off = "Maturation_off"
+EndParaName_off = "EndParadigm_off"
+CyclesName_off = "Cycles_off"
+ChronicStressName_off = "ChronicStress_off"
+AcuteStressName_off = "AcuteStress_off"
+
+#Functions Script (ends in .R)
+FunctionsFileName = "LBN_functions_Fall2020.R"
+
+
+#Info about working directory and R Markdown: https://martinctc.github.io/blog/rstudio-projects-and-working-directories-a-beginner's-guide/#fn1
+#More info: https://bookdown.org/yihui/rmarkdown-cookbook/working-directory.html
+
+#Where R Notebook files are saved
+ScriptsFolder = file.path("Scripts")
+
+#Where Function files are saved
+FunctionsFolder = file.path(ScriptsFolder, "Functions")
+
+#Where data files are saved
+DataFolder = file.path("Data")
+
+#Where output should be saved
+OutputFolder = file.path("Output")
+#Where plot output should be saved
+PlotFolder = file.path(OutputFolder, "Plots")
+#Where data output should be saved
+DataOutFolder = file.path(OutputFolder, "Data")
+
+
+#Load the KNDy Functions
+source(file.path(FunctionsFolder, FunctionsFileName))
+
+# #Load datasets
+NameDemo_dam = "Demo_dam"
+NameDemo_off = "Demo_off"
+NameMass_off = "Mass_off"
+NameMaturation_off = "Maturation_off"
+NameEndPara_off = "EndParadigm_off"
+NameCycles_off = "Cycles_off"
+NameChronicStress_off = "ChronicStress_off"
+NameAcuteStress_off = "AcuteStress_off"
+
+Demo_off = myXLSX_func(DataFolder, LBN_DataName, NameDemo_off) #replaced Offspring_demo
+Mass_off = myXLSX_func(DataFolder, LBN_DataName, NameMass_off) #replaced Offspring_mass
+Demo_dam = myXLSX_func(DataFolder, LBN_DataName, NameDemo_dam) #replaced Dam_info
+Maturation_off = myXLSX_func(DataFolder, LBN_DataName, NameMaturation_off) #replaced Offspring_maturation
+EndPara_off = myXLSX_func(DataFolder, LBN_DataName, NameEndPara_off) #replaced Offspring_post_para
+AcuteStress_off = myXLSX_func(DataFolder, LBN_DataName, NameAcuteStress_off) #replaced Offspring_acute_stress
+ChronicStress_off = myXLSX_func(DataFolder, LBN_DataName, NameChronicStress_off) #replaced Offspring_chronic_stress
+
+```
+
+
+```{r Format Dates, include=FALSE}
+#Reformat dates into year-month-day
+#because detected when reading excel file, I think this isn't needed anymore
+# Demo_dam$Dam_DOB = format_dates(Demo_dam$Dam_DOB)
+# Demo_dam$Breed_date = format_dates(Demo_dam$Breed_date)
+# Demo_dam$Plug_date = format_dates(Demo_dam$Plug_date)
+# Demo_dam$DOB = format_dates(Demo_dam$DOB)
+# Demo_dam$Sac_or_stop = format_dates(Demo_dam$Sac_or_stop)
+# 
+# AcuteStress_off$Stress_date = format_dates(AcuteStress_off$Stress_date)
+# 
+# Maturation_off$Estrus_day = format_dates(Maturation_off$Estrus_day)
+# Maturation_off$VO_day = format_dates(Maturation_off$VO_day)
+# Maturation_off$PreputialSep_day = format_dates(Maturation_off$PreputialSep_day)
+
+Demo_dam$Dam_ID = as.character(Demo_dam$Dam_ID)
+Demo_off$Dam_ID = as.character(Demo_off$Dam_ID)
+Demo_dam
+
+AcuteStress_off$Mouse_ID = as.character(AcuteStress_off$Mouse_ID)
+ChronicStress_off$Mouse_ID = as.character(ChronicStress_off$Mouse_ID)
+Demo_off$Mouse_ID = as.character(Demo_off$Mouse_ID)
+Mass_off$Mouse_ID = as.character(Mass_off$Mouse_ID)
+Maturation_off$Mouse_ID = as.character(Maturation_off$Mouse_ID)
+EndPara_off$Mouse_ID = as.character(EndPara_off$Mouse_ID)
+
+```
+
+Demographic Information
+```{r Demographic Info, echo=FALSE}
+Demo_dam_for_offspring = Demo_dam %>%
+  select(Dam_ID, Dam_cage, Treatment, Dam_Strain, Sire, DOB, Avg_litter_mass_P2, Litter_size_P2, Litter_size_P9)
+
+Demo_off = Demo_off %>%
+  left_join(Demo_dam_for_offspring, by = "Dam_ID") %>%
+  select(Mouse_ID:Dam_ID, DOB, Wean_Cage_Number:Sire, Avg_litter_mass_P2:Litter_size_P9)
+Demo_off
+```
+
+
+```{r eval=FALSE, include=FALSE}
+Demo_dam
+AcuteStress_off
+ChronicStress_off
+Demo_off
+Mass_off
+Maturation_off
+EndPara_off
+```
+
+
+```{r Combine in One Dataframe, include=FALSE}
+#Combine all of the data into a single dataframe. Will add NAs where there isn't data
+#can add ,by = ... to tell what column to join on
+#not including dam info
+
+LBN_data = Demo_off %>%
+  full_join(AcuteStress_off) %>%
+  full_join(ChronicStress_off) %>%
+  full_join(Mass_off) %>%
+  full_join(Maturation_off) %>%
+  full_join(EndPara_off)
+
+LBN_data
+
+#If want to join only certain columns from one dataframe, use select() first
+
+```
+Dam Dates
+```{r Dam Dates, echo=FALSE}
+#Dam and Litter Dates
+
+dateToday = Sys.Date()
+
+Dam_dates = Demo_dam %>%
+  select(Dam_ID,
+         Breed_date,
+         Plug_date,
+         DOB,
+         Sac_or_stop)
+
+Dam_dates = Dam_dates %>%
+  mutate(
+    #plug check - true or false, based off of whether this is a plug date, DOB for litter, or sacrifice or stop marked
+    #when printing, will want to add a "is Day > breed_date"
+    plug_check = ifelse(
+      is.na(Plug_date) & is.na(DOB) & is.na(Sac_or_stop), 
+      TRUE, 
+      FALSE),
+    
+    #Check for pregnancy of dam
+    mass_check = Breed_date + 12 - 1, #will use this only if mass_G12 is NA, meaning Plug_date hasn't occured
+    mass_G12 = Plug_date + 12 - 1,
+    
+    #estimated birth dates
+    start_birth_check = Plug_date + 19 - 1,
+    est_birth_date = Plug_date + 21 - 1,
+    
+    #Mass of dam and pups on these days
+    mass_P2 = ifelse( # to-do will want to change to P4 for paradigm change. Determine if this is with DOB = P0 or P1
+      is.na(DOB), #if there isn't a DOB of the litter
+      Plug_date + 21 - 1 + 2, #estimate based on plug date
+      DOB + 2), #if there is a DOB, add 2
+    mass_P9 = DOB + 9, # to-do change to P11
+    mass_P21 = DOB + 21,
+    
+    #Mass of only pups on these days
+    mass_P9 = DOB + 9,
+    mass_P10 = DOB + 10,
+    mass_P11 = DOB + 11,
+    mass_P12 =  DOB + 12,
+    mass_P13 = DOB + 13,
+    mass_P15 = DOB + 15,
+    mass_P17 = DOB + 17,
+    mass_P19 = DOB + 19,
+    mass_P21 = DOB + 21,
+    
+    #paradigm dates
+    # to-do adjust these dates
+    
+    start_paradigm = DOB + 2,
+    end_paradigm = DOB + 9,
+    est_start_paradigm = Plug_date + 21 - 1 + 2,
+    end_recording = DOB + 4
+  )
+
+
+Dam_dates$mass_P2 = as_date(Dam_dates$mass_P2)
+
+Dam_dates
+
+```
+
+Offspring Dates
+```{r Offspring Dates, echo=FALSE}
+Off_dates = LBN_data %>%
+  select(Mouse_ID,
+         Sex,
+         DOB,
+         VO_day,
+         Estrus_day,
+         PreputialSep_day)%>%
+  mutate(
+    
+    #offspring mass dates
+    mass_P22 = DOB + 22,
+    mass_P23 = DOB + 23,
+    mass_P24 = DOB + 24,
+    mass_P28 = DOB + 28,
+    mass_P35 = DOB + 35,
+    mass_P42 = DOB + 42,
+    mass_P49 = DOB + 49,
+    mass_P56 = DOB + 56,
+    mass_P63 = DOB + 63,
+    mass_P70 = DOB + 70,
+    mass_P71 = DOB + 71,
+    mass_P72 = DOB + 72,
+    
+    #AGD Dates
+    start_AGD = DOB + 22,
+    end_AGD = DOB + 24,
+    adult_AGD_start = DOB + 70,
+    adult_AGD_end = DOB + 72,
+    
+    #Females
+    check_VO = ifelse(Sex == "F" & is.na(VO_day), DOB + 21, NA),
+    check_Estrus = ifelse(Sex == "F" & !is.na(VO_day) & is.na(Estrus_day), DOB + 21, NA),
+    start_cycle = ifelse(Sex == "F", DOB + 70, NA),
+    end_cycle = ifelse(Sex == "F", DOB + 90, NA),
+    
+    #Males
+    check_PPS = ifelse(Sex == "M" & is.na(PreputialSep_day), DOB + 21, NA)
+    
+  )
+
+#Because of the check of sex, it forces these into numerical rep of dates
+Off_dates$check_VO = as_date(Off_dates$check_VO)
+Off_dates$check_Estrus = as_date(Off_dates$check_Estrus)
+Off_dates$start_cycle = as_date(Off_dates$start_cycle)
+Off_dates$end_cycle = as_date(Off_dates$end_cycle)
+Off_dates$check_PPS = as_date(Off_dates$check_PPS)
+
+Off_dates
+
+```
+
+```{r to Excel File}
+datesWB = createWorkbook()
+
+writeToWorkbook("Dam Dates", Dam_dates, datesWB)
+writeToWorkbook("Offspring Dates", Off_dates, datesWB)
+Dam_dates
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 7:8,
+                      rows = 1:(length(Dam_dates$Dam_ID) + 1),
+                      rule = "== today()",
+                      style = createStyle(bgFill = "#C6EFCE"))
+
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 11:24,
+                      rows = 1:(length(Dam_dates$Dam_ID) + 1),
+                      rule = "== today()",
+                      style = createStyle(bgFill = "#C6EFCE"))
+
+#Format start_birth_check if greater than or after date, and no DOB
+conditionalFormatting(datesWB,
+                     "Dam Dates",
+                     cols = 9,
+                     rows = 2:(length(Dam_dates$Dam_ID) + 1),
+                     rule = "AND((isblank($D2)), NOT(isblank($I2)), today() >= $I2)",
+                     style = createStyle(bgFill = "#C6EFCE"))
+
+#If there's a DOB, make the dam name green
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 1,
+                      rows = 2:(length(Dam_dates$Dam_ID)+1),
+                      rule = "NOT(isblank($D2))",
+                      style = createStyle(bgFill = "#C6EFCE"))
+
+#if there's no DOB, but there's a plug date, make the dam name yellow
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 1,
+                      rows = 2:(length(Dam_dates$Dam_ID)+1),
+                      rule = "AND(isblank($D2), NOT(isblank($C2)))",
+                      style = createStyle(bgFill = "#ffff00"))
+
+#if there's no plug date or DOB, make the dam name red
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 1,
+                      rows = 2:(length(Dam_dates$Dam_ID)+1),
+                      rule = "AND(isblank($D2), isblank($C2))",
+                      style = createStyle(bgFill = "#FFC7CE"))
+
+#if plug check is true
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 6,
+                      rows = 2:(length(Dam_dates$Dam_ID)+1),
+                      rule = "F2 == TRUE",
+                      style = createStyle(bgFill = "#C6EFCE"))
+
+#if check_VO, check_Estrus, check_PPS day has past
+conditionalFormatting(datesWB,
+                      "Offspring Dates",
+                      cols = 23:24,
+                      rows = 2:(length(Off_dates$Mouse_ID)+1),
+                      rule = "AND(NOT(isblank(W2)), today() >= W2)",
+                      style = createStyle(bgFill = "#C6EFCE"))
+conditionalFormatting(datesWB,
+                      "Offspring Dates",
+                      cols = 27,
+                      rows = 2:(length(Off_dates$Mouse_ID)+1),
+                      rule = "AND(NOT(isblank(W2)), today() >= W2)",
+                      style = createStyle(bgFill = "#C6EFCE"))
+
+#if start AGD < end AGD
+
+#if mass dates
+
+
+
+
+saveWorkbook(datesWB, file.path("Output", "Data", "datesWB.xlsx"), overwrite = TRUE)
+
+
+```
+
+
+```{r NEW NEW Tracking, results = 'asis', echo = FALSE}
+Day0 <- as.Date(StartDate)
+days = c(0:numDays) #how many days to print
+for(day in days){
+  Day = Day0 + day
+  #Print the Day
+  cat(paste0("**On ", Day, "** \n\n"))
+  
+  Count <- 0
+  
+  #Plug check
+  for(val in Dam_seq()){
+    if(Dam_dates$plug_check[val] == TRUE & 
+       Dam_day_greater(Day, "Breed_date", val)){
+      Dam_tasks("Check for plugs from the following mice", val)
+    }
+  }
+  
+  printLine_func(Count)
+  
+  #Check for pregnancy (breed date)
+  for(val in Dam_seq()){
+    if(Dam_is.na("mass_G12", val) & 
+       sac_stop(val) & 
+       Dam_not.na("mass_check", val) & 
+       Dam_day_equals(Day, "mass_check", val)
+       ){
+      Dam_tasks("Check for pregnancy and/or separate the following mice (by breed date)", val)
+    }
+  }
+  
+  printLine_func(Count)
+  
+  #Check for pregnancy (plug date)
+  for(val in Dam_seq()){
+    if(
+      sac_stop(val) &
+      Dam_not.na("mass_G12", val) &
+      Dam_day_equals(Day, "mass_G12", val)
+      ){
+      Dam_tasks("Check for pregnancy and/or separate the following mice (by plug date)", val)
+    }
+  }
+  
+  printLine_func(Count)
+  
+  #Watch for births
+  for(val in Dam_seq()){
+    if(Dam_is.na("DOB", val) & #if there is not a DOB yet
+       sac_stop(val) &
+       Dam_not.na("start_birth_check", val) &
+       Dam_day_greater(Day, "start_birth_check", val)
+      ){
+      Dam_tasks("Watch for births from the following dams", val)
+    }
+  }
+  
+  printLine_func(Count)
+  
+  #Set up LBN
+  for(val in Dam_seq()){
+    if(Dam_not.na("start_paradigm", val) &
+       Dam_day_equals(Day, "start_paradigm", val)
+    ){
+      Dam_tasks("Set up the LBN paradigm (and take masses) for the following litter(s) (known births)",
+                val)
+       }
+  else{
+       if(
+         sac_stop(val) &
+         Dam_not.na("est_start_paradigm", val) &
+          Dam_day_equals(Day, "est_start_paradigm", val)
+       ){
+         Dam_tasks("Set up the LBN paradigm (and take masses) for the following litter(s) (predicted births)",
+                   val)
+       }
+     }
+  }
+  
+  printLine_func(Count)
+  
+  #End LBN
+  for(val in Dam_seq()){
+    if(Dam_not.na("end_paradigm", val) &
+       sac_stop(val) &
+       Dam_day_equals(Day, "end_paradigm", val)
+    ){
+      Dam_tasks("End the LBN paradigm, tag, and take masses for the following mice", val)
+       }
+  }
+  
+  printLine_func(Count)
+  
+  #Take dam mass
+  for(val in Dam_seq()){
+    if(Dam_not.na("mass_P2", val) &
+       sac_stop(val) &
+       Dam_day_equals(Day, "mass_P2", val)
+    ){
+      Dam_tasks("Take the mass of the following dams", val)
+    }
+    
+    if(Dam_not.na("mass_P9", val) &
+       sac_stop(val) &
+       Dam_day_equals(Day, "mass_P9", val)
+    ){
+      Dam_tasks("Take the mass of the following dams", val)
+    }
+    
+    if(Dam_not.na("mass_P21", val) &
+       sac_stop(val) &
+       Dam_day_equals(Day, "mass_P21", val)
+    ){
+      Dam_tasks("Take the mass of the following dams", val)
+    }
+  
+  }
+  
+  printLine_func(Count)
+  
+  #Wean cages
+  for(val in Dam_seq()){
+    if(Dam_not.na("mass_P21", val) &
+       sac_stop(val) &
+       Dam_day_equals(Day, "mass_P21", val)
+    ){
+      Dam_tasks("Wean the following cages", val)
+       }
+  }
+  
+  printLine_func(Count)
+  
+  #Offspring Mass
+  #Filter df for only rows that have the Day in any column
+  mass_on_date_litter = Dam_dates %>%
+    filter(is.na(Sac_or_stop)) %>%
+    select(Dam_ID, mass_P10:mass_P19) %>%
+    filter_all(any_vars(. %in% Day))
+  if(nrow(mass_on_date_litter) > 0){ #only print if there are values in df
+    cat("*Take the mass of the following litters:* \n\n")
+    cat(paste0("+ ", mass_on_date_litter$Dam_ID, "\n\n"))
+  }
+  if(nrow(mass_on_date_litter) > 0){cat("\n")}
+  
+  #Filter df for only rows that have the Day in any column
+  #https://dplyr.tidyverse.org/articles/colwise.html - new is across, but no replacement for any_vars()
+  mass_on_date = Off_dates %>%
+    select(Mouse_ID, mass_P22:mass_P72) %>%
+    filter_all(any_vars(. %in% Day))
+  if(nrow(mass_on_date) > 0){ #only print if there are values in df
+    cat("*Take the mass of the following offspring:* \n\n")
+    cat(paste0("+ ", mass_on_date$Mouse_ID, "\n\n"))
+  }
+  if(nrow(mass_on_date) > 0){cat("\n")}
+  
+  
+  #AGD
+  for(val in Off_seq()){
+    if(Off_not.na("start_AGD", val) &
+       Off_day_greater(Day, "start_AGD", val) &
+       Off_day_less(Day, "end_AGD", val)
+    ){
+      Off_tasks("Take the ano-genital distance of the following mice", val)
+    }
+    if(Off_not.na("adult_AGD_start", val) &
+       Off_day_greater(Day, "adult_AGD_start", val) &
+       Off_day_less(Day, "adult_AGD_end", val)
+    ){
+      Off_tasks("Take the ano-genital distance of the following mice", val)
+       }
+  }
+  
+  printLine_func(Count)
+  
+  #VO
+  for(val in Off_seq()){
+    if(
+      Off_not.na("check_VO", val) &
+      Off_day_greater(Day, "check_VO", val)
+    ){
+      Off_tasks("Check for vaginal opening of the following mice", val)
+    }
+  }
+  
+  printLine_func(Count)
+  
+  #estrus
+  for(val in Off_seq()){  
+    if(
+      Off_not.na("check_Estrus", val) &
+      Off_day_greater(Day, "check_Estrus", val)
+    ){
+      Off_tasks("Check for estrus for the following mice", val)
+    }
+  }
+    
+  printLine_func(Count)
+  
+  #preputial separation
+  for(val in Off_seq()){
+    if(
+      Off_not.na("check_PPS", val) &
+      Off_day_greater(Day, "check_PPS", val)
+    ){
+      Off_tasks("Check for preputial separation for the following mice", val)
+    }
+  }
+  
+  printLine_func(Count)
+
+  #cycle
+  for(val in Off_seq()){
+    if(
+      Off_not.na("start_cycle", val) &
+      Off_day_greater(Day, "start_cycle", val) &
+      Off_day_less(Day, "end_cycle", val)
+    ){
+      Off_tasks("Cycle the following mice", val)
+    }
+  }
+  
+  printLine_func(Count)
+  cat("\n")
+}
+
+
+```
+
+
+```{r Tracking Tasks, eval=FALSE, include=FALSE, results='asis'}
+today = Sys.Date()
+#today = as.Date("2020-03-19")
+days = c(0:60) #how many days to print
+for(day in days){
+  Day = today + day
+  #Print the Day
+  cat(paste0("**On ", Day, "** \n\n"))
+  
+  Count = 0
+  for(val in seq_along(plug_check_dates$Dam_ID)){
+    if(is.na(plug_check_dates$Plug_date[val])){
+      if(is.na(plug_check_dates$DOB[val])){
+        if(is.na(plug_check_dates$Sac_or_stop[val])){
+        if(Day > plug_check_dates$Breed_date[val]){
+          if(Count == 0){
+            cat("*Check for plugs from the following mice:* \n\n")
+            Count = 1
+          }
+          cat(paste0("+ ", plug_check_dates$Dam_ID[val], "\n\n"))
+    }}}}
+  }
+  if(Count == 1){cat("\n")}
+  
+  Count = 0
+  #Dams
+  for(val in seq_along(dam_mass_dates$Dam_ID)){
+    if(!is.na(dam_mass_dates$mass_check[val])){
+      if(is.na(dam_mass_dates$Sac_or_stop[val])){
+      if(Day == dam_mass_dates$mass_check[val]){
+        if(Count == 0){
+          cat("*Check for pregnancy and/or separate the following mice:* \n 12 days after breeding \n\n")
+          Count = 1 
+        }
+        cat(paste0("+ ", dam_mass_dates$Dam_ID[val], "\n\n"))
+      }
+    }}
+  }
+  if(Count == 1){cat("\n")}
+  
+  Count2 = 0
+  for(val in seq_along(dam_mass_dates$Dam_ID)){
+    if(!is.na(dam_mass_dates$mass_G12[val])){
+      if(Day == dam_mass_dates$mass_G12[val]){
+        if(Count == 0){
+          cat("*Check for pregnancy and/or separate the following mice:* \n\n")
+          Count = 1
+        }
+        if(Count2 == 0){
+          cat("12 days after plug \n\n")
+          Count2 = 1
+        }
+        cat(paste0("+ ", dam_mass_dates$Dam_ID[val], "\n\n"))
+      }
+    }
+  }
+  if(Count == 1){cat("\n")}
+  
+  Count = 0
+  for(val in seq_along(est_birth_dates$Dam_ID)){
+    if(!is.na(est_birth_dates$start_birth_check[val])){
+      if(is.na(est_birth_dates$Sac_or_stop[val])){
+      if(Day >= est_birth_dates$start_birth_check[val] & is.na(est_birth_dates$DOB[val])){
+        if(Count == 0){
+          cat("*Watch for births from the following dams:* \n\n")
+          Count = 1
+        }
+      cat(paste0("+ ", est_birth_dates$Dam_ID[val], "\n\n"))
+    }
+  }}}
+  if(Count == 1){cat("\n")}
+  
+  
+  #Paradigm set-up 
+  Count = 0
+  Count2 = 0
+  for(val in seq_along(paradigm_dates$Dam_ID)){
+    if(!is.na(paradigm_dates$start_paradigm[val])){
+    if(Day == paradigm_dates$start_paradigm[val]){
+      if(Count == 0){
+        cat("*Set up the LBN paradigm (and take masses) for the following litter(s):* \n\n")
+        cat("known births \n\n")
+        Count = 1
+      }
+      cat(paste0("+ ", paradigm_dates$Dam_ID[val], "\n\n"))
+    }} else{
+      if(!is.na(paradigm_dates$est_start_paradigm[val])){
+      if(Day == paradigm_dates$est_start_paradigm[val]){
+        if(Count == 0){
+          cat("*Set up the LBN paradigm (and take masses) for the following litter(s):* \n\n")
+          Count = 1
+        }
+        if(Count2 == 0){
+          cat("predicted births \n\n")
+          Count2 = 1
+        }
+      cat(paste0("+ ", paradigm_dates$Dam_ID[val], "\n\n"))
+    }}
+    }
+    }
+  
+  #incorporated above so that it doesn't print estimated dates for mice that have dates of birth
+  # Count2 = 0
+  # for(val in seq_along(est_birth_dates$Dam_ID)){
+  #   if(!is.na(est_birth_dates$est_birth_date[val])){
+  #     if(Day == est_birth_dates$est_birth_date[val] + 2){
+  #       if(Count == 0){
+  #         cat("*Set up the LBN paradigm (and take masses) for the following litter(s):* \n\n")
+  #         Count = 1
+  #       }
+  #       if(Count2 == 0){
+  #         cat("predicted births \n\n")
+  #         Count2 = 1
+  #       }
+  #     cat(paste0("+ ", est_birth_dates$Dam_ID[val], "\n\n"))
+  #   }}
+  # }
+  # if(Count == 1){cat("\n")}
+  
+  Count = 0
+  #Paradigm end
+  for(val in seq_along(paradigm_dates$Dam_ID)){
+    if(!is.na(paradigm_dates$end_paradigm[val])){
+      if(is.na(paradigm_dates$Sac_or_stop[val])){
+        if(Day == paradigm_dates$end_paradigm[val]){
+          if(Count == 0){
+            cat("*End the LBN paradigm, tag, and take masses for the following mice:* \n\n")
+            Count = 1
+          }
+        cat(paste0("+ ", paradigm_dates$Dam_ID[val], "\n\n"))
+    }}}
+  }
+  if(Count == 1){cat("\n")}
+ 
+  #Dam Mass
+  Count = 0
+  for(val in seq_along(dam_mass_dates$Dam_ID)){
+    if(!is.na(dam_mass_dates$mass_P2[val])){
+      if(Day == dam_mass_dates$mass_P2[val]){
+        if(Count == 0){
+          cat("*Take the mass of the following dams* \n\n")
+          Count = 1
+        }
+        cat(paste0("+ ", dam_mass_dates$Dam_ID[val], "\n\n"))
+      }}
+    if(!is.na(dam_mass_dates$mass_P9[val])){
+      if(is.na(dam_mass_dates$Sac_or_stop[val])){
+        if(Day == dam_mass_dates$mass_P9[val]){
+          if(Count == 0){
+            cat("*Take the mass of the following dams* \n\n")
+            Count = 1
+          }
+          cat(paste0("+ ", dam_mass_dates$Dam_ID[val], "\n\n"))
+      }}}
+    if(!is.na(dam_mass_dates$mass_P21[val])){
+      if(is.na(dam_mass_dates$Sac_or_stop[val])){
+        if(Day == dam_mass_dates$mass_P21[val]){
+          if(Count == 0){
+            cat("*Take the mass of the following dams* \n\n")
+            Count = 1
+          }
+          cat(paste0("+ ", dam_mass_dates$Dam_ID[val], "\n\n"))
+      }}}
+    }
+  
+  if(Count == 1){cat("\n")}
+  
+   
+  Count = 0
+  #Wean
+  for(val in seq_along(dam_mass_dates$Dam_ID)){
+    if(!is.na(dam_mass_dates$mass_P21[val])){
+      if(is.na(dam_mass_dates$Sac_or_stop[val])){
+        if(Day == dam_mass_dates$mass_P21[val]){
+          if(Count == 0){
+            cat("*Wean the following cages:* \n\n")
+            Count = 1
+          }
+          cat(paste0("+ ", dam_mass_dates$Dam_ID[val], "\n\n"))
+        }
+    }}
+  }
+  if(Count == 1){cat("\n")}
+  
+  #Offspring Mass
+  #Filter df for only rows that have the Day in any column
+  mass_on_date_litter = mass_dates_litter %>%
+    filter(is.na(Sac_or_stop)) %>%
+    select(-DOB) %>%
+    filter_all(any_vars(. %in% Day))
+  if(nrow(mass_on_date_litter) > 0){ #only print if there are values in df
+    cat("*Take the mass of the following litters:* \n\n")
+    cat(paste0("+ ", mass_on_date_litter$Dam_ID, "\n\n"))
+  }
+  if(nrow(mass_on_date_litter) > 0){cat("\n")}
+ 
+  
+  #Filter df for only rows that have the Day in any column
+  mass_on_date = mass_dates %>%
+    select(-DOB) %>%
+    filter_all(any_vars(. %in% Day))
+  if(nrow(mass_on_date) > 0){ #only print if there are values in df
+    cat("*Take the mass of the following offspring:* \n\n")
+    cat(paste0("+ ", mass_on_date$Mouse_ID, "\n\n"))
+  }
+  if(nrow(mass_on_date) > 0){cat("\n")}
+
+  
+  Count = 0
+  #AGD
+  #1/23/20 had to add is is not na, not sure why it started throwing an error tonight. Should double-check - was based on not having linking dam id in csv. Shouldn't be necessary generally, but will leave it in
+  for(val in seq_along(AGD_dates$Mouse_ID)){
+    if(!is.na(AGD_dates$start_AGD[val])){
+    if(Day >= AGD_dates$start_AGD[val] & Day <= AGD_dates$end_AGD[val]){
+      if(Count == 0){
+        cat("*Take the ano-genital distance of the following mice:* \n\n")
+        Count = 1
+      }
+      cat(paste0("+ ", AGD_dates$Mouse_ID[val], "\n\n"))
+    }}
+    if(!is.na(AGD_dates$adult_AGD_start[val])){
+    if(Day >= AGD_dates$adult_AGD_start[val] & Day <= AGD_dates$adult_AGD_end[val]){
+      if(Count == 0){
+        cat("*Take the ano-genital distance of the following mice:* \n\n")
+        Count = 1
+      }
+      cat(paste0("+ ", AGD_dates$Mouse_ID[val]), "\n\n")
+    }}
+  }
+  if(Count == 1){cat("\n")}
+  
+  
+  Count = 0
+  #Female Maturation
+  
+  for(val in seq_along(female_maturation_dates$Mouse_ID)){
+    if(Day >= female_maturation_dates$start_check[val] & is.na(female_maturation_dates$VO_day[val])){
+      if(Count == 0){
+        cat("*Check for vaginal opening of the following mice:* \n\n")
+        Count = 1
+      }
+        cat(paste0("+ ", female_maturation_dates$Mouse_ID[val], "\n\n"))
+    } 
+  }
+  if(Count == 1 ){cat("\n")}
+    
+ Count = 0
+ for(val in seq_along(female_maturation_dates$Mouse_ID)){
+    if(!is.na(female_maturation_dates$VO_day[val]) & is.na(female_maturation_dates$Estrus_day[val])){
+      if(Count == 0){
+        cat("*Check for first estrus (and record mass) of the following mice:* \n\n")
+        Count = 1
+      }
+        cat(paste0("+ ", female_maturation_dates$Mouse_ID[val], "\n\n"))
+    }
+ }
+   
+if(Count == 1 ){cat("\n")}
+  
+  Count = 0
+  #Male Maturation
+  
+  for(val in seq_along(male_maturation_dates$Mouse_ID)){
+    if(Day >= male_maturation_dates$start_check[val] & is.na(male_maturation_dates$PreputialSep_day[val])){
+      if(Count == 0){
+        cat("*Check for preputial separation in the following mice:* \n\n")
+        Count = 1
+      }
+      cat(paste0("+ ", male_maturation_dates$Mouse_ID[val], "\n\n"))
+    }
+  }
+  if(Count == 1){cat("\n")}
+  
+  Count = 0
+  #Mice to cycle
+  #Find the mouse for which the day is between the start and end dates for cycling
+  for(val in seq_along(female_cycle_dates$Mouse_ID)){
+    if(Day >= female_cycle_dates$start_cycle[val] & Day <= female_cycle_dates$end_cycle[val]){
+      if(Count == 0){
+        cat("*Cycle the following mice:* \n\n")
+        Count = 1
+      }
+      cat(paste0("+ ", female_cycle_dates$Mouse_ID[val], "\n\n"))
+    }
+  }
+  if(Count == 1){cat("\n")}
+  cat("\n")
+  
+  
+}
+
+```
+
+
