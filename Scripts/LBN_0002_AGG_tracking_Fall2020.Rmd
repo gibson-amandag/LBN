@@ -28,70 +28,72 @@ library(lubridate)
 
 ```{r Inputs for Tracking Output, echo=TRUE}
 #Change these
-StartDate = Sys.Date()
-numDays = 20
+StartDate <- Sys.Date()
+numDays <- 20
 ```
 
 
 ```{r Loading, include=FALSE}
 
 #Data File Name
-LBN_DataName = "LBN_Cohort2_data.xlsx"
+LBN_DataName <- "LBN_Cohort2_data.xlsx"
 
 #Sheet Names
-DemoName_dam = "Demo_dam"
-DemoName_off = "Demo_off"
-MassName_off = "Mass_off"
-MaturationName_off = "Maturation_off"
-EndParaName_off = "EndParadigm_off"
-CyclesName_off = "Cycles_off"
-ChronicStressName_off = "ChronicStress_off"
-AcuteStressName_off = "AcuteStress_off"
+DemoName_dam <- "Demo_dam"
+DemoName_off <- "Demo_off"
+MassName_off <- "Mass_off"
+MaturationName_off <- "Maturation_off"
+EndParaName_off <- "EndParadigm_off"
+CyclesName_off <- "Cycles_off"
+ChronicStressName_off <- "ChronicStress_off"
+AcuteStressName_off <- "AcuteStress_off"
 
 #Functions Script (ends in .R)
-FunctionsFileName = "LBN_functions_Fall2020.R"
+FunctionsFileName <- "LBN_0002_AGG_functions_Fall2020.R"
 
 
 #Info about working directory and R Markdown: https://martinctc.github.io/blog/rstudio-projects-and-working-directories-a-beginner's-guide/#fn1
 #More info: https://bookdown.org/yihui/rmarkdown-cookbook/working-directory.html
 
 #Where R Notebook files are saved
-ScriptsFolder = file.path("Scripts")
+ScriptsFolder <- file.path("Scripts")
 
 #Where Function files are saved
-FunctionsFolder = file.path(ScriptsFolder, "Functions")
+FunctionsFolder <- file.path(ScriptsFolder, "Functions")
 
 #Where data files are saved
-DataFolder = file.path("Data")
+DataFolder <- file.path("Data")
 
 #Where output should be saved
-OutputFolder = file.path("Output")
+OutputFolder <- file.path("Output")
+
 #Where plot output should be saved
-PlotFolder = file.path(OutputFolder, "Plots")
+PlotFolder <- file.path(OutputFolder, "Plots")
+
 #Where data output should be saved
-DataOutFolder = file.path(OutputFolder, "Data")
+DataOutFolder <- file.path(OutputFolder, "Data")
 
 
 #Load the KNDy Functions
 source(file.path(FunctionsFolder, FunctionsFileName))
 
 # #Load datasets
-NameDemo_dam = "Demo_dam"
-NameDemo_off = "Demo_off"
-NameMass_off = "Mass_off"
-NameMaturation_off = "Maturation_off"
-NameEndPara_off = "EndParadigm_off"
-NameCycles_off = "Cycles_off"
-NameChronicStress_off = "ChronicStress_off"
-NameAcuteStress_off = "AcuteStress_off"
+NameDemo_dam <- "Demo_dam"
+NameDemo_off <- "Demo_off"
+NameMass_off <- "Mass_off"
+NameMaturation_off <- "Maturation_off"
+NameEndPara_off <- "EndParadigm_off"
+NameCycles_off <- "Cycles_off"
+NameChronicStress_off <- "ChronicStress_off"
+NameAcuteStress_off <- "AcuteStress_off"
 
-Demo_off = myXLSX_func(DataFolder, LBN_DataName, NameDemo_off) #replaced Offspring_demo
-Mass_off = myXLSX_func(DataFolder, LBN_DataName, NameMass_off) #replaced Offspring_mass
-Demo_dam = myXLSX_func(DataFolder, LBN_DataName, NameDemo_dam) #replaced Dam_info
-Maturation_off = myXLSX_func(DataFolder, LBN_DataName, NameMaturation_off) #replaced Offspring_maturation
-EndPara_off = myXLSX_func(DataFolder, LBN_DataName, NameEndPara_off) #replaced Offspring_post_para
-AcuteStress_off = myXLSX_func(DataFolder, LBN_DataName, NameAcuteStress_off) #replaced Offspring_acute_stress
-ChronicStress_off = myXLSX_func(DataFolder, LBN_DataName, NameChronicStress_off) #replaced Offspring_chronic_stress
+Demo_off <- myXLSX_func(DataFolder, LBN_DataName, NameDemo_off) #replaced Offspring_demo
+Mass_off <- myXLSX_func(DataFolder, LBN_DataName, NameMass_off) #replaced Offspring_mass
+Demo_dam <- myXLSX_func(DataFolder, LBN_DataName, NameDemo_dam) #replaced Dam_info
+Maturation_off <- myXLSX_func(DataFolder, LBN_DataName, NameMaturation_off) #replaced Offspring_maturation
+EndPara_off <- myXLSX_func(DataFolder, LBN_DataName, NameEndPara_off) #replaced Offspring_post_para
+AcuteStress_off <- myXLSX_func(DataFolder, LBN_DataName, NameAcuteStress_off) #replaced Offspring_acute_stress
+ChronicStress_off <- myXLSX_func(DataFolder, LBN_DataName, NameChronicStress_off) #replaced Offspring_chronic_stress
 
 ```
 
@@ -99,37 +101,37 @@ ChronicStress_off = myXLSX_func(DataFolder, LBN_DataName, NameChronicStress_off)
 ```{r Format Dates, include=FALSE}
 #Reformat dates into year-month-day
 #because detected when reading excel file, I think this isn't needed anymore
-# Demo_dam$Dam_DOB = format_dates(Demo_dam$Dam_DOB)
-# Demo_dam$Breed_date = format_dates(Demo_dam$Breed_date)
-# Demo_dam$Plug_date = format_dates(Demo_dam$Plug_date)
-# Demo_dam$DOB = format_dates(Demo_dam$DOB)
-# Demo_dam$Sac_or_stop = format_dates(Demo_dam$Sac_or_stop)
+# Demo_dam$Dam_DOB <- format_dates(Demo_dam$Dam_DOB)
+# Demo_dam$Breed_date <- format_dates(Demo_dam$Breed_date)
+# Demo_dam$Plug_date <- format_dates(Demo_dam$Plug_date)
+# Demo_dam$DOB <- format_dates(Demo_dam$DOB)
+# Demo_dam$Sac_or_stop <- format_dates(Demo_dam$Sac_or_stop)
 # 
-# AcuteStress_off$Stress_date = format_dates(AcuteStress_off$Stress_date)
+# AcuteStress_off$Stress_date <- format_dates(AcuteStress_off$Stress_date)
 # 
-# Maturation_off$Estrus_day = format_dates(Maturation_off$Estrus_day)
-# Maturation_off$VO_day = format_dates(Maturation_off$VO_day)
-# Maturation_off$PreputialSep_day = format_dates(Maturation_off$PreputialSep_day)
+# Maturation_off$Estrus_day <- format_dates(Maturation_off$Estrus_day)
+# Maturation_off$VO_day <- format_dates(Maturation_off$VO_day)
+# Maturation_off$PreputialSep_day <- format_dates(Maturation_off$PreputialSep_day)
 
-Demo_dam$Dam_ID = as.character(Demo_dam$Dam_ID)
-Demo_off$Dam_ID = as.character(Demo_off$Dam_ID)
+Demo_dam$Dam_ID <- as.character(Demo_dam$Dam_ID)
+Demo_off$Dam_ID <- as.character(Demo_off$Dam_ID)
 Demo_dam
 
-AcuteStress_off$Mouse_ID = as.character(AcuteStress_off$Mouse_ID)
-ChronicStress_off$Mouse_ID = as.character(ChronicStress_off$Mouse_ID)
-Demo_off$Mouse_ID = as.character(Demo_off$Mouse_ID)
-Mass_off$Mouse_ID = as.character(Mass_off$Mouse_ID)
-Maturation_off$Mouse_ID = as.character(Maturation_off$Mouse_ID)
-EndPara_off$Mouse_ID = as.character(EndPara_off$Mouse_ID)
+AcuteStress_off$Mouse_ID <- as.character(AcuteStress_off$Mouse_ID)
+ChronicStress_off$Mouse_ID <- as.character(ChronicStress_off$Mouse_ID)
+Demo_off$Mouse_ID <- as.character(Demo_off$Mouse_ID)
+Mass_off$Mouse_ID <- as.character(Mass_off$Mouse_ID)
+Maturation_off$Mouse_ID <- as.character(Maturation_off$Mouse_ID)
+EndPara_off$Mouse_ID <- as.character(EndPara_off$Mouse_ID)
 
 ```
 
 Demographic Information
 ```{r Demographic Info, echo=FALSE}
-Demo_dam_for_offspring = Demo_dam %>%
+Demo_dam_for_offspring <- Demo_dam %>%
   select(Dam_ID, Dam_cage, Treatment, Dam_Strain, Sire, DOB, Avg_litter_mass_P2, Litter_size_P2, Litter_size_P9)
 
-Demo_off = Demo_off %>%
+Demo_off <- Demo_off %>%
   left_join(Demo_dam_for_offspring, by = "Dam_ID") %>%
   select(Mouse_ID:Dam_ID, DOB, Wean_Cage_Number:Sire, Avg_litter_mass_P2:Litter_size_P9)
 Demo_off
@@ -152,7 +154,7 @@ EndPara_off
 #can add ,by = ... to tell what column to join on
 #not including dam info
 
-LBN_data = Demo_off %>%
+LBN_data <- Demo_off %>%
   full_join(AcuteStress_off) %>%
   full_join(ChronicStress_off) %>%
   full_join(Mass_off) %>%
@@ -168,16 +170,16 @@ Dam Dates
 ```{r Dam Dates, echo=FALSE}
 #Dam and Litter Dates
 
-dateToday = Sys.Date()
+dateToday <- Sys.Date()
 
-Dam_dates = Demo_dam %>%
+Dam_dates <- Demo_dam %>%
   select(Dam_ID,
          Breed_date,
          Plug_date,
          DOB,
          Sac_or_stop)
 
-Dam_dates = Dam_dates %>%
+Dam_dates <- Dam_dates %>%
   mutate(
     #plug check - true or false, based off of whether this is a plug date, DOB for litter, or sacrifice or stop marked
     #when printing, will want to add a "is Day > breed_date"
@@ -223,7 +225,7 @@ Dam_dates = Dam_dates %>%
   )
 
 
-Dam_dates$mass_P2 = as_date(Dam_dates$mass_P2)
+Dam_dates$mass_P2 <- as_date(Dam_dates$mass_P2)
 
 Dam_dates
 
@@ -231,7 +233,7 @@ Dam_dates
 
 Offspring Dates
 ```{r Offspring Dates, echo=FALSE}
-Off_dates = LBN_data %>%
+Off_dates <- LBN_data %>%
   select(Mouse_ID,
          Sex,
          DOB,
@@ -272,18 +274,18 @@ Off_dates = LBN_data %>%
   )
 
 #Because of the check of sex, it forces these into numerical rep of dates
-Off_dates$check_VO = as_date(Off_dates$check_VO)
-Off_dates$check_Estrus = as_date(Off_dates$check_Estrus)
-Off_dates$start_cycle = as_date(Off_dates$start_cycle)
-Off_dates$end_cycle = as_date(Off_dates$end_cycle)
-Off_dates$check_PPS = as_date(Off_dates$check_PPS)
+Off_dates$check_VO <- as_date(Off_dates$check_VO)
+Off_dates$check_Estrus <- as_date(Off_dates$check_Estrus)
+Off_dates$start_cycle <- as_date(Off_dates$start_cycle)
+Off_dates$end_cycle <- as_date(Off_dates$end_cycle)
+Off_dates$check_PPS <- as_date(Off_dates$check_PPS)
 
 Off_dates
 
 ```
 
 ```{r to Excel File}
-datesWB = createWorkbook()
+datesWB <- createWorkbook()
 
 writeToWorkbook("Dam Dates", Dam_dates, datesWB)
 writeToWorkbook("Offspring Dates", Off_dates, datesWB)
@@ -371,9 +373,9 @@ saveWorkbook(datesWB, file.path("Output", "Data", "datesWB.xlsx"), overwrite = T
 
 ```{r NEW NEW Tracking, results = 'asis', echo = FALSE}
 Day0 <- as.Date(StartDate)
-days = c(0:numDays) #how many days to print
+days <- c(0:numDays) #how many days to print
 for(day in days){
-  Day = Day0 + day
+  Day <- Day0 + day
   #Print the Day
   cat(paste0("**On ", Day, "** \n\n"))
   
@@ -503,7 +505,7 @@ for(day in days){
   
   #Offspring Mass
   #Filter df for only rows that have the Day in any column
-  mass_on_date_litter = Dam_dates %>%
+  mass_on_date_litter <- Dam_dates %>%
     filter(is.na(Sac_or_stop)) %>%
     select(Dam_ID, mass_P10:mass_P19) %>%
     filter_all(any_vars(. %in% Day))
@@ -515,7 +517,7 @@ for(day in days){
   
   #Filter df for only rows that have the Day in any column
   #https://dplyr.tidyverse.org/articles/colwise.html - new is across, but no replacement for any_vars()
-  mass_on_date = Off_dates %>%
+  mass_on_date <- Off_dates %>%
     select(Mouse_ID, mass_P22:mass_P72) %>%
     filter_all(any_vars(. %in% Day))
   if(nrow(mass_on_date) > 0){ #only print if there are values in df
