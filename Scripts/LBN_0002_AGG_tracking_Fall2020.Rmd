@@ -8,7 +8,7 @@ output:
   word_document: default
 ---
 
-```{r Load Packages, include=FALSE}
+```{r Load-Packages, include=FALSE}
 library(tidyverse)
 library(readr)
 library(rlang)
@@ -26,7 +26,7 @@ library(lubridate)
 
 ```
 
-```{r Inputs for Tracking Output, echo=TRUE}
+```{r Inputs-for-Tracking-Output, echo=TRUE}
 #Change these
 StartDate <- Sys.Date()
 numDays <- 20
@@ -97,7 +97,7 @@ ChronicStress_off <- myXLSX_func(DataFolder, LBN_DataName, NameChronicStress_off
 ```
 
 
-```{r Format Dates, include=FALSE}
+```{r Format-Dates, include=FALSE}
 #Reformat dates into year-month-day
 #because detected when reading excel file, I think this isn't needed anymore
 # Demo_dam$Dam_DOB <- format_dates(Demo_dam$Dam_DOB)
@@ -126,7 +126,7 @@ EndPara_off$Mouse_ID <- as.character(EndPara_off$Mouse_ID)
 ```
 
 Demographic Information
-```{r Demographic Info, echo=FALSE}
+```{r Demographic-Info, echo=FALSE}
 Demo_dam_for_offspring <- Demo_dam %>%
   select(Dam_ID, Dam_cage, Treatment, Dam_Strain, Sire, DOB, Avg_litter_mass_P2, Litter_size_P2, Litter_size_P9)
 
@@ -148,7 +148,7 @@ EndPara_off
 ```
 
 
-```{r Combine in One Dataframe, include=FALSE}
+```{r One-DataFrame, include=FALSE}
 #Combine all of the data into a single dataframe. Will add NAs where there isn't data
 #can add ,by = ... to tell what column to join on
 #not including dam info
@@ -166,7 +166,7 @@ LBN_data
 
 ```
 Dam Dates
-```{r Dam Dates, echo=FALSE}
+```{r Dam-Dates, echo=FALSE}
 #Dam and Litter Dates
 
 dateToday <- Sys.Date()
@@ -231,7 +231,7 @@ Dam_dates
 ```
 
 Offspring Dates
-```{r Offspring Dates, echo=FALSE}
+```{r Offspring-Dates, echo=FALSE}
 Off_dates <- LBN_data %>%
   select(Mouse_ID,
          Sex,
@@ -283,7 +283,7 @@ Off_dates
 
 ```
 
-```{r to Excel File}
+```{r to Excel-File}
 datesWB <- createWorkbook()
 
 writeToWorkbook("Dam Dates", Dam_dates, datesWB)
@@ -370,7 +370,7 @@ saveWorkbook(datesWB, file.path("Output", "Data", "datesWB.xlsx"), overwrite = T
 ```
 
 
-```{r NEW NEW Tracking, results = 'asis', echo = FALSE}
+```{r Tasks, results = 'asis', echo = FALSE}
 Day0 <- as.Date(StartDate)
 days <- c(0:numDays) #how many days to print
 for(day in days){
