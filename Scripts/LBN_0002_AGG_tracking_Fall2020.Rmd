@@ -348,18 +348,46 @@ conditionalFormatting(datesWB,
                       rows = 2:(length(Off_dates$Mouse_ID)+1),
                       rule = "AND(NOT(isblank(W2)), today() >= W2)",
                       style = createStyle(bgFill = "#C6EFCE"))
+
 conditionalFormatting(datesWB,
                       "Offspring Dates",
                       cols = 27,
                       rows = 2:(length(Off_dates$Mouse_ID)+1),
-                      rule = "AND(NOT(isblank(W2)), today() >= W2)",
+                      rule = "AND(NOT(isblank(AA2)), today() >= AA2)",
                       style = createStyle(bgFill = "#C6EFCE"))
 
-#if start AGD < end AGD
+#if start juvenile AGD >= today and today <= end AGD
+conditionalFormatting(datesWB,
+                      "Offspring Dates",
+                      cols = 19:20,
+                      rows = 2:(length(Off_dates$Mouse_ID)+1),
+                      rule = "AND(today() >= $S2, today() <= $T2)",
+                      style = createStyle(bgFill = "#C6EFCE"))
 
+#if start adult AGD >= today and today <= end AGD
+conditionalFormatting(datesWB,
+                      "Offspring Dates",
+                      cols = 21:22,
+                      rows = 2:(length(Off_dates$Mouse_ID)+1),
+                      rule = "AND(today() >= $U2, today() <= $V2)",
+                      style = createStyle(bgFill = "#C6EFCE"))
 
-#if mass dates
+#if mass dates equal today
+conditionalFormatting(datesWB,
+                      "Offspring Dates",
+                      cols = 7:15,
+                      rows = 2:(length(Off_dates$Mouse_ID)+1),
+                      rule = "today() == G2",
+                      style = createStyle(bgFill = "#C6EFCE"))
 
+#if start cycling date >= today and today <= end cycling
+conditionalFormatting(datesWB,
+                      "Offspring Dates",
+                      cols = 25:26,
+                      rows = 2:(length(Off_dates$Mouse_ID)+1),
+                      rule = "AND(today() >= $Y2, today() <= $Z2)",
+                      style = createStyle(bgFill = "#C6EFCE")
+)
 
 
 
