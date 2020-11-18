@@ -34,9 +34,10 @@ numDays <- 20
 
 
 ```{r Loading, include=FALSE}
+readRenviron("./.Renviron") #read the .Renviron document from the project root folder
 
 #Data File Name
-LBN_DataName <- "LBN_0002_data_AGG.xlsx"
+LBN_DataName <- "LBN_0002_AGG_data.xlsx"
 
 #Sheet Names
 DemoName_dam <- "Demo_dam"
@@ -62,10 +63,10 @@ ScriptsFolder <- file.path("Scripts")
 FunctionsFolder <- file.path(ScriptsFolder, "Functions")
 
 #Where data files are saved
-DataFolder <- file.path("Data")
+DataFolder <- Sys.getenv("DATA_FOLDER")
 
 #Where output should be saved
-OutputFolder <- file.path("Output")
+OutputFolder <- Sys.getenv("OUTPUT_FOLDER")
 
 #Where plot output should be saved
 PlotFolder <- file.path(OutputFolder, "Plots")
@@ -391,7 +392,7 @@ conditionalFormatting(datesWB,
 
 
 
-saveWorkbook(datesWB, file.path("Output", "Data", "datesWB.xlsx"), overwrite = TRUE)
+saveWorkbook(datesWB, file.path(DataOutFolder, "datesWB.xlsx"), overwrite = TRUE)
 
 
 ```

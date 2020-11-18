@@ -1,0 +1,6 @@
+#Replace paths with your paths on your computer. Relative to project root
+#Change name to .Renviron
+
+DATA_FOLDER="path/example/Data"
+
+OUTPUT_FOLDER="path/example/Output"
