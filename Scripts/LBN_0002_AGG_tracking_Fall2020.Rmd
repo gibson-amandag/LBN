@@ -1,11 +1,11 @@
 ---
 title: "Keeping Track of LBN Tasks"
 output:
-  html_notebook: default
+  word_document: default
   html_document:
     df_print: paged
   pdf_document: default
-  word_document: default
+  html_notebook: default
 ---
 
 ```{r Load-Packages, include=FALSE}
@@ -125,8 +125,7 @@ EndPara_off$Mouse_ID <- as.character(EndPara_off$Mouse_ID)
 
 ```
 
-Demographic Information
-```{r Demographic-Info, echo=FALSE}
+```{r Demographic-Info, include=FALSE}
 Demo_dam_for_offspring <- Demo_dam %>%
   select(Dam_ID, Dam_cage, Treatment, Dam_Strain, Sire, DOB, Avg_litter_mass_P2, Litter_size_P2, Litter_size_P9)
 
@@ -165,8 +164,8 @@ LBN_data
 #If want to join only certain columns from one dataframe, use select() first
 
 ```
-Dam Dates
-```{r Dam-Dates, echo=FALSE}
+
+```{r Dam-Dates, echo=FALSE, paged.print=TRUE}
 #Dam and Litter Dates
 
 dateToday <- Sys.Date()
@@ -230,8 +229,7 @@ Dam_dates
 
 ```
 
-Offspring Dates
-```{r Offspring-Dates, echo=FALSE}
+```{r Offspring-Dates, include=FALSE}
 Off_dates <- LBN_data %>%
   select(Mouse_ID,
          Sex,
@@ -283,7 +281,7 @@ Off_dates
 
 ```
 
-```{r to Excel-File}
+```{r to Excel-File, include=FALSE}
 datesWB <- createWorkbook()
 
 writeToWorkbook("Dam Dates", Dam_dates, datesWB)
