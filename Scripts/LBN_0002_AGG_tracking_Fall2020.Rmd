@@ -36,7 +36,7 @@ numDays <- 20
 ```{r Loading, include=FALSE}
 
 #Data File Name
-LBN_DataName <- "LBN_Cohort2_data.xlsx"
+LBN_DataName <- "LBN_0002_data_AGG.xlsx"
 
 #Sheet Names
 DemoName_dam <- "Demo_dam"
@@ -72,7 +72,6 @@ PlotFolder <- file.path(OutputFolder, "Plots")
 
 #Where data output should be saved
 DataOutFolder <- file.path(OutputFolder, "Data")
-
 
 #Load the KNDy Functions
 source(file.path(FunctionsFolder, FunctionsFileName))
