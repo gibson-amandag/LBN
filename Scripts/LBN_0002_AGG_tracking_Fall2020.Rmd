@@ -32,139 +32,22 @@ StartDate <- Sys.Date()
 numDays <- 20
 ```
 
-
-```{r Loading, include=FALSE}
-readRenviron("./.Renviron") #read the .Renviron document from the project root folder
-
-#Data File Name
-LBN_DataName <- "LBN_0002_AGG_data.xlsx"
-
-#Sheet Names
-DemoName_dam <- "Demo_dam"
-DemoName_off <- "Demo_off"
-MassName_off <- "Mass_off"
-MaturationName_off <- "Maturation_off"
-EndParaName_off <- "EndParadigm_off"
-CyclesName_off <- "Cycles_off"
-ChronicStressName_off <- "ChronicStress_off"
-AcuteStressName_off <- "AcuteStress_off"
-
-#Functions Script (ends in .R)
-FunctionsFileName <- "LBN_0002_AGG_functions_Fall2020.R"
-
-
-#Info about working directory and R Markdown: https://martinctc.github.io/blog/rstudio-projects-and-working-directories-a-beginner's-guide/#fn1
-#More info: https://bookdown.org/yihui/rmarkdown-cookbook/working-directory.html
-
-#Where R Notebook files are saved
-ScriptsFolder <- file.path("Scripts")
-
-#Where Function files are saved
-FunctionsFolder <- file.path(ScriptsFolder, "Functions")
-
-#Where data files are saved
-DataFolder <- Sys.getenv("DATA_FOLDER")
-
-#Where output should be saved
-OutputFolder <- Sys.getenv("OUTPUT_FOLDER")
-
-#Where plot output should be saved
-PlotFolder <- file.path(OutputFolder, "Plots")
-
-#Where data output should be saved
-DataOutFolder <- file.path(OutputFolder, "Data")
-
-#Load the KNDy Functions
-source(file.path(FunctionsFolder, FunctionsFileName))
-
-# #Load datasets
-NameDemo_dam <- "Demo_dam"
-NameDemo_off <- "Demo_off"
-NameMass_off <- "Mass_off"
-NameMaturation_off <- "Maturation_off"
-NameEndPara_off <- "EndParadigm_off"
-NameCycles_off <- "Cycles_off"
-NameChronicStress_off <- "ChronicStress_off"
-NameAcuteStress_off <- "AcuteStress_off"
-
-Demo_off <- myXLSX_func(DataFolder, LBN_DataName, NameDemo_off) #replaced Offspring_demo
-Mass_off <- myXLSX_func(DataFolder, LBN_DataName, NameMass_off) #replaced Offspring_mass
-Demo_dam <- myXLSX_func(DataFolder, LBN_DataName, NameDemo_dam) #replaced Dam_info
-Maturation_off <- myXLSX_func(DataFolder, LBN_DataName, NameMaturation_off) #replaced Offspring_maturation
-EndPara_off <- myXLSX_func(DataFolder, LBN_DataName, NameEndPara_off) #replaced Offspring_post_para
-AcuteStress_off <- myXLSX_func(DataFolder, LBN_DataName, NameAcuteStress_off) #replaced Offspring_acute_stress
-ChronicStress_off <- myXLSX_func(DataFolder, LBN_DataName, NameChronicStress_off) #replaced Offspring_chronic_stress
-
+```{r Source-Data}
+#Be sure that the file paths and data file names in the .Renviron file are correct
+source("./Scripts/LBN_0002_AGG_GetDataReady.R")
 ```
-
-
-```{r Format-Dates, include=FALSE}
-#Reformat dates into year-month-day
-#because detected when reading excel file, I think this isn't needed anymore
-# Demo_dam$Dam_DOB <- format_dates(Demo_dam$Dam_DOB)
-# Demo_dam$Breed_date <- format_dates(Demo_dam$Breed_date)
-# Demo_dam$Plug_date <- format_dates(Demo_dam$Plug_date)
-# Demo_dam$DOB <- format_dates(Demo_dam$DOB)
-# Demo_dam$Sac_or_stop <- format_dates(Demo_dam$Sac_or_stop)
-# 
-# AcuteStress_off$Stress_date <- format_dates(AcuteStress_off$Stress_date)
-# 
-# Maturation_off$Estrus_day <- format_dates(Maturation_off$Estrus_day)
-# Maturation_off$VO_day <- format_dates(Maturation_off$VO_day)
-# Maturation_off$PreputialSep_day <- format_dates(Maturation_off$PreputialSep_day)
-
-Demo_dam$Dam_ID <- as.character(Demo_dam$Dam_ID)
-Demo_off$Dam_ID <- as.character(Demo_off$Dam_ID)
-Demo_dam
-
-AcuteStress_off$Mouse_ID <- as.character(AcuteStress_off$Mouse_ID)
-ChronicStress_off$Mouse_ID <- as.character(ChronicStress_off$Mouse_ID)
-Demo_off$Mouse_ID <- as.character(Demo_off$Mouse_ID)
-Mass_off$Mouse_ID <- as.character(Mass_off$Mouse_ID)
-Maturation_off$Mouse_ID <- as.character(Maturation_off$Mouse_ID)
-EndPara_off$Mouse_ID <- as.character(EndPara_off$Mouse_ID)
-
-```
-
-```{r Demographic-Info, include=FALSE}
-Demo_dam_for_offspring <- Demo_dam %>%
-  select(Dam_ID, Dam_cage, Treatment, Dam_Strain, Sire, DOB, Avg_litter_mass_P2, Litter_size_P2, Litter_size_P9)
-
-Demo_off <- Demo_off %>%
-  left_join(Demo_dam_for_offspring, by = "Dam_ID") %>%
-  select(Mouse_ID:Dam_ID, DOB, Wean_Cage_Number:Sire, Avg_litter_mass_P2:Litter_size_P9)
-Demo_off
-```
-
 
 ```{r eval=FALSE, include=FALSE}
 Demo_dam
-AcuteStress_off
-ChronicStress_off
 Demo_off
 Mass_off
 Maturation_off
 EndPara_off
+AcuteStress_off
+ChronicStress_off
+LBN_data #all offspring info
 ```
 
-
-```{r One-DataFrame, include=FALSE}
-#Combine all of the data into a single dataframe. Will add NAs where there isn't data
-#can add ,by = ... to tell what column to join on
-#not including dam info
-
-LBN_data <- Demo_off %>%
-  full_join(AcuteStress_off) %>%
-  full_join(ChronicStress_off) %>%
-  full_join(Mass_off) %>%
-  full_join(Maturation_off) %>%
-  full_join(EndPara_off)
-
-LBN_data
-
-#If want to join only certain columns from one dataframe, use select() first
-
-```
 
 ```{r Dam-Dates, include=FALSE}
 #Dam and Litter Dates
