@@ -42,124 +42,18 @@ ChronicStress_off <- DFs$ChronicStress_off
 LBN_all <- DFs$LBN_all
 LBN_data <- DFs$LBN_data
 
+Dam_dates <<- damDatesFunc(Demo_dam)
 
-### DAM DATES --------
-Dam_dates <- Demo_dam %>%
-    select(Dam_ID,
-           Breed_date,
-           Plug_date,
-           DOB,
-           Sac_or_stop)
+Off_dates <<- offDatesFunc(LBN_data)
 
-Dam_dates <- Dam_dates %>%
-    mutate(
-        #plug check - true or false, based off of whether this is a plug date, DOB for litter, or sacrifice or stop marked
-        #when printing, will want to add a "is Day > breed_date"
-        plug_check = ifelse(
-            is.na(Plug_date) & is.na(DOB) & is.na(Sac_or_stop),
-            TRUE,
-            FALSE),
-
-        #Check for pregnancy of dam
-        mass_check = Breed_date + 12 - 1, #will use this only if mass_G12 is NA, meaning Plug_date hasn't occured
-        mass_G12 = Plug_date + 12 - 1,
-
-        #estimated birth dates
-        start_birth_check = Plug_date + 19 - 1,
-        est_birth_date = Plug_date + 21 - 1,
-
-        #Mass of dam and pups on these days
-        mass_P2 = ifelse( # to-do will want to change to P4 for paradigm change. Determine if this is with DOB = P0 or P1
-            is.na(DOB), #if there isn't a DOB of the litter
-            Plug_date + 21 - 1 + 2, #estimate based on plug date
-            DOB + 2), #if there is a DOB, add 2
-        mass_P9 = DOB + 9, # to-do change to P11
-        mass_P21 = DOB + 21,
-
-        #Mass of only pups on these days
-        mass_P9 = DOB + 9,
-        mass_P10 = DOB + 10,
-        mass_P11 = DOB + 11,
-        mass_P12 =  DOB + 12,
-        mass_P13 = DOB + 13,
-        mass_P15 = DOB + 15,
-        mass_P17 = DOB + 17,
-        mass_P19 = DOB + 19,
-        mass_P21 = DOB + 21,
-
-        #paradigm dates
-        # to-do adjust these dates
-
-        start_paradigm = DOB + 2,
-        end_paradigm = DOB + 9,
-        est_start_paradigm = Plug_date + 21 - 1 + 2,
-        end_recording = DOB + 4
-    )
-
-
-Dam_dates$mass_P2 <- as_date(Dam_dates$mass_P2)
-
-Dam_dates <<- Dam_dates
-
-# ### OFFSPRING DATES -----------
-Off_dates <- LBN_data %>%
-    select(Mouse_ID,
-           Sex,
-           DOB,
-           VO_day,
-           Estrus_day,
-           PreputialSep_day) %>%
-    mutate(
-
-        #offspring mass dates
-        mass_P22 = DOB + 22,
-        mass_P23 = DOB + 23,
-        mass_P24 = DOB + 24,
-        mass_P28 = DOB + 28,
-        mass_P35 = DOB + 35,
-        mass_P42 = DOB + 42,
-        mass_P49 = DOB + 49,
-        mass_P56 = DOB + 56,
-        mass_P63 = DOB + 63,
-        mass_P70 = DOB + 70,
-        mass_P71 = DOB + 71,
-        mass_P72 = DOB + 72,
-
-        #AGD Dates
-        start_AGD = DOB + 22,
-        end_AGD = DOB + 24,
-        adult_AGD_start = DOB + 70,
-        adult_AGD_end = DOB + 72,
-
-        #Females
-        check_VO = ifelse(Sex == "F" & is.na(VO_day), DOB + 21, NA),
-        check_Estrus = ifelse(Sex == "F" & !is.na(VO_day) & is.na(Estrus_day), DOB + 21, NA),
-        start_cycle = ifelse(Sex == "F", DOB + 70, NA),
-        end_cycle = ifelse(Sex == "F", DOB + 90, NA),
-
-        #Males
-        check_PPS = ifelse(Sex == "M" & is.na(PreputialSep_day), DOB + 21, NA)
-
-    )
-
-#Because of the check of sex, it forces these into numerical rep of dates
-Off_dates$check_VO = as_date(Off_dates$check_VO)
-Off_dates$check_Estrus = as_date(Off_dates$check_Estrus)
-Off_dates$start_cycle = as_date(Off_dates$start_cycle)
-Off_dates$end_cycle = as_date(Off_dates$end_cycle)
-Off_dates$check_PPS = as_date(Off_dates$check_PPS)
-
-Off_dates <<- Off_dates
-
-
-blueText <-  function(
-    text
-){
+blueText <-  function(text){
     paste0("<span style='color:blue'>", text, "</span>")
 }
 
 # Define UI for application that draws a histogram
 ui <- navbarPage("LBN",
+                 
+                 ### TASK TRACKING PANEL ----------------------
                  tabPanel(
                      "Tasks",
                      fluidPage(
@@ -189,7 +83,7 @@ ui <- navbarPage("LBN",
                      )
                  ),
                  
-                 ##Data frames -----------------------
+                 ### DATA FRAMES -----------------------
                  tabPanel(
                      "Data",
                      fluidPage(
@@ -248,16 +142,18 @@ ui <- navbarPage("LBN",
                      )
                  ),
                  
-                 ##Analysis----------------------
+                 ### ANALYSIS-------------------------
                  tabPanel(
                      "Analysis",
                      titlePanel("LBN Analysis")
                      )
-                 
+############                 
 )
 
-# Define server logic
+############# SERVER #########################################################
 server <- function(input, output) {
+    
+    #### TASK TRACKING HTML TEXT------------------
     
     output$selectedDates <-renderUI({
         Day0 <- input$date
@@ -340,19 +236,23 @@ server <- function(input, output) {
                                                      blueText("take masses"), " for the following litter(s) (known births)"),
                                               val, printCat)
                 }
-                else{
-                    if(
-                        sac_stop(val) &
-                        Dam_not.na("est_start_paradigm", val) &
-                        Dam_day_equals(Day, "est_start_paradigm", val)
-                    ){
-                        printCat <- Dam_tasks_app(paste0(blueText("Set up"), " the LBN paradigm (and ", 
-                                                         blueText("take masses"), " for the following litter(s) (predicted births)"),
-                                                  val, printCat)
-                    }
-                }
             }
+            printCat <- printLine_func_app(Count, printCat)
             
+            #separated out from is..else because they might not be the same day, and only want this to print if there's no known date
+            for(val in Dam_seq()){
+                if(
+                    sac_stop(val) &
+                    Dam_is.na("start_paradigm", val) &
+                    Dam_not.na("est_start_paradigm", val) &
+                    Dam_day_equals(Day, "est_start_paradigm", val)
+                ){
+                    printCat <- Dam_tasks_app(paste0(blueText("Set up"), " the LBN paradigm (and ", 
+                                                     blueText("take masses"), " for the following litter(s) (predicted births)"),
+                                              val, printCat)
+                } 
+            }
+                
             printCat <- printLine_func_app(Count, printCat)
             
             #End LBN
@@ -370,25 +270,25 @@ server <- function(input, output) {
             
             #Take dam mass
             for(val in Dam_seq()){
-                if(Dam_not.na("mass_P2", val) &
+                if(Dam_not.na("mass_startPara", val) &
                    sac_stop(val) &
-                   Dam_day_equals(Day, "mass_P2", val)
+                   Dam_day_equals(Day, "mass_startPara", val)
                 ){
-                    printCat <- Dam_tasks_app("Take the mass of the following dams", val, printCat)
+                    printCat <- Dam_tasks_app(paste0("Take the ", blueText("mass"), " of the following dams"), val, printCat)
                 }
                 
-                if(Dam_not.na("mass_P9", val) &
+                if(Dam_not.na("mass_endPara", val) &
                    sac_stop(val) &
-                   Dam_day_equals(Day, "mass_P9", val)
+                   Dam_day_equals(Day, "mass_endPara", val)
                 ){
-                    printCat <- Dam_tasks_app("Take the mass of the following dams", val, printCat)
+                    printCat <- Dam_tasks_app(paste0("Take the ", blueText("mass"), " of the following dams"), val, printCat)
                 }
                 
                 if(Dam_not.na("mass_P21", val) &
                    sac_stop(val) &
                    Dam_day_equals(Day, "mass_P21", val)
                 ){
-                    printCat <- Dam_tasks_app("Take the mass of the following dams", val, printCat)
+                    printCat <- Dam_tasks_app(paste0("Take the ", blueText("mass"), " of the following dams"), val, printCat)
                 }
                 
             }
@@ -401,7 +301,7 @@ server <- function(input, output) {
                    sac_stop(val) &
                    Dam_day_equals(Day, "mass_P21", val)
                 ){
-                    printCat <- Dam_tasks_app("Wean the following cages", val, printCat)
+                    printCat <- Dam_tasks_app(paste0(blueText("Wean"), " the following cages"), val, printCat)
                 }
             }
             
@@ -414,7 +314,7 @@ server <- function(input, output) {
                 select(Dam_ID, mass_P10:mass_P19) %>%
                 filter_all(any_vars(. %in% Day))
             if(nrow(mass_on_date_litter) > 0){ #only print if there are values in df
-                printCat <- list_add(printCat, "<em>Take the mass of the following litters:<em> <ul>")
+                printCat <- list_add(printCat, paste0("<em>Take the ", blueText("mass"), " of the following litters:<em> <ul>"))
                 for(val in seq_along(mass_on_date_litter$Dam_ID)){
                     printCat <- list_add(printCat, paste0("<li>", mass_on_date_litter$Dam_ID[val], "</li>"))
                 }
@@ -427,7 +327,7 @@ server <- function(input, output) {
                 select(Mouse_ID, mass_P22:mass_P72) %>%
                 filter_all(any_vars(. %in% Day))
             if(nrow(mass_on_date) > 0){ #only print if there are values in df
-                printCat <- list_add(printCat, "<em>Take the mass of the following offspring:</em> <ul>")
+                printCat <- list_add(printCat, paste0("<em>Take the ", blueText("mass"), " of the following offspring:<em> <ul>"))
                 for(val in seq_along(mass_on_date$Mouse_ID)){
                     printCat <- list_add(printCat, paste0("<li>", mass_on_date$Mouse_ID[val], "</li>"))
                 }
@@ -441,13 +341,13 @@ server <- function(input, output) {
                    Off_day_greater(Day, "start_AGD", val) &
                    Off_day_less(Day, "end_AGD", val)
                 ){
-                    printCat <- Off_tasks_app("Take the ano-genital distance of the following mice", val, printCat)
+                    printCat <- Off_tasks_app(paste0("Take the ", blueText("ano-genital distance"), " of the following mice"), val, printCat)
                 }
                 if(Off_not.na("adult_AGD_start", val) &
                    Off_day_greater(Day, "adult_AGD_start", val) &
                    Off_day_less(Day, "adult_AGD_end", val)
                 ){
-                    printCat <- Off_tasks_app("Take the ano-genital distance of the following mice", val, printCat)
+                    printCat <- Off_tasks_app(paste0("Take the ", blueText("ano-genital distance"), " of the following mice"), val, printCat)
                 }
             }
             
@@ -459,7 +359,7 @@ server <- function(input, output) {
                     Off_not.na("check_VO", val) &
                     Off_day_greater(Day, "check_VO", val)
                 ){
-                    printCat <- Off_tasks_app("Check for vaginal opening of the following mice", val, printCat)
+                    printCat <- Off_tasks_app(paste0("Check for ", blueText("vaginal opening"), " of the following mice"), val, printCat)
                 }
             }
             
@@ -471,7 +371,7 @@ server <- function(input, output) {
                     Off_not.na("check_Estrus", val) &
                     Off_day_greater(Day, "check_Estrus", val)
                 ){
-                    printCat <- Off_tasks_app("Check for estrus for the following mice", val, printCat)
+                    printCat <- Off_tasks_app(paste0("Check for ", blueText("first estrus"), " for the following mice"), val, printCat)
                 }
             }
             
@@ -483,7 +383,7 @@ server <- function(input, output) {
                     Off_not.na("check_PPS", val) &
                     Off_day_greater(Day, "check_PPS", val)
                 ){
-                    printCat <- Off_tasks_app("Check for preputial separation for the following mice", val, printCat)
+                    printCat <- Off_tasks_app(paste0("Check for ", blueText("preputial separation"), " for the following mice"), val, printCat)
                 }
             }
             
@@ -496,7 +396,7 @@ server <- function(input, output) {
                     Off_day_greater(Day, "start_cycle", val) &
                     Off_day_less(Day, "end_cycle", val)
                 ){
-                    printCat <- Off_tasks_app("Cycle the following mice", val, printCat)
+                    printCat <- Off_tasks_app(paste0(blueText("Cycle"), " the following mice"), val, printCat)
                 }
             }
             
@@ -506,6 +406,8 @@ server <- function(input, output) {
         HTML(printCat)
 
      })
+    
+    #### RENDER DATA FRAMES----------------------
     
     output$Demo_dam <- renderDataTable(
         Demo_dam %>%
