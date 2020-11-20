@@ -26,6 +26,9 @@ library(lubridate)
 #Define paths in .Renviron on each computer
 source("./Scripts/LBN_0002_AGG_GetDataReady.R")
 
+#Source Task Functions
+source("./Scripts/Functions/LBN_0002_AGG_taskFunctions.R")
+
 
 ### DAM DATES --------
 Dam_dates <- Demo_dam %>%

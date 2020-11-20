@@ -35,6 +35,9 @@ numDays <- 20
 ```{r Source-Data}
 #Be sure that the file paths and data file names in the .Renviron file are correct
 source("./Scripts/LBN_0002_AGG_GetDataReady.R")
+
+#Source Task Functions
+source("./Scripts/Functions/LBN_0002_AGG_taskFunctions.R")
 ```
 
 ```{r eval=FALSE, include=FALSE}
