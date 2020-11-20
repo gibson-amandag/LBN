@@ -57,12 +57,27 @@ load_LBN_data <- function(
   #Create a new dataframe with the demographic info from the dam sheet that is relevant for pups
   
   Demo_dam_for_offspring <- Demo_dam %>%
-    select(Dam_ID, Dam_cage, Treatment, Dam_Strain, Sire, DOB, Avg_litter_mass_startPara, Litter_size_startPara, Litter_size_endPara)
+    select(Dam_ID, 
+           Dam_cage, 
+           Treatment, 
+           Dam_Strain,
+           Strain,
+           ParaType,
+           Sire, 
+           DOB, 
+           Avg_litter_mass_startPara, 
+           Litter_size_startPara, 
+           Litter_size_endPara)
   
   #Add the demographic info, join by Dam_ID
   Demo_off <- Demo_off %>%
     left_join(Demo_dam_for_offspring, by = "Dam_ID") %>%
-    select(Mouse_ID:Dam_ID, DOB, Wean_Cage_Number:Sire, Avg_litter_mass_startPara:Litter_size_endPara)
+    select(Mouse_ID:Dam_ID, 
+           DOB, 
+           Treatment:ParaType,
+           Wean_Cage_Number:Dam_cage,
+           Sire,
+           Avg_litter_mass_startPara:Litter_size_endPara)
   
   
   #Combine all of the data into a single dataframe. Will add NAs where there isn't data
@@ -76,11 +91,73 @@ load_LBN_data <- function(
     left_join(Cycles_off, by = "Mouse_ID") %>%
     left_join(AcuteStress_off, by = "Mouse_ID") %>%
     left_join(ChronicStress_off, by = "Mouse_ID")
-
-
-#If want to join only certain columns from one dataframe, use select() first
-
-#Need to add some of the demographic data to the other data frames to be able to observe. Like DOB, treatment, esp
+  
+  #Add demographic information to the smaller datasets
+  Mass_off <- LBN_data %>%
+    select(demoVars_forOff_quo, Avg_litter_mass_startPara) %>%
+    left_join(select(Mass_off, -ParaType), by = "Mouse_ID") %>%
+    select(Mouse_ID, #reorder
+           Sex,
+           Treatment,
+           Avg_litter_mass_startPara:Mass_P72,
+           Dam_ID,
+           DOB,
+           Dam_Strain:Litter_size_endPara)
+  
+  Maturation_off <- LBN_data %>%
+    select(demoVars_forOff_quo) %>%
+    left_join(Maturation_off, by = "Mouse_ID") %>%
+    select(Mouse_ID, #reorder
+           Sex,
+           Treatment,
+           VO_day:AGD_P72,
+           Dam_ID,
+           DOB,
+           Dam_Strain:Litter_size_endPara)
+  
+  EndPara_off <- LBN_data %>%
+    select(demoVars_forOff_quo) %>%
+    left_join(EndPara_off, by = "Mouse_ID") %>%
+    select(Mouse_ID, #reorder
+           Sex,
+           Treatment,
+           Cort_endPara:CRH_endPara,
+           Dam_ID,
+           DOB,
+           Dam_Strain:Litter_size_endPara)
+  
+  Cycles_off <- LBN_data %>%
+    select(demoVars_forOff_quo) %>%
+    left_join(Cycles_off, by = "Mouse_ID") %>%
+    select(Mouse_ID, #reorder
+           Sex,
+           Treatment,
+           Cycle_length:Proestrus_days,
+           Dam_ID,
+           DOB,
+           Dam_Strain:Litter_size_endPara)
+  
+  AcuteStress_off <- LBN_data %>%
+    select(demoVars_forOff_quo) %>%
+    left_join(AcuteStress_off, by = "Mouse_ID") %>%
+    select(Mouse_ID, #reorder
+           Sex,
+           Treatment,
+           Stress_cycle:LH_5.5,
+           Dam_ID,
+           DOB,
+           Dam_Strain:Litter_size_endPara)
+  
+  ChronicStress_off <- LBN_data %>%
+    select(demoVars_forOff_quo) %>%
+    left_join(ChronicStress_off, by = "Mouse_ID") %>%
+    select(Mouse_ID, #reorder
+           Sex,
+           Treatment,
+           Chronic_stress_treatment:Stress_proestrus,
+           Dam_ID,
+           DOB,
+           Dam_Strain:Litter_size_endPara)
 
 #Assign this function to an object. Then call the specific items as df$Demo_dam or df[[Demo_dam]] for example. 
   #All the dataframes will be within this one list that is the output of the function
