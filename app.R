@@ -23,94 +23,8 @@ library(ggfortify)
 library(openxlsx)
 library(lubridate)
 
-#Data File Name
-LBN_DataName = "LBN_0002_data_AGG.xlsx"
-
-#Sheet Names
-DemoName_dam = "Demo_dam"
-DemoName_off = "Demo_off"
-MassName_off = "Mass_off"
-MaturationName_off = "Maturation_off"
-EndParaName_off = "EndParadigm_off"
-CyclesName_off = "Cycles_off"
-ChronicStressName_off = "ChronicStress_off"
-AcuteStressName_off = "AcuteStress_off"
-
-#Functions Script (ends in .R)
-FunctionsFileName = "LBN_0002_AGG_functions_Fall2020.R"
-
-
-#Info about working directory and R Markdown: https://martinctc.github.io/blog/rstudio-projects-and-working-directories-a-beginner's-guide/#fn1
-#More info: https://bookdown.org/yihui/rmarkdown-cookbook/working-directory.html
-
-#Where R Notebook files are saved
-ScriptsFolder = file.path("Scripts")
-
-#Where Function files are saved
-FunctionsFolder = file.path(ScriptsFolder, "Functions")
-
-#Where data files are saved
-DataFolder = file.path("Data")
-
-#Where output should be saved
-OutputFolder = file.path("Output")
-#Where plot output should be saved
-PlotFolder = file.path(OutputFolder, "Plots")
-#Where data output should be saved
-DataOutFolder = file.path(OutputFolder, "Data")
-
-
-#Load the KNDy Functions
-source(file.path(FunctionsFolder, FunctionsFileName))
-
-# #Load datasets
-NameDemo_dam = "Demo_dam"
-NameDemo_off = "Demo_off"
-NameMass_off = "Mass_off"
-NameMaturation_off = "Maturation_off"
-NameEndPara_off = "EndParadigm_off"
-NameCycles_off = "Cycles_off"
-NameChronicStress_off = "ChronicStress_off"
-NameAcuteStress_off = "AcuteStress_off"
-
-Demo_off = myXLSX_func(DataFolder, LBN_DataName, NameDemo_off) #replaced Offspring_demo
-Mass_off = myXLSX_func(DataFolder, LBN_DataName, NameMass_off) #replaced Offspring_mass
-Demo_dam = myXLSX_func(DataFolder, LBN_DataName, NameDemo_dam) #replaced Dam_info
-Maturation_off = myXLSX_func(DataFolder, LBN_DataName, NameMaturation_off) #replaced Offspring_maturation
-EndPara_off = myXLSX_func(DataFolder, LBN_DataName, NameEndPara_off) #replaced Offspring_post_para
-AcuteStress_off = myXLSX_func(DataFolder, LBN_DataName, NameAcuteStress_off) #replaced Offspring_acute_stress
-ChronicStress_off = myXLSX_func(DataFolder, LBN_DataName, NameChronicStress_off) #replaced Offspring_chronic_stress
-
-#Cleaning up dfs
-Demo_dam$Dam_ID = as.character(Demo_dam$Dam_ID)
-Demo_off$Dam_ID = as.character(Demo_off$Dam_ID)
-
-AcuteStress_off$Mouse_ID = as.character(AcuteStress_off$Mouse_ID)
-ChronicStress_off$Mouse_ID = as.character(ChronicStress_off$Mouse_ID)
-Demo_off$Mouse_ID = as.character(Demo_off$Mouse_ID)
-Mass_off$Mouse_ID = as.character(Mass_off$Mouse_ID)
-Maturation_off$Mouse_ID = as.character(Maturation_off$Mouse_ID)
-EndPara_off$Mouse_ID = as.character(EndPara_off$Mouse_ID)
-
-#Add demographics
-Demo_dam_for_offspring <- Demo_dam %>%
-    select(Dam_ID, Dam_cage, Treatment, Dam_Strain, Sire, DOB, Avg_litter_mass_P2, Litter_size_P2, Litter_size_P9)
-print(head(Demo_dam_for_offspring))
-
-Demo_off <- Demo_off %>%
-    left_join(Demo_dam_for_offspring) %>%
-    select(Mouse_ID:Dam_ID, DOB, Wean_Cage_Number:Sire, Avg_litter_mass_P2:Litter_size_P9)
-
-Demo_off <<- Demo_off
-
-LBN_data <- Demo_off %>%
-    full_join(AcuteStress_off) %>%
-    full_join(ChronicStress_off) %>%
-    full_join(Mass_off) %>%
-    full_join(Maturation_off) %>%
-    full_join(EndPara_off)
-
-LBN_data <<- LBN_data
+#Define paths in .Renviron on each computer
+source("./Scripts/LBN_0002_AGG_GetDataReady.R")
 
 
 ### DAM DATES --------
@@ -243,7 +157,7 @@ ui <- fluidPage(
 
         # Show text with description of tasks
         mainPanel(
-           textOutput("toDoText")
+           uiOutput("toDoText")
         )
     ),
     
@@ -258,8 +172,10 @@ ui <- fluidPage(
     
 )
 
-# Define server logic required to draw a histogram
+# Define server logic
 server <- function(input, output) {
+    
+    #list("test", "test2", "test3")
 
     output$toDoText <- renderText({
         Day0 <- input$date
@@ -267,37 +183,9 @@ server <- function(input, output) {
         
         endDay <- Day0 + days
         
-        #paste("You have selected a range starting on", Day0, "and ending on", endDay)
+        paste("You have selected a range starting on", Day0, "and ending on", endDay)
         
-        mass_on_date_litter = Dam_dates %>%
-            filter(is.na(Sac_or_stop)) %>%
-            select(Dam_ID, mass_P10:mass_P19) %>%
-            filter_all(any_vars(. %in% Day0))
-        # print(mass_on_date_litter$Dam_ID)
-        if(nrow(mass_on_date_litter) > 0){ #only print if there are values in df
-            paste("Take the mass of the following litters:
-                  ",
-                  "+ ", mass_on_date_litter$Dam_ID)
-            #paste0("+ ", mass_on_date_litter$Dam_ID, "\n\n")
-        }
 
-    #     for(day in days){
-    #         Day = Day0 + day
-    #         #Print the Day
-    #         p(strong("On", Day))
-    #         br()
-    #         cat(paste0("**On ", Day, "** \n\n"))
-    # 
-    #         Count <- 0
-    # 
-    #         #Plug check
-    #         for(val in Dam_seq()){
-    #             if(Dam_dates$plug_check[val] == TRUE &
-    #                Dam_day_greater(Day, "Breed_date", val)){
-    #                 Dam_tasks("Check for plugs from the following mice", val)
-    #             }
-    #         }
-    #     }
      })
     
     output$damMassDates <- renderDataTable(

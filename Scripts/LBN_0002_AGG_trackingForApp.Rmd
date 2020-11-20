@@ -1,0 +1,338 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+#Proof of concept
+
+test_c = c("a\n", "b\n", "c\n")
+
+cat(test_c, sep ="")
+
+test_c[length(test_c)+1] = "d\n"
+
+cat(test_c, sep ="")
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+
+```{r}
+#take a one-dimensional vector (c()) and add text as the next index value in that vector
+list_add <- function(
+  list_name,
+  text_to_add
+){
+  list_name[length(list_name)+1] <- text_to_add
+  return(list_name)
+}
+
+#This is the dam_tasks function from the main analysis, but it is what will be used for the app.R
+
+Dam_tasks_app <- function(
+  task_text,
+  val,
+  list_name = printCat,
+  df = Dam_dates,
+  id_var = "Dam_ID"
+){
+  if(Count == 0){
+    #add the text to print to the list
+    list_name <- list_add(list_name, paste0("*", task_text, ":* \n\n"))
+    Count <<- 1
+  }
+  #add the text to print to the list
+  list_name <- list_add(list_name, paste0("+ ", df[[id_var]][val], "\n\n"))
+  return(list_name)
+}
+
+#If Count equals 1, add a new life
+#Reset Count to 0
+printLine_func_app <- function(Count,
+                           list_name = printCat){
+  if(Count == 1){
+    #add a break line to the list
+    list_name <- list_add(list_name, "\n")
+  }
+  Count <<- 0
+  return(list_name)
+}
+
+Off_tasks_app <- function(
+  task_text,
+  val,
+  list_name = printCat,
+  df = Off_dates,
+  id_var = "Mouse_ID"
+){
+  if(Count == 0){
+    #Only print this the first time that the task occurs.
+    #Then change the counter to 1
+    list_name <- list_add(list_name, paste0("*", task_text, ":* \n\n"))
+    Count <<- 1
+  }
+  list_name <- list_add(list_name, paste0("+ ", df[[id_var]][val], "\n\n"))
+  return(list_name)
+}
+```
+
+
+```{r}
+
+printCat <- c("Test \n")
+
+  for(val in Dam_seq()){
+    if(Dam_is.na("DOB", val) & #if there is not a DOB yet
+       sac_stop(val) &
+       Dam_not.na("start_birth_check", val) &
+       Dam_day_greater(Day, "start_birth_check", val)
+      ){
+      printCat <- Dam_tasks_app("Watch for births from the following dams", val, printCat)
+    }
+  }
+
+printCat <- printLine_func_app(Count)
+
+cat(printCat, sep = "")
+```
+
+
+```{r}
+Day0 <- as.Date(StartDate)
+days <- c(0:numDays) #how many days to print
+printCat = c("")
+for(day in days){
+  Day <- Day0 + day
+  #Print the Day
+  printCat <- list_add(printCat, paste0("**On ", Day, "** \n\n"))
+  
+  Count <- 0
+  
+  #Plug check
+  for(val in Dam_seq()){
+    if(Dam_dates$plug_check[val] == TRUE & 
+       Dam_day_greater(Day, "Breed_date", val)){
+      printCat <- Dam_tasks_app("Check for plugs from the following mice", val)
+    }
+  }
+  
+  printCat <- printLine_func_app(Count)
+  
+  #Check for pregnancy (breed date)
+  for(val in Dam_seq()){
+    if(Dam_is.na("mass_G12", val) & 
+       sac_stop(val) & 
+       Dam_not.na("mass_check", val) & 
+       Dam_day_equals(Day, "mass_check", val)
+       ){
+      printCat <- Dam_tasks_app("Check for pregnancy and/or separate the following mice (by breed date)", val)
+    }
+  }
+  
+  printCat <- printLine_func_app(Count)
+  
+  #Check for pregnancy (plug date)
+  for(val in Dam_seq()){
+    if(
+      sac_stop(val) &
+      Dam_not.na("mass_G12", val) &
+      Dam_day_equals(Day, "mass_G12", val)
+      ){
+      printCat <- Dam_tasks_app("Check for pregnancy and/or separate the following mice (by plug date)", val)
+    }
+  }
+  
+  printCat <- printLine_func_app(Count)
+  
+  
+  #Watch for births
+  for(val in Dam_seq()){
+    if(Dam_is.na("DOB", val) & #if there is not a DOB yet
+       sac_stop(val) &
+       Dam_not.na("start_birth_check", val) &
+       Dam_day_greater(Day, "start_birth_check", val)
+      ){
+      printCat <- Dam_tasks_app("Watch for births from the following dams", val)
+    }
+  }
+  
+  printCat <- printLine_func_app(Count)
+  
+  #Set up LBN
+  for(val in Dam_seq()){
+    if(Dam_not.na("start_paradigm", val) &
+       Dam_day_equals(Day, "start_paradigm", val)
+    ){
+      printCat <- Dam_tasks_app("Set up the LBN paradigm (and take masses) for the following litter(s) (known births)",
+                val)
+       }
+  else{
+       if(
+         sac_stop(val) &
+         Dam_not.na("est_start_paradigm", val) &
+          Dam_day_equals(Day, "est_start_paradigm", val)
+       ){
+         printCat <- Dam_tasks_app("Set up the LBN paradigm (and take masses) for the following litter(s) (predicted births)",
+                   val)
+       }
+     }
+  }
+  
+  printCat <- printLine_func_app(Count)
+  
+  #End LBN
+  for(val in Dam_seq()){
+    if(Dam_not.na("end_paradigm", val) &
+       sac_stop(val) &
+       Dam_day_equals(Day, "end_paradigm", val)
+    ){
+      printCat <- Dam_tasks_app("End the LBN paradigm, tag, and take masses for the following mice", val)
+       }
+  }
+  
+  printCat <- printLine_func_app(Count)
+  
+  #Take dam mass
+  for(val in Dam_seq()){
+    if(Dam_not.na("mass_P2", val) &
+       sac_stop(val) &
+       Dam_day_equals(Day, "mass_P2", val)
+    ){
+      printCat <- Dam_tasks_app("Take the mass of the following dams", val)
+    }
+    
+    if(Dam_not.na("mass_P9", val) &
+       sac_stop(val) &
+       Dam_day_equals(Day, "mass_P9", val)
+    ){
+      printCat <- Dam_tasks_app("Take the mass of the following dams", val)
+    }
+    
+    if(Dam_not.na("mass_P21", val) &
+       sac_stop(val) &
+       Dam_day_equals(Day, "mass_P21", val)
+    ){
+      printCat <- Dam_tasks_app("Take the mass of the following dams", val)
+    }
+  
+  }
+  
+  printCat <- printLine_func_app(Count)
+  
+  #Wean cages
+  for(val in Dam_seq()){
+    if(Dam_not.na("mass_P21", val) &
+       sac_stop(val) &
+       Dam_day_equals(Day, "mass_P21", val)
+    ){
+      printCat <- Dam_tasks_app("Wean the following cages", val)
+       }
+  }
+  
+  printCat <- printLine_func_app(Count)
+  
+  #Offspring Mass
+  #Filter df for only rows that have the Day in any column
+  mass_on_date_litter <- Dam_dates %>%
+    filter(is.na(Sac_or_stop)) %>%
+    select(Dam_ID, mass_P10:mass_P19) %>%
+    filter_all(any_vars(. %in% Day))
+  if(nrow(mass_on_date_litter) > 0){ #only print if there are values in df
+    printCat <- list_add(printCat, "*Take the mass of the following litters:* \n\n")
+    printCat <- list_add(printCat, paste0("+ ", mass_on_date_litter$Dam_ID, "\n\n"))
+  }
+  if(nrow(mass_on_date_litter) > 0){printCat <- list_add(printCat, "\n")}
+  
+  #Filter df for only rows that have the Day in any column
+  #https://dplyr.tidyverse.org/articles/colwise.html - new is across, but no replacement for any_vars()
+  mass_on_date <- Off_dates %>%
+    select(Mouse_ID, mass_P22:mass_P72) %>%
+    filter_all(any_vars(. %in% Day))
+  if(nrow(mass_on_date) > 0){ #only print if there are values in df
+    printCat <- list_add(printCat, "*Take the mass of the following offspring:* \n\n")
+    printCat <- list_add(printCat, paste0("+ ", mass_on_date$Mouse_ID, "\n\n"))
+  }
+  if(nrow(mass_on_date) > 0){printCat <- list_add(printCat, "\n")}
+  
+  
+  #AGD
+  for(val in Off_seq()){
+    if(Off_not.na("start_AGD", val) &
+       Off_day_greater(Day, "start_AGD", val) &
+       Off_day_less(Day, "end_AGD", val)
+    ){
+      printCat <- Off_tasks_app("Take the ano-genital distance of the following mice", val)
+    }
+    if(Off_not.na("adult_AGD_start", val) &
+       Off_day_greater(Day, "adult_AGD_start", val) &
+       Off_day_less(Day, "adult_AGD_end", val)
+    ){
+      printCat <- Off_tasks_app("Take the ano-genital distance of the following mice", val)
+       }
+  }
+  
+  printCat <- printLine_func_app(Count)
+  
+  #VO
+  for(val in Off_seq()){
+    if(
+      Off_not.na("check_VO", val) &
+      Off_day_greater(Day, "check_VO", val)
+    ){
+      printCat <- Off_tasks_app("Check for vaginal opening of the following mice", val)
+    }
+  }
+  
+  printCat <- printLine_func_app(Count)
+  
+  #estrus
+  for(val in Off_seq()){  
+    if(
+      Off_not.na("check_Estrus", val) &
+      Off_day_greater(Day, "check_Estrus", val)
+    ){
+      printCat <- Off_tasks_app("Check for estrus for the following mice", val)
+    }
+  }
+    
+  printCat <- printLine_func_app(Count)
+  
+  #preputial separation
+  for(val in Off_seq()){
+    if(
+      Off_not.na("check_PPS", val) &
+      Off_day_greater(Day, "check_PPS", val)
+    ){
+      printCat <- Off_tasks_app("Check for preputial separation for the following mice", val)
+    }
+  }
+  
+  printCat <- printLine_func_app(Count)
+
+  #cycle
+  for(val in Off_seq()){
+    if(
+      Off_not.na("start_cycle", val) &
+      Off_day_greater(Day, "start_cycle", val) &
+      Off_day_less(Day, "end_cycle", val)
+    ){
+      printCat <- Off_tasks_app("Cycle the following mice", val)
+    }
+  }
+  
+  printCat <- printLine_func_app(Count)
+  printCat <- list_add(printCat, "\n")
+}
+cat(printCat, sep = "")
+```
+
