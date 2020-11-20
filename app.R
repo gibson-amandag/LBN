@@ -146,7 +146,7 @@ blueText <-  function(
 ui <- fluidPage(
 
     # Application title
-    titlePanel("LBN TRACKING"),
+    titlePanel("Limited Bedding and Nesting Task Tracking"),
     
     #Fluid Row
     fluidRow(
@@ -159,7 +159,7 @@ ui <- fluidPage(
                            "Select Number of Days:",
                            min = 0,
                            max = 100,
-                           value = 15))
+                           value = 5))
     ),
 
     uiOutput("selectedDates"),
@@ -176,8 +176,8 @@ server <- function(input, output) {
         
         endDay <- Day0 + days
         
-        #str <- paste("<h2>", "You have selected a range from <span style='color:blue'>", Day0, "</span>to <span style='color:blue'>", endDay, "</span></h2>")
         str <- paste("<h2>", "You have selected a range from", blueText(Day0), "to", blueText(endDay), "</h2>")
+        
         HTML(str)
     })
 

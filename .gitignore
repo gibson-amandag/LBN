@@ -61,4 +61,4 @@ Scripts/LBN_0002_AGG_tracking_Fall2020.nb.html
 Scripts/LBN_0002_AGG_trackingForApp.Rmd
 
 #ignore the generated accompanying html notebook
-.nb.html
+*.nb.html
