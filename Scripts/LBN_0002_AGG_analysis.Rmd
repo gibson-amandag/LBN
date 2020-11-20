@@ -1,0 +1,79 @@
+---
+title: "Limited Bedding and Nesting Project Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r Load-Packages}
+
+library(tidyverse)
+library(readr)
+library(rlang)
+library(purrr)
+library(scales)
+library(knitr)
+#library(flextable) #error with data.table
+library(officer)
+library(GGally)
+library(dplyr)
+library(ggfortify)
+library(openxlsx)
+library(lubridate)
+
+
+```
+
+```{r setUp}
+
+source("./Scripts/LBN_0002_AGG_setUp.R")
+
+#Data File Name - 1
+LBN_DataName <- "LBN_0002_AGG_data_flexPara.xlsx"
+
+##Add additional data files names here
+
+#LBN_DataName2 <- 
+
+```
+
+```{r LoadData}
+DFs <- load_LBN_data(
+  dataFolder = DataFolder,
+  excelName = LBN_DataName
+)
+
+Demo_dam <- DFs$Demo_dam
+Demo_off <- DFs$Demo_off
+Mass_off <- DFs$Mass_off
+Maturation_off <- DFs$Maturation_off
+EndPara_off <- DFs$EndPara_off
+Cycles_off <- DFs$Cycles_off
+AcuteStress_off <- DFs$AcuteStress_off
+ChronicStress_off <- DFs$ChronicStress_off
+LBN_all <- DFs$LBN_all
+LBN_data <- DFs$LBN_data
+
+
+Demo_dam
+Demo_off
+Mass_off
+Maturation_off
+EndPara_off
+Cycles_off
+AcuteStress_off
+ChronicStress_off
+LBN_all
+LBN_data
+
+
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
