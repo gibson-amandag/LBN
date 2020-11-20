@@ -24,10 +24,23 @@ library(openxlsx)
 library(lubridate)
 
 #Define paths in .Renviron on each computer
-source("./Scripts/LBN_0002_AGG_GetDataReady.R")
+source("./Scripts/LBN_0002_AGG_setUp.R")
 
-#Source Task Functions
-source("./Scripts/Functions/LBN_0002_AGG_taskFunctions.R")
+DFs <- load_LBN_data(
+    dataFolder = DataFolder,
+    excelName = LBN_DataName
+)
+
+Demo_dam <- DFs$Demo_dam
+Demo_off <- DFs$Demo_off
+Mass_off <- DFs$Mass_off
+Maturation_off <- DFs$Maturation_off
+EndPara_off <- DFs$EndPara_off
+Cycles_off <- DFs$Cycles_off
+AcuteStress_off <- DFs$AcuteStress_off
+ChronicStress_off <- DFs$ChronicStress_off
+LBN_all <- DFs$LBN_all
+LBN_data <- DFs$LBN_data
 
 
 ### DAM DATES --------
@@ -207,9 +220,12 @@ ui <- navbarPage("LBN",
                              tabPanel("Offspring Maturation",
                                       h3("Offspring Maturation"),
                                       dataTableOutput("Maturation_off")),
-                             tabPanel("End after Paradigm",
-                                      h3("End after Paradigm"),
+                             tabPanel("After Paradigm",
+                                      h3("After Paradigm"),
                                       dataTableOutput("EndPara_off")),
+                             tabPanel("Cycles",
+                                      h3("Offspring Cycles"),
+                                      dataTableOutput("Cycles_off")),
                              tabPanel("Acute Stress",
                                       h3("Acute Stress"),
                                       dataTableOutput("AcuteStress_off")),
@@ -398,9 +414,9 @@ server <- function(input, output) {
                 select(Dam_ID, mass_P10:mass_P19) %>%
                 filter_all(any_vars(. %in% Day))
             if(nrow(mass_on_date_litter) > 0){ #only print if there are values in df
-                printCat <- list_add(printCat, "<em>Take the mass of the following litters:<em> <br><br><ul>")
-                for(val in seq_along(mass_on_date_litter$Mouse_ID)){
-                    printCat <- list_add(printCat, paste0("<li>", mass_on_date_litter$Mouse_ID[val], "</li>"))
+                printCat <- list_add(printCat, "<em>Take the mass of the following litters:<em> <ul>")
+                for(val in seq_along(mass_on_date_litter$Dam_ID)){
+                    printCat <- list_add(printCat, paste0("<li>", mass_on_date_litter$Dam_ID[val], "</li>"))
                 }
             }
             if(nrow(mass_on_date_litter) > 0){printCat <- list_add(printCat, "</ul>")}
@@ -411,7 +427,7 @@ server <- function(input, output) {
                 select(Mouse_ID, mass_P22:mass_P72) %>%
                 filter_all(any_vars(. %in% Day))
             if(nrow(mass_on_date) > 0){ #only print if there are values in df
-                printCat <- list_add(printCat, "<em>Take the mass of the following offspring:</em> <br><br><ul>")
+                printCat <- list_add(printCat, "<em>Take the mass of the following offspring:</em> <ul>")
                 for(val in seq_along(mass_on_date$Mouse_ID)){
                     printCat <- list_add(printCat, paste0("<li>", mass_on_date$Mouse_ID[val], "</li>"))
                 }
@@ -496,49 +512,64 @@ server <- function(input, output) {
             select(!!! input$dam_vars_include),
         options = list(
             scrollX = TRUE,
-            scroller = TRUE)
+            scroller = TRUE,
+            pageLength = 10)
             )
     
     output$Demo_off <- renderDataTable(
         Demo_off,
         options = list(
             scrollX = TRUE,
-            scroller = TRUE)
+            scroller = TRUE,
+            pageLength = 10)
     )
     
     output$Mass_off <- renderDataTable(
         Mass_off,
         options = list(
             scrollX = TRUE,
-            scroller = TRUE)
+            scroller = TRUE,
+            pageLength = 10)
     )
     
     output$Maturation_off <- renderDataTable(
         Maturation_off,
         options = list(
             scrollX = TRUE,
-            scroller = TRUE)
+            scroller = TRUE,
+            pageLength = 10)
     )
     
     output$EndPara_off <- renderDataTable(
         EndPara_off,
         options = list(
             scrollX = TRUE,
-            scroller = TRUE)
+            scroller = TRUE,
+            pageLength = 10)
+    )
+    
+    output$Cycles_off <- renderDataTable(
+        Cycles_off,
+        options = list(
+            scrollX = TRUE,
+            scroller = TRUE,
+            pageLength = 10)
     )
     
     output$AcuteStress_off <- renderDataTable(
         AcuteStress_off,
         options = list(
             scrollX = TRUE,
-            scroller = TRUE)
+            scroller = TRUE,
+            pageLength = 10)
     )
     
     output$ChronicStress_off <- renderDataTable(
         ChronicStress_off,
         options = list(
             scrollX = TRUE,
-            scroller = TRUE)
+            scroller = TRUE,
+            pageLength = 10)
     )
     
     
@@ -547,7 +578,8 @@ server <- function(input, output) {
             select(!!! input$offspring_vars_include),
         options = list(
             scrollX = TRUE,
-            scroller = TRUE)
+            scroller = TRUE,
+            pageLength = 10)
     )
         
     
