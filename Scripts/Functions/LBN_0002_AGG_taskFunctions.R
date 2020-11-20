@@ -1,5 +1,151 @@
-#### FUNCTIONS FOR PRINTING TASKS #####################################################################################
+#### FUNCTIONS FOR DATES DFs AND PRINTING TASKS #####################################################################################
 
+#### DAM DATES FUNCTIONS -----------------------------------------
+damDatesFunc <- function(
+  Demo_dam
+){
+  Dam_dates <- Demo_dam %>%
+    select(Dam_ID,
+           Breed_date,
+           Plug_date,
+           DOB,
+           Sac_or_stop,
+           ParaType)
+  
+  Dam_dates <- Dam_dates %>%
+    mutate(
+      #plug check - true or false, based off of whether this is a plug date, DOB for litter, or sacrifice or stop marked
+      #when printing, will want to add a "is Day > breed_date"
+      plug_check = ifelse(
+        is.na(Plug_date) & is.na(DOB) & is.na(Sac_or_stop), 
+        TRUE, 
+        FALSE),
+      
+      #Check for pregnancy of dam
+      mass_check = Breed_date + 12 - 1, #will use this only if mass_G12 is NA, meaning Plug_date hasn't occured
+      mass_G12 = Plug_date + 12 - 1,
+      
+      #estimated birth dates
+      start_birth_check = Plug_date + 19 - 1,
+      est_birth_date = Plug_date + 21 - 1,
+      
+      #Mass of dam and pups on these days
+      mass_startPara = ifelse(
+        is.na(DOB), #if there isn't a DOB of the litter
+        case_when(
+          ParaType == 2 ~ Plug_date + 21 - 1 + 2, #estimate based on plug date
+          ParaType == 4 ~ Plug_date + 21 - 1 + 4),
+        case_when(
+          ParaType == 2 ~ DOB + 2, #if there is a DOB
+          ParaType == 4 ~ DOB + 4
+        )),
+      mass_endPara = 
+        case_when(
+          ParaType == 2 ~ DOB + 9,
+          ParaType == 4 ~ DOB + 11),
+      mass_P21 = DOB + 21,
+      
+      #Mass of only pups on these days
+      mass_P10 = ifelse(ParaType == 2,
+                        DOB + 10,
+                        NA),
+      mass_P11 = ifelse(ParaType == 2, #P4 start is incorporated above for end of paradigm
+                        DOB + 11,
+                        NA),
+      mass_P12 = DOB + 12, #both
+      mass_P13 = DOB + 13, #both
+      mass_P14 = ifelse(ParaType == 4, #only P4 start
+                        DOB + 14,
+                        NA),
+      mass_P15 = DOB + 15, #both
+      mass_P16 = ifelse(ParaType == 4, #only P4 start
+                        DOB + 16,
+                        NA),
+      mass_P17 = ifelse(ParaType == 2, #only P2 start
+                        DOB + 10,
+                        NA),
+      mass_P19 = DOB + 19, #both
+      mass_P21 = DOB + 21, #both
+      
+      #paradigm dates
+      # to-do adjust these dates
+      
+      start_paradigm = case_when(ParaType == 2 ~ DOB + 2,
+                                 ParaType == 4 ~ DOB + 4),
+      end_paradigm = case_when(ParaType == 2 ~ DOB + 9,
+                               ParaType == 4 ~ DOB + 11),
+      est_start_paradigm = case_when(ParaType == 2 ~ Plug_date + 21 - 1 + 2,
+                                     ParaType == 4 ~ Plug_date + 21 - 1 + 4),
+      end_recording = case_when(ParaType == 2 ~ DOB + 4,
+                                ParaType == 4 ~ DOB + 6),
+    )
+  
+  #needed because of logical check
+  Dam_dates$mass_startPara <- as_date(Dam_dates$mass_startPara)
+  Dam_dates$mass_endPara <- as_date(Dam_dates$mass_endPara)
+  Dam_dates$mass_P10 <- as_date(Dam_dates$mass_P10)
+  Dam_dates$mass_P11 <- as_date(Dam_dates$mass_P11)
+  Dam_dates$mass_P14 <- as_date(Dam_dates$mass_P14)
+  Dam_dates$mass_P16 <- as_date(Dam_dates$mass_P16)
+  Dam_dates$mass_P17 <- as_date(Dam_dates$mass_P17)
+  
+  return(Dam_dates)
+}
+
+#### OFFSPRING DATES FUNCTIONS ----------------------------------------
+offDatesFunc <- function(
+  LBN_data
+)
+{
+  Off_dates <- LBN_data %>%
+    select(Mouse_ID,
+           Sex,
+           DOB,
+           VO_day,
+           Estrus_day,
+           PreputialSep_day)%>%
+    mutate(
+      
+      #offspring mass dates
+      mass_P22 = DOB + 22,
+      mass_P23 = DOB + 23,
+      mass_P24 = DOB + 24,
+      mass_P28 = DOB + 28,
+      mass_P35 = DOB + 35,
+      mass_P42 = DOB + 42,
+      mass_P49 = DOB + 49,
+      mass_P56 = DOB + 56,
+      mass_P63 = DOB + 63,
+      mass_P70 = DOB + 70,
+      mass_P71 = DOB + 71,
+      mass_P72 = DOB + 72,
+      
+      #AGD Dates
+      start_AGD = DOB + 22,
+      end_AGD = DOB + 24,
+      adult_AGD_start = DOB + 70,
+      adult_AGD_end = DOB + 72,
+      
+      #Females
+      check_VO = ifelse(Sex == "F" & is.na(VO_day), DOB + 21, NA),
+      check_Estrus = ifelse(Sex == "F" & !is.na(VO_day) & is.na(Estrus_day), DOB + 21, NA),
+      start_cycle = ifelse(Sex == "F", DOB + 70, NA),
+      end_cycle = ifelse(Sex == "F", DOB + 90, NA),
+      
+      #Males
+      check_PPS = ifelse(Sex == "M" & is.na(PreputialSep_day), DOB + 21, NA)
+      
+    )
+  
+  #Because of the check of sex, it forces these into numerical rep of dates
+  Off_dates$check_VO <- as_date(Off_dates$check_VO)
+  Off_dates$check_Estrus <- as_date(Off_dates$check_Estrus)
+  Off_dates$start_cycle <- as_date(Off_dates$start_cycle)
+  Off_dates$end_cycle <- as_date(Off_dates$end_cycle)
+  Off_dates$check_PPS <- as_date(Off_dates$check_PPS)
+  
+  return(Off_dates)
+}
 
 #### RMARKDOWN FORMATTING ------------------------------------------
 

@@ -29,9 +29,7 @@ library(lubridate)
 ```{r setUp}
 
 source("./Scripts/LBN_0002_AGG_setUp.R")
-
-# #Data File Name
-# LBN_DataName <- "LBN_0002_AGG_data_flexPara.xlsx"
+dateToday = Sys.Date()
 
 ```
 
@@ -68,6 +66,46 @@ LBN_data
 ```
 
 ```{r}
+#Dam and Litter Dates
+
+Dam_dates <- damDatesFunc(Demo_dam)
+Dam_dates
+
+
+Off_dates <- offDatesFunc(LBN_data)
+Off_dates
+```
+
+
+
+```{r DataFrame-Workbook}
+LBN_df_wb <- createWorkbook()
+
+writeToWorkbook("Demo_dam", Demo_dam, LBN_df_wb)
+writeToWorkbook("Demo_off", Demo_off, LBN_df_wb)
+writeToWorkbook("Mass_off", Mass_off, LBN_df_wb)
+writeToWorkbook("Maturation_off", Maturation_off, LBN_df_wb)
+writeToWorkbook("EndPara_off", EndPara_off, LBN_df_wb)
+writeToWorkbook("Cycles_off", Cycles_off, LBN_df_wb)
+writeToWorkbook("AcuteStress_off", AcuteStress_off, LBN_df_wb)
+writeToWorkbook("ChronicStress_off", ChronicStress_off, LBN_df_wb)
+writeToWorkbook("LBN_all", LBN_all, LBN_df_wb)
+writeToWorkbook("LBN_data", LBN_data, LBN_df_wb)
+
+#Saved in "Save-Workbooks" sections
+```
+
+
+```{r Save-Workbooks}
+saveWorkbook(LBN_df_wb, file.path(DataOutFolder, paste0("LBN_data_", dateToday, ".xlsx")), overwrite = TRUE)
+
+
+```
+
+```{r Save-Powerpoints}
+#save the powerpoints
+#print(KNDy_PPT, target = file.path(DataOutputFolder, "KNDy Graphs.pptx"))
+
 
 ```
 

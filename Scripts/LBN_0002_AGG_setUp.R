@@ -17,9 +17,6 @@ VarNamesFunctionsFileName <- "LBN_0002_AGG_varNames.R"
 #Task Functions Script (ends in .R)
 TaskFunctionsFileName <- "LBN_0002_AGG_taskFunctions.R"
 
-#Info about working directory and R Markdown: https://martinctc.github.io/blog/rstudio-projects-and-working-directories-a-beginner's-guide/#fn1
-#More info: https://bookdown.org/yihui/rmarkdown-cookbook/working-directory.html
-
 #Where R Notebook files are saved
 ScriptsFolder <- file.path("Scripts")
 
