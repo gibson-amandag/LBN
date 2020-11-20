@@ -156,6 +156,73 @@ Off_is.na <- function(var, val){
   is.na(Off_dates[[var]][val])
 }
 
+###Functions for app.R #####
+#take a one-dimensional vector (c()) and add text as the next index value in that vector
+list_add <- function(
+  list_name,
+  text_to_add
+){
+  list_name[length(list_name)+1] <- text_to_add
+  return(list_name)
+}
+
+#This is the dam_tasks function from the main analysis, but it is what will be used for the app.R
+
+Dam_tasks_app <- function(
+  task_text,
+  val,
+  list_name = printCat,
+  df = Dam_dates,
+  id_var = "Dam_ID"
+){
+  if(Count == 0){
+    #add the text to print to the list
+    list_name <- list_add(list_name, paste0("<em>", #make this text emphasized
+                                            task_text, ": </em>",#end emphasis
+                                            "<br><br>",
+                                            "<ul>"#start a list
+    ))
+    Count <<- 1
+  }
+  #add the text to print to the list
+  list_name <- list_add(list_name, paste0("<li>", df[[id_var]][val], "</li>"))
+  return(list_name)
+}
+
+#If Count equals 1, add a new life
+#Reset Count to 0
+printLine_func_app <- function(Count,
+                               list_name = printCat){
+  if(Count == 1){
+    #end the list and add a break line
+    list_name <- list_add(list_name, "</ul><br>")
+  }
+  Count <<- 0
+  return(list_name)
+}
+
+Off_tasks_app <- function(
+  task_text,
+  val,
+  list_name = printCat,
+  df = Off_dates,
+  id_var = "Mouse_ID"
+){
+  if(Count == 0){
+    #Only print this the first time that the task occurs.
+    #Then change the counter to 1
+    list_name <- list_add(list_name, paste0("<em>", #make this text strong
+                                            task_text, ": </em>",#end strong
+                                            "<br><br>",
+                                            "<ul>"#start a list
+    ))
+    Count <<- 1
+  }
+  list_name <- list_add(list_name, paste0("<li>", df[[id_var]][val], "</li>"))
+  return(list_name)
+}
+
+
 ####Write to Excel Files 
 #uses openxslx
 

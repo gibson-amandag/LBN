@@ -48,11 +48,15 @@ Dam_tasks_app <- function(
 ){
   if(Count == 0){
     #add the text to print to the list
-    list_name <- list_add(list_name, paste0("*", task_text, ":* \n\n"))
+    list_name <- list_add(list_name, paste0("<em>", #make this text emphasized
+                                            task_text, ": </em>",#end emphasis
+                                            "<br><br>",
+                                            "<ul>"#start a list
+                                            ))
     Count <<- 1
   }
   #add the text to print to the list
-  list_name <- list_add(list_name, paste0("+ ", df[[id_var]][val], "\n\n"))
+  list_name <- list_add(list_name, paste0("<li>", df[[id_var]][val], "</li>"))
   return(list_name)
 }
 
@@ -61,8 +65,8 @@ Dam_tasks_app <- function(
 printLine_func_app <- function(Count,
                            list_name = printCat){
   if(Count == 1){
-    #add a break line to the list
-    list_name <- list_add(list_name, "\n")
+    #end the list and add a break line
+    list_name <- list_add(list_name, "</ul><br>")
   }
   Count <<- 0
   return(list_name)
@@ -78,10 +82,14 @@ Off_tasks_app <- function(
   if(Count == 0){
     #Only print this the first time that the task occurs.
     #Then change the counter to 1
-    list_name <- list_add(list_name, paste0("*", task_text, ":* \n\n"))
+    list_name <- list_add(list_name, paste0("<em>", #make this text strong
+                                            task_text, ": </em>",#end strong
+                                            "<br><br>",
+                                            "<ul>"#start a list
+                                            ))
     Count <<- 1
   }
-  list_name <- list_add(list_name, paste0("+ ", df[[id_var]][val], "\n\n"))
+  list_name <- list_add(list_name, paste0("<li>", df[[id_var]][val], "</li>"))
   return(list_name)
 }
 ```
@@ -111,10 +119,11 @@ cat(printCat, sep = "")
 Day0 <- as.Date(StartDate)
 days <- c(0:numDays) #how many days to print
 printCat = c("")
+
 for(day in days){
   Day <- Day0 + day
   #Print the Day
-  printCat <- list_add(printCat, paste0("**On ", Day, "** \n\n"))
+  printCat <- list_add(printCat, paste0("<strong>On ", Day, "</strong> <br><br>"))
   
   Count <- 0
   
@@ -248,10 +257,10 @@ for(day in days){
     select(Dam_ID, mass_P10:mass_P19) %>%
     filter_all(any_vars(. %in% Day))
   if(nrow(mass_on_date_litter) > 0){ #only print if there are values in df
-    printCat <- list_add(printCat, "*Take the mass of the following litters:* \n\n")
-    printCat <- list_add(printCat, paste0("+ ", mass_on_date_litter$Dam_ID, "\n\n"))
+    printCat <- list_add(printCat, "<em>Take the mass of the following litters:<em> <br><br><ul>")
+    printCat <- list_add(printCat, paste0("<li>", mass_on_date_litter$Dam_ID, "</li>"))
   }
-  if(nrow(mass_on_date_litter) > 0){printCat <- list_add(printCat, "\n")}
+  if(nrow(mass_on_date_litter) > 0){printCat <- list_add(printCat, "</ul><br>")}
   
   #Filter df for only rows that have the Day in any column
   #https://dplyr.tidyverse.org/articles/colwise.html - new is across, but no replacement for any_vars()
@@ -259,10 +268,10 @@ for(day in days){
     select(Mouse_ID, mass_P22:mass_P72) %>%
     filter_all(any_vars(. %in% Day))
   if(nrow(mass_on_date) > 0){ #only print if there are values in df
-    printCat <- list_add(printCat, "*Take the mass of the following offspring:* \n\n")
-    printCat <- list_add(printCat, paste0("+ ", mass_on_date$Mouse_ID, "\n\n"))
+    printCat <- list_add(printCat, "<em>Take the mass of the following offspring:</em> <br><br><ul>")
+    printCat <- list_add(printCat, paste0("<li>", mass_on_date$Mouse_ID, "</li>"))
   }
-  if(nrow(mass_on_date) > 0){printCat <- list_add(printCat, "\n")}
+  if(nrow(mass_on_date) > 0){printCat <- list_add(printCat, "</ul><br>")}
   
   
   #AGD
@@ -331,8 +340,9 @@ for(day in days){
   }
   
   printCat <- printLine_func_app(Count)
-  printCat <- list_add(printCat, "\n")
+  printCat <- list_add(printCat, "<br>")
 }
 cat(printCat, sep = "")
+
 ```
 
