@@ -195,7 +195,7 @@ printLine_func_app <- function(Count,
                                list_name = printCat){
   if(Count == 1){
     #end the list and add a break line
-    list_name <- list_add(list_name, "</ul><br>")
+    list_name <- list_add(list_name, "</ul>")
   }
   Count <<- 0
   return(list_name)
