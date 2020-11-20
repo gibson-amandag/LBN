@@ -143,28 +143,89 @@ blueText <-  function(
 }
 
 # Define UI for application that draws a histogram
-ui <- fluidPage(
-
-    # Application title
-    titlePanel("Limited Bedding and Nesting Task Tracking"),
-    
-    #Fluid Row
-    fluidRow(
-        column(4,
-               dateInput("date",
-                         "Enter starting date:"
-               )),
-        column(4,
-               sliderInput("days",
-                           "Select Number of Days:",
-                           min = 0,
-                           max = 100,
-                           value = 5))
-    ),
-
-    uiOutput("selectedDates"),
-    uiOutput("toDoText")
-    
+ui <- navbarPage("LBN",
+                 tabPanel(
+                     "Tasks",
+                     fluidPage(
+                         # Page title
+                         titlePanel("Limited Bedding and Nesting Task Tracking"),
+                         
+                         #Fluid Row
+                         fluidRow(column(
+                             4,
+                             dateInput("date",
+                                       "Enter starting date:")
+                         ),
+                         column(
+                             4,
+                             sliderInput(
+                                 "days",
+                                 "Select Number of Days:",
+                                 min = 0,
+                                 max = 100,
+                                 value = 5
+                             )
+                         )),
+                         
+                         uiOutput("selectedDates"),
+                         uiOutput("toDoText")
+                         
+                     )
+                 ),
+                 tabPanel(
+                     "Data",
+                     fluidPage(
+                         titlePanel("LBN Data Frames"),
+                         
+                         #Dam Data
+                         h2("Dam Data"),
+                         varSelectInput("dam_vars_include",
+                                        label = "Select Column Variables",
+                                        data = Demo_dam,
+                                        selected = c("Dam_ID", 
+                                                     "Treatment",
+                                                     "Breed_date",
+                                                     "Plug_date",
+                                                     "DOB"),
+                                        multiple = TRUE),
+                         dataTableOutput("Demo_dam"),
+                         
+                         #Offspring Data
+                         h2("Offspring Data"),
+                         navlistPanel(
+                             tabPanel("Offspring Demographics",
+                                      h3("Offspring Demographics"),
+                                      dataTableOutput("Demo_off")),
+                             tabPanel("Offspring Mass",
+                                      h3("Offspring Mass"),
+                                      dataTableOutput("Mass_off")),
+                             tabPanel("Offspring Maturation",
+                                      h3("Offspring Maturation"),
+                                      dataTableOutput("Maturation_off")),
+                             tabPanel("End after Paradigm",
+                                      h3("End after Paradigm"),
+                                      dataTableOutput("EndPara_off")),
+                             tabPanel("Acute Stress",
+                                      h3("Acute Stress"),
+                                      dataTableOutput("AcuteStress_off")),
+                             tabPanel("Chronic Stress",
+                                      h3("Chronic Stress"),
+                                      dataTableOutput("ChronicStress_off"))
+                         ),
+                         
+                         
+                         h3("Combined Offspring Data"),
+                         varSelectInput("offspring_vars_include",
+                                        label = "Select Column Variables",
+                                        data = Demo_off,
+                                        selected = c("Mouse_ID",
+                                                     "Dam_ID",
+                                                     "Treatment",
+                                                     "DOB"),
+                                        multiple = TRUE),
+                         dataTableOutput("LBN_data")
+                     )
+                 )
 )
 
 # Define server logic
@@ -417,6 +478,67 @@ server <- function(input, output) {
         HTML(printCat)
 
      })
+    
+    output$Demo_dam <- renderDataTable(
+        Demo_dam %>%
+            select(!!! input$dam_vars_include),
+        options = list(
+            scrollX = TRUE,
+            scroller = TRUE)
+            )
+    
+    output$Demo_off <- renderDataTable(
+        Demo_off,
+        options = list(
+            scrollX = TRUE,
+            scroller = TRUE)
+    )
+    
+    output$Mass_off <- renderDataTable(
+        Mass_off,
+        options = list(
+            scrollX = TRUE,
+            scroller = TRUE)
+    )
+    
+    output$Maturation_off <- renderDataTable(
+        Maturation_off,
+        options = list(
+            scrollX = TRUE,
+            scroller = TRUE)
+    )
+    
+    output$EndPara_off <- renderDataTable(
+        EndPara_off,
+        options = list(
+            scrollX = TRUE,
+            scroller = TRUE)
+    )
+    
+    output$AcuteStress_off <- renderDataTable(
+        AcuteStress_off,
+        options = list(
+            scrollX = TRUE,
+            scroller = TRUE)
+    )
+    
+    output$ChronicStress_off <- renderDataTable(
+        ChronicStress_off,
+        options = list(
+            scrollX = TRUE,
+            scroller = TRUE)
+    )
+    
+    
+    output$LBN_data <- renderDataTable(
+        LBN_data %>%
+            select(!!! input$offspring_vars_include),
+        options = list(
+            scrollX = TRUE,
+            scroller = TRUE)
+    )
+        
+    
     
 }
 
