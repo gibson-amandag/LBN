@@ -179,7 +179,6 @@ Dam_tasks_app <- function(
     #add the text to print to the list
     list_name <- list_add(list_name, paste0("<em>", #make this text emphasized
                                             task_text, ": </em>",#end emphasis
-                                            "<br><br>",
                                             "<ul>"#start a list
     ))
     Count <<- 1
@@ -213,7 +212,6 @@ Off_tasks_app <- function(
     #Then change the counter to 1
     list_name <- list_add(list_name, paste0("<em>", #make this text strong
                                             task_text, ": </em>",#end strong
-                                            "<br><br>",
                                             "<ul>"#start a list
     ))
     Count <<- 1
