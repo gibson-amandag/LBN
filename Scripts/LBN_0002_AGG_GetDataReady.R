@@ -86,3 +86,4 @@ LBN_data <- Demo_off %>%
 
 #If want to join only certain columns from one dataframe, use select() first
 
+#Need to add some of the demographic data to the other data frames to be able to observe. Like DOB, treatment, esp

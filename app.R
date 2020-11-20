@@ -172,6 +172,8 @@ ui <- navbarPage("LBN",
                          
                      )
                  ),
+                 
+                 ##Data frames -----------------------
                  tabPanel(
                      "Data",
                      fluidPage(
@@ -192,7 +194,7 @@ ui <- navbarPage("LBN",
                          
                          #Offspring Data
                          h2("Offspring Data"),
-                         navlistPanel(
+                         tabsetPanel(
                              tabPanel("Offspring Demographics",
                                       h3("Offspring Demographics"),
                                       dataTableOutput("Demo_off")),
@@ -225,7 +227,14 @@ ui <- navbarPage("LBN",
                                         multiple = TRUE),
                          dataTableOutput("LBN_data")
                      )
-                 )
+                 ),
+                 
+                 ##Analysis----------------------
+                 tabPanel(
+                     "Analysis",
+                     titlePanel("LBN Analysis")
+                     )
+                 
 )
 
 # Define server logic
