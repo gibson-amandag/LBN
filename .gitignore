@@ -62,3 +62,5 @@ Scripts/LBN_0002_AGG_trackingForApp.Rmd
 
 #ignore the generated accompanying html notebook
 *.nb.html
+
+Scripts/Old_files/
