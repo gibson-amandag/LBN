@@ -149,25 +149,56 @@ ui <- navbarPage("LBN",
                      "Analysis",
                      titlePanel("LBN Analysis"),
                      tabsetPanel(
+                     tabPanel("Dam Mass",
+                              h3("Dam Mass"),
+                              fluidRow(
+                              column(4,
+                                     varSelectInput("Mass_dams_vars_to_sum",
+                                             "Select variables to summarize",
+                                             data = Demo_dam %>%
+                                                 select(Dam_Mass_P2:Dam_Mass_P21),
+                                             selected = c("Dam_Mass_P2",
+                                                          "Dam_Mass_P4",
+                                                          "Dam_Mass_P9",
+                                                          "Dam_Mass_P11"),
+                                             multiple = TRUE)),
+                              column(4,
+                                     varSelectInput("Mass_dams_grouping_vars",
+                                             "Select variables to group by",
+                                             data = Demo_dam %>%
+                                                 select(Treatment:Dam_Strain,
+                                                        ParaType,
+                                                        Sac_or_stop),
+                                             selected = c("Treatment",
+                                                          "Dam_Strain"),
+                                             multiple = TRUE))
+                              ),
+                              dataTableOutput("Mass_dam_summary")),
                          tabPanel("Offspring Mass",
-                                  varSelectInput("Mass_vars_to_sum",
-                                                 "Select variables to summarize",
-                                                 data = Mass_off %>%
-                                                     select(Avg_litter_mass_startPara:Mass_P72),
-                                                 selected = c("Mass_P2",
-                                                              "Mass_P4",
-                                                              "Mass_P9",
-                                                              "Mass_P11"),
-                                                 multiple = TRUE),
-                                  varSelectInput("Mass_grouping_vars",
-                                                 "Select variables to group by",
-                                                 data = Mass_off %>%
-                                                     select(Sex:Treatment,
-                                                            Dam_ID,
-                                                            Dam_Strain:ParaType),
-                                                 selected = c("Treatment",
-                                                              "Dam_Strain"),
-                                                 multiple = TRUE),
+                                  h3("Offspring Mass"),
+                                  fluidRow(
+                                      column(4,
+                                             varSelectInput("Mass_vars_to_sum",
+                                                            "Select variables to summarize",
+                                                            data = Mass_off %>%
+                                                                select(Avg_litter_mass_startPara:Mass_P72),
+                                                            selected = c("Mass_P2",
+                                                                         "Mass_P4",
+                                                                         "Mass_P9",
+                                                                         "Mass_P11"),
+                                                            multiple = TRUE)
+                                             ),
+                                      column(4,
+                                             varSelectInput("Mass_grouping_vars",
+                                                            "Select variables to group by",
+                                                            data = Mass_off %>%
+                                                                select(Sex:Treatment,
+                                                                       Dam_ID,
+                                                                       Dam_Strain:ParaType),
+                                                            selected = c("Treatment",
+                                                                         "Dam_Strain"),
+                                                            multiple = TRUE))
+                                  ),
                                   dataTableOutput("Mass_off_summary"))
                      )
                  )
@@ -511,7 +542,11 @@ server <- function(input, output) {
     
     
     
-    #### RENDER ANALYSIS 
+    #### RENDER ANALYSIS -----------------------------
+    output$Mass_dam_summary <- renderDataTable(
+        map_dfr(input$Mass_dams_vars_to_sum, LBN_summary_byGroup, Demo_dam, input$Mass_dams_grouping_vars)
+    )
+    
     output$Mass_off_summary <- renderDataTable(
         map_dfr(input$Mass_vars_to_sum, LBN_summary_byGroup, Mass_off, input$Mass_grouping_vars)
     )
