@@ -62,6 +62,9 @@ ChronicStress_off
 LBN_all
 LBN_data
 
+#Nice Variable Names
+LBN_varNames <- LBN_varNames_func(LBN_all)
+LBN_varNames
 
 ```
 
@@ -88,30 +91,7 @@ writeToWorkbook("Offspring Dates",
                 datesWB, 
                 tableStyle = "TableStyleLight8")
 
-greenFill <- function(){
-  createStyle(bgFill = "#C6EFCE")
-}
-
-yellowFill <- function(){
-  createStyle(bgFill = "#ffff00")
-}
-
-redFill <- function(){
-  createStyle(bgFill = "#FFC7CE")
-}
-
-greyFill <- function(){
-  createStyle(bgFill = 	"#D3D3D3")
-}
-
-blueFill <- function(){
-  createStyle(bgFill = "#9edaff")
-}
-
-pinkFill <- function(){
-  createStyle(bgFill = "#f3b4f6")
-}
-
+###Conditional formatting --------------------------------
 #mass_check and mass_G12
 conditionalFormatting(datesWB,
                       "Dam Dates",
@@ -241,9 +221,7 @@ conditionalFormatting(datesWB,
 )
 
 
-
-saveWorkbook(datesWB, file.path(DataOutFolder, "datesWB.xlsx"), overwrite = TRUE)
-
+#saved in "Save-Workbooks" section
 
 ```
 
@@ -261,13 +239,20 @@ writeToWorkbook("ChronicStress_off", ChronicStress_off, LBN_df_wb)
 writeToWorkbook("LBN_all", LBN_all, LBN_df_wb)
 writeToWorkbook("LBN_data", LBN_data, LBN_df_wb)
 
-#Saved in "Save-Workbooks" sections
+#Saved in "Save-Workbooks" section
+```
+
+```{r}
+#Summarize the mass values by treatment and strain
+map_dfr(massDates, LBN_summary_byGroup, Mass_off, exprs(Treatment, Strain))
+
+Mass_off
 ```
 
 
 ```{r Save-Workbooks}
 saveWorkbook(LBN_df_wb, file.path(DataOutFolder, paste0("LBN_data_", dateToday, ".xlsx")), overwrite = TRUE)
-
+saveWorkbook(datesWB, file.path(DataOutFolder, "datesWB.xlsx"), overwrite = TRUE)
 
 ```
 

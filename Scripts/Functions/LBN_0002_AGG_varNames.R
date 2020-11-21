@@ -135,6 +135,8 @@ LBN_varNames_func <- function(
   LBN_VarNames$Stress_diestrus = "# Days in Diestrus"
   LBN_VarNames$Stress_estrus = "# Days in Estrus"
   LBN_VarNames$Stress_proestrus = "# Days in Proestrus"
+  
+  return(LBN_VarNames)
 }
 
 #create a list with different groupings of variables. These can be use to build other dataframes or to analyze certain variables
@@ -174,6 +176,7 @@ demoVars_forOff = exprs(Mouse_ID,
 
 
 massDates_quo = c(
+  "Avg_litter_mass_startPara",
   "Mass_P9",
   "Mass_P10",
   "Mass_P11",
@@ -200,6 +203,7 @@ massDates_quo = c(
 )
 
 massDates = exprs(
+  Avg_litter_mass_startPara,
   Mass_P9,
   Mass_P10,
   Mass_P11,
@@ -224,3 +228,20 @@ massDates = exprs(
   Mass_P71,
   Mass_P72 
 )
+
+damMassDates_quo = c(
+  "Dam_Mass_P2",
+  "Dam_Mass_P9",
+  "Dam_Mass_P4",
+  "Dam_Mass_P11",
+  "Dam_Mass_P21"
+)
+
+damMassDates = exprs(
+  Dam_Mass_P2,
+  Dam_Mass_P9,
+  Dam_Mass_P4,
+  Dam_Mass_P11,
+  Dam_Mass_P21
+)
+

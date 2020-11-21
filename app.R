@@ -50,6 +50,8 @@ blueText <-  function(text){
     paste0("<span style='color:blue'>", text, "</span>")
 }
 
+LBN_varNames <<- LBN_varNames_func(LBN_all)
+
 # Define UI for application that draws a histogram
 ui <- navbarPage("LBN",
                  
@@ -145,8 +147,30 @@ ui <- navbarPage("LBN",
                  ### ANALYSIS-------------------------
                  tabPanel(
                      "Analysis",
-                     titlePanel("LBN Analysis")
+                     titlePanel("LBN Analysis"),
+                     tabsetPanel(
+                         tabPanel("Offspring Mass",
+                                  varSelectInput("Mass_vars_to_sum",
+                                                 "Select variables to summarize",
+                                                 data = Mass_off %>%
+                                                     select(Avg_litter_mass_startPara:Mass_P72),
+                                                 selected = c("Mass_P2",
+                                                              "Mass_P4",
+                                                              "Mass_P9",
+                                                              "Mass_P11"),
+                                                 multiple = TRUE),
+                                  varSelectInput("Mass_grouping_vars",
+                                                 "Select variables to group by",
+                                                 data = Mass_off %>%
+                                                     select(Sex:Treatment,
+                                                            Dam_ID,
+                                                            Dam_Strain:ParaType),
+                                                 selected = c("Treatment",
+                                                              "Dam_Strain"),
+                                                 multiple = TRUE),
+                                  dataTableOutput("Mass_off_summary"))
                      )
+                 )
 ############                 
 )
 
@@ -486,6 +510,11 @@ server <- function(input, output) {
         
     
     
+    
+    #### RENDER ANALYSIS 
+    output$Mass_off_summary <- renderDataTable(
+        map_dfr(input$Mass_vars_to_sum, LBN_summary_byGroup, Mass_off, input$Mass_grouping_vars)
+    )
 }
 
 # Run the application 
