@@ -76,7 +76,176 @@ Off_dates <- offDatesFunc(LBN_data)
 Off_dates
 ```
 
+```{r to Excel-File, include=FALSE}
+datesWB <- createWorkbook()
 
+writeToWorkbook("Dam Dates", 
+                Dam_dates[order(Dam_dates$DOB, Dam_dates$Breed_date),], #sort by DOB and then Breed_date
+                datesWB, 
+                tableStyle = "TableStyleLight8")
+writeToWorkbook("Offspring Dates", 
+                Off_dates[order(Off_dates$DOB),], 
+                datesWB, 
+                tableStyle = "TableStyleLight8")
+
+greenFill <- function(){
+  createStyle(bgFill = "#C6EFCE")
+}
+
+yellowFill <- function(){
+  createStyle(bgFill = "#ffff00")
+}
+
+redFill <- function(){
+  createStyle(bgFill = "#FFC7CE")
+}
+
+greyFill <- function(){
+  createStyle(bgFill = 	"#D3D3D3")
+}
+
+blueFill <- function(){
+  createStyle(bgFill = "#9edaff")
+}
+
+pinkFill <- function(){
+  createStyle(bgFill = "#f3b4f6")
+}
+
+#mass_check and mass_G12
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 8:9,
+                      rows = 1:(length(Dam_dates$Dam_ID) + 1),
+                      rule = "== TODAY()",
+                      style = greenFill())
+
+#mass_startPara to end
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 12:27,
+                      rows = 1:(length(Dam_dates$Dam_ID) + 1),
+                      rule = "== TODAY()",
+                      style = greenFill())
+
+#Format start_birth_check if greater than or after date, and no DOB, and Sac_or_stop is blank
+conditionalFormatting(datesWB,
+                     "Dam Dates",
+                     cols = 10,
+                     rows = 2:(length(Dam_dates$Dam_ID) + 1),
+                     rule = "AND((isblank($D2)), isblank($E2), NOT(isblank($J2)), TODAY() >= $J2)",
+                     style = greenFill())
+
+#If there's a DOB, make the dam name green
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 1,
+                      rows = 2:(length(Dam_dates$Dam_ID)+1),
+                      rule = "NOT(isblank($D2))",
+                      style = greenFill())
+
+#if there's no DOB, but there's a plug date, make the dam name yellow
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 1,
+                      rows = 2:(length(Dam_dates$Dam_ID)+1),
+                      rule = "AND(isblank($D2), NOT(isblank($C2)))",
+                      style = yellowFill())
+
+#if there's no plug date or DOB, make the dam name red
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 1,
+                      rows = 2:(length(Dam_dates$Dam_ID)+1),
+                      rule = "AND(isblank($D2), isblank($C2))",
+                      style = redFill())
+
+#if plug check is true
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 7,
+                      rows = 2:(length(Dam_dates$Dam_ID)+1),
+                      rule = "G2 == TRUE",
+                      style = greenFill())
+
+#if ParaType is 2 -> blue 
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 6,
+                      rows = 2:(length(Dam_dates$Dam_ID)+1),
+                      rule = "F2 == 2",
+                      style = blueFill())
+
+#if ParaType is 4 -> pink
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 6,
+                      rows = 2:(length(Dam_dates$Dam_ID)+1),
+                      rule = "F2 == 4",
+                      style = pinkFill())
+
+#if sac or stop is not blank
+conditionalFormatting(datesWB,
+                      "Dam Dates",
+                      cols = 1:27,
+                      rows = 2:(length(Dam_dates$Dam_ID)+1),
+                      rule = "NOT(isblank($E2))",
+                      style = greyFill())
+
+#if check_VO, check_Estrus, check_PPS day has past
+conditionalFormatting(datesWB,
+                      "Offspring Dates",
+                      cols = 23:24,
+                      rows = 2:(length(Off_dates$Mouse_ID)+1),
+                      rule = "AND(NOT(isblank(W2)), TODAY() >= W2)",
+                      style = greenFill())
+
+conditionalFormatting(datesWB,
+                      "Offspring Dates",
+                      cols = 27,
+                      rows = 2:(length(Off_dates$Mouse_ID)+1),
+                      rule = "AND(NOT(isblank(AA2)), TODAY() >= AA2)",
+                      style = greenFill())
+
+#if start juvenile AGD >= TODAY and TODAY <= end AGD
+conditionalFormatting(datesWB,
+                      "Offspring Dates",
+                      cols = 19:20,
+                      rows = 2:(length(Off_dates$Mouse_ID)+1),
+                      rule = "AND(TODAY() >= $S2, TODAY() <= $T2)",
+                      style = greenFill())
+
+#if start adult AGD >= TODAY and TODAY <= end AGD
+conditionalFormatting(datesWB,
+                      "Offspring Dates",
+                      cols = 21:22,
+                      rows = 2:(length(Off_dates$Mouse_ID)+1),
+                      rule = "AND(TODAY() >= $U2, TODAY() <= $V2)",
+                      style = greenFill())
+
+#if mass dates equal TODAY
+conditionalFormatting(datesWB,
+                      "Offspring Dates",
+                      cols = 7:15,
+                      rows = 2:(length(Off_dates$Mouse_ID)+1),
+                      rule = "== TODAY()",
+                      style = greenFill())
+
+#if start cycling date >= TODAY and TODAY <= end cycling
+conditionalFormatting(datesWB,
+                      "Offspring Dates",
+                      cols = 25:26,
+                      rows = 2:(length(Off_dates$Mouse_ID)+1),
+                      rule = "AND(TODAY() >= $Y2, TODAY() <= $Z2)",
+                      style = greenFill()
+)
+
+
+
+saveWorkbook(datesWB, file.path(DataOutFolder, "datesWB.xlsx"), overwrite = TRUE)
+
+
+```
 
 ```{r DataFrame-Workbook}
 LBN_df_wb <- createWorkbook()

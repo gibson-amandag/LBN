@@ -28,9 +28,9 @@ format_dates = function(column){
 ####Write to Excel Files 
 #uses openxslx
 
-writeToWorkbook = function(sheetName, df, wb){
+writeToWorkbook = function(sheetName, df, wb, tableStyle = "TableStyleMedium2"){
   addWorksheet(wb, sheetName)
-  writeDataTable(wb, sheetName, df, tableStyle = "TableStyleMedium2")
+  writeDataTable(wb, sheetName, df, tableStyle = tableStyle)
 }
 
 
