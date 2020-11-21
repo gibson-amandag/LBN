@@ -22,24 +22,28 @@ my_theme = theme(
 # Make this new key column a factor
 make_long_form = function(df){
   df %>%
-    gather(key = "day", value = "Mass", c(Mass_P9:Mass_P72, Avg_litter_mass_P2), factor_key=TRUE)
+    gather(key = "day", value = "Mass", c(Avg_litter_mass_startPara, Mass_P9:Mass_P72), factor_key=TRUE)
 }
 
 #Create a new column "PND" for the corresponding post-natal day on which the mass was taken to be able to plot on a continuous x-scale
 make_PND_col = function(df){
   df = df %>%
-    mutate(PND = case_when(day == "Avg_litter_mass_P2" ~ 2,
+    mutate(PND = case_when(day == "Avg_litter_mass_startPara" & ParaType == 2 ~ 2,
+                           day == "Avg_litter_mass_startPara" & ParaType == 4 ~ 4,
                            day == "Mass_P9" ~ 9,
                            day == "Mass_P10" ~ 10,
                            day == "Mass_P11" ~ 11,
                            day == "Mass_P12" ~ 12,
                            day == "Mass_P13" ~ 13,
+                           day == "Mass_P14" ~ 14,
                            day == "Mass_P15" ~ 15,
+                           day == "Mass_P16" ~ 16,
                            day == "Mass_P17" ~ 17,
                            day == "Mass_P19" ~ 19,
                            day == "Mass_P21" ~ 21,
                            day == "Mass_P22" ~ 22,
                            day == "Mass_P23" ~ 23,
+                           day == "Mass_P24" ~ 24,
                            day == "Mass_P28" ~ 28,
                            day == "Mass_P35" ~ 35,
                            day == "Mass_P42" ~ 42,
@@ -52,14 +56,125 @@ make_PND_col = function(df){
     )
 }
 
-make_summary_table = function(df){
-  df %>%
-    group_by(Treatment, day) %>%
-    summarize(mean = mean(Mass, na.rm = TRUE),
-              sd = sd(Mass, na.rm = TRUE),
-              n = n(),
-              sem = sd/sqrt(n))
+### My geoms --------------
+
+#plot masses for individual animals (or by dam) with semi-transparent lines
+my_geom_line <- function(
+  linetype_var, #use expr
+  lineGroup_var #use expr
+){
+  geom_line(alpha = .25, #make it semi-transparent
+            aes(linetype = !! linetype_var,
+                group = !! lineGroup_var),
+            size = 0.8)
 }
+
+#plot the average as a solid line. Include error bars
+#Can use a different line type based on a categorical variable
+my_line_mean_geom <- function(
+  useLinetype, #TRUE/FALSE
+  linetype_var #use expr
+){
+  list(
+    stat_summary(fun = mean, geom = "line", if(useLinetype){aes(linetype = !! linetype_var)}, size = 1.4, alpha = 1),
+    stat_summary(geom = "errorbar", fun.data = mean_se, size = 1)
+  )
+}
+
+#Geoms to make a line plot for mass
+my_LBN_mass_geoms = function(
+  useLinetype, #TRUE/FALSE
+  linetype_var, #use expr
+  lineGroup_var, #use expr
+  xtitle, #for x axis nice title
+  ytitle, #for y axis nice title
+  title = NULL, #title of the graph
+  individualLines = TRUE, #if want individual lines
+  mean_lines = TRUE, #if want to include mean line with SEM
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL
+){
+  list(
+    labs(x = xtitle, 
+         y = ytitle, 
+         title = title),
+    if(individualLines) #if individualLines is true, add this layer
+      my_geom_line(linetype_var = linetype_var,
+                   lineGroup_var = lineGroup_var),
+    if(mean_lines) #if mean_lines is true, add this layer
+      my_line_mean_geom(useLinetype = useLinetype,
+                        linetype_var = linetype_var),
+    expand_limits(y=0), #set y axis to 0
+    if(zoom_x)
+      xlim(xmin, xmax),
+    if(zoom_y)
+      ylim(ymin, ymax),
+    my_theme
+  )
+}
+
+### My plotting functions --------------------
+#See "my_LBN_mass_geoms for explanations of the geoms used
+#Input should be a long-form dataframe, with na's for mass removed
+mass_plot_lines = function(
+  df, 
+  line_group = expr(Mouse_ID), 
+  by_strain = TRUE,
+  individualLines = TRUE, #if want individual lines
+  mean_lines = TRUE, #if want to include mean line with SEM
+  title = NULL,
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL)
+{
+  ggplot(df, aes(PND, Mass, color = Treatment, 
+                 group = if(by_strain == TRUE){interaction(Treatment, Dam_Strain)}else{Treatment})) + #if by_strain is TRUE, group by dam strain
+    my_LBN_mass_geoms(
+      useLinetype = by_strain,
+      linetype_var = expr(Dam_Strain),
+      lineGroup_var = line_group,
+      xtitle = "Postnatal Day",
+      ytitle = "Mass (g)",
+      title = title,
+      individualLines = individualLines,
+      mean_lines = mean_lines,
+      zoom_x = zoom_x,
+      xmin = xmin,
+      xmax = xmax,
+      zoom_y = zoom_y,
+      ymin = ymin,
+      ymax = ymax
+    )
+}
+
+
+
+
+
+
+
+
+
+
+
+
+#### NOT CLEANED ###########################################################
+
+# make_summary_table = function(df){
+#   df %>%
+#     group_by(Treatment, day) %>%
+#     summarize(mean = mean(Mass, na.rm = TRUE),
+#               sd = sd(Mass, na.rm = TRUE),
+#               n = n(),
+#               sem = sd/sqrt(n))
+# }
 
 #depending on number trying to plot, can add "aes(shape = Mouse_ID)" to geom_point
 mass_plot = function(df){
@@ -73,18 +188,18 @@ mass_plot = function(df){
     my_theme
 }
 
-#lower density line for each individual mouse
-mass_plot_lines = function(df, line_group = Mouse_ID, by_strain = TRUE){
-  line_group = enquo(line_group)
-  ggplot(df, aes(PND, Mass, color = Treatment, group = if(by_strain == TRUE){interaction(Treatment, Dam_Strain)}else{Treatment})) + #if by_strain is TRUE, group by dam strain
-    geom_line(alpha = .25, aes(linetype = Dam_Strain, group = !! line_group), size = .8)+
-    stat_summary(fun.y = mean, geom = "line", if(by_strain == TRUE){aes(linetype = Dam_Strain)}, size = 1.4, alpha = 1) +
-    #stat_summary(fun.y = mean, geom = "point",  shape = 18, size = 4) +
-    stat_summary(geom = "errorbar", fun.data = mean_se, size = 1)+
-    expand_limits(y = 0)+ #set y axis to 0
-    labs(x = "Postnatal Day", y = "Mass (g)")+
-    my_theme
-}
+# #lower density line for each individual mouse
+# mass_plot_lines = function(df, line_group = Mouse_ID, by_strain = TRUE){
+#   line_group = enquo(line_group)
+#   ggplot(df, aes(PND, Mass, color = Treatment, group = if(by_strain == TRUE){interaction(Treatment, Dam_Strain)}else{Treatment})) + #if by_strain is TRUE, group by dam strain
+#     geom_line(alpha = .25, aes(linetype = Dam_Strain, group = !! line_group), size = .8)+
+#     stat_summary(fun = mean, geom = "line", if(by_strain == TRUE){aes(linetype = Dam_Strain)}, size = 1.4, alpha = 1) +
+#     #stat_summary(fun = mean, geom = "point",  shape = 18, size = 4) +
+#     stat_summary(geom = "errorbar", fun.data = mean_se, size = 1)+
+#     expand_limits(y = 0)+ #set y axis to 0
+#     labs(x = "Postnatal Day", y = "Mass (g)")+
+#     my_theme
+# }
 
 # ggplot(df, aes(PND, Mass, color = Treatment)) +
 #   geom_line(alpha = .25, aes(linetype = Dam_Strain, group = !! line_group), size = .8)+

@@ -225,6 +225,29 @@ conditionalFormatting(datesWB,
 
 ```
 
+```{r}
+#Summarize the mass values by treatment and strain
+map_dfr(massDates, LBN_summary_byGroup, Mass_off, exprs(Treatment, Strain))
+
+```
+
+```{r}
+Mass_off_long <- make_long_form(Mass_off)
+
+Mass_off_long <- make_PND_col(Mass_off_long)
+
+Mass_off_long <- Mass_off_long %>%
+  filter(!is.na(Mass))
+
+Mass_off_long
+
+mass_plot_lines(Mass_off_long,
+                individualLines = TRUE,
+                mean_lines = TRUE)
+
+```
+
+
 ```{r DataFrame-Workbook}
 LBN_df_wb <- createWorkbook()
 
@@ -240,13 +263,6 @@ writeToWorkbook("LBN_all", LBN_all, LBN_df_wb)
 writeToWorkbook("LBN_data", LBN_data, LBN_df_wb)
 
 #Saved in "Save-Workbooks" section
-```
-
-```{r}
-#Summarize the mass values by treatment and strain
-map_dfr(massDates, LBN_summary_byGroup, Mass_off, exprs(Treatment, Strain))
-
-Mass_off
 ```
 
 

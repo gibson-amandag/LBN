@@ -174,32 +174,75 @@ ui <- navbarPage("LBN",
                                              multiple = TRUE))
                               ),
                               dataTableOutput("Mass_dam_summary")),
-                         tabPanel("Offspring Mass",
-                                  h3("Offspring Mass"),
-                                  fluidRow(
-                                      column(4,
-                                             varSelectInput("Mass_vars_to_sum",
-                                                            "Select variables to summarize",
-                                                            data = Mass_off %>%
-                                                                select(Avg_litter_mass_startPara:Mass_P72),
-                                                            selected = c("Mass_P2",
-                                                                         "Mass_P4",
-                                                                         "Mass_P9",
-                                                                         "Mass_P11"),
-                                                            multiple = TRUE)
-                                             ),
-                                      column(4,
-                                             varSelectInput("Mass_grouping_vars",
-                                                            "Select variables to group by",
-                                                            data = Mass_off %>%
-                                                                select(Sex:Treatment,
-                                                                       Dam_ID,
-                                                                       Dam_Strain:ParaType),
-                                                            selected = c("Treatment",
-                                                                         "Dam_Strain"),
-                                                            multiple = TRUE))
-                                  ),
-                                  dataTableOutput("Mass_off_summary"))
+                     tabPanel("Offspring Mass",
+                              h3("Offspring Mass"),
+                              fluidRow(
+                                  column(4,
+                                         varSelectInput("Mass_vars_to_sum",
+                                                        "Select variables to summarize",
+                                                        data = Mass_off %>%
+                                                            select(Avg_litter_mass_startPara:Mass_P72),
+                                                        selected = c("Mass_P2",
+                                                                     "Mass_P4",
+                                                                     "Mass_P9",
+                                                                     "Mass_P11"),
+                                                        multiple = TRUE)
+                                         ),
+                                  column(4,
+                                         varSelectInput("Mass_grouping_vars",
+                                                        "Select variables to group by",
+                                                        data = Mass_off %>%
+                                                            select(Sex:Treatment,
+                                                                   Dam_ID,
+                                                                   Dam_Strain:ParaType),
+                                                        selected = c("Treatment",
+                                                                     "Dam_Strain"),
+                                                        multiple = TRUE))
+                              ),
+                              dataTableOutput("Mass_off_summary"),
+                              fluidRow(
+                                 column(3,
+                                        radioButtons("Mass_off_ParaTypes",
+                                              "Which paradigm type?",
+                                              c("Both", "P2-P9", "P4-P11"),
+                                              selected = "Both"),
+                                        checkboxInput("Mass_off_by_dam",
+                                                      "Plot by dam?",
+                                                      value = FALSE),
+                                        checkboxInput("Mass_off_by_strain",
+                                                      "Plot by strain?",
+                                                      value = TRUE)),
+                                 column(3,
+                                        checkboxInput("Mass_off_individual_lines",
+                                                      "Plot individual lines?",
+                                                      value = TRUE),
+                                        checkboxInput("Mass_off_mean_lines",
+                                                      "Plot mean lines?",
+                                                      value = TRUE),
+                                        textInput("Mass_off_title",
+                                                  "Graph Title:")
+                                        ),
+                                 column(3,
+                                        checkboxInput("Mass_off_zoom_x",
+                                                      "Zoom x axis?"),
+                                        checkboxInput("Mass_off_zoom_y",
+                                                      "Zoom y axis?"),
+                                        ##Add conditional
+                                        numericInput("Mass_off_xmin",
+                                                     "Lower Limit x-axis:",
+                                                     0),
+                                        numericInput("Mass_off_xmax",
+                                                     "Upper Limit x-axis:",
+                                                     21),
+                                        numericInput("Mass_off_ymin",
+                                                     "Lower Limit y-axis:",
+                                                     0),
+                                        numericInput("Mass_off_ymax",
+                                                     "Upper Limit y-axis:",
+                                                     15))
+                                 
+                              ),
+                              plotOutput("Mass_off_plot"))
                      )
                  )
 ############                 
@@ -543,6 +586,7 @@ server <- function(input, output) {
     
     
     #### RENDER ANALYSIS -----------------------------
+    ### Summary Data Frames ----------------
     output$Mass_dam_summary <- renderDataTable(
         map_dfr(input$Mass_dams_vars_to_sum, LBN_summary_byGroup, Demo_dam, input$Mass_dams_grouping_vars)
     )
@@ -550,6 +594,36 @@ server <- function(input, output) {
     output$Mass_off_summary <- renderDataTable(
         map_dfr(input$Mass_vars_to_sum, LBN_summary_byGroup, Mass_off, input$Mass_grouping_vars)
     )
+    
+    ### Plots ------------------
+    output$Mass_off_plot <- renderPlot({
+        Mass_off_long <- make_long_form(Mass_off)
+        
+        Mass_off_long <- make_PND_col(Mass_off_long)
+        
+        Mass_off_long <- Mass_off_long %>%
+            filter(!is.na(Mass))
+        
+        #Add - filter for paradigm type
+        #add - filter for breed date (add to UI, too)
+        #add prep for grouping by dam
+        
+        mass_plot_lines(Mass_off_long,
+                        line_group = expr(Mouse_ID),
+                            #ifelse(input$Mass_off_by_dam, expr(Dam_ID), expr(Mouse_ID))
+                        by_strain = input$Mass_off_by_strain,
+                        individualLines = input$Mass_off_individual_lines,
+                        mean_lines = input$Mass_off_mean_lines,
+                        title = input$Mass_off_title,
+                        zoom_x = input$Mass_off_zoom_x,
+                        xmin = input$Mass_off_xmin,
+                        xmax = input$Mass_off_xmax,
+                        zoom_y = input$Mass_off_zoom_y,
+                        ymin = input$Mass_off_ymin,
+                        ymax = input$Mass_off_ymax)
+    }
+    )
+    
 }
 
 # Run the application 

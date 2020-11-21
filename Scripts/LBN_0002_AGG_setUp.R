@@ -17,6 +17,9 @@ VarNamesFunctionsFileName <- "LBN_0002_AGG_varNames.R"
 #Task Functions Script (ends in .R)
 TaskFunctionsFileName <- "LBN_0002_AGG_taskFunctions.R"
 
+#Graph Functions Script (ends in .R)
+GraphFunctionsFileName <- "LBN_0002_AGG_graphFunctions.R"
+
 #Where R Notebook files are saved
 ScriptsFolder <- file.path("Scripts")
 
@@ -46,3 +49,6 @@ source(file.path(FunctionsFolder, VarNamesFunctionsFileName))
 
 #Load the Task Functions
 source(file.path(FunctionsFolder, TaskFunctionsFileName))
+
+#Load the Graph Functions
+source(file.path(FunctionsFolder, GraphFunctionsFileName))
