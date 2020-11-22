@@ -109,10 +109,7 @@ my_LBN_mass_geoms = function(
       my_line_mean_geom(useLinetype = useLinetype,
                         linetype_var = linetype_var),
     expand_limits(y=0), #set y axis to 0
-    if(zoom_x)
-      xlim(xmin, xmax),
-    if(zoom_y)
-      ylim(ymin, ymax),
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}), #this just zooms in on the graph, versus scale_[]_continuous actually eliminates data not in the range
     my_theme
   )
 }
