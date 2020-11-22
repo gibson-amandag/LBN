@@ -242,7 +242,7 @@ mass_plot_lines(Mass_off_long,
 ```
 
 ```{r}
-#summarize by dam
+#summarized by Litter
 Mass_off_byDam_meanSD %>%
   summarise_if(is.numeric, list(~mean(., na.rm = TRUE), ~sd(., na.rm = TRUE)))
 
@@ -254,6 +254,73 @@ Mass_off_byDam_long
 
 mass_plot_lines(Mass_off_byDam_long,
                      line_group = expr(Dam_ID))
+```
+
+```{r Pup Loss}
+Demo_dam %>%
+  filter(!is.na(Treatment)) %>%
+  group_by(Treatment, Dam_Strain, ParaType) %>%
+  summarize(Mean_pupLoss = mean(pupLoss, na.rm = TRUE),
+            n(),
+            .groups = "drop")
+
+#Also, keep in mind that one of the LBN cages had to be ended early because dam was not caring for pups, and only one pup was left. But this dam had already lost pups before the start of the paradigm, and only started with three pups
+```
+
+```{r Offspring-maturation}
+Maturation_off
+
+LBN_summary_byGroup(expr(AGD_wean), Maturation_off, exprs(Sex, Treatment, Strain))
+
+Maturation_off_grouped = Maturation_off %>%
+  group_by(Sex, Treatment, Strain)
+
+Maturation_off_grouped %>%
+    summarise_if(is.numeric, list(~mean(., na.rm = TRUE), ~sd(., na.rm = TRUE), ~n()))
+
+AGD_avgs = Maturation_off_grouped %>%
+  summarize(Number = n(),
+            AGD_wean_avg = mean(AGD_wean, na.rm = TRUE),
+            AGD_wean_by_mass_avg = mean(AGD_wean_by_mass, na.rm = TRUE),
+            AGD_wean_sd = sd(AGD_wean, na.rm = TRUE),
+            AGD_wean_by_mass_sd = sd(AGD_wean_by_mass, na.rm = TRUE),
+            AGD_adult_avg = mean(AGD_adult, na.rm = TRUE),
+            AGD_adult_by_mass_avg = mean(AGD_adult_by_mass, na.rm = TRUE),
+            AGD_adult_sd = sd(AGD_adult, na.rm = TRUE),
+            AGD_adult_by_mass_sd = sd(AGD_adult_by_mass, na.rm = TRUE),
+            )
+AGD_avgs
+
+VO_avgs = Maturation_off_grouped %>%
+  filter(Sex == "F") %>%
+  summarize(Number = n(),
+            VO_age_avg = mean(VO_age, na.rm = TRUE),
+            VO_age_sd = sd(VO_age, na.rm = TRUE),
+            VO_mass_avg = mean(VO_mass, na.rm = TRUE),
+            VO_mass_sd = sd(VO_mass, na.rm = TRUE)
+            )
+VO_avgs
+
+Estrus_avgs = Maturation_off_grouped %>%
+  filter(Sex == "F") %>%
+  summarize(Number = n(),
+            Estrus_age_avg = mean(Estrus_age, na.rm = TRUE),
+            Estrus_age_sd = sd(Estrus_age, na.rm = TRUE),
+            Estrus_mass_avg = mean(Estrus_mass, na.rm = TRUE),
+            Estrus_mass_sd = sd(Estrus_mass, na.rm = TRUE)
+            )
+Estrus_avgs
+
+PreputialSep_avgs = Maturation_off_grouped %>%
+  filter(Sex == "M") %>%
+  summarize(Number = n(),
+            PreputialSep_age_avg = mean(PreputialSep_age, na.rm = TRUE),
+            PreputialSep_age_sd = sd(PreputialSep_age, na.rm = TRUE),
+            PreputialSep_mass_avg = mean(PreputialSep_mass, na.rm = TRUE),
+            PreputialSep_mass_sd = sd(PreputialSep_mass, na.rm = TRUE)
+            )
+PreputialSep_avgs
+
 ```
 
 

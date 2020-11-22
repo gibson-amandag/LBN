@@ -44,6 +44,10 @@ load_LBN_data <- function(
   AcuteStress_off$Mouse_ID <- as.character(AcuteStress_off$Mouse_ID)
   ChronicStress_off$Mouse_ID <- as.character(ChronicStress_off$Mouse_ID)
   
+  #Add a "pupLoss" column to Demo_dam
+  Demo_dam <- Demo_dam %>%
+    mutate(pupLoss = Litter_size_startPara - Litter_size_endPara)
+  
   #Combine into a single dataframe - to be used for variable names
   LBN_all <- Demo_off %>%
     left_join(Demo_dam, by = "Dam_ID") %>%
@@ -67,7 +71,8 @@ load_LBN_data <- function(
            DOB, 
            Avg_litter_mass_startPara, 
            Litter_size_startPara, 
-           Litter_size_endPara)
+           Litter_size_endPara,
+           pupLoss)
   
   #Add the demographic info, join by Dam_ID
   Demo_off <- Demo_off %>%
@@ -77,7 +82,7 @@ load_LBN_data <- function(
            Treatment:ParaType,
            Wean_Cage_Number:Dam_cage,
            Sire,
-           Avg_litter_mass_startPara:Litter_size_endPara)
+           Avg_litter_mass_startPara:pupLoss)
   
   
   #Combine all of the data into a single dataframe. Will add NAs where there isn't data
@@ -102,18 +107,39 @@ load_LBN_data <- function(
            Avg_litter_mass_startPara:Mass_P72,
            Dam_ID,
            DOB,
-           Dam_Strain:Litter_size_endPara)
+           Dam_Strain:pupLoss)
   
   Maturation_off <- LBN_data %>%
-    select(all_of(demoVars_forOff_quo)) %>%
+    select(all_of(demoVars_forOff_quo),
+           Mass_P22, 
+           Mass_P23, 
+           Mass_P24, 
+           Mass_P70, 
+           Mass_P71, 
+           Mass_P72) %>%
     left_join(Maturation_off, by = "Mouse_ID") %>%
     select(Mouse_ID, #reorder
            Sex,
            Treatment,
            VO_day:AGD_P72,
+           Mass_P22:Mass_P72,
            Dam_ID,
            DOB,
-           Dam_Strain:Litter_size_endPara)
+           Dam_Strain:pupLoss)
+  
+  Maturation_off <- Maturation_off %>%
+    mutate(AGD_wean = (AGD_P22 + AGD_P23 + AGD_P24) / 3,
+           AGD_adult = (AGD_P70 + AGD_P71 + AGD_P72) / 3,
+           Mass_wean = (Mass_P22 + Mass_P23 + Mass_P24) / 3,
+           Mass_adult = (Mass_P70 + Mass_P71 + Mass_P72) / 3,
+           AGD_wean_by_mass = AGD_wean / Mass_wean,
+           AGD_adult_by_mass = AGD_adult / Mass_adult,
+           VO_age = as.numeric(VO_day - DOB), #if don't include as.numeric it will output in days
+           Estrus_age = as.numeric(Estrus_day - DOB),
+           PreputialSep_age = as.numeric(PreputialSep_day - DOB)) %>%
+    select(Mouse_ID:Treatment,
+           AGD_wean:PreputialSep_age, 
+           VO_day:pupLoss)
   
   EndPara_off <- LBN_data %>%
     select(all_of(demoVars_forOff_quo)) %>%
@@ -124,7 +150,7 @@ load_LBN_data <- function(
            Cort_endPara:CRH_endPara,
            Dam_ID,
            DOB,
-           Dam_Strain:Litter_size_endPara)
+           Dam_Strain:pupLoss)
   
   Cycles_off <- LBN_data %>%
     select(all_of(demoVars_forOff_quo)) %>%
@@ -135,7 +161,7 @@ load_LBN_data <- function(
            Cycle_length:Proestrus_days,
            Dam_ID,
            DOB,
-           Dam_Strain:Litter_size_endPara)
+           Dam_Strain:pupLoss)
   
   AcuteStress_off <- LBN_data %>%
     select(all_of(demoVars_forOff_quo)) %>%
@@ -146,7 +172,7 @@ load_LBN_data <- function(
            Stress_cycle:LH_5.5,
            Dam_ID,
            DOB,
-           Dam_Strain:Litter_size_endPara)
+           Dam_Strain:pupLoss)
   
   ChronicStress_off <- LBN_data %>%
     select(all_of(demoVars_forOff_quo)) %>%
@@ -157,7 +183,19 @@ load_LBN_data <- function(
            Chronic_stress_treatment:Stress_proestrus,
            Dam_ID,
            DOB,
-           Dam_Strain:Litter_size_endPara)
+           Dam_Strain:pupLoss)
+  
+  
+  LBN_all <- LBN_all %>%
+    left_join(Maturation_off %>% 
+                select(Mouse_ID,
+                       AGD_wean:PreputialSep_age), by = "Mouse_ID")
+  
+  LBN_data <- LBN_data %>%
+    left_join(Maturation_off %>%
+                select(Mouse_ID,
+                       AGD_wean:PreputialSep_age), by = "Mouse_ID")
+  
 
 #Assign this function to an object. Then call the specific items as df$Demo_dam or df[[Demo_dam]] for example. 
   #All the dataframes will be within this one list that is the output of the function

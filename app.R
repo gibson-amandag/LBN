@@ -155,8 +155,8 @@ ui <- navbarPage("LBN",
                      
                      tabsetPanel(
                      
-                     #Dam Mass --------
-                     tabPanel("Dam Mass",
+                     #Dams --------
+                     tabPanel("Dam",
                               h3("Dam Mass"),
                               fluidRow(
                               column(4,
@@ -180,7 +180,21 @@ ui <- navbarPage("LBN",
                                                           "Dam_Strain"),
                                              multiple = TRUE))
                               ),
-                              dataTableOutput("Mass_dam_summary")),
+                              dataTableOutput("Mass_dam_summary"),
+                              h3("Pup Loss During Paradigm"),
+                              fluidRow(
+                                  varSelectInput("Pup_loss_grouping_vars",
+                                        "Select variables to group by:",
+                                        data = Demo_dam %>%
+                                            select(Treatment:Dam_Strain,
+                                                   ParaType,
+                                                   Sac_or_stop),
+                                        selected = c("Treatment",
+                                                     "Dam_Strain",
+                                                     "ParaType"),
+                                        multiple = TRUE)),
+                              dataTableOutput("Pup_loss_summary")
+                              ),
                      
                      #Offspring Mass -----------
                      tabPanel("Offspring Mass",
@@ -210,23 +224,27 @@ ui <- navbarPage("LBN",
                               ),
                               dataTableOutput("Mass_off_summary"),
                               fluidRow(
-                                 column(3,
+                                 column(4,
                                         radioButtons("Mass_off_ParaTypes",
                                               "Which paradigm type?",
                                               c("Both", "P2-P9" = 2, "P4-P11" = 4),
                                               selected = "Both"),
+                                        radioButtons("Mass_off_whichStrain",
+                                                     "Which dam strains?",
+                                                     c("Both", "B6", "CBA"),
+                                                     selected = "Both"),
+                                        radioButtons("Mass_off_whichSex",
+                                                     "Which sex?",
+                                                     c("Both", "Male" = "M", "Female" = "F"),
+                                                     selected = "Both")
+                                        ),
+                                 column(4,
                                         checkboxInput("Mass_off_by_dam",
                                                       "Plot by litter?",
                                                       value = FALSE),
                                         checkboxInput("Mass_off_by_strain",
                                                       "Plot by strain?",
-                                                      value = TRUE)),
-                                 column(3,
-                                        dateRangeInput("Mass_off_DOBs",
-                                                       "Select range of birth dates",
-                                                       start = "2019-12-15",
-                                                       end = Sys.Date()
-                                                       ),
+                                                      value = TRUE),
                                         checkboxInput("Mass_off_individual_lines",
                                                       "Plot individual lines?",
                                                       value = TRUE),
@@ -234,9 +252,13 @@ ui <- navbarPage("LBN",
                                                       "Plot mean lines?",
                                                       value = TRUE),
                                         textInput("Mass_off_title",
-                                                  "Graph Title:")
+                                                  "Graph Title:"),
+                                        dateRangeInput("Mass_off_DOBs",
+                                                       "Select range of birth dates",
+                                                       start = "2019-12-15",
+                                                       end = Sys.Date())
                                         ),
-                                 column(3,
+                                 column(2,
                                         checkboxInput("Mass_off_zoom_x",
                                                       "Zoom x axis?"),
                                         conditionalPanel(
@@ -249,7 +271,7 @@ ui <- navbarPage("LBN",
                                                          21)
                                         )
                                         ),
-                                 column(3,
+                                 column(2,
                                         checkboxInput("Mass_off_zoom_y",
                                                       "Zoom y axis?"),
                                         conditionalPanel(
@@ -268,7 +290,99 @@ ui <- navbarPage("LBN",
                               ),
                      ### Offspring Maturation ----
                      tabPanel("Offspring Maturation",
-                                 h3("Offspring Maturation"))
+                              h3("Offspring Maturation"),
+                              h4("Ano-genital distance"),
+                              fluidRow(
+                                  column(4,
+                                         varSelectInput("Mat_AGD_vars_to_sum",
+                                                        "Select variables to summarize",
+                                                        data = Maturation_off %>%
+                                                            select(AGD_wean:AGD_adult_by_mass, AGD_P22:AGD_P72),
+                                                        selected = c("AGD_wean",
+                                                                     "AGD_adult",
+                                                                     "Mass_P9",
+                                                                     "Mass_P11"),
+                                                        multiple = TRUE)
+                                  ),
+                                  column(4,
+                                         varSelectInput("Mat_AGD_grouping_vars",
+                                                        "Select variables to group by",
+                                                        data = Maturation_off %>%
+                                                            select(Sex:Treatment,
+                                                                   Dam_ID,
+                                                                   Dam_Strain:ParaType),
+                                                        selected = c("Sex",
+                                                                     "Treatment"),
+                                                        multiple = TRUE))
+                              ),
+                              dataTableOutput("Mat_AGD_summary"),
+                              
+                              h4("Vaginal Opening"),
+                              fluidRow(
+                                  column(4,
+                                         varSelectInput("Mat_VO_vars_to_sum",
+                                                        "Select variables to summarize",
+                                                        data = Maturation_off %>%
+                                                            select(VO_age, VO_mass),
+                                                        selected = c("VO_age", "VO_mass"),
+                                                        multiple = TRUE)
+                                  ),
+                                  column(4,
+                                         varSelectInput("Mat_VO_grouping_vars",
+                                                        "Select variables to group by",
+                                                        data = Maturation_off %>%
+                                                            select(Treatment,
+                                                                   Dam_ID,
+                                                                   Dam_Strain:ParaType),
+                                                        selected = c("Treatment"),
+                                                        multiple = TRUE))
+                              ),
+                              dataTableOutput("Mat_VO_summary"),
+                              
+                              h4("First Estrus"),
+                              fluidRow(
+                                  column(4,
+                                         varSelectInput("Mat_1E_vars_to_sum",
+                                                        "Select variables to summarize",
+                                                        data = Maturation_off %>%
+                                                            select(Estrus_age, Estrus_mass),
+                                                        selected = c("Estrus_age", "Estrus_mass"),
+                                                        multiple = TRUE)
+                                  ),
+                                  column(4,
+                                         varSelectInput("Mat_1E_grouping_vars",
+                                                        "Select variables to group by",
+                                                        data = Maturation_off %>%
+                                                            select(Treatment,
+                                                                   Dam_ID,
+                                                                   Dam_Strain:ParaType),
+                                                        selected = c("Treatment"),
+                                                        multiple = TRUE))
+                              ),
+                              dataTableOutput("Mat_1E_summary"),
+                              
+                              h4("Preputial Separation"),
+                              fluidRow(
+                                  column(4,
+                                         varSelectInput("Mat_PPS_vars_to_sum",
+                                                        "Select variables to summarize",
+                                                        data = Maturation_off %>%
+                                                            select(PreputialSep_age, PreputialSep_mass),
+                                                        selected = c("PreputialSep_age", "PreputialSep_mass"),
+                                                        multiple = TRUE)
+                                  ),
+                                  column(4,
+                                         varSelectInput("Mat_PPS_grouping_vars",
+                                                        "Select variables to group by",
+                                                        data = Maturation_off %>%
+                                                            select(Treatment,
+                                                                   Dam_ID,
+                                                                   Dam_Strain:ParaType),
+                                                        selected = c("Treatment"),
+                                                        multiple = TRUE))
+                              ),
+                              dataTableOutput("Mat_PPS_summary")
+                              )
                      )
                  )
 ############                 
@@ -626,6 +740,10 @@ server <- function(input, output) {
     
     #### RENDER ANALYSIS -----------------------------
     ### Summary Data Frames ----------------
+    output$Pup_loss_summary <- renderDataTable(
+        LBN_summary_byGroup(expr(pupLoss), Demo_dam, input$Pup_loss_grouping_vars) %>%
+            select(-Variable, - VarName)
+    )
     output$Mass_dam_summary <- renderDataTable(
         map_dfr(input$Mass_dams_vars_to_sum, LBN_summary_byGroup, Demo_dam, input$Mass_dams_grouping_vars)
     )
@@ -634,8 +752,33 @@ server <- function(input, output) {
         map_dfr(input$Mass_vars_to_sum, LBN_summary_byGroup, Mass_off, input$Mass_grouping_vars)
     )
     
+    #Add filters for paradigm types, birth dates, etc
+    output$Mat_AGD_summary <- renderDataTable(
+        map_dfr(input$Mat_AGD_vars_to_sum, LBN_summary_byGroup, Maturation_off, input$Mat_AGD_grouping_vars)
+    )
+    
+    output$Mat_VO_summary <- renderDataTable(
+        map_dfr(input$Mat_VO_vars_to_sum, LBN_summary_byGroup, Maturation_off, input$Mat_VO_grouping_vars)
+    )
+    
+    output$Mat_1E_summary <- renderDataTable(
+        map_dfr(input$Mat_1E_vars_to_sum, LBN_summary_byGroup, Maturation_off, input$Mat_1E_grouping_vars)
+    )
+    
+    output$Mat_PPS_summary <- renderDataTable(
+        map_dfr(input$Mat_PPS_vars_to_sum, LBN_summary_byGroup, Maturation_off, input$Mat_PPS_grouping_vars)
+    )
+    
     ### Plots ------------------
     output$Mass_off_plot <- renderPlot({
+        #needs to be before the averaging by litter
+        if(input$Mass_off_whichSex == "M"){
+            Mass_off <- Mass_off %>%
+                filter(Sex == "M")
+        }else if(input$Mass_off_whichSex == "F"){
+            Mass_off <- Mass_off %>%
+                filter(Sex == "F")
+        }
         
         if(input$Mass_off_by_dam == FALSE){
             Mass_off_long <- reshapeForMassPlot(Mass_off)
@@ -660,6 +803,15 @@ server <- function(input, output) {
         Mass_off_long <- Mass_off_long %>%
             filter(DOB >= input$Mass_off_DOBs[1] & DOB <= input$Mass_off_DOBs[2])
        
+        #Filter for Strain - By Dam Strain
+        if(input$Mass_off_whichStrain == "B6"){
+            Mass_off_long <- Mass_off_long %>%
+                filter(Dam_Strain == "B6")
+        }else if(input$Mass_off_whichStrain == "CBA"){
+            Mass_off_long <- Mass_off_long %>%
+                filter(Dam_Strain == "CBA")
+        }
+        
         
         mass_plot_lines(Mass_off_long,
                         line_group = ifelse(input$Mass_off_by_dam, expr(Dam_ID), expr(Mouse_ID)),

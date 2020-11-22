@@ -109,6 +109,8 @@ my_LBN_mass_geoms = function(
     labs(x = xtitle, 
          y = ytitle, 
          title = title),
+    #geom_rect(aes(xmin = 0, xmax = 21, ymin = 0, ymax = Inf), fill = 'grey90', color = "grey90", alpha = 0.1),
+      #For background shading, but this seems to drastically increase time to plot
     if(individualLines) #if individualLines is true, add this layer
       my_geom_line(linetype_var = linetype_var,
                    lineGroup_var = lineGroup_var),

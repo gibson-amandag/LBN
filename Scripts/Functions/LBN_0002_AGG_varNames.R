@@ -49,6 +49,7 @@ LBN_varNames_func <- function(
   LBN_VarNames$Avg_litter_mass_startPara = "Avg Litter Mass Paradigm Start"
   LBN_VarNames$Litter_size_startPara = "Litter Size Paradigm Start"
   LBN_VarNames$Litter_size_endPara = "Litter Size Paradigm End"
+  LBN_VarNames$pupLoss = "# Pups Lost During Paradigm"
   
   LBN_VarNames$Camera_number = "Camera Number"
   LBN_VarNames$Sac_or_stop = "Sacrificed or Stop tracking"
@@ -110,6 +111,16 @@ LBN_varNames_func <- function(
   LBN_VarNames$AGD_P71 = "AGD at P71"
   LBN_VarNames$AGD_P72 = "AGD at P72"
   
+  LBN_VarNames$AGD_wean = "Avg Juvenile AGD"
+  LBN_VarNames$AGD_adult = "Avg Adult AGD"
+  LBN_VarNames$Mass_wean = "Avg Juvenile Mass"
+  LBN_VarNames$Mass_adult = "Avg Adult Mass"
+  LBN_VarNames$AGD_wean_by_mass = "Avg Juvenile AGD by Mass"
+  LBN_VarNames$AGD_adult_by_mass = "Avg Adult AGD by Mass"
+  LBN_VarNames$VO_age = "Age at Vaginal Opening"
+  LBN_VarNames$Estrus_age = "Age at First Estrus"
+  LBN_VarNames$PreputialSep_age = "Age at Preputial Sep"
+  
   LBN_VarNames$Cort_endPara = "Offspring Cort at Paradigm End"
   LBN_VarNames$CRH_endPara = "Offspring CRH at Paradigm End"
   
@@ -154,7 +165,8 @@ demoVars_forOff_quo = c("Mouse_ID",
                         "New_cage_mate",
                         "Lost_cage_mate",
                         "Litter_size_startPara",
-                        "Litter_size_endPara"
+                        "Litter_size_endPara",
+                        "pupLoss"
 )
 
 demoVars_forOff = exprs(Mouse_ID,
@@ -171,7 +183,8 @@ demoVars_forOff = exprs(Mouse_ID,
                  New_cage_mate,
                  Lost_cage_mate,
                  Litter_size_startPara,
-                 Litter_size_endPara
+                 Litter_size_endPara,
+                 pupLoss
                  )
 
 
