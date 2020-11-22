@@ -232,19 +232,28 @@ map_dfr(massDates, LBN_summary_byGroup, Mass_off, exprs(Treatment, Strain))
 ```
 
 ```{r}
-Mass_off_long <- make_long_form(Mass_off)
-
-Mass_off_long <- make_PND_col(Mass_off_long)
-
-Mass_off_long <- Mass_off_long %>%
-  filter(!is.na(Mass))
+Mass_off_long <- reshapeForMassPlot(Mass_off)
 
 Mass_off_long
 
 mass_plot_lines(Mass_off_long,
                 individualLines = TRUE,
                 mean_lines = TRUE)
+```
 
+```{r}
+#summarize by dam
+Mass_off_byDam_meanSD %>%
+  summarise_if(is.numeric, list(~mean(., na.rm = TRUE), ~sd(., na.rm = TRUE)))
+
+Mass_off_byDam <- getAvgByDam(Mass_off)
+Mass_off_byDam
+
+Mass_off_byDam_long <- reshapeForMassPlot(Mass_off_byDam)
+Mass_off_byDam_long
+
+mass_plot_lines(Mass_off_byDam_long,
+                     line_group = expr(Dam_ID))
 ```
 
 

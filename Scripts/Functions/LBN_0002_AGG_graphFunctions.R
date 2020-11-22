@@ -56,6 +56,13 @@ make_PND_col = function(df){
     )
 }
 
+reshapeForMassPlot <- function(df){
+  df_long <- make_long_form(df)
+  df_long_PND <- make_PND_col(df_long)
+  df_long_noNA <- df_long_PND %>%
+    filter(!is.na(Mass))
+}
+
 ### My geoms --------------
 
 #plot masses for individual animals (or by dam) with semi-transparent lines

@@ -94,7 +94,7 @@ load_LBN_data <- function(
   
   #Add demographic information to the smaller datasets
   Mass_off <- LBN_data %>%
-    select(demoVars_forOff_quo, Avg_litter_mass_startPara) %>%
+    select(all_of(demoVars_forOff_quo), Avg_litter_mass_startPara) %>%
     left_join(select(Mass_off, -ParaType), by = "Mouse_ID") %>%
     select(Mouse_ID, #reorder
            Sex,
@@ -105,7 +105,7 @@ load_LBN_data <- function(
            Dam_Strain:Litter_size_endPara)
   
   Maturation_off <- LBN_data %>%
-    select(demoVars_forOff_quo) %>%
+    select(all_of(demoVars_forOff_quo)) %>%
     left_join(Maturation_off, by = "Mouse_ID") %>%
     select(Mouse_ID, #reorder
            Sex,
@@ -116,7 +116,7 @@ load_LBN_data <- function(
            Dam_Strain:Litter_size_endPara)
   
   EndPara_off <- LBN_data %>%
-    select(demoVars_forOff_quo) %>%
+    select(all_of(demoVars_forOff_quo)) %>%
     left_join(EndPara_off, by = "Mouse_ID") %>%
     select(Mouse_ID, #reorder
            Sex,
@@ -127,7 +127,7 @@ load_LBN_data <- function(
            Dam_Strain:Litter_size_endPara)
   
   Cycles_off <- LBN_data %>%
-    select(demoVars_forOff_quo) %>%
+    select(all_of(demoVars_forOff_quo)) %>%
     left_join(Cycles_off, by = "Mouse_ID") %>%
     select(Mouse_ID, #reorder
            Sex,
@@ -138,7 +138,7 @@ load_LBN_data <- function(
            Dam_Strain:Litter_size_endPara)
   
   AcuteStress_off <- LBN_data %>%
-    select(demoVars_forOff_quo) %>%
+    select(all_of(demoVars_forOff_quo)) %>%
     left_join(AcuteStress_off, by = "Mouse_ID") %>%
     select(Mouse_ID, #reorder
            Sex,
@@ -149,7 +149,7 @@ load_LBN_data <- function(
            Dam_Strain:Litter_size_endPara)
   
   ChronicStress_off <- LBN_data %>%
-    select(demoVars_forOff_quo) %>%
+    select(all_of(demoVars_forOff_quo)) %>%
     left_join(ChronicStress_off, by = "Mouse_ID") %>%
     select(Mouse_ID, #reorder
            Sex,

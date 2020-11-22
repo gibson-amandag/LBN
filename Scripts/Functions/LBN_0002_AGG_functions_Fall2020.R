@@ -90,3 +90,30 @@ LBN_summary_byGroup <- function(var_toSummarize, df, group_vars){
 # Use map_dfr which will combine all of the summaries into a single data frame by binding the rows. 
 # Use a single set of grouping variables
 # Example : map_dfr(exprs(Mass_P21, Mass_P22), LBN_summary_byGroup, Mass_off, exprs(Treatment, Strain))
+
+
+### Group by Dam ------------------------------------------------------------------------
+groupByDam <- function(df){
+  df_byDam <- df %>%
+    group_by(Dam_ID)
+  return(df_byDam)
+}
+
+#Summarize by dam
+AvgByDam_func <- function(df, demo_df = Demo_dam){
+  AvgByDam <- df %>%
+    summarise_if(is.numeric, mean, na.rm = TRUE)
+  
+  AvgByDam <- demo_df %>%
+    select(Dam_ID, Treatment, Dam_Strain, Strain, DOB) %>% #add back in the non-numeric demo information
+    right_join(AvgByDam, by = "Dam_ID")
+  return(AvgByDam)
+}
+
+#Evaluate both in one function
+getAvgByDam <- function(df, demo_df = Demo_dam){
+  grouped_df <- groupByDam(df)
+  avg_df <- AvgByDam_func(grouped_df, demo_df)
+  return(avg_df)
+  
+}

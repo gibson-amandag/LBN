@@ -148,7 +148,14 @@ ui <- navbarPage("LBN",
                  tabPanel(
                      "Analysis",
                      titlePanel("LBN Analysis"),
+                     h2("Offspring Date of Birth"),
+                     plotOutput("Offspring_DOB_hist",
+                                height = "200px"),
+                     uiOutput("Offspring_DOB_range"),
+                     
                      tabsetPanel(
+                     
+                     #Dam Mass --------
                      tabPanel("Dam Mass",
                               h3("Dam Mass"),
                               fluidRow(
@@ -174,6 +181,8 @@ ui <- navbarPage("LBN",
                                              multiple = TRUE))
                               ),
                               dataTableOutput("Mass_dam_summary")),
+                     
+                     #Offspring Mass -----------
                      tabPanel("Offspring Mass",
                               h3("Offspring Mass"),
                               fluidRow(
@@ -207,12 +216,17 @@ ui <- navbarPage("LBN",
                                               c("Both", "P2-P9" = 2, "P4-P11" = 4),
                                               selected = "Both"),
                                         checkboxInput("Mass_off_by_dam",
-                                                      "Plot by dam?",
+                                                      "Plot by litter?",
                                                       value = FALSE),
                                         checkboxInput("Mass_off_by_strain",
                                                       "Plot by strain?",
                                                       value = TRUE)),
                                  column(3,
+                                        dateRangeInput("Mass_off_DOBs",
+                                                       "Select range of birth dates",
+                                                       start = "2019-12-15",
+                                                       end = Sys.Date()
+                                                       ),
                                         checkboxInput("Mass_off_individual_lines",
                                                       "Plot individual lines?",
                                                       value = TRUE),
@@ -225,24 +239,36 @@ ui <- navbarPage("LBN",
                                  column(3,
                                         checkboxInput("Mass_off_zoom_x",
                                                       "Zoom x axis?"),
+                                        conditionalPanel(
+                                            condition = "input.Mass_off_zoom_x == true",
+                                            numericInput("Mass_off_xmin",
+                                                         "Lower Limit x-axis:",
+                                                         0),
+                                            numericInput("Mass_off_xmax",
+                                                         "Upper Limit x-axis:",
+                                                         21)
+                                        )
+                                        ),
+                                 column(3,
                                         checkboxInput("Mass_off_zoom_y",
                                                       "Zoom y axis?"),
-                                        ##Add conditional
-                                        numericInput("Mass_off_xmin",
-                                                     "Lower Limit x-axis:",
-                                                     0),
-                                        numericInput("Mass_off_xmax",
-                                                     "Upper Limit x-axis:",
-                                                     21),
-                                        numericInput("Mass_off_ymin",
-                                                     "Lower Limit y-axis:",
-                                                     0),
-                                        numericInput("Mass_off_ymax",
-                                                     "Upper Limit y-axis:",
-                                                     15))
+                                        conditionalPanel(
+                                            condition = "input.Mass_off_zoom_y == true",
+                                            numericInput("Mass_off_ymin",
+                                                         "Lower Limit y-axis:",
+                                                         0),
+                                            numericInput("Mass_off_ymax",
+                                                         "Upper Limit y-axis:",
+                                                         15))   
+                                        )
                                  
                               ),
-                              plotOutput("Mass_off_plot"))
+                              plotOutput("Mass_off_plot",
+                                         height = "600px")
+                              ),
+                     ### Offspring Maturation ----
+                     tabPanel("Offspring Maturation",
+                                 h3("Offspring Maturation"))
                      )
                  )
 ############                 
@@ -250,6 +276,19 @@ ui <- navbarPage("LBN",
 
 ############# SERVER #########################################################
 server <- function(input, output) {
+    ### OFFSPRING DOB ----------------------
+    output$Offspring_DOB_hist <- renderPlot(
+        ggplot(Mass_off %>% filter(!is.na(DOB)), aes(DOB)) +
+            geom_histogram(binwidth = 7)+
+            labs(x = "Date of Birth", y = "# of mice")+
+            my_theme
+    )
+    
+    output$Offspring_DOB_range <- renderUI({
+        str <-  paste("<h4> The range of offspring DOBs is from", blueText(min(Mass_off$DOB, na.rm = TRUE)), 
+                      "to", blueText(max(Mass_off$DOB, na.rm = TRUE)), "</h4>")
+        HTML(str)
+    })
     
     #### TASK TRACKING HTML TEXT------------------
     
@@ -597,13 +636,18 @@ server <- function(input, output) {
     
     ### Plots ------------------
     output$Mass_off_plot <- renderPlot({
-        Mass_off_long <- make_long_form(Mass_off)
         
-        Mass_off_long <- make_PND_col(Mass_off_long)
+        if(input$Mass_off_by_dam == FALSE){
+            Mass_off_long <- reshapeForMassPlot(Mass_off)
+        }
         
-        Mass_off_long <- Mass_off_long %>%
-            filter(!is.na(Mass))
+        if(input$Mass_off_by_dam == TRUE){
+            Mass_off_long <- Mass_off %>%
+                getAvgByDam() %>%
+                reshapeForMassPlot()
+        }
         
+        #Filter for paradigm type
         if(input$Mass_off_ParaTypes == 2){
             Mass_off_long <- Mass_off_long %>%
                 filter(ParaType == 2)
@@ -611,13 +655,14 @@ server <- function(input, output) {
             Mass_off_long <- Mass_off_long %>%
                 filter(ParaType == 4)
         }
-        #Add - filter for paradigm type
-        #add - filter for breed date (add to UI, too)
-        #add prep for grouping by dam
+        
+        #Filter for DOB
+        Mass_off_long <- Mass_off_long %>%
+            filter(DOB >= input$Mass_off_DOBs[1] & DOB <= input$Mass_off_DOBs[2])
+       
         
         mass_plot_lines(Mass_off_long,
-                        line_group = expr(Mouse_ID),
-                            #ifelse(input$Mass_off_by_dam, expr(Dam_ID), expr(Mouse_ID))
+                        line_group = ifelse(input$Mass_off_by_dam, expr(Dam_ID), expr(Mouse_ID)),
                         by_strain = input$Mass_off_by_strain,
                         individualLines = input$Mass_off_individual_lines,
                         mean_lines = input$Mass_off_mean_lines,
@@ -630,6 +675,7 @@ server <- function(input, output) {
                         ymax = input$Mass_off_ymax)
     }
     )
+    
     
 }
 
