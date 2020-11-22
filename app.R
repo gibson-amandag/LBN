@@ -204,7 +204,7 @@ ui <- navbarPage("LBN",
                                  column(3,
                                         radioButtons("Mass_off_ParaTypes",
                                               "Which paradigm type?",
-                                              c("Both", "P2-P9", "P4-P11"),
+                                              c("Both", "P2-P9" = 2, "P4-P11" = 4),
                                               selected = "Both"),
                                         checkboxInput("Mass_off_by_dam",
                                                       "Plot by dam?",
@@ -604,6 +604,13 @@ server <- function(input, output) {
         Mass_off_long <- Mass_off_long %>%
             filter(!is.na(Mass))
         
+        if(input$Mass_off_ParaTypes == 2){
+            Mass_off_long <- Mass_off_long %>%
+                filter(ParaType == 2)
+        }else if(input$Mass_off_ParaTypes == 4){
+            Mass_off_long <- Mass_off_long %>%
+                filter(ParaType == 4)
+        }
         #Add - filter for paradigm type
         #add - filter for breed date (add to UI, too)
         #add prep for grouping by dam
