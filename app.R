@@ -291,6 +291,105 @@ ui <- navbarPage("LBN",
                      ### Offspring Maturation ----
                      tabPanel("Offspring Maturation",
                               h3("Offspring Maturation"),
+                              
+                              ### Options for filtering for both freq plots and dot plots ----
+                              
+                              fluidRow(
+                                  column(4,
+                                         radioButtons("Mat_ParaTypes",
+                                                      "Which paradigm type?",
+                                                      c("Both", "P2-P9" = 2, "P4-P11" = 4),
+                                                      selected = "Both")
+                                         ),
+                                  column(4,
+                                         radioButtons("Mat_whichStrain",
+                                                      "Which dam strains?",
+                                                      c("Both", "B6", "CBA"))
+                                         ),
+                                  column(4,
+                                         dateRangeInput("Mat_DOBs",
+                                                        "Select range of birth dates",
+                                                        start = "2019-12-15",
+                                                        end = Sys.Date())
+                                  )
+                                  ),
+                              ### Cumulative Frequency Plots ----
+                              h4("Cumulative Frequency Plots"),
+                              fluidRow(
+                                  column(4,
+                                         checkboxInput("Mat_cumFreq_same",
+                                                       "Same x-axis?",
+                                                       value = TRUE)),
+                                  column(4,
+                                         conditionalPanel(
+                                             condition = "input.Mat_cumFreq_same == true",
+                                             numericInput("Mat_cumFreq_xmax",
+                                                          "Enter x-axis max:",
+                                                          value = 50))
+                                  )
+                              ),
+                              fluidRow(
+                                  column(4,
+                                         plotOutput("Mat_VO_cumFreq")),
+                                  column(4,
+                                         plotOutput("Mat_1E_cumFreq")),
+                                  column(4,
+                                         plotOutput("Mat_PPS_cumFreq"))
+                              ),
+                              
+                              #Dot Plots ----
+                              h4("Puberty Dot Plots - Age"),
+                              
+                              fluidRow(
+                                  column(4,
+                                         checkboxInput("Mat_dot_same",
+                                                       "Same y-axis?",
+                                                       value = TRUE)),
+                                  column(4,
+                                         conditionalPanel(
+                                             condition = "input.Mat_dot_same == true",
+                                             numericInput("Mat_dot_ymax",
+                                                          "Enter y-axis max:",
+                                                          value = 50))
+                                  )
+                              ),
+                              
+                              fluidRow(
+                                  column(4,
+                                         plotOutput("Mat_VO_dot")),
+                                  column(4,
+                                         plotOutput("Mat_1E_dot")),
+                                  column(4,
+                                         plotOutput("Mat_PPS_dot"))
+                              ),
+                              
+                              h4("Puberty Dot Plots - Mass"),
+                              
+                              fluidRow(
+                                  column(4,
+                                         checkboxInput("Mat_dot_mass_same",
+                                                       "Same y-axis?",
+                                                       value = TRUE)),
+                                  column(4,
+                                         conditionalPanel(
+                                             condition = "input.Mat_dot_mass_same == true",
+                                             numericInput("Mat_dot_mass_ymax",
+                                                          "Enter y-axis max:",
+                                                          value = 25))
+                                  )
+                              ),
+                              
+                              fluidRow(
+                                  column(4,
+                                         plotOutput("Mat_VO_dot_mass")),
+                                  column(4,
+                                         plotOutput("Mat_1E_dot_mass")),
+                                  column(4,
+                                         plotOutput("Mat_PPS_dot_mass"))
+                              ),
+                              
+                              ##Summary tables ----
+                              
                               h4("Ano-genital distance"),
                               fluidRow(
                                   column(4,
@@ -381,7 +480,8 @@ ui <- navbarPage("LBN",
                                                         selected = c("Treatment"),
                                                         multiple = TRUE))
                               ),
-                              dataTableOutput("Mat_PPS_summary")
+                              dataTableOutput("Mat_PPS_summary"),
+                             
                               )
                      )
                  )
@@ -828,7 +928,155 @@ server <- function(input, output) {
     }
     )
     
+    #This creates a reactive data frame for all of the cumulative frequency and puberty dot plots.
+    #Don't need same filtering code for all of the plots
+    #Call by using Maturation_off_forPlots()
+    Maturation_off_forPlots <- reactive({
+        Maturation_off_forPlots <- Maturation_off
+        #Filter for paradigm type
+        if(input$Mat_ParaTypes == 2){
+            Maturation_off_forPlots <- Maturation_off_forPlots %>%
+                filter(ParaType == 2)
+        }else if(input$Mat_ParaTypes == 4){
+            Maturation_off_forPlots <- Maturation_off_forPlots %>%
+                filter(ParaType == 4)
+        }
+        
+        #Filter for DOB
+        Maturation_off_forPlots <- Maturation_off_forPlots %>%
+            filter(DOB >= input$Mat_DOBs[1] & DOB <= input$Mat_DOBs[2])
+        
+        #Filter for Strain - By Dam Strain
+        if(input$Mat_whichStrain == "B6"){
+            Maturation_off_forPlots <- Maturation_off_forPlots %>%
+                filter(Dam_Strain == "B6")
+        }else if(input$Mat_whichStrain == "CBA"){
+            Maturation_off_forPlots <- Maturation_off_forPlots %>%
+                filter(Dam_Strain == "CBA")
+        }
+        
+        return(Maturation_off_forPlots)
+    })
     
+    output$Mat_VO_cumFreq <- renderPlot({
+        my_cumulative_freq_plot(df = Maturation_off_forPlots(),
+                                color_var = expr(Treatment),
+                                linetype_var = expr(Dam_Strain),
+                                var_to_plot = expr(VO_age), #as expr()
+                                phenotype_name = "VO", #string
+                                title = TRUE,
+                                change_xmax = input$Mat_cumFreq_same,
+                                xmax = input$Mat_cumFreq_xmax,
+                                xmin = 21)
+    })
+    
+    output$Mat_1E_cumFreq <- renderPlot({
+        my_cumulative_freq_plot(df = Maturation_off_forPlots(),
+                                color_var = expr(Treatment),
+                                linetype_var = expr(Dam_Strain),
+                                var_to_plot = expr(Estrus_age), #as expr()
+                                phenotype_name = "First Estrus", #string
+                                title = TRUE,
+                                change_xmax = input$Mat_cumFreq_same,
+                                xmax = input$Mat_cumFreq_xmax,
+                                xmin = 21)
+    })
+    
+    output$Mat_PPS_cumFreq <- renderPlot({
+        my_cumulative_freq_plot(df = Maturation_off_forPlots(),
+                                color_var = expr(Treatment),
+                                linetype_var = expr(Dam_Strain),
+                                var_to_plot = expr(PreputialSep_age), #as expr()
+                                phenotype_name = "PPS", #string
+                                title = TRUE,
+                                change_xmax = input$Mat_cumFreq_same,
+                                xmax = input$Mat_cumFreq_xmax,
+                                xmin = 21)
+    })
+    
+    output$Mat_VO_dot <- renderPlot({
+        my_puberty_dot_plot(
+            df = Maturation_off_forPlots(),
+            expr(VO_age), #expr()
+            phenotype_name = "VO",
+            shape = expr(Dam_Strain),
+            colour = expr(Dam_Strain),
+            width = 0.3,
+            change_ymax = input$Mat_dot_same,
+            ymax = input$Mat_dot_ymax,
+            DaysOrMass = "Days"
+        )
+    })
+    
+    output$Mat_1E_dot <- renderPlot({
+        my_puberty_dot_plot(
+            df = Maturation_off_forPlots(),
+            expr(Estrus_age), #expr()
+            phenotype_name = "First Estrus",
+            shape = expr(Dam_Strain),
+            colour = expr(Dam_Strain),
+            width = 0.3,
+            change_ymax = input$Mat_dot_same,
+            ymax = input$Mat_dot_ymax,
+            DaysOrMass = "Days"
+        )
+    })
+    
+    output$Mat_PPS_dot <- renderPlot({
+        my_puberty_dot_plot(
+            df = Maturation_off_forPlots(),
+            expr(PreputialSep_age), #expr()
+            phenotype_name = "PPS",
+            shape = expr(Dam_Strain),
+            colour = expr(Dam_Strain),
+            width = 0.3,
+            change_ymax = input$Mat_dot_same,
+            ymax = input$Mat_dot_ymax,
+            DaysOrMass = "Days"
+        )
+    })
+    
+    output$Mat_VO_dot_mass <- renderPlot({
+        my_puberty_dot_plot(
+            df = Maturation_off_forPlots(),
+            expr(VO_mass), #expr()
+            phenotype_name = "VO",
+            shape = expr(Dam_Strain),
+            colour = expr(Dam_Strain),
+            width = 0.3,
+            change_ymax = input$Mat_dot_mass_same,
+            ymax = input$Mat_dot_mass_ymax,
+            DaysOrMass = "Mass"
+        )
+    })
+    
+    output$Mat_1E_dot_mass <- renderPlot({
+        my_puberty_dot_plot(
+            df = Maturation_off_forPlots(),
+            expr(Estrus_mass), #expr()
+            phenotype_name = "First Estrus",
+            shape = expr(Dam_Strain),
+            colour = expr(Dam_Strain),
+            width = 0.3,
+            change_ymax = input$Mat_dot_mass_same,
+            ymax = input$Mat_dot_mass_ymax,
+            DaysOrMass = "Mass"
+        )
+    })
+    
+    output$Mat_PPS_dot_mass <- renderPlot({
+        my_puberty_dot_plot(
+            df = Maturation_off_forPlots(),
+            expr(PreputialSep_mass), #expr()
+            phenotype_name = "PPS",
+            shape = expr(Dam_Strain),
+            colour = expr(Dam_Strain),
+            width = 0.3,
+            change_ymax = input$Mat_dot_mass_same,
+            ymax = input$Mat_dot_mass_ymax,
+            DaysOrMass = "Mass"
+        )
+    })
 }
 
 # Run the application 

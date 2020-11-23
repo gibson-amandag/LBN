@@ -1,7 +1,7 @@
 ####################################### GRAPHING FUNCTIONS ###########################################################
 
 my_theme = theme(
-  text = element_text(size=24),
+  text = element_text(size=18),
   legend.title = element_blank(),
   legend.position = "bottom",
   panel.background = element_rect(fill = "transparent"), # bg of the panel
@@ -63,7 +63,9 @@ reshapeForMassPlot <- function(df){
     filter(!is.na(Mass))
 }
 
-### My geoms --------------
+### MY GEOMS -----------------------------------------------------------------------------------------------
+
+##Line plot geoms----
 
 #plot masses for individual animals (or by dam) with semi-transparent lines
 my_geom_line <- function(
@@ -123,8 +125,70 @@ my_LBN_mass_geoms = function(
   )
 }
 
+## Cumulative Frequency Geoms ----
+my_cumulative_freq_geoms <- function(
+  phenotype_name,
+  title = TRUE,
+  change_xmax = FALSE,
+  xmax = NA,
+  xmin = 21
+){
+  list(
+    stat_ecdf(size = 2),
+    labs(x = paste0("Age at ", phenotype_name, " (Days)"),
+         y = "Cumulative Frequency",
+         title = if(title){phenotype_name}else{NULL}),
+    coord_cartesian(xlim = c(xmin,
+                             if(change_xmax){xmax}else{NA})),
+    my_theme
+  )
+}
+
+## Puberty Dot Plot Geoms ----
+my_geom_jitter <- function(
+  shape = expr(Dam_Strain),
+  colour = expr(Dam_Strain)
+){
+  geom_jitter(width = .15, size = 3, alpha = .6, aes(shape = !! shape, colour = !! colour))
+}
+
+my_dot_geom_mean <- function(
+  width = 0.3
+){
+  list(
+    stat_summary(fun = mean, geom = "point"),
+    stat_summary(geom = "errorbar", fun.data = mean_se, position = "dodge", width = width))
+}
+
+my_puberty_dot_geoms <- function(
+  shape = expr(Dam_Strain),
+  colour = expr(Dam_Strain),
+  width = 0.3,
+  change_ymax = FALSE,
+  ymax = NA,
+  ytitle = NULL,
+  title = NULL
+){
+  list(
+    my_geom_jitter(
+      shape = shape,
+      colour = colour),
+    my_dot_geom_mean(width = width),
+    if(change_ymax)
+      coord_cartesian(ylim = c(0, ymax)),
+    if(change_ymax == FALSE)
+      coord_cartesian(ylim = c(0, NA)),
+    my_theme,
+    scale_colour_manual(values = c("gray 20", "gray 70")),
+    if(!is.null(ytitle))
+      labs(y = ytitle),
+    if(!is.null(title))
+      labs(title = title)
+  )
+}
+
 ### My plotting functions --------------------
-#See "my_LBN_mass_geoms for explanations of the geoms used
+#See "my_LBN_mass_geoms" for explanations of the geoms used
 #Input should be a long-form dataframe, with na's for mass removed
 mass_plot_lines = function(
   df, 
@@ -160,10 +224,64 @@ mass_plot_lines = function(
     )
 }
 
+#See "my_cumuluative_freq_geoms" for explanation of the geoms used
+my_cumulative_freq_plot <- function(
+  df,
+  color_var = expr(Treatment),
+  linetype_var = expr(Dam_Strain),
+  var_to_plot, #as expr()
+  phenotype_name, #string
+  title = TRUE,
+  change_xmax = FALSE,
+  xmax = NA,
+  xmin = 21
+){
+  df %>%
+    filter(!is.na(!! var_to_plot)) %>%
+    ggplot(aes(!! var_to_plot,
+               color = !! color_var,
+               linetype = !! linetype_var)) +
+    my_cumulative_freq_geoms(
+      phenotype_name,
+      title = title,
+      change_xmax = change_xmax,
+      xmax = xmax,
+      xmin = xmin
+    )
+}
 
 
-
-
+#See "my_puberty_dot_geoms"
+my_puberty_dot_plot <- function(
+  df,
+  var_to_plot, #expr()
+  phenotype_name,
+  shape = expr(Dam_Strain),
+  colour = expr(Dam_Strain),
+  width = 0.3,
+  change_ymax = FALSE,
+  ymax = NA,
+  DaysOrMass = "Days" #type "Days" or "Mass"
+){
+  df %>%
+    filter(!is.na(!! var_to_plot)) %>%
+    ggplot(aes(x = Treatment, y = !! var_to_plot))+
+    my_puberty_dot_geoms(
+      shape = shape,
+      colour = colour,
+      width = width,
+      change_ymax = change_ymax,
+      ymax = ymax,
+      ytitle = 
+        if(DaysOrMass == "Days"){
+          paste0("Age at ", phenotype_name, " (Days)")
+        }else if(DaysOrMass == "Mass"){
+            paste0("Mass at ", phenotype_name, " (g)")
+          }
+      ,
+      title = phenotype_name
+    )
+}
 
 
 
@@ -182,194 +300,123 @@ mass_plot_lines = function(
 #               sem = sd/sqrt(n))
 # }
 
-#depending on number trying to plot, can add "aes(shape = Mouse_ID)" to geom_point
-mass_plot = function(df){
-  ggplot(df, aes(PND, Mass, color = Treatment)) +
-    geom_point(alpha = .5, aes(shape = Dam_Strain), size = 2)+
-    stat_summary(fun.y = mean, geom = "line", linetype = "dotted", size = 1, aes(group = Treatment)) +
-    stat_summary(fun.y = mean, geom = "point",  shape = 18, size = 3, aes(group = Treatment)) +
-    stat_summary(geom = "errorbar", fun.data = mean_se, size = .7, aes(group = Treatment))+
-    expand_limits(y = 0)+ #set y axis to 0
-    labs(x = "Postnatal Day", y = "Mass (g)")+
-    my_theme
-}
-
-# #lower density line for each individual mouse
-# mass_plot_lines = function(df, line_group = Mouse_ID, by_strain = TRUE){
-#   line_group = enquo(line_group)
-#   ggplot(df, aes(PND, Mass, color = Treatment, group = if(by_strain == TRUE){interaction(Treatment, Dam_Strain)}else{Treatment})) + #if by_strain is TRUE, group by dam strain
-#     geom_line(alpha = .25, aes(linetype = Dam_Strain, group = !! line_group), size = .8)+
-#     stat_summary(fun = mean, geom = "line", if(by_strain == TRUE){aes(linetype = Dam_Strain)}, size = 1.4, alpha = 1) +
-#     #stat_summary(fun = mean, geom = "point",  shape = 18, size = 4) +
-#     stat_summary(geom = "errorbar", fun.data = mean_se, size = 1)+
+# #depending on number trying to plot, can add "aes(shape = Mouse_ID)" to geom_point
+# mass_plot = function(df){
+#   ggplot(df, aes(PND, Mass, color = Treatment)) +
+#     geom_point(alpha = .5, aes(shape = Dam_Strain), size = 2)+
+#     stat_summary(fun.y = mean, geom = "line", linetype = "dotted", size = 1, aes(group = Treatment)) +
+#     stat_summary(fun.y = mean, geom = "point",  shape = 18, size = 3, aes(group = Treatment)) +
+#     stat_summary(geom = "errorbar", fun.data = mean_se, size = .7, aes(group = Treatment))+
 #     expand_limits(y = 0)+ #set y axis to 0
 #     labs(x = "Postnatal Day", y = "Mass (g)")+
 #     my_theme
 # }
 
-# ggplot(df, aes(PND, Mass, color = Treatment)) +
-#   geom_line(alpha = .25, aes(linetype = Dam_Strain, group = !! line_group), size = .8)+
-#   stat_summary(fun.y = mean, geom = "line", size = 1.4, alpha = 1, aes(group = Treatment)) +
-#   #stat_summary(fun.y = mean, geom = "point",  shape = 18, size = 4, aes(group = Treatment)) +
-#   stat_summary(geom = "errorbar", fun.data = mean_se, size = 1, aes(group = Treatment))+
-#   expand_limits(y = 0)+ #set y axis to 0
-#   labs(x = "Postnatal Day", y = "Mass (g)")+
-#   my_theme
 
-funcs_to_plot_mass = function(df, line_group = Mouse_ID, by_strain = TRUE){
-  line_group = enquo(line_group)
-  df_nam = ensym(df)
-  df_nam = as.character(df_nam)
-  nam = paste0(df_nam, "_long")
-  df_long = make_long_form(df)
-  df_long = make_PND_col(df_long)
-  assign(nam, df_long, envir = .GlobalEnv)
-  
-  nam = paste0(df_nam, "_summary")
-  sum_df = make_summary_table(df_long)
-  assign(nam, sum_df, envir = .GlobalEnv)
-  
-  nam = paste0(df_nam, "_plot")
-  plot = mass_plot_lines(df_long, !! line_group, by_strain)
-  assign(nam, plot, envir = .GlobalEnv)
-}
-
-
-#Functions for plotting dam mass
-make_long_form_dams = function(df){
-  df %>%
-    gather(key = "day", value = "Mass", c(Dam_Mass_P2, Dam_Mass_P9, Dam_Mass_P21), factor_key=TRUE)
-}
-
-make_PND_col_dams = function(df){
-  df = df %>%
-    mutate(PND = case_when(day == "Dam_Mass_P2" ~ 2,
-                           day == "Dam_Mass_P9" ~ 9,
-                           day == "Dam_Mass_P21" ~ 21,
-    )
-    )
-}
-
-mass_plot_dams = function(df){
-  ggplot(df, aes(PND, Mass, color = Treatment)) +
-    geom_point(alpha = .5, aes(shape = Dam_Strain), size = 3)+
-    stat_summary(fun.y = mean, geom = "line", linetype = "dotted", size = 1, aes(group = Treatment)) +
-    stat_summary(fun.y = mean, geom = "point",  shape = 18, size = 3, aes(group = Treatment)) +
-    stat_summary(geom = "errorbar", fun.data = mean_se, size = .7, width = .2, aes(group = Treatment))+
-    expand_limits(y = 0) + #set y axis to 0
-    labs(x = "Postnatal Day", y = "Mass (g)")+
-    my_theme
-}
-
-mass_plot_dams_lines = function(df, by_strain = TRUE){
-  if(by_strain == TRUE) {
-    viz = ggplot(df, aes(PND, Mass, color = Treatment, group = interaction(Treatment, Dam_Strain))) +
-      geom_line(alpha = .25, aes(linetype = Dam_Strain, group = Dam_ID), size = .8)+
-      stat_summary(fun.y = mean, geom = "line", aes(linetype = Dam_Strain), size = 1.4, alpha = 1) +
-      #stat_summary(fun.y = mean, geom = "point",  shape = 18, size = 4, aes(group = Treatment)) +
-      stat_summary(geom = "errorbar", fun.data = mean_se, size = 1, width = 1)+
-      expand_limits(y = 0)+ #set y axis to 0
-      labs(x = "Postnatal Day", y = "Mass (g)")+
-      my_theme
-  }else{
-    viz = ggplot(df, aes(PND, Mass, color = Treatment, group = Treatment)) +
-      geom_line(alpha = .25, aes(linetype = Dam_Strain, group = Dam_ID), size = .8)+
-      stat_summary(fun.y = mean, geom = "line", aes(linetype = Dam_Strain), size = 1.4, alpha = 1) +
-      #stat_summary(fun.y = mean, geom = "point",  shape = 18, size = 4, aes(group = Treatment)) +
-      stat_summary(geom = "errorbar", fun.data = mean_se, size = 1, width = 1)+
-      expand_limits(y = 0)+ #set y axis to 0
-      labs(x = "Postnatal Day", y = "Mass (g)")+
-      my_theme
-  }
-  
-}
-
-funcs_to_plot_dam_mass = function(df, by_strain = TRUE){
-  df_nam = ensym(df)
-  df_nam = as.character(df_nam)
-  nam = paste0(df_nam, "_long")
-  df_long = make_long_form_dams(df)
-  df_long = make_PND_col_dams(df_long)
-  assign(nam, df_long, envir = .GlobalEnv)
-  
-  nam = paste0(df_nam, "_plot")
-  plot = mass_plot_dams_lines(df_long, by_strain)
-  assign(nam, plot, envir = .GlobalEnv)
-}
-
-# LBN_plot_func = function(plot, title){
-#   plot = plot + labs(title = title) + xlim(0, xlimit)
-#   print(plot)
-#   plot_name = paste0(title, day, ".png")
-#   ggsave(plot_name, plot = plot, path = LBN_path, bg = "transparent", width = 9, height = 6)
+# funcs_to_plot_mass = function(df, line_group = Mouse_ID, by_strain = TRUE){
+#   line_group = enquo(line_group)
+#   df_nam = ensym(df)
+#   df_nam = as.character(df_nam)
+#   nam = paste0(df_nam, "_long")
+#   df_long = make_long_form(df)
+#   df_long = make_PND_col(df_long)
+#   assign(nam, df_long, envir = .GlobalEnv)
+#   
+#   nam = paste0(df_nam, "_summary")
+#   sum_df = make_summary_table(df_long)
+#   assign(nam, sum_df, envir = .GlobalEnv)
+#   
+#   nam = paste0(df_nam, "_plot")
+#   plot = mass_plot_lines(df_long, !! line_group, by_strain)
+#   assign(nam, plot, envir = .GlobalEnv)
 # }
 # 
-# LBN_plot_func_2 = function(plot, title){
-#   print(plot)
-#   plot_name = paste0(title, day, ".png")
-#   ggsave(plot_name, plot = plot, path = LBN_path, bg = "transparent", width = 9, height = 6)
+# 
+# #Functions for plotting dam mass
+# make_long_form_dams = function(df){
+#   df %>%
+#     gather(key = "day", value = "Mass", c(Dam_Mass_P2, Dam_Mass_P9, Dam_Mass_P21), factor_key=TRUE)
 # }
-
-puberty_plot_func = function(data, var_to_plot, ytitle = NULL, title = NULL){
-  var_to_plot = enquo(var_to_plot)
-  viz = data %>%
-    ggplot(aes(x = Treatment, y = !! var_to_plot))+
-    geom_jitter(width = .2, size = 3, alpha = .6, aes(shape = Dam_Strain, colour = Dam_Strain))+
-    stat_summary(fun.y = mean, geom = "point") +
-    stat_summary(geom = "errorbar", fun.data = mean_se, position = "dodge", width = 0.3)+
-    my_theme+
-    expand_limits(y = 0)+
-    scale_colour_manual(values = c("gray 20", "gray 70"))
-  
-  if(is.null(ytitle)){
-    viz = viz
-  }else{viz = viz + labs(y = ytitle)}
-  
-  if(is.null(title)){
-    viz = viz
-  }else{viz = viz + labs(title = title)}
-  return(viz)
-}
-
-
-
-#depending on number trying to plot, can add "aes(shape = Mouse_ID)" to geom_point
-interaction_plot = function(data, var_to_plot, ytitle = NULL, title = NULL){
-  var_to_plot = enquo(var_to_plot)
-  viz = data %>%
-    ggplot(aes(Time_hr, !! var_to_plot, color = Treatment, group = interaction(Treatment, Stress_treatment))) + 
-    geom_line(alpha = .4, aes(linetype = Stress_treatment, group = Mouse_ID)) +
-    stat_summary(fun.y = mean, geom = "line", aes(linetype = Stress_treatment), size = 1) +
-    stat_summary(fun.y = mean, geom = "point",  shape = 18, size = 3) +
-    stat_summary(geom = "errorbar", fun.data = mean_se, size = .7, width = .3)+
-    expand_limits(y = -0.5)+ #set y axis to just before 0
-    labs(x = "Experimental Time (hr)")+
-    my_theme
-  
-  if(is.null(ytitle)){
-    viz = viz
-  }else{viz = viz + labs(y = ytitle)}
-  
-  if(is.null(title)){
-    viz = viz
-  }else{viz = viz + labs(title = title)}
-  
-  return(viz)
-}
-
-
-#Error bars in color
+# 
+# make_PND_col_dams = function(df){
+#   df = df %>%
+#     mutate(PND = case_when(day == "Dam_Mass_P2" ~ 2,
+#                            day == "Dam_Mass_P9" ~ 9,
+#                            day == "Dam_Mass_P21" ~ 21,
+#     )
+#     )
+# }
+# 
+# mass_plot_dams = function(df){
+#   ggplot(df, aes(PND, Mass, color = Treatment)) +
+#     geom_point(alpha = .5, aes(shape = Dam_Strain), size = 3)+
+#     stat_summary(fun.y = mean, geom = "line", linetype = "dotted", size = 1, aes(group = Treatment)) +
+#     stat_summary(fun.y = mean, geom = "point",  shape = 18, size = 3, aes(group = Treatment)) +
+#     stat_summary(geom = "errorbar", fun.data = mean_se, size = .7, width = .2, aes(group = Treatment))+
+#     expand_limits(y = 0) + #set y axis to 0
+#     labs(x = "Postnatal Day", y = "Mass (g)")+
+#     my_theme
+# }
+# 
+# mass_plot_dams_lines = function(df, by_strain = TRUE){
+#   if(by_strain == TRUE) {
+#     viz = ggplot(df, aes(PND, Mass, color = Treatment, group = interaction(Treatment, Dam_Strain))) +
+#       geom_line(alpha = .25, aes(linetype = Dam_Strain, group = Dam_ID), size = .8)+
+#       stat_summary(fun.y = mean, geom = "line", aes(linetype = Dam_Strain), size = 1.4, alpha = 1) +
+#       #stat_summary(fun.y = mean, geom = "point",  shape = 18, size = 4, aes(group = Treatment)) +
+#       stat_summary(geom = "errorbar", fun.data = mean_se, size = 1, width = 1)+
+#       expand_limits(y = 0)+ #set y axis to 0
+#       labs(x = "Postnatal Day", y = "Mass (g)")+
+#       my_theme
+#   }else{
+#     viz = ggplot(df, aes(PND, Mass, color = Treatment, group = Treatment)) +
+#       geom_line(alpha = .25, aes(linetype = Dam_Strain, group = Dam_ID), size = .8)+
+#       stat_summary(fun.y = mean, geom = "line", aes(linetype = Dam_Strain), size = 1.4, alpha = 1) +
+#       #stat_summary(fun.y = mean, geom = "point",  shape = 18, size = 4, aes(group = Treatment)) +
+#       stat_summary(geom = "errorbar", fun.data = mean_se, size = 1, width = 1)+
+#       expand_limits(y = 0)+ #set y axis to 0
+#       labs(x = "Postnatal Day", y = "Mass (g)")+
+#       my_theme
+#   }
+#   
+# }
+# 
+# funcs_to_plot_dam_mass = function(df, by_strain = TRUE){
+#   df_nam = ensym(df)
+#   df_nam = as.character(df_nam)
+#   nam = paste0(df_nam, "_long")
+#   df_long = make_long_form_dams(df)
+#   df_long = make_PND_col_dams(df_long)
+#   assign(nam, df_long, envir = .GlobalEnv)
+#   
+#   nam = paste0(df_nam, "_plot")
+#   plot = mass_plot_dams_lines(df_long, by_strain)
+#   assign(nam, plot, envir = .GlobalEnv)
+# }
+# 
+# # LBN_plot_func = function(plot, title){
+# #   plot = plot + labs(title = title) + xlim(0, xlimit)
+# #   print(plot)
+# #   plot_name = paste0(title, day, ".png")
+# #   ggsave(plot_name, plot = plot, path = LBN_path, bg = "transparent", width = 9, height = 6)
+# # }
+# # 
+# # LBN_plot_func_2 = function(plot, title){
+# #   print(plot)
+# #   plot_name = paste0(title, day, ".png")
+# #   ggsave(plot_name, plot = plot, path = LBN_path, bg = "transparent", width = 9, height = 6)
+# # }
+# 
 # puberty_plot_func = function(data, var_to_plot, ytitle = NULL, title = NULL){
 #   var_to_plot = enquo(var_to_plot)
 #   viz = data %>%
 #     ggplot(aes(x = Treatment, y = !! var_to_plot))+
-#     geom_jitter(width = .1, size = 3, alpha = .6, aes(shape = Dam_Strain, colour = Dam_Strain))+
-#     stat_summary(fun.y = mean, geom = "point", aes(colour = Treatment)) +
-#     stat_summary(geom = "errorbar", fun.data = mean_se, position = "dodge", width = 0.2, aes(colour = Treatment))+
+#     geom_jitter(width = .2, size = 3, alpha = .6, aes(shape = Dam_Strain, colour = Dam_Strain))+
+#     stat_summary(fun.y = mean, geom = "point") +
+#     stat_summary(geom = "errorbar", fun.data = mean_se, position = "dodge", width = 0.3)+
 #     my_theme+
 #     expand_limits(y = 0)+
-#     scale_colour_manual(values = c("gray 20", "gray 70", "#F8766D", "#00BFC4"))+
-#     guides(colour = FALSE)
+#     scale_colour_manual(values = c("gray 20", "gray 70"))
 #   
 #   if(is.null(ytitle)){
 #     viz = viz
@@ -380,43 +427,93 @@ interaction_plot = function(data, var_to_plot, ytitle = NULL, title = NULL){
 #   }else{viz = viz + labs(title = title)}
 #   return(viz)
 # }
-
-cum_freq_plot = function(data, var_to_plot, title){
-  var_to_plot = enquo(var_to_plot)
-  xtitle = paste0("Age at ", title, " (Days)")
-  viz = ggplot(data, aes(!! var_to_plot, color = Treatment, linetype = Dam_Strain))+
-    stat_ecdf(size=2)+
-    my_theme +
-    labs(x = xtitle, y = "Cumulative Frequency", title = title)+
-    expand_limits(x = 21)
-  return(viz)
-}
-
-#Save Functions
-LBN_save_func = function(plot, title){
-  plot = plot + xlim(0, xlimit)
-  print(plot)
-  plot_name = paste0(title, day, ".png")
-  ggsave(plot_name, plot = plot, path = LBN_path, bg = "transparent", width = 9, height = 6)
-}
-
-LBN_save_func_2 = function(plot, title){
-  print(plot)
-  plot = plot + labs(title = NULL)
-  plot_name = paste0(title, day, ".png")
-  ggsave(plot_name, plot = plot, path = LBN_path, bg = "transparent", width = 9, height = 6)
-}
-
-LBN_puberty_dot_save_func = function(plot, title){
-  print(plot)
-  plot_name = paste0(title, day, ".png")
-  ggsave(plot_name, plot = plot, path = LBN_path, bg = "transparent", width = 4, height = 6)
-}
-
-LBN_save_func_pdf = function(plot, title){
-  print(plot)
-  plot = plot + labs(title = NULL)
-  plot_name = paste0(title, day, ".pdf")
-  ggsave(plot_name, plot = plot, path = LBN_path, bg = "transparent", width = 9, height = 6)
-}
+# 
+# 
+# 
+# #depending on number trying to plot, can add "aes(shape = Mouse_ID)" to geom_point
+# interaction_plot = function(data, var_to_plot, ytitle = NULL, title = NULL){
+#   var_to_plot = enquo(var_to_plot)
+#   viz = data %>%
+#     ggplot(aes(Time_hr, !! var_to_plot, color = Treatment, group = interaction(Treatment, Stress_treatment))) + 
+#     geom_line(alpha = .4, aes(linetype = Stress_treatment, group = Mouse_ID)) +
+#     stat_summary(fun.y = mean, geom = "line", aes(linetype = Stress_treatment), size = 1) +
+#     stat_summary(fun.y = mean, geom = "point",  shape = 18, size = 3) +
+#     stat_summary(geom = "errorbar", fun.data = mean_se, size = .7, width = .3)+
+#     expand_limits(y = -0.5)+ #set y axis to just before 0
+#     labs(x = "Experimental Time (hr)")+
+#     my_theme
+#   
+#   if(is.null(ytitle)){
+#     viz = viz
+#   }else{viz = viz + labs(y = ytitle)}
+#   
+#   if(is.null(title)){
+#     viz = viz
+#   }else{viz = viz + labs(title = title)}
+#   
+#   return(viz)
+# }
+# 
+# 
+# #Error bars in color
+# # puberty_plot_func = function(data, var_to_plot, ytitle = NULL, title = NULL){
+# #   var_to_plot = enquo(var_to_plot)
+# #   viz = data %>%
+# #     ggplot(aes(x = Treatment, y = !! var_to_plot))+
+# #     geom_jitter(width = .1, size = 3, alpha = .6, aes(shape = Dam_Strain, colour = Dam_Strain))+
+# #     stat_summary(fun.y = mean, geom = "point", aes(colour = Treatment)) +
+# #     stat_summary(geom = "errorbar", fun.data = mean_se, position = "dodge", width = 0.2, aes(colour = Treatment))+
+# #     my_theme+
+# #     expand_limits(y = 0)+
+# #     scale_colour_manual(values = c("gray 20", "gray 70", "#F8766D", "#00BFC4"))+
+# #     guides(colour = FALSE)
+# #   
+# #   if(is.null(ytitle)){
+# #     viz = viz
+# #   }else{viz = viz + labs(y = ytitle)}
+# #   
+# #   if(is.null(title)){
+# #     viz = viz
+# #   }else{viz = viz + labs(title = title)}
+# #   return(viz)
+# # }
+# 
+# cum_freq_plot = function(data, var_to_plot, title){
+#   var_to_plot = enquo(var_to_plot)
+#   xtitle = paste0("Age at ", title, " (Days)")
+#   viz = ggplot(data, aes(!! var_to_plot, color = Treatment, linetype = Dam_Strain))+
+#     stat_ecdf(size=2)+
+#     my_theme +
+#     labs(x = xtitle, y = "Cumulative Frequency", title = title)+
+#     expand_limits(x = 21)
+#   return(viz)
+# }
+# 
+# #Save Functions
+# LBN_save_func = function(plot, title){
+#   plot = plot + xlim(0, xlimit)
+#   print(plot)
+#   plot_name = paste0(title, day, ".png")
+#   ggsave(plot_name, plot = plot, path = LBN_path, bg = "transparent", width = 9, height = 6)
+# }
+# 
+# LBN_save_func_2 = function(plot, title){
+#   print(plot)
+#   plot = plot + labs(title = NULL)
+#   plot_name = paste0(title, day, ".png")
+#   ggsave(plot_name, plot = plot, path = LBN_path, bg = "transparent", width = 9, height = 6)
+# }
+# 
+# LBN_puberty_dot_save_func = function(plot, title){
+#   print(plot)
+#   plot_name = paste0(title, day, ".png")
+#   ggsave(plot_name, plot = plot, path = LBN_path, bg = "transparent", width = 4, height = 6)
+# }
+# 
+# LBN_save_func_pdf = function(plot, title){
+#   print(plot)
+#   plot = plot + labs(title = NULL)
+#   plot_name = paste0(title, day, ".pdf")
+#   ggsave(plot_name, plot = plot, path = LBN_path, bg = "transparent", width = 9, height = 6)
+# }
 

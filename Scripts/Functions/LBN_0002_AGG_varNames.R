@@ -258,3 +258,30 @@ damMassDates = exprs(
   Dam_Mass_P21
 )
 
+maturationVars = exprs(
+  AGD_wean,
+  AGD_adult,
+  Mass_wean,
+  Mass_adult,
+  AGD_wean_by_mass,
+  VO_age,
+  VO_mass,
+  Estrus_age,
+  Estrus_mass,
+  PreputialSep_age,
+  PreputialSep_mass
+)
+
+maturationVars_quo = c(
+  "AGD_wean",
+  "AGD_adult",
+  "Mass_wean",
+  "Mass_adult",
+  "AGD_wean_by_mass",
+  "VO_age",
+  "VO_mass",
+  "Estrus_age",
+  "Estrus_mass",
+  "PreputialSep_age",
+  "PreputialSep_mass"
+)
