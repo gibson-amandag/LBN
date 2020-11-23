@@ -44,6 +44,9 @@ load_LBN_data <- function(
   AcuteStress_off$Mouse_ID <- as.character(AcuteStress_off$Mouse_ID)
   ChronicStress_off$Mouse_ID <- as.character(ChronicStress_off$Mouse_ID)
   
+  #Make the paradigm type a factor variable
+  Demo_dam$ParaType <- as.factor(Demo_dam$ParaType)
+  
   #Add a "pupLoss" column to Demo_dam
   Demo_dam <- Demo_dam %>%
     mutate(pupLoss = Litter_size_startPara - Litter_size_endPara)

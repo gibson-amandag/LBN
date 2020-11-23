@@ -105,7 +105,7 @@ AvgByDam_func <- function(df, demo_df = Demo_dam){
     summarise_if(is.numeric, mean, na.rm = TRUE)
   
   AvgByDam <- demo_df %>%
-    select(Dam_ID, Treatment, Dam_Strain, Strain, DOB) %>% #add back in the non-numeric demo information
+    select(Dam_ID, Treatment, Dam_Strain, Strain, DOB, ParaType) %>% #add back in the non-numeric demo information
     right_join(AvgByDam, by = "Dam_ID")
   return(AvgByDam)
 }
