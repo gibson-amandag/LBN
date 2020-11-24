@@ -886,7 +886,7 @@ server <- function(input, output) {
         
         if(input$Mass_off_by_dam == TRUE){
             Mass_off_long <- Mass_off %>%
-                getAvgByDam() %>%
+                getAvgByDam(Demo_dam) %>%
                 reshapeForMassPlot()
         }
         
