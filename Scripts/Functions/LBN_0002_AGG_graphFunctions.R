@@ -183,8 +183,8 @@ my_dot_geom_mean <- function(
   width = 0.3
 ){
   list(
-    stat_summary(fun = mean, geom = "point"),
-    stat_summary(geom = "errorbar", fun.data = mean_se, position = "dodge", width = width))
+    stat_summary(geom = "errorbar", fun.data = mean_se, position = "dodge", width = width),
+    stat_summary(fun = mean, geom = "point", color = "red", size = 2))
 }
 
 my_puberty_dot_geoms <- function(

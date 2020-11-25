@@ -157,90 +157,101 @@ ui <- navbarPage("LBN",
                      
                      #Dams --------
                      tabPanel("Dam",
-                              h3("Dam Mass"),
-                              
-                              fluidRow(
-                                  column(4,
-                                         radioButtons("Mass_dams_ParaTypes",
-                                                      "Which paradigm type?",
-                                                      c("Both", "P2-P9" = 2, "P4-P11" = 4),
-                                                      selected = "Both"),
-                                         radioButtons("Mass_dams_whichStrain",
-                                                      "Which dam strains?",
-                                                      c("Both", "B6", "CBA"),
-                                                      selected = "Both")
-                                  ),
-                                  column(4,
-                                         checkboxInput("Mass_dams_by_strain",
-                                                       "Plot by strain?",
-                                                       value = TRUE),
-                                         checkboxInput("Mass_dams_individual_lines",
-                                                       "Plot individual lines?",
-                                                       value = TRUE),
-                                         checkboxInput("Mass_dams_mean_lines",
-                                                       "Plot mean lines?",
-                                                       value = TRUE),
-                                         textInput("Mass_dams_title",
-                                                   "Graph Title:"),
-                                         dateRangeInput("Mass_dams_DOBs",
-                                                        "Select range of birth dates",
-                                                        start = "2019-12-15",
-                                                        end = Sys.Date())
-                                  ),
-                                  column(2,
-                                         checkboxInput("Mass_dams_zoom_x",
-                                                       "Zoom x axis?"),
-                                         conditionalPanel(
-                                             condition = "input.Mass_dams_zoom_x == true",
-                                             numericInput("Mass_dams_xmin",
-                                                          "Lower Limit x-axis:",
-                                                          0),
-                                             numericInput("Mass_dams_xmax",
-                                                          "Upper Limit x-axis:",
-                                                          21)
-                                         )
-                                  ),
-                                  column(2,
-                                         checkboxInput("Mass_dams_zoom_y",
-                                                       "Zoom y axis?"),
-                                         conditionalPanel(
-                                             condition = "input.Mass_dams_zoom_y == true",
-                                             numericInput("Mass_dams_ymin",
-                                                          "Lower Limit y-axis:",
-                                                          0),
-                                             numericInput("Mass_dams_ymax",
-                                                          "Upper Limit y-axis:",
-                                                          15))   
-                                  )
+                              tabsetPanel(
                                   
-                              ),
-                              #plot dam mass
-                              plotOutput("Mass_dams_plot"),
-                              
-                              fluidRow(
-                              column(4,
-                                     varSelectInput("Mass_dams_vars_to_sum",
-                                             "Select variables to summarize",
-                                             data = Demo_dam %>%
-                                                 select(Dam_Mass_P2:Dam_Mass_P21),
-                                             selected = c("Dam_Mass_P2",
-                                                          "Dam_Mass_P4",
-                                                          "Dam_Mass_P9",
-                                                          "Dam_Mass_P11"),
-                                             multiple = TRUE)),
-                              column(4,
-                                     varSelectInput("Mass_dams_grouping_vars",
-                                             "Select variables to group by",
-                                             data = Demo_dam %>%
-                                                 select(Treatment:Dam_Strain,
-                                                        ParaType,
-                                                        Sac_or_stop),
-                                             selected = c("Treatment",
-                                                          "Dam_Strain"),
-                                             multiple = TRUE))
-                              ),
-                              dataTableOutput("Mass_dam_summary"),
-                              h3("Pup Loss During Paradigm"),
+                                  #Mass
+                                  tabPanel(
+                                      "Dam Mass",
+                                      h3("Dam Mass"),
+                                      
+                                      fluidRow(
+                                          column(4,
+                                                 radioButtons("Mass_dams_ParaTypes",
+                                                              "Which paradigm type?",
+                                                              c("Both", "P2-P9" = 2, "P4-P11" = 4),
+                                                              selected = "Both"),
+                                                 radioButtons("Mass_dams_whichStrain",
+                                                              "Which dam strains?",
+                                                              c("Both", "B6", "CBA"),
+                                                              selected = "Both")
+                                          ),
+                                          column(4,
+                                                 checkboxInput("Mass_dams_by_strain",
+                                                               "Plot by strain?",
+                                                               value = TRUE),
+                                                 checkboxInput("Mass_dams_individual_lines",
+                                                               "Plot individual lines?",
+                                                               value = TRUE),
+                                                 checkboxInput("Mass_dams_mean_lines",
+                                                               "Plot mean lines?",
+                                                               value = TRUE),
+                                                 textInput("Mass_dams_title",
+                                                           "Graph Title:"),
+                                                 dateRangeInput("Mass_dams_DOBs",
+                                                                "Select range of birth dates",
+                                                                start = "2019-12-15",
+                                                                end = Sys.Date())
+                                          ),
+                                          column(2,
+                                                 checkboxInput("Mass_dams_zoom_x",
+                                                               "Zoom x axis?"),
+                                                 conditionalPanel(
+                                                     condition = "input.Mass_dams_zoom_x == true",
+                                                     numericInput("Mass_dams_xmin",
+                                                                  "Lower Limit x-axis:",
+                                                                  0),
+                                                     numericInput("Mass_dams_xmax",
+                                                                  "Upper Limit x-axis:",
+                                                                  21)
+                                                 )
+                                          ),
+                                          column(2,
+                                                 checkboxInput("Mass_dams_zoom_y",
+                                                               "Zoom y axis?"),
+                                                 conditionalPanel(
+                                                     condition = "input.Mass_dams_zoom_y == true",
+                                                     numericInput("Mass_dams_ymin",
+                                                                  "Lower Limit y-axis:",
+                                                                  0),
+                                                     numericInput("Mass_dams_ymax",
+                                                                  "Upper Limit y-axis:",
+                                                                  15))   
+                                          )
+                                          
+                                      ),
+                                      #plot dam mass
+                                      plotOutput("Mass_dams_plot"),
+                                      
+                                      h3("Summary Table"),
+                                      fluidRow(
+                                          column(4,
+                                                 varSelectInput("Mass_dams_vars_to_sum",
+                                                                "Select variables to summarize",
+                                                                data = Demo_dam %>%
+                                                                    select(Dam_Mass_P2:Dam_Mass_P21),
+                                                                selected = c("Dam_Mass_P2",
+                                                                             "Dam_Mass_P4",
+                                                                             "Dam_Mass_P9",
+                                                                             "Dam_Mass_P11"),
+                                                                multiple = TRUE)),
+                                          column(4,
+                                                 varSelectInput("Mass_dams_grouping_vars",
+                                                                "Select variables to group by",
+                                                                data = Demo_dam %>%
+                                                                    select(Treatment:Dam_Strain,
+                                                                           ParaType,
+                                                                           Sac_or_stop),
+                                                                selected = c("Treatment",
+                                                                             "Dam_Strain"),
+                                                                multiple = TRUE))
+                                      ),
+                                      dataTableOutput("Mass_dam_summary")
+                                  ),
+                                  
+                                  #Pup Loss
+                                  tabPanel(
+                                      "Pup Loss",
+                                      h3("Pup Loss During Paradigm"),
                               fluidRow(
                                   varSelectInput("Pup_loss_grouping_vars",
                                         "Select variables to group by:",
@@ -252,14 +263,62 @@ ui <- navbarPage("LBN",
                                                      "Dam_Strain",
                                                      "ParaType"),
                                         multiple = TRUE)),
-                              dataTableOutput("Pup_loss_summary"),
-                              h3("Dam Corticosterone on P21"),
-                              #add filtering options
-                              plotOutput("Dam_cort21")
+                              dataTableOutput("Pup_loss_summary")
+                                  ),
+                                  
+                                  #Corticosterone
+                                  tabPanel(
+                                      "Dam Corticosterone",
+                                      h3("Dam Corticosterone on P21"),
+                                      
+                                      fluidRow(
+                                          column(4,
+                                                 radioButtons("Cort_dams_ParaTypes",
+                                                              "Which paradigm type?",
+                                                              c("Both", "P2-P9" = 2, "P4-P11" = 4),
+                                                              selected = "Both")
+                                          ),
+                                          column(4,
+                                                 radioButtons("Cort_dams_whichStrain",
+                                                              "Which dam strains?",
+                                                              c("Both", "B6", "CBA"))
+                                          ),
+                                          column(4,
+                                                 dateRangeInput("Cort_dams_DOBs",
+                                                                "Select range of birth dates",
+                                                                start = "2019-12-15",
+                                                                end = Sys.Date())
+                                          )
+                                      ),
+                                      
+                                      fluidRow(
+                                          column(4,
+                                                 checkboxInput("Cort_dams_zoom_y",
+                                                               "Zoom y axis?")),
+                                          column(4,
+                                                 conditionalPanel(
+                                                     condition = "input.Cort_dams_zoom_y == true",
+                                                     numericInput("Cort_dams_ymin",
+                                                                  "Lower Limit y-axis:",
+                                                                  0)
+                                                     )),
+                                          column(4,
+                                                 conditionalPanel(
+                                                     condition = "input.Cort_dams_zoom_y == true",
+                                                     numericInput("Cort_dams_ymax",
+                                                                  "Upper Limit y-axis:",
+                                                                  15))   
+                                          )
+                                          ),
+                                      #add filtering options
+                                      plotOutput("Dam_cort21")
+                                  )
+                              ),
                               ),
                      
                      #Offspring Mass -----------
                      tabPanel("Offspring Mass",
+                              
                               h3("Offspring Mass"),
                               fluidRow(
                                   column(4,
@@ -974,14 +1033,36 @@ server <- function(input, output) {
                         ymin = input$Mass_dams_ymin,
                         ymax = input$Mass_dams_ymax,
                         width = 0.2)
-    }
-    )
+    })
     
     output$Dam_cort21 <- renderPlot({
-        #add filtering options
+        Cort_dams <- Demo_dam %>%
+            drop_na(Treatment, Cort_dam_P21)
+        
+        #Filter for paradigm type
+        if(input$Cort_dams_ParaTypes == 2){
+            Cort_dams <- Cort_dams %>%
+                filter(ParaType == 2)
+        }else if(input$Cort_dams_ParaTypes == 4){
+            Cort_dams <- Cort_dams %>%
+                filter(ParaType == 4)
+        }
+        
+        #Filter for DOB
+        Cort_dams <- Cort_dams %>%
+            filter(DOB >= input$Cort_dams_DOBs[1] & DOB <= input$Cort_dams_DOBs[2])
+        
+        #Filter for Strain - By Dam Strain
+        if(input$Cort_dams_whichStrain == "B6"){
+            Cort_dams <- Cort_dams %>%
+                filter(Dam_Strain == "B6")
+        }else if(input$Cort_dams_whichStrain == "CBA"){
+            Cort_dams <- Cort_dams %>%
+                filter(Dam_Strain == "CBA")
+        }
+        
         my_puberty_dot_plot(
-            df = Demo_dam %>%
-                drop_na(Treatment, Cort_dam_P21),
+            df = Cort_dams,
             var_to_plot = expr(Cort_dam_P21), #expr()
             phenotype_name = NULL,
             shape = expr(Dam_Strain),
@@ -1050,8 +1131,7 @@ server <- function(input, output) {
                         zoom_y = input$Mass_off_zoom_y,
                         ymin = input$Mass_off_ymin,
                         ymax = input$Mass_off_ymax)
-    }
-    )
+    })
     
     #This creates a reactive data frame for all of the cumulative frequency and puberty dot plots.
     #Don't need same filtering code for all of the plots
