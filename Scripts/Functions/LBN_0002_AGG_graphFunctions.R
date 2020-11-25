@@ -25,6 +25,11 @@ make_long_form = function(df){
     gather(key = "day", value = "Mass", c(Avg_litter_mass_startPara, Mass_P9:Mass_P72), factor_key=TRUE)
 }
 
+make_long_form_dams = function(df){
+  df %>%
+    gather(key = "day", value = "Mass", c(Dam_Mass_P2:Dam_Mass_P21), factor_key=TRUE)
+}
+
 #Create a new column "PND" for the corresponding post-natal day on which the mass was taken to be able to plot on a continuous x-scale
 make_PND_col = function(df){
   df = df %>%
@@ -56,9 +61,28 @@ make_PND_col = function(df){
     )
 }
 
+make_PND_col_dams = function(df){
+  df = df %>%
+    mutate(PND = case_when(day == "Dam_Mass_P2" ~ 2,
+                           day == "Dam_Mass_P4" ~ 4,
+                           day == "Dam_Mass_P9" ~ 9,
+                           day == "Dam_Mass_P11" ~ 11,
+                           day == "Dam_Mass_P21" ~ 21
+    )
+    )
+}
+
 reshapeForMassPlot <- function(df){
   df_long <- make_long_form(df)
   df_long_PND <- make_PND_col(df_long)
+  df_long_noNA <- df_long_PND %>%
+    filter(!is.na(Mass))
+}
+
+#select which variables in df first!
+reshapeForMassPlot_dams <- function(df){
+  df_long <- make_long_form_dams(df)
+  df_long_PND <- make_PND_col_dams(df_long)
   df_long_noNA <- df_long_PND %>%
     filter(!is.na(Mass))
 }
@@ -82,11 +106,12 @@ my_geom_line <- function(
 #Can use a different line type based on a categorical variable
 my_line_mean_geom <- function(
   useLinetype, #TRUE/FALSE
-  linetype_var #use expr
+  linetype_var, #use expr
+  width = 1
 ){
   list(
     stat_summary(fun = mean, geom = "line", if(useLinetype){aes(linetype = !! linetype_var)}, size = 1.4, alpha = 1),
-    stat_summary(geom = "errorbar", fun.data = mean_se, size = 1)
+    stat_summary(geom = "errorbar", fun.data = mean_se, size = 1, width = width, color = "grey10", alpha = 0.6)
   )
 }
 
@@ -105,7 +130,8 @@ my_LBN_mass_geoms = function(
   xmax = NULL,
   zoom_y = FALSE, #Zoom to a part of y axis
   ymin = NULL,
-  ymax = NULL
+  ymax = NULL,
+  width = 1 #for error bars
 ){
   list(
     labs(x = xtitle, 
@@ -113,12 +139,13 @@ my_LBN_mass_geoms = function(
          title = title),
     #geom_rect(aes(xmin = 0, xmax = 21, ymin = 0, ymax = Inf), fill = 'grey90', color = "grey90", alpha = 0.1),
       #For background shading, but this seems to drastically increase time to plot
+    if(mean_lines) #if mean_lines is true, add this layer
+      my_line_mean_geom(useLinetype = useLinetype,
+                        linetype_var = linetype_var,
+                        width = width),
     if(individualLines) #if individualLines is true, add this layer
       my_geom_line(linetype_var = linetype_var,
                    lineGroup_var = lineGroup_var),
-    if(mean_lines) #if mean_lines is true, add this layer
-      my_line_mean_geom(useLinetype = useLinetype,
-                        linetype_var = linetype_var),
     expand_limits(y=0), #set y axis to 0
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}), #this just zooms in on the graph, versus scale_[]_continuous actually eliminates data not in the range
     my_theme
@@ -202,7 +229,9 @@ mass_plot_lines = function(
   xmax = NULL,
   zoom_y = FALSE, #Zoom to a part of y axis
   ymin = NULL,
-  ymax = NULL)
+  ymax = NULL,
+  width = 1 #for error bars
+  )
 {
   ggplot(df, aes(PND, Mass, color = Treatment, 
                  group = if(by_strain == TRUE){interaction(Treatment, Dam_Strain)}else{Treatment})) + #if by_strain is TRUE, group by dam strain
@@ -220,9 +249,12 @@ mass_plot_lines = function(
       xmax = xmax,
       zoom_y = zoom_y,
       ymin = ymin,
-      ymax = ymax
+      ymax = ymax, 
+      width = width
     )
 }
+
+
 
 #See "my_cumuluative_freq_geoms" for explanation of the geoms used
 my_cumulative_freq_plot <- function(
@@ -261,7 +293,9 @@ my_puberty_dot_plot <- function(
   width = 0.3,
   change_ymax = FALSE,
   ymax = NA,
-  DaysOrMass = "Days" #type "Days" or "Mass"
+  DaysOrMass = "Days", #type "Days" or "Mass"
+  alt_ytitle = FALSE,
+  ytitle = NULL #alternative y title
 ){
   df %>%
     filter(!is.na(!! var_to_plot)) %>%
@@ -273,7 +307,9 @@ my_puberty_dot_plot <- function(
       change_ymax = change_ymax,
       ymax = ymax,
       ytitle = 
-        if(DaysOrMass == "Days"){
+        if(alt_ytitle){
+          ytitle
+        }else if(DaysOrMass == "Days"){
           paste0("Age at ", phenotype_name, " (Days)")
         }else if(DaysOrMass == "Mass"){
             paste0("Mass at ", phenotype_name, " (g)")
