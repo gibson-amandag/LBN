@@ -434,181 +434,197 @@ ui <- navbarPage("LBN",
                                                         end = Sys.Date())
                                   )
                                   ),
-                              ### Cumulative Frequency Plots ----
-                              h4("Cumulative Frequency Plots"),
-                              fluidRow(
-                                  column(4,
-                                         checkboxInput("Mat_cumFreq_same",
-                                                       "Same x-axis?",
-                                                       value = TRUE)),
-                                  column(4,
-                                         conditionalPanel(
-                                             condition = "input.Mat_cumFreq_same == true",
-                                             numericInput("Mat_cumFreq_xmax",
-                                                          "Enter x-axis max:",
-                                                          value = 50))
-                                  )
-                              ),
-                              fluidRow(
-                                  column(4,
-                                         plotOutput("Mat_VO_cumFreq")),
-                                  column(4,
-                                         plotOutput("Mat_1E_cumFreq")),
-                                  column(4,
-                                         plotOutput("Mat_PPS_cumFreq"))
-                              ),
                               
-                              #Dot Plots ----
-                              h4("Puberty Dot Plots - Age"),
-                              
-                              fluidRow(
-                                  column(4,
-                                         checkboxInput("Mat_dot_same",
-                                                       "Same y-axis?",
-                                                       value = TRUE)),
-                                  column(4,
-                                         conditionalPanel(
-                                             condition = "input.Mat_dot_same == true",
-                                             numericInput("Mat_dot_ymax",
-                                                          "Enter y-axis max:",
-                                                          value = 50))
-                                  )
-                              ),
-                              
-                              fluidRow(
-                                  column(4,
-                                         plotOutput("Mat_VO_dot")),
-                                  column(4,
-                                         plotOutput("Mat_1E_dot")),
-                                  column(4,
-                                         plotOutput("Mat_PPS_dot"))
-                              ),
-                              
-                              h4("Puberty Dot Plots - Mass"),
-                              
-                              fluidRow(
-                                  column(4,
-                                         checkboxInput("Mat_dot_mass_same",
-                                                       "Same y-axis?",
-                                                       value = TRUE)),
-                                  column(4,
-                                         conditionalPanel(
-                                             condition = "input.Mat_dot_mass_same == true",
-                                             numericInput("Mat_dot_mass_ymax",
-                                                          "Enter y-axis max:",
-                                                          value = 25))
-                                  )
-                              ),
-                              
-                              fluidRow(
-                                  column(4,
-                                         plotOutput("Mat_VO_dot_mass")),
-                                  column(4,
-                                         plotOutput("Mat_1E_dot_mass")),
-                                  column(4,
-                                         plotOutput("Mat_PPS_dot_mass"))
-                              ),
-                              
-                              ##Summary tables ----
-                              
-                              h4("Ano-genital distance"),
-                              fluidRow(
-                                  column(4,
-                                         varSelectInput("Mat_AGD_vars_to_sum",
-                                                        "Select variables to summarize",
-                                                        data = Maturation_off %>%
-                                                            select(AGD_wean:AGD_adult_by_mass, AGD_P22:AGD_P72),
-                                                        selected = c("AGD_wean",
-                                                                     "AGD_adult",
-                                                                     "Mass_P9",
-                                                                     "Mass_P11"),
-                                                        multiple = TRUE)
-                                  ),
-                                  column(4,
-                                         varSelectInput("Mat_AGD_grouping_vars",
-                                                        "Select variables to group by",
-                                                        data = Maturation_off %>%
-                                                            select(Sex:Treatment,
-                                                                   Dam_ID,
-                                                                   Dam_Strain:ParaType),
-                                                        selected = c("Sex",
-                                                                     "Treatment"),
-                                                        multiple = TRUE))
-                              ),
-                              dataTableOutput("Mat_AGD_summary"),
-                              
-                              h4("Vaginal Opening"),
-                              fluidRow(
-                                  column(4,
-                                         varSelectInput("Mat_VO_vars_to_sum",
-                                                        "Select variables to summarize",
-                                                        data = Maturation_off %>%
-                                                            select(VO_age, VO_mass),
-                                                        selected = c("VO_age", "VO_mass"),
-                                                        multiple = TRUE)
-                                  ),
-                                  column(4,
-                                         varSelectInput("Mat_VO_grouping_vars",
-                                                        "Select variables to group by",
-                                                        data = Maturation_off %>%
-                                                            select(Treatment,
-                                                                   Dam_ID,
-                                                                   Dam_Strain:ParaType),
-                                                        selected = c("Treatment"),
-                                                        multiple = TRUE))
-                              ),
-                              dataTableOutput("Mat_VO_summary"),
-                              
-                              h4("First Estrus"),
-                              fluidRow(
-                                  column(4,
-                                         varSelectInput("Mat_1E_vars_to_sum",
-                                                        "Select variables to summarize",
-                                                        data = Maturation_off %>%
-                                                            select(Estrus_age, Estrus_mass),
-                                                        selected = c("Estrus_age", "Estrus_mass"),
-                                                        multiple = TRUE)
-                                  ),
-                                  column(4,
-                                         varSelectInput("Mat_1E_grouping_vars",
-                                                        "Select variables to group by",
-                                                        data = Maturation_off %>%
-                                                            select(Treatment,
-                                                                   Dam_ID,
-                                                                   Dam_Strain:ParaType),
-                                                        selected = c("Treatment"),
-                                                        multiple = TRUE))
-                              ),
-                              dataTableOutput("Mat_1E_summary"),
-                              
-                              h4("Preputial Separation"),
-                              fluidRow(
-                                  column(4,
-                                         varSelectInput("Mat_PPS_vars_to_sum",
-                                                        "Select variables to summarize",
-                                                        data = Maturation_off %>%
-                                                            select(PreputialSep_age, PreputialSep_mass),
-                                                        selected = c("PreputialSep_age", "PreputialSep_mass"),
-                                                        multiple = TRUE)
-                                  ),
-                                  column(4,
-                                         varSelectInput("Mat_PPS_grouping_vars",
-                                                        "Select variables to group by",
-                                                        data = Maturation_off %>%
-                                                            select(Treatment,
-                                                                   Dam_ID,
-                                                                   Dam_Strain:ParaType),
-                                                        selected = c("Treatment"),
-                                                        multiple = TRUE))
-                              ),
-                              dataTableOutput("Mat_PPS_summary"),
-                             
+                              tabsetPanel(
+                                  tabPanel("Plots",
+                                           
+                                           ### Cumulative Frequency Plots ----
+                                           h4("Cumulative Frequency Plots"),
+                                           fluidRow(
+                                               column(4,
+                                                      checkboxInput("Mat_cumFreq_same",
+                                                                    "Same x-axis?",
+                                                                    value = TRUE)),
+                                               column(4,
+                                                      conditionalPanel(
+                                                          condition = "input.Mat_cumFreq_same == true",
+                                                          numericInput("Mat_cumFreq_xmax",
+                                                                       "Enter x-axis max:",
+                                                                       value = 50))
+                                               )
+                                           ),
+                                           fluidRow(
+                                               column(4,
+                                                      plotOutput("Mat_VO_cumFreq")),
+                                               column(4,
+                                                      plotOutput("Mat_1E_cumFreq")),
+                                               column(4,
+                                                      plotOutput("Mat_PPS_cumFreq"))
+                                           ),
+                                           
+                                           #Dot Plots ----
+                                           h4("Puberty Dot Plots - Age"),
+                                           
+                                           fluidRow(
+                                               column(4,
+                                                      checkboxInput("Mat_dot_same",
+                                                                    "Same y-axis?",
+                                                                    value = TRUE)),
+                                               column(4,
+                                                      conditionalPanel(
+                                                          condition = "input.Mat_dot_same == true",
+                                                          numericInput("Mat_dot_ymax",
+                                                                       "Enter y-axis max:",
+                                                                       value = 50))
+                                               )
+                                           ),
+                                           
+                                           fluidRow(
+                                               column(4,
+                                                      plotOutput("Mat_VO_dot")
+                                                      ),
+                                               column(4,
+                                                      plotOutput("Mat_1E_dot")
+                                                      ),
+                                               column(4,
+                                                      plotOutput("Mat_PPS_dot")
+                                                      )
+                                           ),
+                                           
+                                           h4("Puberty Dot Plots - Mass"),
+                                           
+                                           fluidRow(
+                                               column(4,
+                                                      checkboxInput("Mat_dot_mass_same",
+                                                                    "Same y-axis?",
+                                                                    value = TRUE)),
+                                               column(4,
+                                                      conditionalPanel(
+                                                          condition = "input.Mat_dot_mass_same == true",
+                                                          numericInput("Mat_dot_mass_ymax",
+                                                                       "Enter y-axis max:",
+                                                                       value = 25))
+                                               )
+                                           ),
+                                           
+                                           fluidRow(
+                                               column(4,
+                                                      plotOutput("Mat_VO_dot_mass")),
+                                               column(4,
+                                                      plotOutput("Mat_1E_dot_mass")),
+                                               column(4,
+                                                      plotOutput("Mat_PPS_dot_mass"))
+                                           ),),
+                                  
+                                  tabPanel("AGD Summary",
+                                           h4("Ano-genital distance"),
+                                           fluidRow(
+                                               column(4,
+                                                      varSelectInput("Mat_AGD_vars_to_sum",
+                                                                     "Select variables to summarize",
+                                                                     data = Maturation_off %>%
+                                                                         select(AGD_wean:AGD_adult_by_mass, AGD_P22:AGD_P72),
+                                                                     selected = c("AGD_wean",
+                                                                                  "AGD_adult",
+                                                                                  "Mass_P9",
+                                                                                  "Mass_P11"),
+                                                                     multiple = TRUE)
+                                               ),
+                                               column(4,
+                                                      varSelectInput("Mat_AGD_grouping_vars",
+                                                                     "Select variables to group by",
+                                                                     data = Maturation_off %>%
+                                                                         select(Sex:Treatment,
+                                                                                Dam_ID,
+                                                                                Dam_Strain:ParaType),
+                                                                     selected = c("Sex",
+                                                                                  "Treatment"),
+                                                                     multiple = TRUE))
+                                           ),
+                                           dataTableOutput("Mat_AGD_summary")
+                                           ),
+                                  
+                                  tabPanel("VO Summary",
+                                           h4("Vaginal Opening"),
+                                           fluidRow(
+                                               column(4,
+                                                      varSelectInput("Mat_VO_vars_to_sum",
+                                                                     "Select variables to summarize",
+                                                                     data = Maturation_off %>%
+                                                                         select(VO_age, VO_mass),
+                                                                     selected = c("VO_age", "VO_mass"),
+                                                                     multiple = TRUE)
+                                               ),
+                                               column(4,
+                                                      varSelectInput("Mat_VO_grouping_vars",
+                                                                     "Select variables to group by",
+                                                                     data = Maturation_off %>%
+                                                                         select(Treatment,
+                                                                                Dam_ID,
+                                                                                Dam_Strain:ParaType),
+                                                                     selected = c("Treatment"),
+                                                                     multiple = TRUE))
+                                           ),
+                                           dataTableOutput("Mat_VO_summary"),
+                                           verbatimTextOutput("Mat_VO_tTest")
+                                           ),
+                                  
+                                  tabPanel("1E Summary",
+                                           h4("First Estrus"),
+                                           fluidRow(
+                                               column(4,
+                                                      varSelectInput("Mat_1E_vars_to_sum",
+                                                                     "Select variables to summarize",
+                                                                     data = Maturation_off %>%
+                                                                         select(Estrus_age, Estrus_mass),
+                                                                     selected = c("Estrus_age", "Estrus_mass"),
+                                                                     multiple = TRUE)
+                                               ),
+                                               column(4,
+                                                      varSelectInput("Mat_1E_grouping_vars",
+                                                                     "Select variables to group by",
+                                                                     data = Maturation_off %>%
+                                                                         select(Treatment,
+                                                                                Dam_ID,
+                                                                                Dam_Strain:ParaType),
+                                                                     selected = c("Treatment"),
+                                                                     multiple = TRUE))
+                                           ),
+                                           dataTableOutput("Mat_1E_summary"),
+                                           verbatimTextOutput("Mat_1E_tTest")
+                                           ),
+                                  
+                                  tabPanel("PPS Summary",
+                                           h4("Preputial Separation"),
+                                           fluidRow(
+                                               column(4,
+                                                      varSelectInput("Mat_PPS_vars_to_sum",
+                                                                     "Select variables to summarize",
+                                                                     data = Maturation_off %>%
+                                                                         select(PreputialSep_age, PreputialSep_mass),
+                                                                     selected = c("PreputialSep_age", "PreputialSep_mass"),
+                                                                     multiple = TRUE)
+                                               ),
+                                               column(4,
+                                                      varSelectInput("Mat_PPS_grouping_vars",
+                                                                     "Select variables to group by",
+                                                                     data = Maturation_off %>%
+                                                                         select(Treatment,
+                                                                                Dam_ID,
+                                                                                Dam_Strain:ParaType),
+                                                                     selected = c("Treatment"),
+                                                                     multiple = TRUE))
+                                           ),
+                                           dataTableOutput("Mat_PPS_summary"),
+                                           verbatimTextOutput("Mat_PPS_tTest")
+                                           )
+                              ) #End tabset panel within Off Maturation
                               ), #end offspring maturation tabPanel
                      
                      ### Offspring Corticosterone ----
                      tabPanel("Acute Stress Paradigm",
                               h3("Corticosterone")
-                              ),
+                              ), #End off cort panel
                      
                      ### Offspring Cycles ----
                      tabPanel("Offspring Cycles",
@@ -641,7 +657,7 @@ ui <- navbarPage("LBN",
                               h4("LBN offspring"),
                               plotOutput("Cycles_off_LBN_plot",
                                          height = "600px")
-                              )
+                              ) #End cycles tabPanel
                      ) #end analysis tabsetPanel
                  ### END ANALYSIS ----    
                  ) #end analysis tabPanel
@@ -1014,22 +1030,23 @@ server <- function(input, output) {
     
     #Add filters for paradigm types, birth dates, etc
     output$Mat_AGD_summary <- renderDataTable(
-        map_dfr(input$Mat_AGD_vars_to_sum, LBN_summary_byGroup, Maturation_off, input$Mat_AGD_grouping_vars)
+        map_dfr(input$Mat_AGD_vars_to_sum, LBN_summary_byGroup, Maturation_off_forPlots(), input$Mat_AGD_grouping_vars)
     )
     
     output$Mat_VO_summary <- renderDataTable(
-        map_dfr(input$Mat_VO_vars_to_sum, LBN_summary_byGroup, Maturation_off, input$Mat_VO_grouping_vars)
+        map_dfr(input$Mat_VO_vars_to_sum, LBN_summary_byGroup, Maturation_off_forPlots(), input$Mat_VO_grouping_vars)
     )
     
     output$Mat_1E_summary <- renderDataTable(
-        map_dfr(input$Mat_1E_vars_to_sum, LBN_summary_byGroup, Maturation_off, input$Mat_1E_grouping_vars)
+        map_dfr(input$Mat_1E_vars_to_sum, LBN_summary_byGroup, Maturation_off_forPlots(), input$Mat_1E_grouping_vars)
     )
     
     output$Mat_PPS_summary <- renderDataTable(
-        map_dfr(input$Mat_PPS_vars_to_sum, LBN_summary_byGroup, Maturation_off, input$Mat_PPS_grouping_vars)
+        map_dfr(input$Mat_PPS_vars_to_sum, LBN_summary_byGroup, Maturation_off_forPlots(), input$Mat_PPS_grouping_vars)
     )
     
     ### Plots ------------------
+    #Dam Mass Plot
     output$Mass_dams_plot <- renderPlot({
         Mass_dams <- Demo_dam %>%
             select(Dam_ID, Treatment:Strain,
@@ -1074,6 +1091,7 @@ server <- function(input, output) {
                         width = 0.2)
     })
     
+    #Dam Cort Plot
     output$Dam_cort21 <- renderPlot({
         Cort_dams <- Demo_dam %>%
             drop_na(Treatment, Cort_dam_P21)
@@ -1114,7 +1132,7 @@ server <- function(input, output) {
         )
     })
     
-    
+    #Offspring Mass Plot
     output$Mass_off_plot <- renderPlot({
         #needs to be before the averaging by litter
         if(input$Mass_off_whichSex == "M"){
@@ -1202,6 +1220,7 @@ server <- function(input, output) {
         return(Maturation_off_forPlots)
     })
     
+    #Cumulative Frequency Plots
     output$Mat_VO_cumFreq <- renderPlot({
         my_cumulative_freq_plot(df = Maturation_off_forPlots(),
                                 color_var = expr(Treatment),
@@ -1238,6 +1257,7 @@ server <- function(input, output) {
                                 xmin = 21)
     })
     
+    #Puberty Dot Plots
     output$Mat_VO_dot <- renderPlot({
         my_puberty_dot_plot(
             df = Maturation_off_forPlots(),
@@ -1322,6 +1342,20 @@ server <- function(input, output) {
         )
     })
     
+    #Puberty t-tests
+    output$Mat_VO_tTest <- renderPrint({
+        t.test(VO_age ~ Treatment, Maturation_off_forPlots())
+    })
+    
+    output$Mat_1E_tTest <- renderPrint({
+        t.test(Estrus_age ~ Treatment, Maturation_off_forPlots()) 
+    })
+    
+    output$Mat_PPS_tTest <- renderPrint({
+        t.test(PreputialSep_age ~ Treatment, Maturation_off_forPlots())
+    })
+    
+    #Offspring Cycles Plots
     Cycles_off_long <- reactive({
         #Filter for paradigm type
         if(input$Cycles_off_ParaTypes == 2){

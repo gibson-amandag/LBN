@@ -294,6 +294,29 @@ my_cumulative_freq_plot(
 my_puberty_dot_plot(Maturation_off, expr(VO_age), "VO", DaysOrMass = "Days")
 ```
 
+```{r}
+t.test(PreputialSep_age ~ Treatment, Maturation_off)
+t.test(Estrus_age ~ Treatment, Maturation_off)
+t.test(VO_age ~ Treatment, Maturation_off)
+```
+
+```{r Cycles-Plot}
+
+Cycles_off_long <- make_cycles_long(Cycles_off) %>%
+  add_Day_col()
+Cycles_off_long
+
+#Plot the control animals
+Cycles_off_long %>%
+  filter(Treatment == "Control") %>%
+  cyclesPlotFunc()
+
+#Plot the LBN animals
+Cycles_off_long %>%
+  filter(Treatment == "LBN") %>%
+  cyclesPlotFunc()
+
+```
 
 
 ```{r DataFrame-Workbook}
@@ -327,25 +350,6 @@ saveWorkbook(datesWB, file.path(DataOutFolder, "datesWB.xlsx"), overwrite = TRUE
 
 ```
 
-
-```{r Cycles-Plot}
-
-Cycles_off_long <- make_cycles_long(Cycles_off) %>%
-  add_Day_col()
-Cycles_off_long
-
-#Plot the control animals
-Cycles_off_long %>%
-  filter(Treatment == "Control") %>%
-  cyclesPlotFunc()
-
-#Plot the LBN animals
-Cycles_off_long %>%
-  filter(Treatment == "LBN") %>%
-  cyclesPlotFunc()
-
-
-```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
 
