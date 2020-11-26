@@ -87,6 +87,49 @@ reshapeForMassPlot_dams <- function(df){
     filter(!is.na(Mass))
 }
 
+### CYCLES DATA PREPARATION -------------------------------------------------------------------------------
+make_cycles_long <- function(df){
+  df %>%
+    drop_na(Day1:Day21) %>%
+    gather(key = "DayNum",
+           value = "Stage",
+           c(Day1:Day21),
+           factor_key = TRUE)
+}
+
+add_Day_col <- function(df){
+  df <- df %>%
+    mutate(
+      Day = 
+        case_when(
+          DayNum == "Day1" ~ 1,
+          DayNum == "Day2" ~ 2,
+          DayNum == "Day3" ~ 3,
+          DayNum == "Day4" ~ 4,
+          DayNum == "Day5" ~ 5,
+          DayNum == "Day6" ~ 6,
+          DayNum == "Day7" ~ 7,
+          DayNum == "Day8" ~ 8,
+          DayNum == "Day9" ~ 9,
+          DayNum == "Day10" ~ 10,
+          DayNum == "Day11" ~ 11,
+          DayNum == "Day12" ~ 12,
+          DayNum == "Day13" ~ 13,
+          DayNum == "Day14" ~ 14,
+          DayNum == "Day15" ~ 15,
+          DayNum == "Day16" ~ 16,
+          DayNum == "Day17" ~ 17,
+          DayNum == "Day18" ~ 18,
+          DayNum == "Day19" ~ 19,
+          DayNum == "Day20" ~ 20,
+          DayNum == "Day21" ~ 21
+        )
+    )
+  return(df)
+}
+
+
+
 ### MY GEOMS -----------------------------------------------------------------------------------------------
 
 ##Line plot geoms----
@@ -319,10 +362,20 @@ my_puberty_dot_plot <- function(
     )
 }
 
-
-
-
-
+#Cycles Plot
+cyclesPlotFunc <- function(df){
+  ggplot(df, aes(x = Day, y = Stage)) +
+    geom_line() +
+    my_theme +
+    facet_wrap(Mouse_ID ~ .) + #each plot is a mouse
+    scale_y_continuous(
+      breaks = c(1, 2, 3), #axis ticks only at 1, 2, 3
+      labels = c("E", "D", "P") #replace with E, D, and P
+    ) +
+    scale_x_continuous(
+      breaks = seq(1, 21, 3) #labels every third integer
+    )
+}
 
 
 #### NOT CLEANED ###########################################################

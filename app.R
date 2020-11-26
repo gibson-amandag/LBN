@@ -603,9 +603,48 @@ ui <- navbarPage("LBN",
                               ),
                               dataTableOutput("Mat_PPS_summary"),
                              
+                              ), #end offspring maturation tabPanel
+                     
+                     ### Offspring Corticosterone ----
+                     tabPanel("Acute Stress Paradigm",
+                              h3("Corticosterone")
+                              ),
+                     
+                     ### Offspring Cycles ----
+                     tabPanel("Offspring Cycles",
+                              h3("Offspring Cycles"),
+                              
+                              fluidRow(
+                                  column(4,
+                                         radioButtons("Cycles_off_ParaTypes",
+                                                      "Which paradigm type?",
+                                                      c("Both", "P2-P9" = 2, "P4-P11" = 4),
+                                                      selected = "Both")
+                                  ),
+                                  column(4,
+                                         radioButtons("Cycles_off_whichStrain",
+                                                      "Which dam strains?",
+                                                      c("Both", "B6", "CBA"))
+                                  ),
+                                  column(4,
+                                         dateRangeInput("Cycles_off_DOBs",
+                                                        "Select range of birth dates",
+                                                        start = "2019-12-15",
+                                                        end = Sys.Date())
+                                  )
+                              ),
+                              
+                              h4("Control offspring"),
+                              plotOutput("Cycles_off_control_plot",
+                                         height = "600px"),
+                              
+                              h4("LBN offspring"),
+                              plotOutput("Cycles_off_LBN_plot",
+                                         height = "600px")
                               )
-                     )
-                 )
+                     ) #end analysis tabsetPanel
+                 ### END ANALYSIS ----    
+                 ) #end analysis tabPanel
 ############                 
 )
 
@@ -1281,6 +1320,47 @@ server <- function(input, output) {
             ymax = input$Mat_dot_mass_ymax,
             DaysOrMass = "Mass"
         )
+    })
+    
+    Cycles_off_long <- reactive({
+        #Filter for paradigm type
+        if(input$Cycles_off_ParaTypes == 2){
+            Cycles_off <- Cycles_off %>%
+                filter(ParaType == 2)
+        }else if(input$Cycles_off_ParaTypes == 4){
+            Cycles_off <- Cycles_off %>%
+                filter(ParaType == 4)
+        }
+        
+        #Filter for DOB
+        Cycles_off <- Cycles_off %>%
+            filter(DOB >= input$Cycles_off_DOBs[1] & DOB <= input$Cycles_off_DOBs[2])
+        
+        #Filter for Strain - By Dam Strain
+        if(input$Cycles_off_whichStrain == "B6"){
+            Cycles_off <- Cycles_off %>%
+                filter(Dam_Strain == "B6")
+        }else if(input$Cycles_off_whichStrain == "CBA"){
+            Cycles_off <- Cycles_off %>%
+                filter(Dam_Strain == "CBA")
+        }
+        
+        Cycles_off_long <- make_cycles_long(Cycles_off) %>%
+            add_Day_col() %>%
+            drop_na(Stage)
+        return(Cycles_off_long)
+    })
+    
+    output$Cycles_off_control_plot <- renderPlot({
+        Cycles_off_long() %>%
+            filter(Treatment == "Control") %>%
+            cyclesPlotFunc()
+    })
+    
+    output$Cycles_off_LBN_plot <- renderPlot({
+        Cycles_off_long() %>%
+            filter(Treatment == "LBN") %>%
+            cyclesPlotFunc()
     })
 }
 

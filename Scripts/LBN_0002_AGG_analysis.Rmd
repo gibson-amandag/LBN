@@ -328,6 +328,25 @@ saveWorkbook(datesWB, file.path(DataOutFolder, "datesWB.xlsx"), overwrite = TRUE
 ```
 
 
+```{r Cycles-Plot}
+
+Cycles_off_long <- make_cycles_long(Cycles_off) %>%
+  add_Day_col()
+Cycles_off_long
+
+#Plot the control animals
+Cycles_off_long %>%
+  filter(Treatment == "Control") %>%
+  cyclesPlotFunc()
+
+#Plot the LBN animals
+Cycles_off_long %>%
+  filter(Treatment == "LBN") %>%
+  cyclesPlotFunc()
+
+
+```
+
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
 
 When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).

@@ -17,7 +17,7 @@ load_LBN_data <- function(
   NameMass_off = "Mass_off",
   NameMaturation_off = "Maturation_off",
   NameEndPara_off = "EndParadigm_off",
-  NameCycles_off = "CycleSum_off",
+  NameCycles_off = "Cycles_off",
   NameChronicStress_off = "ChronicStress_off",
   NameAcuteStress_off = "AcuteStress_off"
 ){
@@ -161,6 +161,7 @@ load_LBN_data <- function(
     select(Mouse_ID, #reorder
            Sex,
            Treatment,
+           Day1:Day21,
            Cycle_length:Proestrus_days,
            Dam_ID,
            DOB,
