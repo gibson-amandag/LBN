@@ -54,6 +54,7 @@ LBN_varNames <<- LBN_varNames_func(LBN_all)
 
 #Load Modules
 source("./Scripts/AppScripts/zoomAxisModule.R")
+source("./Scripts/AppScripts/filteringDFModule.R")
 source("./Scripts/AppScripts/taskTrackingModule.R")
 source("./Scripts/AppScripts/rawDataModule.R")
 source("./Scripts/AppScripts/damMassModule.R")
@@ -111,51 +112,8 @@ ui <- navbarPage("LBN",
                                   tabPanel(
                                       "Dam Corticosterone",
                                       damCortUI("damCort")
-                                      # h3("Dam Corticosterone on P21"),
-                                      # 
-                                      # fluidRow(
-                                      #     column(4,
-                                      #            radioButtons("Cort_dams_ParaTypes",
-                                      #                         "Which paradigm type?",
-                                      #                         c("Both", "P2-P9" = 2, "P4-P11" = 4),
-                                      #                         selected = "Both")
-                                      #     ),
-                                      #     column(4,
-                                      #            radioButtons("Cort_dams_whichStrain",
-                                      #                         "Which dam strains?",
-                                      #                         c("Both", "B6", "CBA"))
-                                      #     ),
-                                      #     column(4,
-                                      #            dateRangeInput("Cort_dams_DOBs",
-                                      #                           "Select range of birth dates",
-                                      #                           start = "2019-12-15",
-                                      #                           end = Sys.Date())
-                                      #     )
-                                      # ),
-                                      # 
-                                      # fluidRow(
-                                      #     column(4,
-                                      #            checkboxInput("Cort_dams_zoom_y",
-                                      #                          "Zoom y axis?")),
-                                      #     column(4,
-                                      #            conditionalPanel(
-                                      #                condition = "input.Cort_dams_zoom_y == true",
-                                      #                numericInput("Cort_dams_ymin",
-                                      #                             "Lower Limit y-axis:",
-                                      #                             0)
-                                      #                )),
-                                      #     column(4,
-                                      #            conditionalPanel(
-                                      #                condition = "input.Cort_dams_zoom_y == true",
-                                      #                numericInput("Cort_dams_ymax",
-                                      #                             "Upper Limit y-axis:",
-                                      #                             15))   
-                                      #     )
-                                      #     ),
-                                      # #add filtering options
-                                      # plotOutput("Dam_cort21")
                                   )
-                              ),
+                              )
                               ),
                      
                      #Offspring Mass -----------
@@ -568,48 +526,7 @@ server <- function(input, output) {
     )
     
     ### Plots ------------------
-    
-    # #Dam Cort Plot
-    # output$Dam_cort21 <- renderPlot({
-    #     Cort_dams <- Demo_dam %>%
-    #         drop_na(Treatment, Cort_dam_P21)
-    #     
-    #     #Filter for paradigm type
-    #     if(input$Cort_dams_ParaTypes == 2){
-    #         Cort_dams <- Cort_dams %>%
-    #             filter(ParaType == 2)
-    #     }else if(input$Cort_dams_ParaTypes == 4){
-    #         Cort_dams <- Cort_dams %>%
-    #             filter(ParaType == 4)
-    #     }
-    #     
-    #     #Filter for DOB
-    #     Cort_dams <- Cort_dams %>%
-    #         filter(DOB >= input$Cort_dams_DOBs[1] & DOB <= input$Cort_dams_DOBs[2])
-    #     
-    #     #Filter for Strain - By Dam Strain
-    #     if(input$Cort_dams_whichStrain == "B6"){
-    #         Cort_dams <- Cort_dams %>%
-    #             filter(Dam_Strain == "B6")
-    #     }else if(input$Cort_dams_whichStrain == "CBA"){
-    #         Cort_dams <- Cort_dams %>%
-    #             filter(Dam_Strain == "CBA")
-    #     }
-    #     
-    #     my_puberty_dot_plot(
-    #         df = Cort_dams,
-    #         var_to_plot = expr(Cort_dam_P21), #expr()
-    #         phenotype_name = NULL,
-    #         shape = expr(Dam_Strain),
-    #         colour = expr(Dam_Strain),
-    #         width = 0.3,
-    #         change_ymax = FALSE,
-    #         ymax = NA,
-    #         alt_ytitle = TRUE,
-    #         ytitle = "Corticosterone (ng/mL)" #alternative y title
-    #     )
-    # })
-    
+
     #Offspring Mass Plot
     output$Mass_off_plot <- renderPlot({
         #needs to be before the averaging by litter

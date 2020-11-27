@@ -235,6 +235,7 @@ my_puberty_dot_geoms <- function(
   colour = expr(Dam_Strain),
   width = 0.3,
   change_ymax = FALSE,
+  ymin = 0,
   ymax = NA,
   ytitle = NULL,
   title = NULL
@@ -245,7 +246,7 @@ my_puberty_dot_geoms <- function(
       colour = colour),
     my_dot_geom_mean(width = width),
     if(change_ymax)
-      coord_cartesian(ylim = c(0, ymax)),
+      coord_cartesian(ylim = c(ymin, ymax)),
     if(change_ymax == FALSE)
       coord_cartesian(ylim = c(0, NA)),
     my_theme,
@@ -335,6 +336,7 @@ my_puberty_dot_plot <- function(
   colour = expr(Dam_Strain),
   width = 0.3,
   change_ymax = FALSE,
+  ymin = 0,
   ymax = NA,
   DaysOrMass = "Days", #type "Days" or "Mass"
   alt_ytitle = FALSE,
@@ -348,6 +350,7 @@ my_puberty_dot_plot <- function(
       colour = colour,
       width = width,
       change_ymax = change_ymax,
+      ymin = ymin,
       ymax = ymax,
       ytitle = 
         if(alt_ytitle){

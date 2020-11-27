@@ -59,7 +59,15 @@ zoomAxisServer <- function(id,
         
       })
       
-      
+      #Return these values as a list to be able to use them in other modules
+      # ...$zoom()
+      return(
+        list(
+          zoom = reactive({ input$zoom }),
+          min = reactive({ input$min }),
+          max = reactive({ input$max })
+        )
+      )
     }
   )
 }
