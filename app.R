@@ -52,15 +52,20 @@ blueText <<-  function(text){
 
 LBN_varNames <<- LBN_varNames_func(LBN_all)
 
+my_appSource <- function(scriptName){
+    source(file.path(".", "Scripts", "AppScripts", scriptName))
+}
+
 #Load Modules
-source("./Scripts/AppScripts/zoomAxisModule.R")
-source("./Scripts/AppScripts/filteringDFModule.R")
-source("./Scripts/AppScripts/taskTrackingModule.R")
-source("./Scripts/AppScripts/rawDataModule.R")
-source("./Scripts/AppScripts/damMassModule.R")
-source("./Scripts/AppScripts/pupLossModule.R")
-source("./Scripts/AppScripts/damCortModule.R")
-source("./Scripts/AppScripts/massOffModule.R")
+my_appSource("zoomAxisModule.R")
+my_appSource("filteringDFModule.R")
+my_appSource("summaryTableModule.R")
+my_appSource("taskTrackingModule.R")
+my_appSource("rawDataModule.R")
+my_appSource("massDamModule.R")
+my_appSource("pupLossModule.R")
+my_appSource("damCortModule.R")
+my_appSource("massOffModule.R")
 
 
 # Define UI for application that draws a histogram
@@ -100,7 +105,7 @@ ui <- navbarPage("LBN",
                                   #Mass
                                   tabPanel(
                                       "Dam Mass",
-                                      damMassUI("damMass", Demo_dam)
+                                      massDamUI("massDam", Demo_dam)
                                   ),
                                   
                                   #Pup Loss
@@ -112,7 +117,7 @@ ui <- navbarPage("LBN",
                                   #Corticosterone
                                   tabPanel(
                                       "Dam Corticosterone",
-                                      damCortUI("damCort")
+                                      damCortUI("damCort", Demo_dam)
                                   )
                               )
                               ),
@@ -408,7 +413,7 @@ server <- function(input, output) {
                   LBN_data)
     
     #### ANALYSIS MODULES ----------------------
-    damMassServer("damMass", Demo_dam)
+    massDamServer("massDam", Demo_dam)
     
     pupLossServer("pupLoss", Demo_dam)
     

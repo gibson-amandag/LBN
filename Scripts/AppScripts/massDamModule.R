@@ -2,7 +2,7 @@
 
 # https://shiny.rstudio.com/articles/modules.html
 
-damMassUI <- function(id,
+massDamUI <- function(id,
                       Demo_dam){
   ns <- NS(id)
   tagList(
@@ -43,35 +43,28 @@ damMassUI <- function(id,
     plotOutput(ns("Mass_dams_plot")),
     
     h3("Summary Table"),
-    fluidRow(
-      column(4,
-             varSelectInput(ns("Mass_dams_vars_to_sum"),
-                            "Select variables to summarize",
-                            data = Demo_dam %>%
-                              select(Dam_Mass_P2:Dam_Mass_P21),
-                            selected = c("Dam_Mass_P2",
-                                         "Dam_Mass_P4",
-                                         "Dam_Mass_P9",
-                                         "Dam_Mass_P11"),
-                            multiple = TRUE)),
-      column(4,
-             varSelectInput(ns("Mass_dams_grouping_vars"),
-                            "Select variables to group by",
-                            data = Demo_dam %>%
-                              select(Treatment:Dam_Strain,
-                                     ParaType,
-                                     Sac_or_stop),
-                            selected = c("Treatment",
-                                         "Dam_Strain"),
-                            multiple = TRUE))
-    ),
-    dataTableOutput(ns("Mass_dam_summary"))
+    
+    summaryTableUI(
+      id = ns("massDamSum"), 
+      df_sum = Demo_dam %>%
+        select(Dam_Mass_P2:Dam_Mass_P21), #data frame with possible columns
+      selected_sum =  c("Dam_Mass_P2",
+                        "Dam_Mass_P4",
+                        "Dam_Mass_P9",
+                        "Dam_Mass_P11"), # c(" ", " ") vector with selected variables
+      df_group = Demo_dam %>%
+        select(Treatment:Dam_Strain,
+               ParaType,
+               Sac_or_stop),
+      selected_group = c("Treatment",
+                         "Dam_Strain")
+    )
     
   )
 }
 
 
-damMassServer <- function(id,
+massDamServer <- function(id,
                           Demo_dam
                           ){
   moduleServer(
@@ -109,9 +102,7 @@ damMassServer <- function(id,
       })
       
       #Mass summary table
-      output$Mass_dam_summary <- renderDataTable(
-        map_dfr(input$Mass_dams_vars_to_sum, LBN_summary_byGroup, Demo_dam, input$Mass_dams_grouping_vars)
-      )
+      massDamSum <- summaryTableServer("massDamSum", Demo_dam)
 
       
     }

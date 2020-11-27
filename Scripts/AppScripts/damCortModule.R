@@ -4,7 +4,7 @@
 
 # https://shiny.rstudio.com/articles/modules.html
 
-damCortUI <- function(id){
+damCortUI <- function(id, Demo_dam){
   ns <- NS(id)
   tagList(
     
@@ -14,7 +14,22 @@ damCortUI <- function(id){
     
     zoomAxisUI(ns("zoom_y"), "y"),
     
-    plotOutput(ns("Dam_cort21"))
+    plotOutput(ns("Dam_cort21")),
+    
+    h3("Summary Data"),
+    
+    summaryTableUI(
+      id = ns("damCortSum"), 
+      df_sum = Demo_dam %>%
+        select(Cort_dam_P21), #data frame with possible columns for summary variables
+      selected_sum = c("Cort_dam_P21"), # c(" ", " ") vector with selected variables
+      df_group = Demo_dam %>%
+        select(Treatment:Dam_Strain,
+               ParaType,
+               Sac_or_stop),
+      selected_group = c("Treatment",
+                         "Dam_Strain")
+    )
     
   )
 }
@@ -56,6 +71,8 @@ damCortServer <- function(id,
           ytitle = "Corticosterone (ng/mL)" #alternative y title
         )
       })
+      
+      damCortSum <- summaryTableServer("damCortSum", Demo_dam)
       
     }
   )

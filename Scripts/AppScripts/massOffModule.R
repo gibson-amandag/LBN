@@ -52,31 +52,22 @@ massOffUI <- function(id,
     plotOutput(ns("Plot"), height = "600px"),
     
     h3("Summary Table"),
-
-    fluidRow(
-      column(4,
-             varSelectInput(ns("vars_to_sum"),
-                            "Select variables to summarize",
-                            data = Mass_off %>%
-                              select(Avg_litter_mass_startPara:Mass_P72),
-                            selected = c("Mass_P2",
-                                         "Mass_P4",
-                                         "Mass_P9",
-                                         "Mass_P11"),
-                            multiple = TRUE)
-      ),
-      column(4,
-             varSelectInput(ns("grouping_vars"),
-                            "Select variables to group by",
-                            data = Mass_off %>%
-                              select(Sex:Treatment,
-                                     Dam_ID,
-                                     Dam_Strain:ParaType),
-                            selected = c("Treatment",
-                                         "Dam_Strain"),
-                            multiple = TRUE))
-    ),
-    dataTableOutput(ns("Mass_off_summary"))
+    
+    summaryTableUI(
+      id = ns("massOffSum"), 
+      df_sum = Mass_off %>%
+        select(Avg_litter_mass_startPara:Mass_P72), #data frame with possible columns
+      selected_sum = c("Avg_litter_mass_startPara",
+                       "Mass_P9",
+                       "Mass_P11"), # c(" ", " ") vector with selected variables
+      df_group = Mass_off %>%
+        select(Sex:Treatment,
+               Dam_ID,
+               Dam_Strain:ParaType),
+      selected_group = c("Treatment",
+                         "Dam_Strain")
+    )
+    
   )
 }
 
@@ -129,10 +120,7 @@ massOffServer <- function(id,
                         ymax = zoom_y$max())
       })
       
-      #Mass summary table
-      output$Mass_off_summary <- renderDataTable(
-        map_dfr(input$vars_to_sum, LBN_summary_byGroup, Mass_off, input$grouping_vars)
-      )
+      massOffSum <- summaryTableServer("massOffSum", Mass_off)
 
       
     }
