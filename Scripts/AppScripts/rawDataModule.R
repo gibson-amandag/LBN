@@ -4,7 +4,7 @@
 
 rawDataUI <- function(id,
                       Demo_dam,
-                      Demo_off){
+                      LBN_data){
   ns <- NS(id)
   tagList(
     fluidPage(
