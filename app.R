@@ -60,6 +60,7 @@ source("./Scripts/AppScripts/rawDataModule.R")
 source("./Scripts/AppScripts/damMassModule.R")
 source("./Scripts/AppScripts/pupLossModule.R")
 source("./Scripts/AppScripts/damCortModule.R")
+source("./Scripts/AppScripts/massOffModule.R")
 
 
 # Define UI for application that draws a histogram
@@ -118,96 +119,7 @@ ui <- navbarPage("LBN",
                      
                      #Offspring Mass -----------
                      tabPanel("Offspring Mass",
-                              
-                              h3("Offspring Mass"),
-                              fluidRow(
-                                  column(4,
-                                         varSelectInput("Mass_vars_to_sum",
-                                                        "Select variables to summarize",
-                                                        data = Mass_off %>%
-                                                            select(Avg_litter_mass_startPara:Mass_P72),
-                                                        selected = c("Mass_P2",
-                                                                     "Mass_P4",
-                                                                     "Mass_P9",
-                                                                     "Mass_P11"),
-                                                        multiple = TRUE)
-                                         ),
-                                  column(4,
-                                         varSelectInput("Mass_grouping_vars",
-                                                        "Select variables to group by",
-                                                        data = Mass_off %>%
-                                                            select(Sex:Treatment,
-                                                                   Dam_ID,
-                                                                   Dam_Strain:ParaType),
-                                                        selected = c("Treatment",
-                                                                     "Dam_Strain"),
-                                                        multiple = TRUE))
-                              ),
-                              dataTableOutput("Mass_off_summary"),
-                              fluidRow(
-                                 column(4,
-                                        radioButtons("Mass_off_ParaTypes",
-                                              "Which paradigm type?",
-                                              c("Both", "P2-P9" = 2, "P4-P11" = 4),
-                                              selected = "Both"),
-                                        radioButtons("Mass_off_whichStrain",
-                                                     "Which dam strains?",
-                                                     c("Both", "B6", "CBA"),
-                                                     selected = "Both"),
-                                        radioButtons("Mass_off_whichSex",
-                                                     "Which sex?",
-                                                     c("Both", "Male" = "M", "Female" = "F"),
-                                                     selected = "Both")
-                                        ),
-                                 column(4,
-                                        checkboxInput("Mass_off_by_dam",
-                                                      "Plot by litter?",
-                                                      value = FALSE),
-                                        checkboxInput("Mass_off_by_strain",
-                                                      "Plot by strain?",
-                                                      value = TRUE),
-                                        checkboxInput("Mass_off_individual_lines",
-                                                      "Plot individual lines?",
-                                                      value = TRUE),
-                                        checkboxInput("Mass_off_mean_lines",
-                                                      "Plot mean lines?",
-                                                      value = TRUE),
-                                        textInput("Mass_off_title",
-                                                  "Graph Title:"),
-                                        dateRangeInput("Mass_off_DOBs",
-                                                       "Select range of birth dates",
-                                                       start = "2019-12-15",
-                                                       end = Sys.Date())
-                                        ),
-                                 column(2,
-                                        checkboxInput("Mass_off_zoom_x",
-                                                      "Zoom x axis?"),
-                                        conditionalPanel(
-                                            condition = "input.Mass_off_zoom_x == true",
-                                            numericInput("Mass_off_xmin",
-                                                         "Lower Limit x-axis:",
-                                                         0),
-                                            numericInput("Mass_off_xmax",
-                                                         "Upper Limit x-axis:",
-                                                         21)
-                                        )
-                                        ),
-                                 column(2,
-                                        checkboxInput("Mass_off_zoom_y",
-                                                      "Zoom y axis?"),
-                                        conditionalPanel(
-                                            condition = "input.Mass_off_zoom_y == true",
-                                            numericInput("Mass_off_ymin",
-                                                         "Lower Limit y-axis:",
-                                                         0),
-                                            numericInput("Mass_off_ymax",
-                                                         "Upper Limit y-axis:",
-                                                         15))   
-                                        )
-                                 
-                              ),
-                              plotOutput("Mass_off_plot",
-                                         height = "600px")
+                              massOffUI("massOff", Mass_off)
                               ),
                      ### Offspring Maturation ----
                      tabPanel("Offspring Maturation",
@@ -501,12 +413,10 @@ server <- function(input, output) {
     pupLossServer("pupLoss", Demo_dam)
     
     damCortServer("damCort", Demo_dam)
+    
+    massOffServer("massOff", Mass_off, Demo_dam)
 
     #### RENDER ANALYSIS -----------------------------
-    ### Summary Data Frames -----------------
-    output$Mass_off_summary <- renderDataTable(
-        map_dfr(input$Mass_vars_to_sum, LBN_summary_byGroup, Mass_off, input$Mass_grouping_vars)
-    )
     
     #Add filters for paradigm types, birth dates, etc
     output$Mat_AGD_summary <- renderDataTable(
@@ -526,64 +436,6 @@ server <- function(input, output) {
     )
     
     ### Plots ------------------
-
-    #Offspring Mass Plot
-    output$Mass_off_plot <- renderPlot({
-        #needs to be before the averaging by litter
-        if(input$Mass_off_whichSex == "M"){
-            Mass_off <- Mass_off %>%
-                filter(Sex == "M")
-        }else if(input$Mass_off_whichSex == "F"){
-            Mass_off <- Mass_off %>%
-                filter(Sex == "F")
-        }
-        
-        if(input$Mass_off_by_dam == FALSE){
-            Mass_off_long <- reshapeForMassPlot(Mass_off)
-        }
-        
-        if(input$Mass_off_by_dam == TRUE){
-            Mass_off_long <- Mass_off %>%
-                getAvgByDam(Demo_dam) %>%
-                reshapeForMassPlot()
-        }
-        
-        #Filter for paradigm type
-        if(input$Mass_off_ParaTypes == 2){
-            Mass_off_long <- Mass_off_long %>%
-                filter(ParaType == 2)
-        }else if(input$Mass_off_ParaTypes == 4){
-            Mass_off_long <- Mass_off_long %>%
-                filter(ParaType == 4)
-        }
-        
-        #Filter for DOB
-        Mass_off_long <- Mass_off_long %>%
-            filter(DOB >= input$Mass_off_DOBs[1] & DOB <= input$Mass_off_DOBs[2])
-       
-        #Filter for Strain - By Dam Strain
-        if(input$Mass_off_whichStrain == "B6"){
-            Mass_off_long <- Mass_off_long %>%
-                filter(Dam_Strain == "B6")
-        }else if(input$Mass_off_whichStrain == "CBA"){
-            Mass_off_long <- Mass_off_long %>%
-                filter(Dam_Strain == "CBA")
-        }
-        
-        
-        mass_plot_lines(Mass_off_long,
-                        line_group = ifelse(input$Mass_off_by_dam, expr(Dam_ID), expr(Mouse_ID)),
-                        by_strain = input$Mass_off_by_strain,
-                        individualLines = input$Mass_off_individual_lines,
-                        mean_lines = input$Mass_off_mean_lines,
-                        title = input$Mass_off_title,
-                        zoom_x = input$Mass_off_zoom_x,
-                        xmin = input$Mass_off_xmin,
-                        xmax = input$Mass_off_xmax,
-                        zoom_y = input$Mass_off_zoom_y,
-                        ymin = input$Mass_off_ymin,
-                        ymax = input$Mass_off_ymax)
-    })
     
     #This creates a reactive data frame for all of the cumulative frequency and puberty dot plots.
     #Don't need same filtering code for all of the plots

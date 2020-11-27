@@ -72,11 +72,7 @@ damMassUI <- function(id,
 
 
 damMassServer <- function(id,
-                          Demo_dam,
-                          xmin,
-                          xmax,
-                          ymin,
-                          ymax
+                          Demo_dam
                           ){
   moduleServer(
     id,
