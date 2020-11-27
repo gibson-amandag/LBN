@@ -8,24 +8,16 @@ damMassUI <- function(id,
   tagList(
     h3("Dam Mass"),
     
+    filteringDFUI(ns("Mass_dams_filter")),
+    
     fluidRow(
-      column(4,
-             #Select paradigm type
-             radioButtons(ns("Mass_dams_ParaTypes"),
-                          "Which paradigm type?",
-                          c("Both", "P2-P9" = 2, "P4-P11" = 4),
-                          selected = "Both"),
-             #select dam strains
-             radioButtons(ns("Mass_dams_whichStrain"),
-                          "Which dam strains?",
-                          c("Both", "B6", "CBA"),
-                          selected = "Both")
-      ),
       column(4,
              #plot by dam strain?
              checkboxInput(ns("Mass_dams_by_strain"),
                            "Plot by strain?",
-                           value = TRUE),
+                           value = TRUE)
+      ),
+      column(4,
              #plot individual dams?
              checkboxInput(ns("Mass_dams_individual_lines"),
                            "Plot individual lines?",
@@ -34,44 +26,19 @@ damMassUI <- function(id,
              checkboxInput(ns("Mass_dams_mean_lines"),
                            "Plot mean lines?",
                            value = TRUE),
+             
+      ),
+      column(4,
              #Add a title
              textInput(ns("Mass_dams_title"),
-                       "Graph Title:"),
-             #what range of DOBs?
-             dateRangeInput(ns("Mass_dams_DOBs"),
-                            "Select range of birth dates",
-                            start = "2019-12-15",
-                            end = Sys.Date())
-      ),
-      column(2,
-             #Zoom x?
-             checkboxInput(ns("Mass_dams_zoom_x"),
-                           "Zoom x axis?"),
-             conditionalPanel(
-               condition = "input.Mass_dams_zoom_x == true",
-               numericInput(ns("Mass_dams_xmin"),
-                            "Lower Limit x-axis:",
-                            0),
-               numericInput(ns("Mass_dams_xmax"),
-                            "Upper Limit x-axis:",
-                            21)
+                       "Graph Title:")
              )
       ),
-      column(2,
-             #Zoom y?
-             checkboxInput(ns("Mass_dams_zoom_y"),
-                           "Zoom y axis?"),
-             conditionalPanel(
-               condition = "input.Mass_dams_zoom_y == true",
-               numericInput(ns("Mass_dams_ymin"),
-                            "Lower Limit y-axis:",
-                            0),
-               numericInput(ns("Mass_dams_ymax"),
-                            "Upper Limit y-axis:",
-                            15))
-      )
       
-    ),
+    zoomAxisUI(ns("zoom_x"), "x"),
+    
+    zoomAxisUI(ns("zoom_y"), "y"),
+
     #plot dam mass
     plotOutput(ns("Mass_dams_plot")),
     
@@ -105,11 +72,19 @@ damMassUI <- function(id,
 
 
 damMassServer <- function(id,
-                          Demo_dam
+                          Demo_dam,
+                          xmin,
+                          xmax,
+                          ymin,
+                          ymax
                           ){
   moduleServer(
     id,
     function(input, output, session) {
+      
+      zoom_x <- zoomAxisServer("zoom_x", "x", minVal = 0, maxVal = 21)
+      
+      zoom_y <- zoomAxisServer("zoom_y", "y", minVal = 0, maxVal = 30)
     
       #Plot for dam mass - line plot
       output$Mass_dams_plot <- renderPlot({
@@ -119,41 +94,21 @@ damMassServer <- function(id,
         
         Mass_dams_long <- reshapeForMassPlot_dams(Mass_dams)
         
-        #Filter for paradigm type
-        if(input$Mass_dams_ParaTypes == 2){
-          Mass_dams_long <- Mass_dams_long %>%
-            filter(ParaType == 2)
-        }else if(input$Mass_dams_ParaTypes == 4){
-          Mass_dams_long <- Mass_dams_long %>%
-            filter(ParaType == 4)
-        }
-        
-        #Filter for DOB
-        Mass_dams_long <- Mass_dams_long %>%
-          filter(DOB >= input$Mass_dams_DOBs[1] & DOB <= input$Mass_dams_DOBs[2])
-        
-        #Filter for Strain - By Dam Strain
-        if(input$Mass_dams_whichStrain == "B6"){
-          Mass_dams_long <- Mass_dams_long %>%
-            filter(Dam_Strain == "B6")
-        }else if(input$Mass_dams_whichStrain == "CBA"){
-          Mass_dams_long <- Mass_dams_long %>%
-            filter(Dam_Strain == "CBA")
-        }
+        Mass_dams_long_react <- filteringDFServer("Mass_dams_filter", Mass_dams_long)
         
         #Mass plot
-        mass_plot_lines(Mass_dams_long,
+        mass_plot_lines(Mass_dams_long_react(),
                         line_group = expr(Dam_ID),
                         by_strain = input$Mass_dams_by_strain,
                         individualLines = input$Mass_dams_individual_lines,
                         mean_lines = input$Mass_dams_mean_lines,
                         title = input$Mass_dams_title,
-                        zoom_x = input$Mass_dams_zoom_x,
-                        xmin = input$Mass_dams_xmin,
-                        xmax = input$Mass_dams_xmax,
-                        zoom_y = input$Mass_dams_zoom_y,
-                        ymin = input$Mass_dams_ymin,
-                        ymax = input$Mass_dams_ymax,
+                        zoom_x = zoom_x$zoom(),
+                        xmin = zoom_x$min(),
+                        xmax = zoom_x$max(),
+                        zoom_y = zoom_y$zoom(),
+                        ymin = zoom_y$min(),
+                        ymax = zoom_y$max(),
                         width = 0.2)
       })
       
