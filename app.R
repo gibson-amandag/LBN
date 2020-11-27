@@ -71,9 +71,9 @@ ui <- navbarPage("LBN",
                  ### DATA FRAMES -----------------------
                  tabPanel(
                      "Data",
-                     rawDataUI("rawData",
                                Demo_dam,
                                Demo_off)
+                     rawDataUI("rawData",
                  ),
                  
                  ### ANALYSIS-------------------------
