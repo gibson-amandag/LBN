@@ -102,7 +102,7 @@ massDamServer <- function(id,
       })
       
       #Mass summary table
-      massDamSum <- summaryTableServer("massDamSum", Demo_dam)
+      massDamSum <- summaryTableServer("massDamSum", reactive(Demo_dam))
 
       
     }

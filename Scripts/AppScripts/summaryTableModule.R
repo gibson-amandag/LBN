@@ -1,17 +1,12 @@
-### Summary Table Module
 
-#Creates a row for selecting variables to summarize and grouping variables.
-#Need to provide the df with selected columns for both
-#Need to provide the initially selected variables for both
-#These values (vars_to_sum, grouping_vars, and summary_df) are output in a list as reactive values by the server
 
 # https://shiny.rstudio.com/articles/modules.html
 
-summaryTableUI <- function(id, 
-                       df_sum, #data frame with possible columns for summary variables
-                       selected_sum, # c(" ", " ") vector with selected variables
-                       df_group, #grouping variables
-                       selected_group
+summaryTableUI <- function(id,
+                          df_sum, #df with columns selected for variable to summarize
+                          selected_sum, # c("") selected variables to summarize
+                          df_group, #df with columns selected for grouping variables
+                          selected_group #c("") selected grouping variable
                        ){
   ns <- NS(id)
   tagList(
@@ -30,7 +25,8 @@ summaryTableUI <- function(id,
                             selected = selected_group,
                             multiple = TRUE))
     ),
-    dataTableOutput(ns("summary_df"))
+    
+    dataTableOutput(ns("summaryTable"))
     
   )
 }
@@ -41,13 +37,12 @@ summaryTableServer <- function(id,
   moduleServer(
     id,
     function(input, output, session) {
-    
-      output$summary_df <- renderDataTable({
-        map_dfr(input$vars_to_sum, LBN_summary_byGroup, df, input$grouping_vars)
+      
+      df_sum <- reactive({
+        map_dfr(input$vars_to_sum, LBN_summary_byGroup, df(), input$grouping_vars)
       })
-
-        
-
+      
+      output$summaryTable <- renderDataTable(df_sum())
       
       #Return these values as a list to be able to use them in other modules
       # ...$vars_to_sum()
@@ -55,7 +50,7 @@ summaryTableServer <- function(id,
         list(
           vars_to_sum = reactive({ input$vars_to_sum }),
           grouping_vars = reactive({ input$grouping_vars }),
-          df_sum = reactive({ output$summary_df })
+          df_sum = df_sum
         )
       )
     }

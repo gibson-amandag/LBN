@@ -72,7 +72,7 @@ damCortServer <- function(id,
         )
       })
       
-      damCortSum <- summaryTableServer("damCortSum", Demo_dam)
+      damCortSum <- summaryTableServer("damCortSum", reactive(Demo_dam))
       
     }
   )

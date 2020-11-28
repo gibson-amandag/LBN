@@ -120,7 +120,7 @@ massOffServer <- function(id,
                         ymax = zoom_y$max())
       })
       
-      massOffSum <- summaryTableServer("massOffSum", Mass_off)
+      massOffSum <- summaryTableServer("massOffSum", reactive(Mass_off))
 
       
     }

@@ -6,14 +6,16 @@
 # https://shiny.rstudio.com/articles/modules.html
 
 zoomAxisUI <- function(id, 
-                       whichAxis #"x" or "y"
+                       whichAxis, #"x" or "y"
+                       startOn = FALSE
                        ){
   ns <- NS(id)
   tagList(
     fluidRow(
       column(4,
              checkboxInput(ns("zoom"),
-                           paste0("Zoom ", whichAxis, " axis?")
+                           paste0("Zoom ", whichAxis, " axis?"),
+                           value = startOn
              )
              ),
       column(4,

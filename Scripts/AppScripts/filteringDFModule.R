@@ -64,7 +64,7 @@ filteringDFServer <- function(id,
       return(df)
       })
       
-      return(df_react) #This is a reactive df
+      # return(df_react) #This is a reactive df
     }
   )
 }
