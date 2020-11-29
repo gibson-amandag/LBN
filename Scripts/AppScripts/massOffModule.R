@@ -53,6 +53,8 @@ massOffUI <- function(id,
     
     h3("Summary Table"),
     
+    filteringDFUI(ns("sum_filter")),
+    
     summaryTableUI(
       id = ns("massOffSum"), 
       df_sum = Mass_off %>%
@@ -120,7 +122,9 @@ massOffServer <- function(id,
                         ymax = zoom_y$max())
       })
       
-      massOffSum <- summaryTableServer("massOffSum", reactive(Mass_off))
+      Mass_off_sum_react <- filteringDFServer("sum_filter", Mass_off)
+      
+      massOffSum <- summaryTableServer("massOffSum", Mass_off_sum_react)
 
       
     }
