@@ -225,13 +225,14 @@ Dam_tasks_app <- function(
     #add the text to print to the list
     list_name <- list_add(list_name, paste0("<em>", #make this text emphasized
                                             task_text, ": </em>",#end emphasis
-                                            "<ul>"#start a list
+                                            "<ul>" #start a list
     ))
     Count <<- 1
   }
   #add the dam id to the list and wrap it in instructions to make it a bullet point
   #the end of the list instruction is in the printLine_func_app function
-  list_name <- list_add(list_name, paste0("<li>", df[[id_var]][val], "</li>"))
+  #add a checkbox for each item
+  list_name <- list_add(list_name, paste0("<li> <input type=\"checkbox\">", df[[id_var]][val], "</li>"))
   return(list_name)
 }
 
@@ -254,7 +255,7 @@ Off_tasks_app <- function(
     Count <<- 1
   }
   #Add the Mouse_ID to the list wrapped in html instructions to make it a bullet point
-  list_name <- list_add(list_name, paste0("<li>", df[[id_var]][val], "</li>"))
+  list_name <- list_add(list_name, paste0("<li><input type=\"checkbox\">", df[[id_var]][val], "</li>"))
   return(list_name)
 }
 
