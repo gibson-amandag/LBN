@@ -95,8 +95,10 @@ ui <- navbarPage("LBN",
                      "Analysis",
                      titlePanel("LBN Analysis"),
                      h2("Offspring Date of Birth"),
-                     plotOutput("Offspring_DOB_hist",
-                                height = "200px"),
+                     checkboxInput("plot_DOB",
+                                   "Plot Offspring DOBs?",
+                                   value = FALSE),
+                     uiOutput("Offspring_DOB_plot"),
                      uiOutput("Offspring_DOB_range"),
                      
                      tabsetPanel(
@@ -153,6 +155,12 @@ ui <- navbarPage("LBN",
 ############# SERVER #########################################################
 server <- function(input, output) {
     ### OFFSPRING DOB ----------------------
+    output$Offspring_DOB_plot <- renderUI({
+        if(input$plot_DOB){
+            plotOutput("Offspring_DOB_hist",
+                       height = "200px")
+        }
+    })
     output$Offspring_DOB_hist <- renderPlot(
         ggplot(Mass_off %>% filter(!is.na(DOB)), aes(DOB)) +
             geom_histogram(binwidth = 7)+
