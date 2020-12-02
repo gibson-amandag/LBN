@@ -29,6 +29,7 @@ Set-up the notebook. This script loads the environment, and contains the names f
 ```{r setUp}
 source("./Scripts/LBN_0002_AGG_setUp.R")
 dateToday = Sys.Date()
+filterDateForTaskDFs = as.Date("2020-12-01") #Look for breed dates/DOBs after this date
 ```
 
 # Load Data
@@ -103,8 +104,10 @@ LBN_varNames
 This chunk runs the functions that create the dates dataframes for the dams and offsprings. This uses information about breed dates, plug dates, and dates of birth, along with other demographic information, to indicate when different tasks need to be completed for each animal.
 ```{r include=FALSE}
 #Dam and Litter Dates
-Dam_dates <- damDatesFunc(Demo_dam)
-Off_dates <- offDatesFunc(LBN_data)
+Dam_dates <- damDatesFunc(Demo_dam %>%
+                            filter(Breed_date > filterDateForTaskDFs))
+Off_dates <- offDatesFunc(LBN_data %>%
+                            filter(DOB > filterDateForTaskDFs))
 ```
 ## Dam Dates
 ```{r echo=FALSE}
