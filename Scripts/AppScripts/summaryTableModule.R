@@ -1,4 +1,12 @@
+### SUMMARY TABLE MODULE #############################
 
+#summaryTableUI -> select variables to summarize and variables to group by
+  #Provides table output
+
+#summaryTableServer -> LBN_summary_byGroup function to make data frame giving mean, sd, n, and SEM 
+  #render table
+  #Provides list with vars_to_sum, grouping_vars, and summary data frame (df_sum)
+  #provide a reactive df to this. Don't use (). these are called here
 
 # https://shiny.rstudio.com/articles/modules.html
 

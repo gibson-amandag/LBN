@@ -1,7 +1,9 @@
 ### Zoom Axis Module
 
 #Creates a row for selecting whether to zoom an axis. 
-#The lower and upper limit boxes only show up when checked
+#The lower and upper limit boxes only show up when first box checked
+
+#server returns a list of with $zoom, $min, and $max. Add () to end to call in other contexts
 
 # https://shiny.rstudio.com/articles/modules.html
 
