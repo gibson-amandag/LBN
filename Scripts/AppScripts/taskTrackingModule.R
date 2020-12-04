@@ -203,9 +203,9 @@ taskTrackingServer <- function(id){
             select(Dam_ID, mass_P10:mass_P19) %>%
             filter_all(any_vars(. %in% Day))
           if(nrow(mass_on_date_litter) > 0){ #only print if there are values in df
-            printCat <- list_add(printCat, paste0("<em>Take the ", blueText("mass"), " of the following litters:</em> <ul>"))
+            printCat <- list_add(printCat, paste0("<em>Take the ", blueText("mass"), " of the following litters:</em> <ul style=\"list-style-type:circle;\">"))
             for(val in seq_along(mass_on_date_litter$Dam_ID)){
-              printCat <- list_add(printCat, paste0("<li><input type=\"checkbox\">", mass_on_date_litter$Dam_ID[val], "</li>"))
+              printCat <- list_add(printCat, paste0("<li>", mass_on_date_litter$Dam_ID[val], "</li>"))
             }
           }
           if(nrow(mass_on_date_litter) > 0){printCat <- list_add(printCat, "</ul>")}
@@ -216,9 +216,9 @@ taskTrackingServer <- function(id){
             select(Mouse_ID, mass_P22:mass_P72) %>%
             filter_all(any_vars(. %in% Day))
           if(nrow(mass_on_date) > 0){ #only print if there are values in df
-            printCat <- list_add(printCat, paste0("<em>Take the ", blueText("mass"), " of the following offspring:</em> <ul>"))
+            printCat <- list_add(printCat, paste0("<em>Take the ", blueText("mass"), " of the following offspring:</em> <ul style=\"list-style-type:circle;\">"))
             for(val in seq_along(mass_on_date$Mouse_ID)){
-              printCat <- list_add(printCat, paste0("<li><input type=\"checkbox\">", mass_on_date$Mouse_ID[val], "</li>"))
+              printCat <- list_add(printCat, paste0("<li>", mass_on_date$Mouse_ID[val], "</li>"))
             }
           }
           if(nrow(mass_on_date) > 0){printCat <- list_add(printCat, "</ul>")}
