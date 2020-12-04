@@ -204,6 +204,11 @@ printLine_func <- function(Count){
 
 #### HTML FORMATTING ------------------------------------------
 
+#Function for making text blue
+blueText <-  function(text){
+  paste0("<span style='color:blue'>", text, "</span>")
+}
+
 #take a one-dimensional vector (c()) and adds text as the next index value in that vector
 list_add <- function(
   list_name,

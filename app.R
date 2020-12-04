@@ -46,10 +46,6 @@ Dam_dates <<- damDatesFunc(Demo_dam)
 
 Off_dates <<- offDatesFunc(LBN_data)
 
-blueText <<-  function(text){
-    paste0("<span style='color:blue'>", text, "</span>")
-}
-
 LBN_varNames <<- LBN_varNames_func(LBN_all)
 
 my_appSource <- function(scriptName){
@@ -60,7 +56,6 @@ my_appSource <- function(scriptName){
 my_appSource("zoomAxisModule.R")
 my_appSource("filteringDFModule.R")
 my_appSource("summaryTableModule.R")
-
 my_appSource("taskTrackingModule.R")
 my_appSource("rawDataModule.R")
 my_appSource("massDamModule.R")

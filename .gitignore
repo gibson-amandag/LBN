@@ -64,3 +64,6 @@ Scripts/LBN_0002_AGG_trackingForApp.Rmd
 *.nb.html
 
 Scripts/Old_files/
+
+#ignore the generated html output
+*.html

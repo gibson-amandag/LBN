@@ -57,11 +57,20 @@ taskTrackingServer <- function(id){
           
           Count <<- 0
           
+          #Set up breeding
+          for(val in Dam_seq()){
+            if(Dam_day_equals(Day, "Breed_date", val)){
+              printCat <- Dam_tasks_app(paste0("Set up ", blueText("breeding cages"), " for the following dams"), val, printCat)
+            }
+          }
+          
+          printCat <- printLine_func_app(Count, printCat)
+          
           #Plug check
           for(val in Dam_seq()){
             if(Dam_dates$plug_check[val] == TRUE & 
                Dam_day_greater(Day, "Breed_date", val)){
-              printCat <- Dam_tasks_app(paste0("Check for ", blueText("plugs"), "from the following mice"), val, printCat)
+              printCat <- Dam_tasks_app(paste0("Check for ", blueText("plugs"), " from the following mice"), val, printCat)
             }
           }
           
@@ -113,7 +122,7 @@ taskTrackingServer <- function(id){
                Dam_day_equals(Day, "start_paradigm", val)
             ){
               printCat <- Dam_tasks_app(paste0(blueText("Set up"), " the LBN paradigm (and ", 
-                                               blueText("take masses"), " for the following litter(s) (known births)"),
+                                               blueText("take masses)"), " for the following litter(s) (known births)"),
                                         val, printCat)
             }
           }
@@ -128,7 +137,7 @@ taskTrackingServer <- function(id){
               Dam_day_equals(Day, "est_start_paradigm", val)
             ){
               printCat <- Dam_tasks_app(paste0(blueText("Set up"), " the LBN paradigm (and ", 
-                                               blueText("take masses"), " for the following litter(s) (predicted births)"),
+                                               blueText("take masses)"), " for the following litter(s) (predicted births)"),
                                         val, printCat)
             } 
           }
