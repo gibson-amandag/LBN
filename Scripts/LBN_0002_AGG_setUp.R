@@ -5,8 +5,8 @@ readRenviron("./.Renviron") #read the .Renviron document from the project root f
 #Data File name
 LBN_DataName <- Sys.getenv("EXCEL_FILE_NAME")
 
-#Test Cyles File Name
-Cycles_DataName <- Sys.getenv("CYCLES_FILE_NAME")
+#Test Cyles File Name - I'm not sure that this is actually it's only file now, AGG 12/31/2020
+# Cycles_DataName <- Sys.getenv("CYCLES_FILE_NAME")
 
 #Functions Script (ends in .R)
 FunctionsFileName <- "LBN_0002_AGG_functions_Fall2020.R"
