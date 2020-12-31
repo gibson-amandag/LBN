@@ -119,6 +119,7 @@ taskTrackingServer <- function(id){
           #Set up LBN
           for(val in Dam_seq()){
             if(Dam_not.na("start_paradigm", val) &
+               sac_stop(val) &
                Dam_day_equals(Day, "start_paradigm", val)
             ){
               printCat <- Dam_tasks_app(paste0(blueText("Set up"), " the LBN paradigm (and ", 
