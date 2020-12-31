@@ -5,7 +5,11 @@ LBN Cohort 2
 <ul>
     <li><a href="#Renviron">.Renviron</a></li>
     <li><a href="#setUp">LBN_0002_AGG_setUp.R</a></li>
-    <li><a href="#functionsFall2020">LBN_0002_AGG_functions_Fall2020</a></li>
+    <li><a href="#functionsFall2020">LBN_0002_AGG_functions_Fall2020.R</a></li>
+    <li><a href="#importData">LBN_0002_AGG_importData.R</a></li>
+    <li><a href="#varNames">LBN_0002_AGG_varNames.R</a></li>
+    <li><a href="#graphFunctions">LBN_0002_AGG_graphFunctions.R</a></li>
+    <li><a href="#taskFunctions">LBN_0002_AGG_taskFunctions.R</a></li>
 </ul>
 
 <h1><a id="Renviron" name="Renviron"></a>.Renviron</h1>
@@ -44,5 +48,34 @@ LBN Cohort 2
 
 [Read about the functions file here](HelpDocs/LBN_0002_AGG_functions_Fall2020.md)
 
+This file contains functions for the following tasks
+* Loading data sets
+* Writing to excel files
+* Summarizing data frames
+* Grouping dataframes by dam ID
 
+<h1><a id="importData" name="importData"></a>LBN_0002_AGG_importData.R</h1>
 
+[Read about the importData file here](HelpDocs/LBN_0002_AGG_importData.md)
+
+This file contains a `load_LBN_data` function that takes the `dataFolder`, `excelName`, and sheet names as parameters. After generating and processing dataframes from each sheet, it generates a list of dataframes as the output.
+
+<h1><a id="varNames" name="varNames"></a>LBN_0002_AGG_varNames.R</h1>
+
+[Read about the varNames file here](HelpDocs/LBN_0002_AGG_varNames.md)
+
+This file contains a `LBN_varNames_func` function that takes the `LBN_data` dataframe as a parameter and then creates a new dataframe that contains nicer strings of variable names to be used in plots, for example. The column names remain the same as the original dataframe, making it easy to reference the appropriate "pretty" string.
+
+This file also contains functions to create lists of different groupings of variable names, which can then be used to construct other dataframes, or to run functions with certain groups of variables.
+
+<h1><a id="graphFunctions" name="graphFunctions"></a>LBN_0002_AGG_graphFunctions.R</h1>
+
+[Read about the graphFunctions file here](HelpDocs/LBN_0002_AGG_graphFunctions.md)
+
+This file contains the series of functions that are used to create plots in R. It also defines `my_theme` for plots. Many of the plots are constructed using `geoms` which are layers that are combined to construct the plots. The file also contains helper functions to reorganize the dataframes when necessary for plotting.
+
+<h1><a id="taskFunctions" name="taskFunctions"></a>LBN_0002_AGG_taskFunctions.R</h1>
+
+[Read about the taskFunctions file here](HelpDocs/LBN_0002_AGG_taskFunctions.md)
+
+This file contains the functions that are used to output which tasks need to be completed on certain days, such as taking the mass of mice or starting the treatment paradigm. 
