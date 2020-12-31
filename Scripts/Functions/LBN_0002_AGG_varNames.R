@@ -151,41 +151,43 @@ LBN_varNames_func <- function(
 }
 
 #create a list with different groupings of variables. These can be use to build other dataframes or to analyze certain variables
-demoVars_forOff_quo = c("Mouse_ID",
-                        "Dam_ID",
-                        "Sex",
-                        "DOB",
-                        "Treatment",
-                        "Dam_Strain",
-                        "Strain",
-                        "ParaType",
-                        "Sire",
-                        "Wean_Cage_Number",
-                        "Changed_cage",
-                        "New_cage_mate",
-                        "Lost_cage_mate",
-                        "Litter_size_startPara",
-                        "Litter_size_endPara",
-                        "pupLoss"
+demoVars_forOff_quo = c(
+  "Mouse_ID",
+  "Dam_ID",
+  "Sex",
+  "DOB",
+  "Treatment",
+  "Dam_Strain",
+  "Strain",
+  "ParaType",
+  "Sire",
+  "Wean_Cage_Number",
+  "Changed_cage",
+  "New_cage_mate",
+  "Lost_cage_mate",
+  "Litter_size_startPara",
+  "Litter_size_endPara",
+  "pupLoss"
 )
 
-demoVars_forOff = exprs(Mouse_ID,
-                 Dam_ID,
-                 Sex,
-                 DOB,
-                 Treatment,
-                 Dam_Strain,
-                 Strain,
-                 ParaType,
-                 Sire,
-                 Wean_Cage_Number,
-                 Changed_cage,
-                 New_cage_mate,
-                 Lost_cage_mate,
-                 Litter_size_startPara,
-                 Litter_size_endPara,
-                 pupLoss
-                 )
+demoVars_forOff = exprs(
+  Mouse_ID,
+  Dam_ID,
+  Sex,
+  DOB,
+  Treatment,
+  Dam_Strain,
+  Strain,
+  ParaType,
+  Sire,
+  Wean_Cage_Number,
+  Changed_cage,
+  New_cage_mate,
+  Lost_cage_mate,
+  Litter_size_startPara,
+  Litter_size_endPara,
+  pupLoss
+)
 
 
 massDates_quo = c(

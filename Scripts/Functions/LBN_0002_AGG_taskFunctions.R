@@ -5,12 +5,14 @@ damDatesFunc <- function(
   Demo_dam
 ){
   Dam_dates <- Demo_dam %>%
-    select(Dam_ID,
-           Breed_date,
-           Plug_date,
-           DOB,
-           Sac_or_stop,
-           ParaType)
+    select(
+      Dam_ID,
+      Breed_date,
+      Plug_date,
+      DOB,
+      Sac_or_stop,
+      ParaType
+    )
   
   Dam_dates <- Dam_dates %>%
     mutate(
@@ -19,7 +21,8 @@ damDatesFunc <- function(
       plug_check = ifelse(
         is.na(Plug_date) & is.na(DOB) & is.na(Sac_or_stop), 
         TRUE, 
-        FALSE),
+        FALSE
+      ),
       
       #Check for pregnancy of dam
       mass_check = Breed_date + 12 - 1, #will use this only if mass_G12 is NA, meaning Plug_date hasn't occured
@@ -42,42 +45,61 @@ damDatesFunc <- function(
       mass_endPara = 
         case_when(
           ParaType == 2 ~ DOB + 9,
-          ParaType == 4 ~ DOB + 11),
+          ParaType == 4 ~ DOB + 11
+        ),
       mass_P21 = DOB + 21,
       
       #Mass of only pups on these days
-      mass_P10 = ifelse(ParaType == 2,
-                        DOB + 10,
-                        NA),
-      mass_P11 = ifelse(ParaType == 2, #P4 start is incorporated above for end of paradigm
-                        DOB + 11,
-                        NA),
+      mass_P10 = ifelse(
+        ParaType == 2,
+        DOB + 10,
+        NA
+      ),
+      mass_P11 = ifelse(
+        ParaType == 2, #P4 start is incorporated above for end of paradigm
+        DOB + 11,
+        NA
+      ),
       mass_P12 = DOB + 12, #both
       mass_P13 = DOB + 13, #both
-      mass_P14 = ifelse(ParaType == 4, #only P4 start
-                        DOB + 14,
-                        NA),
+      mass_P14 = ifelse(
+        ParaType == 4, #only P4 start
+        DOB + 14,
+        NA
+      ),
       mass_P15 = DOB + 15, #both
-      mass_P16 = ifelse(ParaType == 4, #only P4 start
-                        DOB + 16,
-                        NA),
-      mass_P17 = ifelse(ParaType == 2, #only P2 start
-                        DOB + 10,
-                        NA),
+      mass_P16 = ifelse(
+        ParaType == 4, #only P4 start
+        DOB + 16,
+        NA
+      ),
+      mass_P17 = ifelse(
+        ParaType == 2, #only P2 start
+        DOB + 10,
+        NA
+      ),
       mass_P19 = DOB + 19, #both
       mass_P21 = DOB + 21, #both
       
       #paradigm dates
       # to-do adjust these dates
       
-      start_paradigm = case_when(ParaType == 2 ~ DOB + 2,
-                                 ParaType == 4 ~ DOB + 4),
-      end_paradigm = case_when(ParaType == 2 ~ DOB + 9,
-                               ParaType == 4 ~ DOB + 11),
-      est_start_paradigm = case_when(ParaType == 2 ~ Plug_date + 21 - 1 + 2,
-                                     ParaType == 4 ~ Plug_date + 21 - 1 + 4),
-      end_recording = case_when(ParaType == 2 ~ DOB + 4,
-                                ParaType == 4 ~ DOB + 6),
+      start_paradigm = case_when(
+        ParaType == 2 ~ DOB + 2,
+        ParaType == 4 ~ DOB + 4
+      ),
+      end_paradigm = case_when(
+        ParaType == 2 ~ DOB + 9,
+        ParaType == 4 ~ DOB + 11
+      ),
+      est_start_paradigm = case_when(
+        ParaType == 2 ~ Plug_date + 21 - 1 + 2,
+        ParaType == 4 ~ Plug_date + 21 - 1 + 4
+      ),
+      end_recording = case_when(
+        ParaType == 2 ~ DOB + 4,
+        ParaType == 4 ~ DOB + 6
+      ),
     )
   
   #needed because of logical check
@@ -98,12 +120,14 @@ offDatesFunc <- function(
 )
 {
   Off_dates <- LBN_data %>%
-    select(Mouse_ID,
-           Sex,
-           DOB,
-           VO_day,
-           Estrus_day,
-           PreputialSep_day)%>%
+    select(
+      Mouse_ID,
+      Sex,
+      DOB,
+      VO_day,
+      Estrus_day,
+      PreputialSep_day
+    )%>%
     mutate(
       
       #offspring mass dates
@@ -228,10 +252,14 @@ Dam_tasks_app <- function(
 ){
   if(Count == 0){
     #add the text to print to the list
-    list_name <- list_add(list_name, paste0("<em>", #make this text emphasized
-                                            task_text, ": </em>",#end emphasis
-                                            "<ul style=\"list-style-type:circle;\">" #start a list
-    ))
+    list_name <- list_add(
+      list_name, 
+      paste0(
+        "<em>", #make this text emphasized
+        task_text, ": </em>",#end emphasis
+        "<ul style=\"list-style-type:circle;\">" #start a list
+      )
+    )
     Count <<- 1
   }
   #add the dam id to the list and wrap it in instructions to make it a bullet point
@@ -253,14 +281,23 @@ Off_tasks_app <- function(
   if(Count == 0){
     #Only add to the list the first time that the task occurs.
     #Then change the counter to 1
-    list_name <- list_add(list_name, paste0("<em>", #make this text strong
-                                            task_text, ": </em>",#end strong
-                                            "<ul style=\"list-style-type:circle;\">"#start a list
-    ))
+    list_name <- list_add(
+      list_name, 
+      paste0(
+        "<em>", #make this text strong
+        task_text, ": </em>",#end strong
+        "<ul style=\"list-style-type:circle;\">"#start a list
+      )
+    )
     Count <<- 1
   }
   #Add the Mouse_ID to the list wrapped in html instructions to make it a bullet point
-  list_name <- list_add(list_name, paste0("<li>", df[[id_var]][val], "</li>"))
+  list_name <- list_add(
+    list_name, 
+    paste0(
+      "<li>", df[[id_var]][val], "</li>"
+    )
+  )
   return(list_name)
 }
 
@@ -269,8 +306,10 @@ Off_tasks_app <- function(
 #if the counter is 1, that means that a new list has been made.
 #Need instructions to end that list and reset count to 0
 
-printLine_func_app <- function(Count,
-                               list_name = printCat){
+printLine_func_app <- function(
+  Count,
+  list_name = printCat
+){
   if(Count == 1){
     #end the list
     list_name <- list_add(list_name, "</ul>")

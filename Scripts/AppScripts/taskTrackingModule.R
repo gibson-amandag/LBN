@@ -10,8 +10,10 @@ taskTrackingUI <- function(id){
     #Fluid Row
     fluidRow(column(
       4,
-      dateInput(ns("date"),
-                "Enter starting date:")
+      dateInput(
+        ns("date"),
+        "Enter starting date:"
+      )
     ),
     column(
       4,
@@ -60,7 +62,12 @@ taskTrackingServer <- function(id){
           #Set up breeding
           for(val in Dam_seq()){
             if(Dam_day_equals(Day, "Breed_date", val)){
-              printCat <- Dam_tasks_app(paste0("Set up ", blueText("breeding cages"), " for the following dams"), val, printCat)
+              printCat <- Dam_tasks_app(
+                paste0(
+                  "Set up ", blueText("breeding cages"), " for the following dams"
+                ), 
+                val, printCat
+              )
             }
           }
           
@@ -70,7 +77,12 @@ taskTrackingServer <- function(id){
           for(val in Dam_seq()){
             if(Dam_dates$plug_check[val] == TRUE & 
                Dam_day_greater(Day, "Breed_date", val)){
-              printCat <- Dam_tasks_app(paste0("Check for ", blueText("plugs"), " from the following mice"), val, printCat)
+              printCat <- Dam_tasks_app(
+                paste0(
+                  "Check for ", blueText("plugs"), " from the following mice"
+                ), 
+                val, printCat
+              )
             }
           }
           
@@ -83,7 +95,12 @@ taskTrackingServer <- function(id){
                Dam_not.na("mass_check", val) & 
                Dam_day_equals(Day, "mass_check", val)
             ){
-              printCat <- Dam_tasks_app(paste0("Check for ", blueText("pregnancy and/or separate"), " the following mice (by breed date)"), val, printCat)
+              printCat <- Dam_tasks_app(
+                paste0(
+                  "Check for ", blueText("pregnancy and/or separate"), " the following mice (by breed date)"
+                ), 
+                val, printCat
+              )
             }
           }
           
@@ -96,7 +113,12 @@ taskTrackingServer <- function(id){
               Dam_not.na("mass_G12", val) &
               Dam_day_equals(Day, "mass_G12", val)
             ){
-              printCat <- Dam_tasks_app(paste0("Check for ", blueText("pregnancy and/or separate"), " the following mice (by plug date)"), val, printCat)
+              printCat <- Dam_tasks_app(
+                paste0(
+                  "Check for ", blueText("pregnancy and/or separate"), " the following mice (by plug date)"
+                ), 
+                val, printCat
+              )
             }
           }
           
@@ -110,7 +132,12 @@ taskTrackingServer <- function(id){
                Dam_not.na("start_birth_check", val) &
                Dam_day_greater(Day, "start_birth_check", val)
             ){
-              printCat <- Dam_tasks_app(paste0("Watch for ", blueText("births"), " from the following dams"), val, printCat)
+              printCat <- Dam_tasks_app(
+                paste0(
+                  "Watch for ", blueText("births"), " from the following dams"
+                ), 
+                val, printCat
+              )
             }
           }
           
@@ -122,9 +149,15 @@ taskTrackingServer <- function(id){
                sac_stop(val) &
                Dam_day_equals(Day, "start_paradigm", val)
             ){
-              printCat <- Dam_tasks_app(paste0(blueText("Set up"), " the LBN paradigm (and ", 
-                                               blueText("take masses)"), " for the following litter(s) (known births)"),
-                                        val, printCat)
+              printCat <- Dam_tasks_app(
+                paste0(
+                  blueText("Set up"), 
+                  " the LBN paradigm (and ", 
+                  blueText("take masses)"), 
+                  " for the following litter(s) (known births)"
+                ),
+                val, printCat
+              )
             }
           }
           printCat <- printLine_func_app(Count, printCat)
@@ -137,9 +170,15 @@ taskTrackingServer <- function(id){
               Dam_not.na("est_start_paradigm", val) &
               Dam_day_equals(Day, "est_start_paradigm", val)
             ){
-              printCat <- Dam_tasks_app(paste0(blueText("Set up"), " the LBN paradigm (and ", 
-                                               blueText("take masses)"), " for the following litter(s) (predicted births)"),
-                                        val, printCat)
+              printCat <- Dam_tasks_app(
+                paste0(
+                  blueText("Set up"), 
+                  " the LBN paradigm (and ", 
+                  blueText("take masses)"), 
+                  " for the following litter(s) (predicted births)"
+                ),
+                val, printCat
+              )
             } 
           }
           
@@ -151,8 +190,16 @@ taskTrackingServer <- function(id){
                sac_stop(val) &
                Dam_day_equals(Day, "end_paradigm", val)
             ){
-              printCat <- Dam_tasks_app(paste0(blueText("End"), " the LBN paradigm, ", blueText("tag,"), " and ", 
-                                               blueText("take masses"), " for the following mice"), val, printCat)
+              printCat <- Dam_tasks_app(
+                paste0(
+                  blueText("End"), 
+                  " the LBN paradigm, ", 
+                  blueText("tag,"), " and ", 
+                  blueText("take masses"), 
+                  " for the following mice"
+                ), 
+                val, printCat
+              )
             }
           }
           
@@ -164,21 +211,36 @@ taskTrackingServer <- function(id){
                sac_stop(val) &
                Dam_day_equals(Day, "mass_startPara", val)
             ){
-              printCat <- Dam_tasks_app(paste0("Take the ", blueText("mass"), " of the following dams"), val, printCat)
+              printCat <- Dam_tasks_app(
+                paste0(
+                  "Take the ", blueText("mass"), " of the following dams"
+                ), 
+                val, printCat
+              )
             }
             
             if(Dam_not.na("mass_endPara", val) &
                sac_stop(val) &
                Dam_day_equals(Day, "mass_endPara", val)
             ){
-              printCat <- Dam_tasks_app(paste0("Take the ", blueText("mass"), " of the following dams"), val, printCat)
+              printCat <- Dam_tasks_app(
+                paste0(
+                  "Take the ", blueText("mass"), " of the following dams"
+                ), 
+                val,printCat
+              )
             }
             
             if(Dam_not.na("mass_P21", val) &
                sac_stop(val) &
                Dam_day_equals(Day, "mass_P21", val)
             ){
-              printCat <- Dam_tasks_app(paste0("Take the ", blueText("mass"), " of the following dams"), val, printCat)
+              printCat <- Dam_tasks_app(
+                paste0(
+                  "Take the ", blueText("mass"), " of the following dams"
+                ), 
+                val, printCat
+              )
             }
             
           }
@@ -191,7 +253,12 @@ taskTrackingServer <- function(id){
                sac_stop(val) &
                Dam_day_equals(Day, "mass_P21", val)
             ){
-              printCat <- Dam_tasks_app(paste0(blueText("Wean"), " the following cages"), val, printCat)
+              printCat <- Dam_tasks_app(
+                paste0(
+                  blueText("Wean"), " the following cages"
+                ), 
+                val, printCat
+              )
             }
           }
           
@@ -204,9 +271,19 @@ taskTrackingServer <- function(id){
             select(Dam_ID, mass_P10:mass_P19) %>%
             filter_all(any_vars(. %in% Day))
           if(nrow(mass_on_date_litter) > 0){ #only print if there are values in df
-            printCat <- list_add(printCat, paste0("<em>Take the ", blueText("mass"), " of the following litters:</em> <ul style=\"list-style-type:circle;\">"))
+            printCat <- list_add(
+              printCat, 
+              paste0(
+                "<em>Take the ", blueText("mass"), " of the following litters:</em> <ul style=\"list-style-type:circle;\">"
+              )
+            )
             for(val in seq_along(mass_on_date_litter$Dam_ID)){
-              printCat <- list_add(printCat, paste0("<li>", mass_on_date_litter$Dam_ID[val], "</li>"))
+              printCat <- list_add(
+                printCat, 
+                paste0(
+                  "<li>", mass_on_date_litter$Dam_ID[val], "</li>"
+                )
+              )
             }
           }
           if(nrow(mass_on_date_litter) > 0){printCat <- list_add(printCat, "</ul>")}
@@ -217,9 +294,19 @@ taskTrackingServer <- function(id){
             select(Mouse_ID, mass_P22:mass_P72) %>%
             filter_all(any_vars(. %in% Day))
           if(nrow(mass_on_date) > 0){ #only print if there are values in df
-            printCat <- list_add(printCat, paste0("<em>Take the ", blueText("mass"), " of the following offspring:</em> <ul style=\"list-style-type:circle;\">"))
+            printCat <- list_add(
+              printCat, 
+              paste0(
+                "<em>Take the ", blueText("mass"), " of the following offspring:</em> <ul style=\"list-style-type:circle;\">"
+              )
+            )
             for(val in seq_along(mass_on_date$Mouse_ID)){
-              printCat <- list_add(printCat, paste0("<li>", mass_on_date$Mouse_ID[val], "</li>"))
+              printCat <- list_add(
+                printCat, 
+                paste0(
+                  "<li>", mass_on_date$Mouse_ID[val], "</li>"
+                )
+              )
             }
           }
           if(nrow(mass_on_date) > 0){printCat <- list_add(printCat, "</ul>")}
@@ -231,13 +318,23 @@ taskTrackingServer <- function(id){
                Off_day_greater(Day, "start_AGD", val) &
                Off_day_less(Day, "end_AGD", val)
             ){
-              printCat <- Off_tasks_app(paste0("Take the ", blueText("ano-genital distance"), " of the following mice"), val, printCat)
+              printCat <- Off_tasks_app(
+                paste0(
+                  "Take the ", blueText("ano-genital distance"), " of the following mice"
+                ), 
+                val, printCat
+              )
             }
             if(Off_not.na("adult_AGD_start", val) &
                Off_day_greater(Day, "adult_AGD_start", val) &
                Off_day_less(Day, "adult_AGD_end", val)
             ){
-              printCat <- Off_tasks_app(paste0("Take the ", blueText("ano-genital distance"), " of the following mice"), val, printCat)
+              printCat <- Off_tasks_app(
+                paste0(
+                  "Take the ", blueText("ano-genital distance"), " of the following mice"
+                ), 
+                val, printCat
+              )
             }
           }
           
@@ -249,7 +346,12 @@ taskTrackingServer <- function(id){
               Off_not.na("check_VO", val) &
               Off_day_greater(Day, "check_VO", val)
             ){
-              printCat <- Off_tasks_app(paste0("Check for ", blueText("vaginal opening"), " of the following mice"), val, printCat)
+              printCat <- Off_tasks_app(
+                paste0(
+                  "Check for ", blueText("vaginal opening"), " of the following mice"
+                ), 
+                val, printCat
+              )
             }
           }
           
@@ -261,7 +363,12 @@ taskTrackingServer <- function(id){
               Off_not.na("check_Estrus", val) &
               Off_day_greater(Day, "check_Estrus", val)
             ){
-              printCat <- Off_tasks_app(paste0("Check for ", blueText("first estrus"), " for the following mice"), val, printCat)
+              printCat <- Off_tasks_app(
+                paste0(
+                  "Check for ", blueText("first estrus"), " for the following mice"
+                ), 
+                val, printCat
+              )
             }
           }
           
@@ -273,7 +380,12 @@ taskTrackingServer <- function(id){
               Off_not.na("check_PPS", val) &
               Off_day_greater(Day, "check_PPS", val)
             ){
-              printCat <- Off_tasks_app(paste0("Check for ", blueText("preputial separation"), " for the following mice"), val, printCat)
+              printCat <- Off_tasks_app(
+                paste0(
+                  "Check for ", blueText("preputial separation"), " for the following mice"
+                ), 
+                val, printCat
+              )
             }
           }
           
@@ -286,7 +398,12 @@ taskTrackingServer <- function(id){
               Off_day_greater(Day, "start_cycle", val) &
               Off_day_less(Day, "end_cycle", val)
             ){
-              printCat <- Off_tasks_app(paste0(blueText("Cycle"), " the following mice"), val, printCat)
+              printCat <- Off_tasks_app(
+                paste0(
+                  blueText("Cycle"), " the following mice"
+                ), 
+                val, printCat
+              )
             }
           }
           

@@ -24,11 +24,15 @@ damCortUI <- function(id, Demo_dam){
         select(Cort_dam_P21), #data frame with possible columns for summary variables
       selected_sum = c("Cort_dam_P21"), # c(" ", " ") vector with selected variables
       df_group = Demo_dam %>%
-        select(Treatment:Dam_Strain,
-               ParaType,
-               Sac_or_stop),
-      selected_group = c("Treatment",
-                         "Dam_Strain")
+        select(
+          Treatment:Dam_Strain,
+          ParaType,
+          Sac_or_stop
+        ),
+      selected_group = c(
+        "Treatment",
+        "Dam_Strain"
+      )
     )
     
   )
@@ -37,25 +41,29 @@ damCortUI <- function(id, Demo_dam){
 
 damCortServer <- function(id,
                           Demo_dam
-                          ){
+){
   moduleServer(
     id,
     function(input, output, session) {
-    
+      
       #Gives the "zoom", "min", and "max" values as reactive
       #Call these with zoom_y$zoom(), for example
-      zoom_y <- zoomAxisServer("zoom_y",
-                     whichAxis = "y",
-                     minVal = 0,
-                     maxVal = 15)
+      zoom_y <- zoomAxisServer(
+        "zoom_y",
+        whichAxis = "y",
+        minVal = 0,
+        maxVal = 15
+      )
       
       #Dam Cort Plot -------------
       output$Dam_cort21 <- renderPlot({
         Cort_dams <- Demo_dam %>%
           drop_na(Treatment, Cort_dam_P21)
         
-        Cort_dams_react <- filteringDFServer("Cort_dams",
-                                             Cort_dams)
+        Cort_dams_react <- filteringDFServer(
+          "Cort_dams",
+          Cort_dams
+        )
         
         my_puberty_dot_plot(
           df = Cort_dams_react(),

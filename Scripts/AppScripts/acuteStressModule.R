@@ -3,7 +3,7 @@
 # https://shiny.rstudio.com/articles/modules.html
 
 acuteStressUI <- function(id,
-                      AcuteStress_off){
+                          AcuteStress_off){
   ns <- NS(id)
   tagList(
     
@@ -12,42 +12,57 @@ acuteStressUI <- function(id,
     filteringDFUI(ns("ALPS_filter")),
     
     fluidRow(
-      column(4,
-             radioButtons(ns("WhichSex"),
-                          "Which sex?",
-                          c("Both", "Male" = "M", "Female" = "F"),
-                          selected = "Both")
+      column(
+        4,
+        radioButtons(
+          ns("WhichSex"),
+          "Which sex?",
+          c("Both", "Male" = "M", "Female" = "F"),
+          selected = "Both"
+        )
       ),
-      column(4,
-             #plot individual lines?
-             checkboxInput(ns("Individual_lines"),
-                           "Plot individual lines?",
-                           value = TRUE),
-             #plot means?
-             checkboxInput(ns("Mean_lines"),
-                           "Plot mean lines?",
-                           value = TRUE),
-             #plot by dam strain?
-             checkboxInput(ns("By_strain"),
-                           "Plot by strain?",
-                           value = TRUE)
-             
+      column(
+        4,
+        #plot individual lines?
+        checkboxInput(
+          ns("Individual_lines"),
+          "Plot individual lines?",
+          value = TRUE
+        ),
+        #plot means?
+        checkboxInput(
+          ns("Mean_lines"),
+          "Plot mean lines?",
+          value = TRUE
+        ),
+        #plot by dam strain?
+        checkboxInput(
+          ns("By_strain"),
+          "Plot by strain?",
+          value = TRUE
+        )
+        
       ),
-      column(4,
-             #Add a title
-             textInput(ns("Title"),
-                       "Graph Title:"),
-             #plot by dam?
-             checkboxInput(ns("By_dam"),
-                           "Plot by litter?",
-                           value = FALSE)
-             )
-      ),
-      
+      column(
+        4,
+        #Add a title
+        textInput(
+          ns("Title"),
+          "Graph Title:"
+        ),
+        #plot by dam?
+        checkboxInput(
+          ns("By_dam"),
+          "Plot by litter?",
+          value = FALSE
+        )
+      )
+    ),
+    
     zoomAxisUI(ns("zoom_x"), "x"),
     
     zoomAxisUI(ns("zoom_y"), "y"),
-
+    
     #plot dam mass
     #plotOutput(ns("Plot"), height = "600px"),
     
@@ -59,21 +74,26 @@ acuteStressUI <- function(id,
         select(Cort_pre:LH_5.5), #data frame with possible columns
       selected_sum = c("Cort_pre", "Cort_post"), # c(" ", " ") vector with selected variables
       df_group = AcuteStress_off %>%
-        select(Sex:Treatment,
-               Dam_ID,
-               Dam_Strain:ParaType),
-      selected_group = c("Treatment",
-                         "Dam_Strain")
+        select(
+          Sex:Treatment,
+          Dam_ID,
+          Dam_Strain:ParaType
+        ),
+      selected_group = c(
+        "Treatment",
+        "Dam_Strain"
+      )
     )
     
   )
 }
 
 
-acuteStressServer <- function(id,
-                          AcuteStress_off,
-                          Demo_dam
-                          ){
+acuteStressServer <- function(
+  id,
+  AcuteStress_off,
+  Demo_dam
+){
   moduleServer(
     id,
     function(input, output, session) {
@@ -108,7 +128,7 @@ acuteStressServer <- function(id,
       # })
       
       ALPSSum <- summaryTableServer("ALPSSum", reactive(AcuteStress_off))
-
+      
       
     }
   )

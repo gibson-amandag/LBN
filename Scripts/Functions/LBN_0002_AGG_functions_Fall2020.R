@@ -57,13 +57,17 @@ LBN_summary_byGroup_quo = function(var_toSummarize, df, group_vars){
   df = df %>%
     filter(!is.na(!!! sym(var_toSummarize)))%>%
     group_by(!!!syms(group_vars)) %>% #this evaluates the string name to the symbols here
-    summarize(Mean = mean(!!!syms(var_toSummarize), na.rm = TRUE),
-              SD = sd(!!!syms(var_toSummarize), na.rm = TRUE),
-              n = n(),
-              SEM = SD/sqrt(n),
-              .groups = 'drop') %>%
-    mutate(Variable = var_toSummarize, #add columns to indicate what is summarized in each row
-           VarName = var_name)
+    summarize(
+      Mean = mean(!!!syms(var_toSummarize), na.rm = TRUE),
+      SD = sd(!!!syms(var_toSummarize), na.rm = TRUE),
+      n = n(),
+      SEM = SD/sqrt(n),
+      .groups = 'drop'
+    ) %>%
+    mutate(
+      Variable = var_toSummarize, #add columns to indicate what is summarized in each row
+      VarName = var_name
+    )
   return(df)
 }
 
@@ -77,13 +81,17 @@ LBN_summary_byGroup <- function(var_toSummarize, df, group_vars){
   df = df %>%
     filter(!is.na(!! var_toSummarize))%>%
     group_by(!!! group_vars) %>% #this evaluates the string name to the symbols here
-    summarize(Mean = mean(!! var_toSummarize, na.rm = TRUE),
-              SD = sd(!! var_toSummarize, na.rm = TRUE),
-              n = n(),
-              SEM = SD/sqrt(n),
-              .groups = 'drop') %>%
-    mutate(Variable = var_toSumName, #add columns to indicate what is summarized in each row
-           VarName = var_name)
+    summarize(
+      Mean = mean(!! var_toSummarize, na.rm = TRUE),
+      SD = sd(!! var_toSummarize, na.rm = TRUE),
+      n = n(),
+      SEM = SD/sqrt(n),
+      .groups = 'drop'
+    ) %>%
+    mutate(
+      Variable = var_toSumName, #add columns to indicate what is summarized in each row
+      VarName = var_name
+    )
   return(df)
 }
 

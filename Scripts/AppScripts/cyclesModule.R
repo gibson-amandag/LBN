@@ -16,20 +16,25 @@ cyclesUI <- function(id){
     filteringDFUI(ns("cycles_filter")),
     
     h4("Control offspring"),
-    plotOutput(ns("control_plot"),
-               height = "600px"),
+    plotOutput(
+      ns("control_plot"),
+      height = "600px"
+    ),
     
     h4("LBN offspring"),
-    plotOutput(ns("LBN_plot"),
-               height = "600px")
+    plotOutput(
+      ns("LBN_plot"),
+      height = "600px"
+    )
     
   )
 }
 
 
-cyclesServer <- function(id,
-                         Cycles_off
-                         ){
+cyclesServer <- function(
+  id,
+  Cycles_off
+){
   moduleServer(
     id,
     function(input, output, session) {
@@ -58,7 +63,7 @@ cyclesServer <- function(id,
           filter(Treatment == "LBN") %>%
           cyclesPlotFunc()
       })
-
+      
       
     }
   )

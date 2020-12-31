@@ -21,8 +21,8 @@ load_LBN_data <- function(
   NameChronicStress_off = "ChronicStress_off",
   NameAcuteStress_off = "AcuteStress_off"
 ){
-
-
+  
+  
   Demo_dam <- myXLSX_func(dataFolder, excelName, NameDemo_dam) #replaced Dam_info
   Demo_off <- myXLSX_func(dataFolder, excelName, NameDemo_off) #replaced Offspring_demo
   Mass_off <- myXLSX_func(dataFolder, excelName, NameMass_off) #replaced Offspring_mass
@@ -64,28 +64,32 @@ load_LBN_data <- function(
   #Create a new dataframe with the demographic info from the dam sheet that is relevant for pups
   
   Demo_dam_for_offspring <- Demo_dam %>%
-    select(Dam_ID, 
-           Dam_cage, 
-           Treatment, 
-           Dam_Strain,
-           Strain,
-           ParaType,
-           Sire, 
-           DOB, 
-           Avg_litter_mass_startPara, 
-           Litter_size_startPara, 
-           Litter_size_endPara,
-           pupLoss)
+    select(
+      Dam_ID, 
+      Dam_cage, 
+      Treatment, 
+      Dam_Strain,
+      Strain,
+      ParaType,
+      Sire, 
+      DOB, 
+      Avg_litter_mass_startPara, 
+      Litter_size_startPara, 
+      Litter_size_endPara,
+      pupLoss
+    )
   
   #Add the demographic info, join by Dam_ID
   Demo_off <- Demo_off %>%
     left_join(Demo_dam_for_offspring, by = "Dam_ID") %>%
-    select(Mouse_ID:Dam_ID, 
-           DOB, 
-           Treatment:ParaType,
-           Wean_Cage_Number:Dam_cage,
-           Sire,
-           Avg_litter_mass_startPara:pupLoss)
+    select(
+      Mouse_ID:Dam_ID, 
+      DOB, 
+      Treatment:ParaType,
+      Wean_Cage_Number:Dam_cage,
+      Sire,
+      Avg_litter_mass_startPara:pupLoss
+    )
   
   
   #Combine all of the data into a single dataframe. Will add NAs where there isn't data
@@ -104,117 +108,145 @@ load_LBN_data <- function(
   Mass_off <- LBN_data %>%
     select(all_of(demoVars_forOff_quo), Avg_litter_mass_startPara) %>%
     left_join(select(Mass_off, -ParaType), by = "Mouse_ID") %>%
-    select(Mouse_ID, #reorder
-           Sex,
-           Treatment,
-           Avg_litter_mass_startPara:Mass_P72,
-           Dam_ID,
-           DOB,
-           Dam_Strain:pupLoss)
+    select( #reorder
+      Mouse_ID,
+      Sex,
+      Treatment,
+      Avg_litter_mass_startPara:Mass_P72,
+      Dam_ID,
+      DOB,
+      Dam_Strain:pupLoss
+    )
   
   Maturation_off <- LBN_data %>%
-    select(all_of(demoVars_forOff_quo),
-           Mass_P22, 
-           Mass_P23, 
-           Mass_P24, 
-           Mass_P70, 
-           Mass_P71, 
-           Mass_P72) %>%
+    select(
+      all_of(demoVars_forOff_quo),
+      Mass_P22, 
+      Mass_P23, 
+      Mass_P24, 
+      Mass_P70, 
+      Mass_P71, 
+      Mass_P72
+    ) %>%
     left_join(Maturation_off, by = "Mouse_ID") %>%
-    select(Mouse_ID, #reorder
-           Sex,
-           Treatment,
-           VO_day:AGD_P72,
-           Mass_P22:Mass_P72,
-           Dam_ID,
-           DOB,
-           Dam_Strain:pupLoss)
+    select( #reorder
+      Mouse_ID,
+      Sex,
+      Treatment,
+      VO_day:AGD_P72,
+      Mass_P22:Mass_P72,
+      Dam_ID,
+      DOB,
+      Dam_Strain:pupLoss
+    )
   
   Maturation_off <- Maturation_off %>%
-    mutate(AGD_wean = (AGD_P22 + AGD_P23 + AGD_P24) / 3,
-           AGD_adult = (AGD_P70 + AGD_P71 + AGD_P72) / 3,
-           Mass_wean = (Mass_P22 + Mass_P23 + Mass_P24) / 3,
-           Mass_adult = (Mass_P70 + Mass_P71 + Mass_P72) / 3,
-           AGD_wean_by_mass = AGD_wean / Mass_wean,
-           AGD_adult_by_mass = AGD_adult / Mass_adult,
-           VO_age = as.numeric(VO_day - DOB), #if don't include as.numeric it will output in days
-           Estrus_age = as.numeric(Estrus_day - DOB),
-           PreputialSep_age = as.numeric(PreputialSep_day - DOB)) %>%
-    select(Mouse_ID:Treatment,
-           AGD_wean:PreputialSep_age, 
-           VO_day:pupLoss)
+    mutate(
+      AGD_wean = (AGD_P22 + AGD_P23 + AGD_P24) / 3,
+      AGD_adult = (AGD_P70 + AGD_P71 + AGD_P72) / 3,
+      Mass_wean = (Mass_P22 + Mass_P23 + Mass_P24) / 3,
+      Mass_adult = (Mass_P70 + Mass_P71 + Mass_P72) / 3,
+      AGD_wean_by_mass = AGD_wean / Mass_wean,
+      AGD_adult_by_mass = AGD_adult / Mass_adult,
+      VO_age = as.numeric(VO_day - DOB), #if don't include as.numeric it will output in days
+      Estrus_age = as.numeric(Estrus_day - DOB),
+      PreputialSep_age = as.numeric(PreputialSep_day - DOB)
+    ) %>%
+    select(
+      Mouse_ID:Treatment,
+      AGD_wean:PreputialSep_age, 
+      VO_day:pupLoss
+    )
   
   EndPara_off <- LBN_data %>%
     select(all_of(demoVars_forOff_quo)) %>%
     left_join(EndPara_off, by = "Mouse_ID") %>%
-    select(Mouse_ID, #reorder
-           Sex,
-           Treatment,
-           Cort_endPara:CRH_endPara,
-           Dam_ID,
-           DOB,
-           Dam_Strain:pupLoss)
+    select(
+      Mouse_ID, #reorder
+      Sex,
+      Treatment,
+      Cort_endPara:CRH_endPara,
+      Dam_ID,
+      DOB,
+      Dam_Strain:pupLoss
+    )
   
   Cycles_off <- LBN_data %>%
     select(all_of(demoVars_forOff_quo)) %>%
     left_join(Cycles_off, by = "Mouse_ID") %>%
-    select(Mouse_ID, #reorder
-           Sex,
-           Treatment,
-           Day1:Day21,
-           Cycle_length:Proestrus_days,
-           Dam_ID,
-           DOB,
-           Dam_Strain:pupLoss)
+    select(  #reorder
+      Mouse_ID,
+      Sex,
+      Treatment,
+      Day1:Day21,
+      Cycle_length:Proestrus_days,
+      Dam_ID,
+      DOB,
+      Dam_Strain:pupLoss
+    )
   
   AcuteStress_off <- LBN_data %>%
     select(all_of(demoVars_forOff_quo)) %>%
     left_join(AcuteStress_off, by = "Mouse_ID") %>%
-    select(Mouse_ID, #reorder
-           Sex,
-           Treatment,
-           Stress_cycle:LH_5.5,
-           Dam_ID,
-           DOB,
-           Dam_Strain:pupLoss)
+    select( #reorder
+      Mouse_ID,
+      Sex,
+      Treatment,
+      Stress_cycle:LH_5.5,
+      Dam_ID,
+      DOB,
+      Dam_Strain:pupLoss
+    )
   
   ChronicStress_off <- LBN_data %>%
     select(all_of(demoVars_forOff_quo)) %>%
     left_join(ChronicStress_off, by = "Mouse_ID") %>%
-    select(Mouse_ID, #reorder
-           Sex,
-           Treatment,
-           Chronic_stress_treatment:Stress_proestrus,
-           Dam_ID,
-           DOB,
-           Dam_Strain:pupLoss)
+    select( #reorder
+      Mouse_ID,
+      Sex,
+      Treatment,
+      Chronic_stress_treatment:Stress_proestrus,
+      Dam_ID,
+      DOB,
+      Dam_Strain:pupLoss
+    )
   
   
   LBN_all <- LBN_all %>%
-    left_join(Maturation_off %>% 
-                select(Mouse_ID,
-                       AGD_wean:PreputialSep_age), by = "Mouse_ID")
+    left_join(
+      Maturation_off %>% 
+        select(
+          Mouse_ID,
+          AGD_wean:PreputialSep_age
+        ), 
+      by = "Mouse_ID"
+    )
   
   LBN_data <- LBN_data %>%
-    left_join(Maturation_off %>%
-                select(Mouse_ID,
-                       AGD_wean:PreputialSep_age), by = "Mouse_ID")
+    left_join(
+      Maturation_off %>%
+        select(
+          Mouse_ID,
+          AGD_wean:PreputialSep_age
+        ), 
+      by = "Mouse_ID"
+    )
   
-
-#Assign this function to an object. Then call the specific items as df$Demo_dam or df[[Demo_dam]] for example. 
+  
+  #Assign this function to an object. Then call the specific items as df$Demo_dam or df[[Demo_dam]] for example. 
   #All the dataframes will be within this one list that is the output of the function
-return(
-  list(
-    "Demo_dam" = Demo_dam,
-    "Demo_off" = Demo_off,
-    "Mass_off" = Mass_off,
-    "Maturation_off" = Maturation_off,
-    "EndPara_off" = EndPara_off,
-    "Cycles_off" = Cycles_off,
-    "AcuteStress_off" = AcuteStress_off,
-    "ChronicStress_off" = ChronicStress_off,
-    "LBN_all" = LBN_all,
-    "LBN_data" = LBN_data
+  return(
+    list(
+      "Demo_dam" = Demo_dam,
+      "Demo_off" = Demo_off,
+      "Mass_off" = Mass_off,
+      "Maturation_off" = Maturation_off,
+      "EndPara_off" = EndPara_off,
+      "Cycles_off" = Cycles_off,
+      "AcuteStress_off" = AcuteStress_off,
+      "ChronicStress_off" = ChronicStress_off,
+      "LBN_all" = LBN_all,
+      "LBN_data" = LBN_data
+    )
   )
-)
 }

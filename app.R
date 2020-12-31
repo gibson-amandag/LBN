@@ -68,84 +68,93 @@ my_appSource("cyclesModule.R")
 
 
 # Define UI for application that draws a histogram
-ui <- navbarPage("LBN",
-                 
-                 ### TASK TRACKING PANEL ----------------------
-                 tabPanel(
-                     "Tasks",
-                     fluidPage(
-                         taskTrackingUI("tasks")
-                     )
-                 ),
-                 
-                 ### DATA FRAMES -----------------------
-                 tabPanel(
-                     "Data",
-                     rawDataUI("rawData",
-                               Demo_dam,
-                               LBN_data)
-                 ),
-                 
-                 ### ANALYSIS-------------------------
-                 tabPanel(
-                     "Analysis",
-                     titlePanel("LBN Analysis"),
-                     h2("Offspring Date of Birth"),
-                     checkboxInput("plot_DOB",
-                                   "Plot Offspring DOBs?",
-                                   value = FALSE),
-                     uiOutput("Offspring_DOB_plot"),
-                     uiOutput("Offspring_DOB_range"),
-                     
-                     tabsetPanel(
-                     
-                     #Dams --------
-                     tabPanel("Dam",
-                              tabsetPanel(
-                                  
-                                  #Mass
-                                  tabPanel(
-                                      "Dam Mass",
-                                      massDamUI("massDam", Demo_dam)
-                                  ),
-                                  
-                                  #Pup Loss
-                                  tabPanel(
-                                      "Pup Loss",
-                                      pupLossUI("pupLoss", Demo_dam)
-                                  ),
-                                  
-                                  #Corticosterone
-                                  tabPanel(
-                                      "Dam Corticosterone",
-                                      damCortUI("damCort", Demo_dam)
-                                  )
-                              )
-                              ),
-                     
-                     #Offspring Mass -----------
-                     tabPanel("Offspring Mass",
-                              massOffUI("massOff", Mass_off)
-                              ),
-                     ### Offspring Maturation ----
-                     tabPanel("Offspring Maturation",
-                              maturationOffUI("maturationOff", Maturation_off)
-                              ),
-                     
-                     ### Offspring Corticosterone ----
-                     tabPanel("Acute Stress Paradigm",
-                              acuteStressUI("acuteStress", AcuteStress_off)
-                              ), #End off cort panel
-                     
-                     ### Offspring Cycles ----
-                     tabPanel("Offspring Cycles",
-                              cyclesUI("cycles")
-                              ) #End cycles tabPanel
-                     ) #end analysis tabsetPanel
-                 ### END ANALYSIS ----    
-                 ) #end analysis tabPanel
-                 
-############                 
+ui <- navbarPage(
+    "LBN",
+    
+    ### TASK TRACKING PANEL ----------------------
+    tabPanel(
+        "Tasks",
+        fluidPage(
+            taskTrackingUI("tasks")
+        )
+    ),
+    
+    ### DATA FRAMES -----------------------
+    tabPanel(
+        "Data",
+        rawDataUI(
+            "rawData",
+            Demo_dam,
+            LBN_data
+        )
+    ),
+    
+    ### ANALYSIS-------------------------
+    tabPanel(
+        "Analysis",
+        titlePanel("LBN Analysis"),
+        h2("Offspring Date of Birth"),
+        checkboxInput(
+            "plot_DOB",
+            "Plot Offspring DOBs?",
+            value = FALSE),
+        uiOutput("Offspring_DOB_plot"),
+        uiOutput("Offspring_DOB_range"),
+        
+        tabsetPanel(
+            
+            #Dams --------
+            tabPanel(
+                "Dam",
+                tabsetPanel(
+                    
+                    #Mass
+                    tabPanel(
+                        "Dam Mass",
+                        massDamUI("massDam", Demo_dam)
+                    ),
+                    
+                    #Pup Loss
+                    tabPanel(
+                        "Pup Loss",
+                        pupLossUI("pupLoss", Demo_dam)
+                    ),
+                    
+                    #Corticosterone
+                    tabPanel(
+                        "Dam Corticosterone",
+                        damCortUI("damCort", Demo_dam)
+                    )
+                )
+            ),
+            
+            #Offspring Mass -----------
+            tabPanel(
+                "Offspring Mass",
+                massOffUI("massOff", Mass_off)
+            ),
+            ### Offspring Maturation ----
+            tabPanel(
+                "Offspring Maturation",
+                maturationOffUI("maturationOff", Maturation_off)
+            ),
+            
+            ### Offspring Corticosterone ----
+            tabPanel(
+                "Acute Stress Paradigm",
+                acuteStressUI("acuteStress", AcuteStress_off)
+            ), #End off cort panel
+            
+            ### Offspring Cycles ----
+            tabPanel(
+                "Offspring Cycles",
+                cyclesUI("cycles")
+            ) #End cycles tabPanel
+        ) #end analysis tabsetPanel
+        ### END ANALYSIS ----    
+    ) #end analysis tabPanel
+    
+    ############                 
 )
 
 ############# SERVER #########################################################
@@ -153,8 +162,9 @@ server <- function(input, output) {
     ### OFFSPRING DOB ----------------------
     output$Offspring_DOB_plot <- renderUI({
         if(input$plot_DOB){
-            plotOutput("Offspring_DOB_hist",
-                       height = "200px")
+            plotOutput(
+                "Offspring_DOB_hist",
+                height = "200px")
         }
     })
     output$Offspring_DOB_hist <- renderPlot(
@@ -165,8 +175,9 @@ server <- function(input, output) {
     )
     
     output$Offspring_DOB_range <- renderUI({
-        str <-  paste("<h4> The range of offspring DOBs is from", blueText(min(Mass_off$DOB, na.rm = TRUE)), 
-                      "to", blueText(max(Mass_off$DOB, na.rm = TRUE)), "</h4>")
+        str <-  paste(
+            "<h4> The range of offspring DOBs is from", blueText(min(Mass_off$DOB, na.rm = TRUE)), 
+            "to", blueText(max(Mass_off$DOB, na.rm = TRUE)), "</h4>")
         HTML(str)
     })
     
@@ -174,16 +185,17 @@ server <- function(input, output) {
     taskTrackingServer("tasks")
     
     #### RENDER DATA FRAMES----------------------
-    rawDataServer("rawData",
-                  Demo_dam,
-                  Demo_off,
-                  Mass_off,
-                  Maturation_off,
-                  EndPara_off,
-                  Cycles_off,
-                  AcuteStress_off,
-                  ChronicStress_off,
-                  LBN_data)
+    rawDataServer(
+        "rawData",
+        Demo_dam,
+        Demo_off,
+        Mass_off,
+        Maturation_off,
+        EndPara_off,
+        Cycles_off,
+        AcuteStress_off,
+        ChronicStress_off,
+        LBN_data)
     
     #### ANALYSIS MODULES ----------------------
     massDamServer("massDam", Demo_dam)

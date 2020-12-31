@@ -2,8 +2,10 @@
 
 # https://shiny.rstudio.com/articles/modules.html
 
-maturationOffUI <- function(id,
-                      Maturation_off){
+maturationOffUI <- function(
+  id,
+  Maturation_off
+){
   ns <- NS(id)
   tagList(
     
@@ -19,38 +21,51 @@ maturationOffUI <- function(id,
         h4("Cumulative Frequency Plots"),
         p("Zooming x-axis will force the same for all three plots"),
         
-        zoomAxisUI(ns("cumFreq_zoomX"),
-                   whichAxis = "x",
-                   startOn = TRUE),
+        zoomAxisUI(
+          ns("cumFreq_zoomX"),
+          whichAxis = "x",
+          startOn = TRUE
+        ),
         
         #The Plots Row
         fluidRow(
-          column(4,
-                 plotOutput(ns("VO_cumFreq"))),
-          column(4,
-                 plotOutput(ns("FirstE_cumFreq"))),
-          column(4,
-                 plotOutput(ns("PPS_cumFreq")))
+          column(
+            4,
+            plotOutput(ns("VO_cumFreq"))
+          ),
+          column(
+            4,
+            plotOutput(ns("FirstE_cumFreq"))
+          ),
+          column(
+            4,
+            plotOutput(ns("PPS_cumFreq"))
+          )
         ),
         
         #Dot Plots
         h4("Puberty Dot Plots - Day"),
         p("Zooming y-axis will force the same for all three plots"),
         
-        zoomAxisUI(ns("dotDay_zoomY"),
-                   whichAxis = "y",
-                   startOn = TRUE),
+        zoomAxisUI(
+          ns("dotDay_zoomY"),
+          whichAxis = "y",
+          startOn = TRUE
+        ),
         
         #The Plots Row
         fluidRow(
-          column(4,
-                 plotOutput(ns("VO_dot"))
+          column(
+            4,
+            plotOutput(ns("VO_dot"))
           ),
-          column(4,
-                 plotOutput(ns("FirstE_dot"))
+          column(
+            4,
+            plotOutput(ns("FirstE_dot"))
           ),
-          column(4,
-                 plotOutput(ns("PPS_dot"))
+          column(
+            4,
+            plotOutput(ns("PPS_dot"))
           )
         ),
         
@@ -58,20 +73,25 @@ maturationOffUI <- function(id,
         h4("Puberty Dot Plots - Mass"),
         p("Zooming y-axis will force the same for all three plots"),
         
-        zoomAxisUI(ns("dotMass_zoomY"),
-                   whichAxis = "y",
-                   startOn = TRUE),
+        zoomAxisUI(
+          ns("dotMass_zoomY"),
+          whichAxis = "y",
+          startOn = TRUE
+        ),
         
         #The Plots Row
         fluidRow(
-          column(4,
-                 plotOutput(ns("VO_dot_mass"))
+          column(
+            4,
+            plotOutput(ns("VO_dot_mass"))
           ),
-          column(4,
-                 plotOutput(ns("FirstE_dot_mass"))
+          column(
+            4,
+            plotOutput(ns("FirstE_dot_mass"))
           ),
-          column(4,
-                 plotOutput(ns("PPS_dot_mass"))
+          column(
+            4,
+            plotOutput(ns("PPS_dot_mass"))
           )
         )
       ), #end plots panel
@@ -84,18 +104,24 @@ maturationOffUI <- function(id,
           id = ns("AGDSum"), 
           df_sum = Maturation_off %>%
             select(AGD_wean:AGD_adult_by_mass, AGD_P22:AGD_P72), #data frame with possible columns
-          selected_sum = c("AGD_wean",
-                           "AGD_adult",
-                           "Mass_P9",
-                           "Mass_P11"), # c(" ", " ") vector with selected variables
+          selected_sum = c(
+            "AGD_wean",
+            "AGD_adult",
+            "Mass_P9",
+            "Mass_P11"
+          ), # c(" ", " ") vector with selected variables
           df_group = Maturation_off %>%
-            select(Sex:Treatment,
-                   Dam_ID,
-                   Dam_Strain:ParaType),
-          selected_group = c("Sex",
-                             "Treatment")
+            select(
+              Sex:Treatment,
+              Dam_ID,
+              Dam_Strain:ParaType
+            ),
+          selected_group = c(
+            "Sex",
+            "Treatment"
+          )
         )
-        ), #end AGD summary
+      ), #end AGD summary
       
       tabPanel(
         "VO Summary",
@@ -107,9 +133,11 @@ maturationOffUI <- function(id,
             select(VO_age, VO_mass), #data frame with possible columns
           selected_sum = c("VO_age", "VO_mass"), # c(" ", " ") vector with selected variables
           df_group = Maturation_off %>%
-            select(Treatment,
-                   Dam_ID,
-                   Dam_Strain:ParaType),
+            select(
+              Treatment,
+              Dam_ID,
+              Dam_Strain:ParaType
+            ),
           selected_group = c("Treatment")
         ),
         
@@ -127,9 +155,11 @@ maturationOffUI <- function(id,
             select(Estrus_age, Estrus_mass), #data frame with possible columns
           selected_sum = c("Estrus_age", "Estrus_mass"), # c(" ", " ") vector with selected variables
           df_group = Maturation_off %>%
-            select(Treatment,
-                   Dam_ID,
-                   Dam_Strain:ParaType),
+            select(
+              Treatment,
+              Dam_ID,
+              Dam_Strain:ParaType
+            ),
           selected_group = c("Treatment")
         ),
         
@@ -147,25 +177,28 @@ maturationOffUI <- function(id,
             select(PreputialSep_age, PreputialSep_mass), #data frame with possible columns
           selected_sum = c("PreputialSep_age", "PreputialSep_mass"), # c(" ", " ") vector with selected variables
           df_group = Maturation_off %>%
-            select(Treatment,
-                   Dam_ID,
-                   Dam_Strain:ParaType),
+            select(
+              Treatment,
+              Dam_ID,
+              Dam_Strain:ParaType
+            ),
           selected_group = c("Treatment")
         ),
         
         verbatimTextOutput(ns("PPS_tTest"))
         
       ) #End PPS summary
-     
+      
     ) #end tabsetPanel
-
+    
   )
 }
 
 
-maturationOffServer <- function(id,
-                          Maturation_off
-                          ){
+maturationOffServer <- function(
+  id,
+  Maturation_off
+){
   moduleServer(
     id,
     function(input, output, session) {
@@ -176,39 +209,45 @@ maturationOffServer <- function(id,
       cumFreq_zoomX <- zoomAxisServer("cumFreq_zoomX", "x", minVal = 21, maxVal = 50)
       
       output$VO_cumFreq <- renderPlot({
-        my_cumulative_freq_plot(df = MaturationOff_react(),
-                                color_var = expr(Treatment),
-                                linetype_var = expr(Dam_Strain),
-                                var_to_plot = expr(VO_age), #as expr()
-                                phenotype_name = "VO", #string
-                                title = TRUE,
-                                change_xmax = cumFreq_zoomX$zoom(),
-                                xmax = cumFreq_zoomX$max(),
-                                xmin = cumFreq_zoomX$min())
+        my_cumulative_freq_plot(
+          df = MaturationOff_react(),
+          color_var = expr(Treatment),
+          linetype_var = expr(Dam_Strain),
+          var_to_plot = expr(VO_age), #as expr()
+          phenotype_name = "VO", #string
+          title = TRUE,
+          change_xmax = cumFreq_zoomX$zoom(),
+          xmax = cumFreq_zoomX$max(),
+          xmin = cumFreq_zoomX$min()
+        )
       })
       
       output$FirstE_cumFreq <- renderPlot({
-        my_cumulative_freq_plot(df = MaturationOff_react(),
-                                color_var = expr(Treatment),
-                                linetype_var = expr(Dam_Strain),
-                                var_to_plot = expr(Estrus_age), #as expr()
-                                phenotype_name = "First Estrus", #string
-                                title = TRUE,
-                                change_xmax = cumFreq_zoomX$zoom(),
-                                xmax = cumFreq_zoomX$max(),
-                                xmin = cumFreq_zoomX$min())
+        my_cumulative_freq_plot(
+          df = MaturationOff_react(),
+          color_var = expr(Treatment),
+          linetype_var = expr(Dam_Strain),
+          var_to_plot = expr(Estrus_age), #as expr()
+          phenotype_name = "First Estrus", #string
+          title = TRUE,
+          change_xmax = cumFreq_zoomX$zoom(),
+          xmax = cumFreq_zoomX$max(),
+          xmin = cumFreq_zoomX$min()
+        )
       })
       
       output$PPS_cumFreq <- renderPlot({
-        my_cumulative_freq_plot(df = MaturationOff_react(),
-                                color_var = expr(Treatment),
-                                linetype_var = expr(Dam_Strain),
-                                var_to_plot = expr(PreputialSep_age), #as expr()
-                                phenotype_name = "PPS", #string
-                                title = TRUE,
-                                change_xmax = cumFreq_zoomX$zoom(),
-                                xmax = cumFreq_zoomX$max(),
-                                xmin = cumFreq_zoomX$min())
+        my_cumulative_freq_plot(
+          df = MaturationOff_react(),
+          color_var = expr(Treatment),
+          linetype_var = expr(Dam_Strain),
+          var_to_plot = expr(PreputialSep_age), #as expr()
+          phenotype_name = "PPS", #string
+          title = TRUE,
+          change_xmax = cumFreq_zoomX$zoom(),
+          xmax = cumFreq_zoomX$max(),
+          xmin = cumFreq_zoomX$min()
+        )
       })
       
       ### Dot Plots Day -------- 

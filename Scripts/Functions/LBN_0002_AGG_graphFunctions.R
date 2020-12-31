@@ -33,42 +33,47 @@ make_long_form_dams = function(df){
 #Create a new column "PND" for the corresponding post-natal day on which the mass was taken to be able to plot on a continuous x-scale
 make_PND_col = function(df){
   df = df %>%
-    mutate(PND = case_when(day == "Avg_litter_mass_startPara" & ParaType == 2 ~ 2,
-                           day == "Avg_litter_mass_startPara" & ParaType == 4 ~ 4,
-                           day == "Mass_P9" ~ 9,
-                           day == "Mass_P10" ~ 10,
-                           day == "Mass_P11" ~ 11,
-                           day == "Mass_P12" ~ 12,
-                           day == "Mass_P13" ~ 13,
-                           day == "Mass_P14" ~ 14,
-                           day == "Mass_P15" ~ 15,
-                           day == "Mass_P16" ~ 16,
-                           day == "Mass_P17" ~ 17,
-                           day == "Mass_P19" ~ 19,
-                           day == "Mass_P21" ~ 21,
-                           day == "Mass_P22" ~ 22,
-                           day == "Mass_P23" ~ 23,
-                           day == "Mass_P24" ~ 24,
-                           day == "Mass_P28" ~ 28,
-                           day == "Mass_P35" ~ 35,
-                           day == "Mass_P42" ~ 42,
-                           day == "Mass_P49" ~ 49,
-                           day == "Mass_P56" ~ 56,
-                           day == "Mass_P63" ~ 63,
-                           day == "Mass_P70" ~ 70,
-                           day == "Mass_P71" ~ 71,
-                           day == "Mass_P72" ~ 72)
+    mutate(
+      PND = case_when(
+        day == "Avg_litter_mass_startPara" & ParaType == 2 ~ 2,
+        day == "Avg_litter_mass_startPara" & ParaType == 4 ~ 4,
+        day == "Mass_P9" ~ 9,
+        day == "Mass_P10" ~ 10,
+        day == "Mass_P11" ~ 11,
+        day == "Mass_P12" ~ 12,
+        day == "Mass_P13" ~ 13,
+        day == "Mass_P14" ~ 14,
+        day == "Mass_P15" ~ 15,
+        day == "Mass_P16" ~ 16,
+        day == "Mass_P17" ~ 17,
+        day == "Mass_P19" ~ 19,
+        day == "Mass_P21" ~ 21,
+        day == "Mass_P22" ~ 22,
+        day == "Mass_P23" ~ 23,
+        day == "Mass_P24" ~ 24,
+        day == "Mass_P28" ~ 28,
+        day == "Mass_P35" ~ 35,
+        day == "Mass_P42" ~ 42,
+        day == "Mass_P49" ~ 49,
+        day == "Mass_P56" ~ 56,
+        day == "Mass_P63" ~ 63,
+        day == "Mass_P70" ~ 70,
+        day == "Mass_P71" ~ 71,
+        day == "Mass_P72" ~ 72
+      )
     )
 }
 
 make_PND_col_dams = function(df){
   df = df %>%
-    mutate(PND = case_when(day == "Dam_Mass_P2" ~ 2,
-                           day == "Dam_Mass_P4" ~ 4,
-                           day == "Dam_Mass_P9" ~ 9,
-                           day == "Dam_Mass_P11" ~ 11,
-                           day == "Dam_Mass_P21" ~ 21
-    )
+    mutate(
+      PND = case_when(
+        day == "Dam_Mass_P2" ~ 2,
+        day == "Dam_Mass_P4" ~ 4,
+        day == "Dam_Mass_P9" ~ 9,
+        day == "Dam_Mass_P11" ~ 11,
+        day == "Dam_Mass_P21" ~ 21
+      )
     )
 }
 
@@ -91,10 +96,12 @@ reshapeForMassPlot_dams <- function(df){
 make_cycles_long <- function(df){
   df %>%
     drop_na(Day1:Day21) %>%
-    gather(key = "DayNum",
-           value = "Stage",
-           c(Day1:Day21),
-           factor_key = TRUE)
+    gather(
+      key = "DayNum",
+      value = "Stage",
+      c(Day1:Day21),
+      factor_key = TRUE
+    )
 }
 
 add_Day_col <- function(df){
@@ -139,10 +146,14 @@ my_geom_line <- function(
   linetype_var, #use expr
   lineGroup_var #use expr
 ){
-  geom_line(alpha = .25, #make it semi-transparent
-            aes(linetype = !! linetype_var,
-                group = !! lineGroup_var),
-            size = 0.8)
+  geom_line(
+    alpha = .25, #make it semi-transparent
+    aes(
+      linetype = !! linetype_var,
+      group = !! lineGroup_var
+    ),
+    size = 0.8
+  )
 }
 
 #plot the average as a solid line. Include error bars
@@ -177,18 +188,24 @@ my_LBN_mass_geoms = function(
   width = 1 #for error bars
 ){
   list(
-    labs(x = xtitle, 
-         y = ytitle, 
-         title = title),
+    labs(
+      x = xtitle, 
+      y = ytitle, 
+      title = title
+    ),
     #geom_rect(aes(xmin = 0, xmax = 21, ymin = 0, ymax = Inf), fill = 'grey90', color = "grey90", alpha = 0.1),
-      #For background shading, but this seems to drastically increase time to plot
+    #For background shading, but this seems to drastically increase time to plot
     if(mean_lines) #if mean_lines is true, add this layer
-      my_line_mean_geom(useLinetype = useLinetype,
-                        linetype_var = linetype_var,
-                        width = width),
+      my_line_mean_geom(
+        useLinetype = useLinetype,
+        linetype_var = linetype_var,
+        width = width
+      ),
     if(individualLines) #if individualLines is true, add this layer
-      my_geom_line(linetype_var = linetype_var,
-                   lineGroup_var = lineGroup_var),
+      my_geom_line(
+        linetype_var = linetype_var,
+        lineGroup_var = lineGroup_var
+      ),
     expand_limits(y=0), #set y axis to 0
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}), #this just zooms in on the graph, versus scale_[]_continuous actually eliminates data not in the range
     my_theme
@@ -205,11 +222,17 @@ my_cumulative_freq_geoms <- function(
 ){
   list(
     stat_ecdf(size = 2),
-    labs(x = paste0("Age at ", phenotype_name, " (Days)"),
-         y = "Cumulative Frequency",
-         title = if(title){phenotype_name}else{NULL}),
-    coord_cartesian(xlim = c(xmin,
-                             if(change_xmax){xmax}else{NA})),
+    labs(
+      x = paste0("Age at ", phenotype_name, " (Days)"),
+      y = "Cumulative Frequency",
+      title = if(title){phenotype_name}else{NULL}
+    ),
+    coord_cartesian(
+      xlim = c(
+        xmin,
+        if(change_xmax){xmax}else{NA}
+      )
+    ),
     my_theme
   )
 }
@@ -275,10 +298,15 @@ mass_plot_lines = function(
   ymin = NULL,
   ymax = NULL,
   width = 1 #for error bars
-  )
+)
 {
-  ggplot(df, aes(PND, Mass, color = Treatment, 
-                 group = if(by_strain == TRUE){interaction(Treatment, Dam_Strain)}else{Treatment})) + #if by_strain is TRUE, group by dam strain
+  ggplot(
+    df, 
+    aes(
+      PND, Mass, color = Treatment, 
+      group = if(by_strain == TRUE){interaction(Treatment, Dam_Strain)}else{Treatment}  #if by_strain is TRUE, group by dam strain
+    )
+  ) +
     my_LBN_mass_geoms(
       useLinetype = by_strain,
       linetype_var = expr(Dam_Strain),
@@ -314,9 +342,13 @@ my_cumulative_freq_plot <- function(
 ){
   df %>%
     filter(!is.na(!! var_to_plot)) %>%
-    ggplot(aes(!! var_to_plot,
-               color = !! color_var,
-               linetype = !! linetype_var)) +
+    ggplot(
+      aes(
+        !! var_to_plot,
+        color = !! color_var,
+        linetype = !! linetype_var
+      )
+    ) +
     my_cumulative_freq_geoms(
       phenotype_name,
       title = title,
@@ -358,8 +390,8 @@ my_puberty_dot_plot <- function(
         }else if(DaysOrMass == "Days"){
           paste0("Age at ", phenotype_name, " (Days)")
         }else if(DaysOrMass == "Mass"){
-            paste0("Mass at ", phenotype_name, " (g)")
-          }
+          paste0("Mass at ", phenotype_name, " (g)")
+        }
       ,
       title = phenotype_name
     )
