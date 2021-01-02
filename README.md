@@ -5,6 +5,7 @@ LBN Cohort 2
 <ul>
     <li><a href="#Renviron">.Renviron</a></li>
     <li><a href="#setUp">LBN_0002_AGG_setUp.R</a></li>
+    <li><a href="#app">app.R</a></li>
     <li><a href="#functionsFall2020">LBN_0002_AGG_functions_Fall2020.R</a></li>
     <li><a href="#importData">LBN_0002_AGG_importData.R</a></li>
     <li><a href="#varNames">LBN_0002_AGG_varNames.R</a></li>
@@ -43,6 +44,14 @@ LBN Cohort 2
     <li><code>LBN_0002_AGG_taskFunctions</code></li>
     <li><code>LBN_0002_AGG_graphFunctions.R</code></li>
 </ul>
+
+<h1><a id="app" name="app"></a>app.R</h1>
+
+[Read about the Shiny app here](HelpDocs/appR.md)
+
+The `app.R` file is a Shiny App that allows for data visualization. It uses the same core functions as the Rmd analysis file described here. 
+
+For the app, ui (user interface) and server functions are defined. I have modularized the code so that chunks for different panels are defined in separate R scripts, each again defining a ui component and a server component. 
 
 <h1><a id="functionsFall2020" name="functionsFall2020"></a>LBN_0002_AGG_functions_Fall2020.R</h1>
 
