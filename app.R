@@ -48,26 +48,26 @@ Off_dates <<- offDatesFunc(LBN_data)
 
 LBN_varNames <<- LBN_varNames_func(LBN_all)
 
-my_appSource <- function(scriptName){
+sourceModule <- function(scriptName){
     source(file.path(".", "Scripts", "AppScripts", scriptName))
 }
 
 #Load Modules
-my_appSource("zoomAxisModule.R")
-my_appSource("filteringDFModule.R")
-my_appSource("summaryTableModule.R")
-my_appSource("taskTrackingModule.R")
-my_appSource("rawDataModule.R")
-my_appSource("massDamModule.R")
-my_appSource("pupLossModule.R")
-my_appSource("damCortModule.R")
-my_appSource("massOffModule.R")
-my_appSource("maturationOffModule.R")
-my_appSource("acuteStressModule.R")
-my_appSource("cyclesModule.R")
+sourceModule("zoomAxisModule.R")
+sourceModule("filteringDFModule.R")
+sourceModule("summaryTableModule.R")
+sourceModule("taskTrackingModule.R")
+sourceModule("rawDataModule.R")
+sourceModule("massDamModule.R")
+sourceModule("pupLossModule.R")
+sourceModule("damCortModule.R")
+sourceModule("massOffModule.R")
+sourceModule("maturationOffModule.R")
+sourceModule("acuteStressModule.R")
+sourceModule("cyclesModule.R")
 
 
-# Define UI for application that draws a histogram
+# Define UI for application
 ui <- navbarPage(
     "LBN",
     
