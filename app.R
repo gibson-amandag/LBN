@@ -67,94 +67,96 @@ sourceModule("acuteStressModule.R")
 sourceModule("cyclesModule.R")
 
 
-# Define UI for application
-ui <- navbarPage(
-    "LBN",
-    
-    ### TASK TRACKING PANEL ----------------------
-    tabPanel(
-        "Tasks",
-        fluidPage(
-            taskTrackingUI("tasks")
-        )
-    ),
-    
-    ### DATA FRAMES -----------------------
-    tabPanel(
-        "Data",
-        rawDataUI(
-            "rawData",
-            Demo_dam,
-            LBN_data
-        )
-    ),
-    
-    ### ANALYSIS-------------------------
-    tabPanel(
-        "Analysis",
-        titlePanel("LBN Analysis"),
-        h2("Offspring Date of Birth"),
-        checkboxInput(
-            "plot_DOB",
-            "Plot Offspring DOBs?",
-            value = FALSE),
-        uiOutput("Offspring_DOB_plot"),
-        uiOutput("Offspring_DOB_range"),
-        
-        tabsetPanel(
-            
-            #Dams --------
-            tabPanel(
-                "Dam",
-                tabsetPanel(
-                    
-                    #Mass
-                    tabPanel(
-                        "Dam Mass",
-                        massDamUI("massDam", Demo_dam)
-                    ),
-                    
-                    #Pup Loss
-                    tabPanel(
-                        "Pup Loss",
-                        pupLossUI("pupLoss", Demo_dam)
-                    ),
-                    
-                    #Corticosterone
-                    tabPanel(
-                        "Dam Corticosterone",
-                        damCortUI("damCort", Demo_dam)
-                    )
-                )
-            ),
-            
-            #Offspring Mass -----------
-            tabPanel(
-                "Offspring Mass",
-                massOffUI("massOff", Mass_off)
-            ),
-            ### Offspring Maturation ----
-            tabPanel(
-                "Offspring Maturation",
-                maturationOffUI("maturationOff", Maturation_off)
-            ),
-            
-            ### Offspring Corticosterone ----
-            tabPanel(
-                "Acute Stress Paradigm",
-                acuteStressUI("acuteStress", AcuteStress_off)
-            ), #End off cort panel
-            
-            ### Offspring Cycles ----
-            tabPanel(
-                "Offspring Cycles",
-                cyclesUI("cycles")
-            ) #End cycles tabPanel
-        ) #end analysis tabsetPanel
-        ### END ANALYSIS ----    
-    ) #end analysis tabPanel
-    
-    ############                 
+# Define UI for application that draws a histogram
+ui <- navbarPage("LBN",
+                 
+                 ### TASK TRACKING PANEL ----------------------
+                 tabPanel(
+                     "Tasks",
+                     fluidPage(
+                         titlePanel("Limited Bedding and Nesting Task Tracking"),
+                         tabsetPanel(
+                             tabPanel(
+                                 "Task List",
+                                 taskTrackingUI("tasks")
+                             ),
+                             tabPanel(
+                                 "Task Table",
+                                 taskTableUI("taskTable")
+                             )
+                         )
+                         
+                     )
+                 ),
+                 
+                 ### DATA FRAMES -----------------------
+                 tabPanel(
+                     "Data",
+                     rawDataUI("rawData",
+                               Demo_dam,
+                               LBN_data)
+                 ),
+                 
+                 ### ANALYSIS-------------------------
+                 tabPanel(
+                     "Analysis",
+                     titlePanel("LBN Analysis"),
+                     h2("Offspring Date of Birth"),
+                     checkboxInput("plot_DOB",
+                                   "Plot Offspring DOBs?",
+                                   value = FALSE),
+                     uiOutput("Offspring_DOB_plot"),
+                     uiOutput("Offspring_DOB_range"),
+                     
+                     tabsetPanel(
+                     
+                     #Dams --------
+                     tabPanel("Dam",
+                              tabsetPanel(
+                                  
+                                  #Mass
+                                  tabPanel(
+                                      "Dam Mass",
+                                      massDamUI("massDam", Demo_dam)
+                                  ),
+                                  
+                                  #Pup Loss
+                                  tabPanel(
+                                      "Pup Loss",
+                                      pupLossUI("pupLoss", Demo_dam)
+                                  ),
+                                  
+                                  #Corticosterone
+                                  tabPanel(
+                                      "Dam Corticosterone",
+                                      damCortUI("damCort", Demo_dam)
+                                  )
+                              )
+                              ),
+                     
+                     #Offspring Mass -----------
+                     tabPanel("Offspring Mass",
+                              massOffUI("massOff", Mass_off)
+                              ),
+                     ### Offspring Maturation ----
+                     tabPanel("Offspring Maturation",
+                              maturationOffUI("maturationOff", Maturation_off)
+                              ),
+                     
+                     ### Offspring Corticosterone ----
+                     tabPanel("Acute Stress Paradigm",
+                              acuteStressUI("acuteStress", AcuteStress_off)
+                              ), #End off cort panel
+                     
+                     ### Offspring Cycles ----
+                     tabPanel("Offspring Cycles",
+                              cyclesUI("cycles")
+                              ) #End cycles tabPanel
+                     ) #end analysis tabsetPanel
+                 ### END ANALYSIS ----    
+                 ) #end analysis tabPanel
+                 
+############                 
 )
 
 ############# SERVER #########################################################
@@ -183,6 +185,7 @@ server <- function(input, output) {
     
     #### TASK TRACKING HTML TEXT------------------
     taskTrackingServer("tasks")
+    taskTableServer("taskTable", Dam_dates, Off_dates)
     
     #### RENDER DATA FRAMES----------------------
     rawDataServer(

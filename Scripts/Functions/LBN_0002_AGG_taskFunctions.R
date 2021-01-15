@@ -45,41 +45,40 @@ damDatesFunc <- function(
       mass_endPara = 
         case_when(
           ParaType == 2 ~ DOB + 9,
-          ParaType == 4 ~ DOB + 11
-        ),
-      mass_P21 = DOB + 21,
+          ParaType == 4 ~ DOB + 11),
+      mass_P21 = ifelse(!is.na(ParaType),
+                        DOB + 21,
+                        NA),
       
       #Mass of only pups on these days
-      mass_P10 = ifelse(
-        ParaType == 2,
-        DOB + 10,
-        NA
-      ),
-      mass_P11 = ifelse(
-        ParaType == 2, #P4 start is incorporated above for end of paradigm
-        DOB + 11,
-        NA
-      ),
-      mass_P12 = DOB + 12, #both
-      mass_P13 = DOB + 13, #both
-      mass_P14 = ifelse(
-        ParaType == 4, #only P4 start
-        DOB + 14,
-        NA
-      ),
-      mass_P15 = DOB + 15, #both
-      mass_P16 = ifelse(
-        ParaType == 4, #only P4 start
-        DOB + 16,
-        NA
-      ),
-      mass_P17 = ifelse(
-        ParaType == 2, #only P2 start
-        DOB + 10,
-        NA
-      ),
-      mass_P19 = DOB + 19, #both
-      mass_P21 = DOB + 21, #both
+      mass_P10 = ifelse(ParaType == 2,
+                        DOB + 10,
+                        NA),
+      mass_P11 = ifelse(ParaType == 2, #P4 start is incorporated above for end of paradigm
+                        DOB + 11,
+                        NA),
+      mass_P12 = ifelse(!is.na(ParaType),  #only if assigned a ParaType
+                        DOB + 12,
+                        NA),
+      mass_P13 = ifelse(!is.na(ParaType),
+                        DOB + 13, 
+                        NA),
+      mass_P14 = ifelse(ParaType == 4, #only P4 start
+                        DOB + 14,
+                        NA),
+      mass_P15 = ifelse(!is.na(ParaType),
+                        DOB + 15,
+                        NA),
+      mass_P16 = ifelse(ParaType == 4, #only P4 start
+                        DOB + 16,
+                        NA),
+      mass_P17 = ifelse(ParaType == 2, #only P2 start
+                        DOB + 17,
+                        NA),
+      mass_P19 = ifelse(!is.na(ParaType),
+                        DOB + 19,
+                        NA),
+      # mass_P21 = DOB + 21, #I think this is duplicate from above
       
       #paradigm dates
       # to-do adjust these dates
@@ -107,9 +106,14 @@ damDatesFunc <- function(
   Dam_dates$mass_endPara <- as_date(Dam_dates$mass_endPara)
   Dam_dates$mass_P10 <- as_date(Dam_dates$mass_P10)
   Dam_dates$mass_P11 <- as_date(Dam_dates$mass_P11)
+  Dam_dates$mass_P12 <- as_date(Dam_dates$mass_P12)
+  Dam_dates$mass_P13 <- as_date(Dam_dates$mass_P13)
   Dam_dates$mass_P14 <- as_date(Dam_dates$mass_P14)
+  Dam_dates$mass_P15 <- as_date(Dam_dates$mass_P15)
   Dam_dates$mass_P16 <- as_date(Dam_dates$mass_P16)
   Dam_dates$mass_P17 <- as_date(Dam_dates$mass_P17)
+  Dam_dates$mass_P19 <- as_date(Dam_dates$mass_P19)
+  Dam_dates$mass_P21 <- as_date(Dam_dates$mass_P21)
   
   return(Dam_dates)
 }

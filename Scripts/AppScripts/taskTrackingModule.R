@@ -5,7 +5,6 @@
 taskTrackingUI <- function(id){
   ns <- NS(id)
   tagList(
-    titlePanel("Limited Bedding and Nesting Task Tracking"),
     
     #Fluid Row
     fluidRow(column(
@@ -30,7 +29,6 @@ taskTrackingUI <- function(id){
     uiOutput(ns("toDoText"))
   )
 }
-
 
 taskTrackingServer <- function(id){
   moduleServer(
@@ -416,4 +414,49 @@ taskTrackingServer <- function(id){
     }
   )
 }
+
+taskTableUI <- function(id) {
+  ns <- NS(id)
+  tagList(
+    h3("Dam Tasks"),
+    #date input
+    dataTableOutput(ns("damTable")),
+    h3("Offspring Tasks"),
+    dataTableOutput(ns("offspringTable"))
+    
+  )
+}
+
+taskTableServer <- function(
+  id,
+  Dam_dates,
+  Off_dates
+){
+  moduleServer(
+    id,
+    function(input, output, session) {
+      output$damTable <- renderDataTable(
+        Dam_dates %>%
+          filter(is.na(Sac_or_stop)) %>%
+          filter(Breed_date > as.Date("2020-12-01")) %>% 
+          arrange(DOB, Plug_date),
+        options = list(
+          scrollX = TRUE,
+          scroller = TRUE,
+          pageLength = 16)
+      )
+      
+      output$offspringTable <- renderDataTable(
+        Off_dates %>% filter(DOB > as.Date("2020-12-01")) %>% arrange(DOB),
+        options = list(
+          scrollX = TRUE,
+          scroller = TRUE,
+          pageLength = 16)
+      )
+      
+      
+    }
+  )
+}
+
 
