@@ -1,5 +1,8 @@
 ####################################### GRAPHING FUNCTIONS ###########################################################
 
+#1/1/2021 - Coord_cartesian doesn't seem to work any more if given a NULL min/max value within c(min, max). 
+# Need to provide numbers for both, apparently
+
 my_theme = theme(
   text = element_text(size=18),
   legend.title = element_blank(),
