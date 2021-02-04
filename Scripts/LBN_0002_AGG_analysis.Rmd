@@ -57,6 +57,10 @@ AcuteStress_off <- DFs$AcuteStress_off
 ChronicStress_off <- DFs$ChronicStress_off
 LBN_all <- DFs$LBN_all
 LBN_data <- DFs$LBN_data
+Litter1_all <- DFs$Litter1_all
+Dam_litter1 <- DFs$Dam_litter1
+Maturation_litter1 <- DFs$Maturation_litter1
+CRH_dam <- DFs$CRH_dam
 ```
 ## Dam Information
 ```{r echo=FALSE}
@@ -97,6 +101,22 @@ LBN_all
 ## All Offspring Data
 ```{r echo=FALSE}
 LBN_data
+```
+## All Litter 1 Data
+```{r echo=FALSE}
+Litter1_all
+```
+## Maturation Litter 1
+```{r echo=FALSE}
+Maturation_litter1
+```
+## Dams litter 1
+```{r echo=FALSE}
+Dam_litter1
+```
+## CRH Dams
+```{r echo=FALSE}
+CRH_dam
 ```
 ## Variable names
 "LBN_varNames_func" takes the full dataset and creates a new dataframe in which the column names match the LBN dataset and the cell contents are a string with nicer variable names to add to plots.
