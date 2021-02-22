@@ -118,6 +118,89 @@ damDatesFunc <- function(
   return(Dam_dates)
 }
 
+# Dam Dates for first litter
+damDatesFunc_litter1 <- function(
+  Demo_dam
+){
+  Dam_dates <- Demo_dam %>%
+    select(
+      Dam_ID,
+      Breed_date,
+      Plug_date,
+      DOB,
+      Sac_or_stop,
+      Pups_through_wean
+    )
+  
+  Dam_dates <- Dam_dates %>%
+    mutate(
+      #plug check - true or false, based off of whether this is a plug date, DOB for litter, or sacrifice or stop marked
+      #when printing, will want to add a "is Day > breed_date"
+      plug_check = ifelse(
+        is.na(Plug_date) & is.na(DOB) & is.na(Sac_or_stop), 
+        TRUE, 
+        FALSE
+      ),
+      
+      #Check for pregnancy of dam
+      mass_check = Breed_date + 12 - 1, #will use this only if mass_G12 is NA, meaning Plug_date hasn't occured
+      mass_G12 = Plug_date + 12 - 1,
+      
+      #estimated birth dates
+      start_birth_check = Plug_date + 19 - 1,
+      est_birth_date = Plug_date + 21 - 1,
+      
+      #Mass of Dam
+      mass_P21 = ifelse(
+        Pups_through_wean,
+        DOB + 21,
+        NA)
+    )
+  
+  Dam_dates$mass_P21 <- as_date(Dam_dates$mass_P21)
+  
+  return(Dam_dates)
+}
+
+# Dam Dates for first litter
+damDatesFunc_CRH <- function(
+  Demo_dam
+){
+  Dam_dates <- Demo_dam %>%
+    select(
+      Dam_ID,
+      Breed_date,
+      Plug_date,
+      DOB
+    )
+  
+  Dam_dates <- Dam_dates %>%
+    mutate(
+      #plug check - true or false, based off of whether this is a plug date, DOB for litter, or sacrifice or stop marked
+      #when printing, will want to add a "is Day > breed_date"
+      plug_check = ifelse(
+        is.na(Plug_date) & is.na(DOB), 
+        TRUE, 
+        FALSE
+      ),
+      
+      #Check for pregnancy of dam
+      mass_check = Breed_date + 12 - 1, #will use this only if mass_G12 is NA, meaning Plug_date hasn't occured
+      mass_G12 = Plug_date + 12 - 1,
+      
+      #estimated birth dates
+      start_birth_check = Plug_date + 19 - 1,
+      est_birth_date = Plug_date + 21 - 1,
+      
+      #Mass of Dam
+      mass_P21 = DOB + 21
+    )
+  
+  Dam_dates$mass_P21 <- as_date(Dam_dates$mass_P21)
+  
+  return(Dam_dates)
+}
+
 #### OFFSPRING DATES FUNCTIONS ----------------------------------------
 offDatesFunc <- function(
   LBN_data
@@ -328,42 +411,45 @@ printLine_func_app <- function(
 ### Dams T/F ----------------------------
 
 #Sequence along all of the values in the Dam_ID column
-Dam_seq <- function(){
-  seq_along(Dam_dates$Dam_ID)
+Dam_seq <- function(
+  df = Dam_dates
+){
+  seq_along(df$Dam_ID)
 }
 
 #only check mouse if there is not a value (is.na) in the Sac_or_stop column
-sac_stop <- function(val){
-  is.na(Dam_dates$Sac_or_stop[val])
+sac_stop <- function(val,
+                     df = Dam_dates){
+  is.na(df$Sac_or_stop[val])
 }
 
 #Check if the date for a given variable is equal to Day
 #uses Dam_dates
-Dam_day_equals <- function(Day, var, val){
-  Day == Dam_dates[[var]][val]
+Dam_day_equals <- function(Day, var, val, df = Dam_dates){
+  Day == df[[var]][val]
 }
 
 # Dam_day_equals("2020-11-30", "Breed_date", 1)
 
 #Check if Day is greater than or equal to the date of a variable
-Dam_day_greater <- function(Day, var, val){
-  Day >= Dam_dates[[var]][val]
+Dam_day_greater <- function(Day, var, val, df = Dam_dates){
+  Day >= df[[var]][val]
 }
 
 # Dam_day_greater("2020-12-13", "mass_check", 1)
 # Dam_day_greater("2020-11-11", "mass_check", 1)
 
 #Check that the variable for this mouse is not na
-Dam_not.na <- function(var, val){
-  !is.na(Dam_dates[[var]][val])
+Dam_not.na <- function(var, val, df = Dam_dates){
+  !is.na(df[[var]][val])
 }
 
 # Dam_not.na("Breed_date", 1)
 # Dam_not.na("Sac_or_stop", 1)
 
 #Check that the variable for this mouse is na
-Dam_is.na <- function(var, val){
-  is.na(Dam_dates[[var]][val])
+Dam_is.na <- function(var, val, df = Dam_dates){
+  is.na(df[[var]][val])
 }
 
 # Dam_is.na("Sac_or_stop", 2)
