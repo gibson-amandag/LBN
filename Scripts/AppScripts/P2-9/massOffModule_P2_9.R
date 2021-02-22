@@ -2,7 +2,7 @@
 
 # https://shiny.rstudio.com/articles/modules.html
 
-massOffUI <- function(
+massOff_P2_9_UI <- function(
   id,
   Mass_off
 ){
@@ -11,7 +11,7 @@ massOffUI <- function(
     
     h3("Offspring Mass"),
     
-    filteringDFUI(ns("MassOff_filter")),
+    filteringDF_P2_9_UI(ns("MassOff_filter")),
     
     fluidRow(
       column(
@@ -37,10 +37,10 @@ massOffUI <- function(
           "Plot mean lines?",
           value = TRUE
         ),
-        #plot by litter number?
+        #plot by dam strain?
         checkboxInput(
-          ns("By_litterNum"),
-          "Plot by litter number?",
+          ns("By_strain"),
+          "Plot by strain?",
           value = TRUE
         )
         
@@ -49,14 +49,14 @@ massOffUI <- function(
         4,
         #Add a title
         textInput(ns("Title"), "Graph Title:"),
+        
         #plot by dam?
         checkboxInput(
           ns("By_dam"),
           "Plot by litter?",
           value = FALSE
         )
-      ),
-      
+      )
     ),
     
     zoomAxisUI(ns("zoom_x"), "x"),
@@ -68,7 +68,7 @@ massOffUI <- function(
     
     h3("Summary Table"),
     
-    filteringDFUI(ns("sum_filter")),
+    filteringDF_P2_9_UI(ns("sum_filter")),
     
     summaryTableUI(
       id = ns("massOffSum"), 
@@ -83,8 +83,7 @@ massOffUI <- function(
         select(
           Sex:Treatment,
           Dam_ID,
-          Dam_Strain:ParaType,
-          Litter_num
+          Dam_Strain:ParaType
         ),
       selected_group = c(
         "Treatment",
@@ -96,7 +95,7 @@ massOffUI <- function(
 }
 
 
-massOffServer <- function(
+massOff_P2_9_Server <- function(
   id,
   Mass_off,
   Demo_dam
@@ -129,12 +128,12 @@ massOffServer <- function(
             reshapeForMassPlot()
         }
         
-        Mass_off_react <- filteringDFServer("MassOff_filter", Mass_off_long)
+        Mass_off_react <- filteringDF_P2_9_Server("MassOff_filter", Mass_off_long)
         
-        mass_plot_lines_litterNum(
+        mass_plot_lines(
           Mass_off_react(),
           line_group = ifelse(input$By_dam, expr(Dam_ID), expr(Mouse_ID)),
-          by_litterNum = input$By_litterNum,
+          by_strain = input$By_strain,
           individualLines = input$Individual_lines,
           mean_lines = input$Mean_lines,
           title = input$Title,
@@ -147,7 +146,7 @@ massOffServer <- function(
         )
       })
       
-      Mass_off_sum_react <- filteringDFServer("sum_filter", Mass_off)
+      Mass_off_sum_react <- filteringDF_P2_9_Server("sum_filter", Mass_off)
       
       massOffSum <- summaryTableServer("massOffSum", Mass_off_sum_react)
       
