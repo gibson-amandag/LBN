@@ -91,7 +91,12 @@ LBN_data_P2 <- LBN_data %>%
 LBN_data_P4 <- LBN_data %>%
     filter(ParaType == 4)
 
+Dam_litter1 <- DFs$Dam_litter1
+Dam_CRH <- DFs$Dam_CRH
+
 Dam_dates <<- damDatesFunc(Demo_dam)
+Dam_dates_litter1 <- damDatesFunc_litter1(Dam_litter1)
+Dam_dates_CRH <- damDatesFunc_CRH(Dam_CRH)
 
 Off_dates <<- offDatesFunc(LBN_data)
 
@@ -329,8 +334,8 @@ server <- function(input, output) {
     })
     
     #### TASK TRACKING HTML TEXT------------------
-    taskTrackingServer("tasks")
-    taskTableServer("taskTable", Dam_dates, Off_dates)
+    taskTrackingServer("tasks", Dam_dates, Dam_dates_litter1, Dam_dates_CRH)
+    taskTableServer("taskTable", Dam_dates, Dam_dates_litter1, Dam_dates_CRH, Off_dates)
     
     #### RENDER DATA FRAMES----------------------
     rawDataServer(
