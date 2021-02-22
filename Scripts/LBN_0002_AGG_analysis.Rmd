@@ -32,7 +32,7 @@ library(shiny)
 ```
 # Set up
 Set-up the notebook. This script loads the environment, and contains the names for the data file, and sources the additional scripts that will be used for the analysis.
-```{r setUp}
+```{r GetReady}
 source("./Scripts/LBN_0002_AGG_setUp.R")
 dateToday = Sys.Date()
 filterDateForTaskDFs = as.Date("2020-12-01") #Look for breed dates/DOBs after this date
