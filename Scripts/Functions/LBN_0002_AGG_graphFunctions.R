@@ -150,7 +150,7 @@ my_geom_line <- function(
   lineGroup_var #use expr
 ){
   geom_line(
-    alpha = .25, #make it semi-transparent
+    alpha = .5, #make it semi-transparent
     aes(
       linetype = !! linetype_var,
       group = !! lineGroup_var
@@ -206,6 +206,7 @@ my_LBN_mass_geoms = function(
       ),
     if(individualLines) #if individualLines is true, add this layer
       my_geom_line(
+        #Right now, this always plots based on the linetype_var regardless of useLinetype value
         linetype_var = linetype_var,
         lineGroup_var = lineGroup_var
       ),
@@ -236,7 +237,8 @@ my_cumulative_freq_geoms <- function(
         if(change_xmax){xmax}else{NA}
       )
     ),
-    my_theme
+    my_theme,
+    theme(legend.box = "vertical")
   )
 }
 
@@ -276,7 +278,30 @@ my_puberty_dot_geoms <- function(
     if(change_ymax == FALSE)
       coord_cartesian(ylim = c(0, NA)),
     my_theme,
-    scale_colour_manual(values = c("gray 20", "gray 70")),
+    if(colour == expr(Litter_num))
+      scale_colour_manual(
+        values = c("gray 20", "gray 70"), 
+        breaks = c("1", "2"),
+        labels = c("First Litter", "Second Litter")
+      ),
+    if(shape == expr(Litter_num))
+      scale_shape_discrete(
+        breaks = c("1", "2"),
+        labels = c("First Litter", "Second Litter")
+      ),
+    if(colour != expr(Litter_num))
+      scale_colour_manual(
+        values = c("gray 20", "gray 70")
+      ),
+    # scale_colour_manual(
+    #   values = c("gray 20", "gray 70"), 
+    #   if(colour == expr(Litter_num)){breaks = c("1", "2")}, 
+    #   if(colour == expr(Litter_num)){labels = c("First Litter", "Second Litter")}
+    #   ),
+    # scale_shape_discrete(
+    #   if(colour == expr(Litter_num)){breaks = c("1", "2")}, 
+    #   if(colour == expr(Litter_num)){labels = c("First Litter", "Second Litter")}
+    # ),
     if(!is.null(ytitle))
       labs(y = ytitle),
     if(!is.null(title))
@@ -329,6 +354,53 @@ mass_plot_lines = function(
     )
 }
 
+mass_plot_lines_litterNum = function(
+  df, 
+  line_group = expr(Mouse_ID), 
+  by_litterNum = TRUE,
+  individualLines = TRUE, #if want individual lines
+  mean_lines = TRUE, #if want to include mean line with SEM
+  title = NULL,
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL,
+  width = 1 #for error bars
+)
+{
+  ggplot(
+    df, 
+    aes(
+      PND, Mass, color = Treatment, 
+      group = if(by_litterNum == TRUE){interaction(Treatment, Litter_num)}else{Treatment}  #if by_strain is TRUE, group by dam strain
+    )
+  ) +
+    my_LBN_mass_geoms(
+      useLinetype = by_litterNum,
+      linetype_var = expr(Litter_num),
+      lineGroup_var = line_group,
+      xtitle = "Postnatal Day",
+      ytitle = "Mass (g)",
+      title = title,
+      individualLines = individualLines,
+      mean_lines = mean_lines,
+      zoom_x = zoom_x,
+      xmin = xmin,
+      xmax = xmax,
+      zoom_y = zoom_y,
+      ymin = ymin,
+      ymax = ymax, 
+      width = width
+    ) +
+    scale_linetype_manual(
+      breaks = c("1", "2"),
+      values = c("1" = "solid", "2" = "dashed"),
+      labels = c("First Litter", "Second Litter")
+    )
+}
+
 
 
 #See "my_cumuluative_freq_geoms" for explanation of the geoms used
@@ -358,7 +430,7 @@ my_cumulative_freq_plot <- function(
       change_xmax = change_xmax,
       xmax = xmax,
       xmin = xmin
-    )
+    ) 
 }
 
 
