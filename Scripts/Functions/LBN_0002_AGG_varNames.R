@@ -28,6 +28,7 @@ LBN_varNames_func <- function(
   LBN_VarNames$Dam_cage = "Dam Cage #"
   
   LBN_VarNames$Treatment = "Treatment"
+  LBN_VarNames$Litter_num = "Litter Number"
   LBN_VarNames$Dam_Strain = "Dam Strain"
   LBN_VarNames$Strain = "Offspring Strain"
   
@@ -159,6 +160,7 @@ demoVars_forOff_quo = c(
   "Sex",
   "DOB",
   "Treatment",
+  "Litter_num",
   "Dam_Strain",
   "Strain",
   "ParaType",
@@ -180,6 +182,7 @@ demoVars_forOff = exprs(
   Sex,
   DOB,
   Treatment,
+  Litter_num,
   Dam_Strain,
   Strain,
   ParaType,
