@@ -2,23 +2,23 @@
 
 # https://shiny.rstudio.com/articles/modules.html
 
-massDamUI <- function(id,
+massDam_P2_9_UI <- function(id,
                       Demo_dam){
   ns <- NS(id)
   tagList(
     h3("Dam Mass"),
     
-    filteringDFUI(
+    filteringDF_P2_9_UI(
       ns("Mass_dams_filter")
     ),
     
     fluidRow(
       column(
         4,
-        #plot by litter number?
+        #plot by dam strain?
         checkboxInput(
-          ns("Mass_dams_by_litterNum"),
-          "Plot by litter number?",
+          ns("Mass_dams_by_strain"),
+          "Plot by strain?",
           value = TRUE
         )
       ),
@@ -62,18 +62,20 @@ massDamUI <- function(id,
       df_sum = Demo_dam %>%
         select(Dam_Mass_P2:Dam_Mass_P21), #data frame with possible columns
       selected_sum =  c(
+        "Dam_Mass_P2",
         "Dam_Mass_P4",
-        "Dam_Mass_P11",
-        "Dam_Mass_P21"
+        "Dam_Mass_P9",
+        "Dam_Mass_P11"
       ), # c(" ", " ") vector with selected variables
       df_group = Demo_dam %>%
         select(
-          Litter_num,
           Treatment:Dam_Strain,
+          ParaType,
           Sac_or_stop
         ),
       selected_group = c(
-        "Treatment"
+        "Treatment",
+        "Dam_Strain"
       )
     )
     
@@ -81,7 +83,7 @@ massDamUI <- function(id,
 }
 
 
-massDamServer <- function(
+massDam_P2_9_Server <- function(
   id,
   Demo_dam
 ){
@@ -100,19 +102,18 @@ massDamServer <- function(
             Dam_ID, 
             Treatment:Strain,
             DOB:Litter_size_endPara, 
-            pupLoss,
-            Litter_num
+            pupLoss
           ) 
         
         Mass_dams_long <- reshapeForMassPlot_dams(Mass_dams)
         
-        Mass_dams_long_react <- filteringDFServer("Mass_dams_filter", Mass_dams_long)
+        Mass_dams_long_react <- filteringDF_P2_9_Server("Mass_dams_filter", Mass_dams_long)
         
         #Mass plot
-        mass_plot_lines_litterNum(
+        mass_plot_lines(
           Mass_dams_long_react(),
           line_group = expr(Dam_ID),
-          by_litterNum = input$Mass_dams_by_litterNum,
+          by_strain = input$Mass_dams_by_strain,
           individualLines = input$Mass_dams_individual_lines,
           mean_lines = input$Mass_dams_mean_lines,
           title = input$Mass_dams_title,
