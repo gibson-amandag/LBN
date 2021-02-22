@@ -337,7 +337,7 @@ load_LBN_data <- function(
       "Litter1_all" = Litter1_all,
       "Dam_litter1" = Dam_litter1,
       "Maturation_litter1" = Maturation_litter1,
-      "CRH_dam" = CRH_dam
+      "Dam_CRH" = CRH_dam
     )
   )
 }
