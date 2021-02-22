@@ -2,7 +2,7 @@
 
 # https://shiny.rstudio.com/articles/modules.html
 
-maturationOffUI <- function(
+maturationOff_P2_9_UI <- function(
   id,
   Maturation_off
 ){
@@ -11,7 +11,7 @@ maturationOffUI <- function(
     
     h3("Offspring Maturation"),
     
-    filteringDFUI(ns("MaturationOff_filter")),
+    filteringDF_P2_9_UI(ns("MaturationOff_filter")),
     
     tabsetPanel(
       tabPanel(
@@ -114,8 +114,7 @@ maturationOffUI <- function(
             select(
               Sex:Treatment,
               Dam_ID,
-              Dam_Strain:ParaType,
-              Litter_num
+              Dam_Strain:ParaType
             ),
           selected_group = c(
             "Sex",
@@ -137,8 +136,7 @@ maturationOffUI <- function(
             select(
               Treatment,
               Dam_ID,
-              Dam_Strain:ParaType,
-              Litter_num
+              Dam_Strain:ParaType
             ),
           selected_group = c("Treatment")
         ),
@@ -160,8 +158,7 @@ maturationOffUI <- function(
             select(
               Treatment,
               Dam_ID,
-              Dam_Strain:ParaType,
-              Litter_num
+              Dam_Strain:ParaType
             ),
           selected_group = c("Treatment")
         ),
@@ -183,8 +180,7 @@ maturationOffUI <- function(
             select(
               Treatment,
               Dam_ID,
-              Dam_Strain:ParaType,
-              Litter_num
+              Dam_Strain:ParaType
             ),
           selected_group = c("Treatment")
         ),
@@ -199,7 +195,7 @@ maturationOffUI <- function(
 }
 
 
-maturationOffServer <- function(
+maturationOff_P2_9_Server <- function(
   id,
   Maturation_off
 ){
@@ -207,7 +203,7 @@ maturationOffServer <- function(
     id,
     function(input, output, session) {
       
-      MaturationOff_react <- filteringDFServer("MaturationOff_filter", Maturation_off)
+      MaturationOff_react <- filteringDF_P2_9_Server("MaturationOff_filter", Maturation_off)
       
       ### Cumulative Frequency Plots --------
       cumFreq_zoomX <- zoomAxisServer("cumFreq_zoomX", "x", minVal = 21, maxVal = 50)
@@ -216,57 +212,42 @@ maturationOffServer <- function(
         my_cumulative_freq_plot(
           df = MaturationOff_react(),
           color_var = expr(Treatment),
-          linetype_var = expr(Litter_num),
+          linetype_var = expr(Dam_Strain),
           var_to_plot = expr(VO_age), #as expr()
           phenotype_name = "VO", #string
           title = TRUE,
           change_xmax = cumFreq_zoomX$zoom(),
           xmax = cumFreq_zoomX$max(),
           xmin = cumFreq_zoomX$min()
-        ) +
-          scale_linetype_manual(
-            breaks = c("1", "2"),
-            values = c("1" = "solid", "2" = "dashed"),
-            labels = c("First Litter", "Second Litter")
-          )
+        )
       })
       
       output$FirstE_cumFreq <- renderPlot({
         my_cumulative_freq_plot(
           df = MaturationOff_react(),
           color_var = expr(Treatment),
-          linetype_var = expr(Litter_num),
+          linetype_var = expr(Dam_Strain),
           var_to_plot = expr(Estrus_age), #as expr()
           phenotype_name = "First Estrus", #string
           title = TRUE,
           change_xmax = cumFreq_zoomX$zoom(),
           xmax = cumFreq_zoomX$max(),
           xmin = cumFreq_zoomX$min()
-        )+
-          scale_linetype_manual(
-            breaks = c("1", "2"),
-            values = c("1" = "solid", "2" = "dashed"),
-            labels = c("First Litter", "Second Litter")
-          )
+        )
       })
       
       output$PPS_cumFreq <- renderPlot({
         my_cumulative_freq_plot(
           df = MaturationOff_react(),
           color_var = expr(Treatment),
-          linetype_var = expr(Litter_num),
+          linetype_var = expr(Dam_Strain),
           var_to_plot = expr(PreputialSep_age), #as expr()
           phenotype_name = "PPS", #string
           title = TRUE,
           change_xmax = cumFreq_zoomX$zoom(),
           xmax = cumFreq_zoomX$max(),
           xmin = cumFreq_zoomX$min()
-        ) +
-          scale_linetype_manual(
-            breaks = c("1", "2"),
-            values = c("1" = "solid", "2" = "dashed"),
-            labels = c("First Litter", "Second Litter")
-          )
+        )
       })
       
       ### Dot Plots Day -------- 
@@ -277,19 +258,14 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(VO_age), #expr()
           phenotype_name = "VO",
-          shape = expr(Litter_num),
-          colour = expr(Litter_num),
+          shape = expr(Dam_Strain),
+          colour = expr(Dam_Strain),
           width = 0.3,
           change_ymax = dotDay_zoomY$zoom(),
           ymin = dotDay_zoomY$min(),
           ymax = dotDay_zoomY$max(),
           DaysOrMass = "Days"
-        ) 
-        #+
-          # scale_color_discrete(
-          #   breaks = c("1", "2"),
-          #   labels = c("First Litter", "Second Litter")
-          # )
+        )
       })
       
       output$FirstE_dot <- renderPlot({
@@ -297,8 +273,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(Estrus_age), #expr()
           phenotype_name = "First Estrus",
-          shape = expr(Litter_num),
-          colour = expr(Litter_num),
+          shape = expr(Dam_Strain),
+          colour = expr(Dam_Strain),
           width = 0.3,
           change_ymax = dotDay_zoomY$zoom(),
           ymin = dotDay_zoomY$min(),
@@ -312,8 +288,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(PreputialSep_age), #expr()
           phenotype_name = "PPS",
-          shape = expr(Litter_num),
-          colour = expr(Litter_num),
+          shape = expr(Dam_Strain),
+          colour = expr(Dam_Strain),
           width = 0.3,
           change_ymax = dotDay_zoomY$zoom(),
           ymin = dotDay_zoomY$min(),
@@ -330,8 +306,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(VO_mass), #expr()
           phenotype_name = "VO",
-          shape = expr(Litter_num),
-          colour = expr(Litter_num),
+          shape = expr(Dam_Strain),
+          colour = expr(Dam_Strain),
           width = 0.3,
           change_ymax = dotMass_zoomY$zoom(),
           ymin = dotMass_zoomY$min(),
@@ -345,8 +321,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(Estrus_mass), #expr()
           phenotype_name = "First Estrus",
-          shape = expr(Litter_num),
-          colour = expr(Litter_num),
+          shape = expr(Dam_Strain),
+          colour = expr(Dam_Strain),
           width = 0.3,
           change_ymax = dotMass_zoomY$zoom(),
           ymin = dotMass_zoomY$min(),
@@ -360,8 +336,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(PreputialSep_mass), #expr()
           phenotype_name = "PPS",
-          shape = expr(Litter_num),
-          colour = expr(Litter_num),
+          shape = expr(Dam_Strain),
+          colour = expr(Dam_Strain),
           width = 0.3,
           change_ymax = dotMass_zoomY$zoom(),
           ymin = dotMass_zoomY$min(),
