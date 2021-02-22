@@ -89,9 +89,9 @@ load_LBN_data <- function(
     select(
       Dam_ID,
       Dam,
-      Litter_num,
       Dam_cage, 
-      Treatment, 
+      Treatment,
+      Litter_num,
       Dam_Strain,
       Strain,
       ParaType,
@@ -160,9 +160,9 @@ load_LBN_data <- function(
       Treatment,
       Avg_litter_mass_startPara:Mass_P72,
       Dam_ID,
-      Dam:Litter_num,
+      Dam,
       DOB,
-      Dam_Strain:pupLoss
+      Litter_num:pupLoss
     )
   
   #Format Mat Dates as date
@@ -192,8 +192,8 @@ load_LBN_data <- function(
       Mass_P22:Mass_P72,
       Dam_ID,
       DOB,
-      Dam:Litter_num,
-      Dam_Strain:pupLoss
+      Dam,
+      Litter_num:pupLoss
     )
   
   Maturation_off <- Maturation_off %>%
@@ -252,8 +252,8 @@ load_LBN_data <- function(
       Cort_endPara:CRH_endPara,
       Dam_ID,
       DOB,
-      Dam:Litter_num,
-      Dam_Strain:pupLoss
+      Dam,
+      Litter_num:pupLoss
     )
   
   Cycles_off <- LBN_data %>%
@@ -267,7 +267,7 @@ load_LBN_data <- function(
       Cycle_length:Proestrus_days,
       Dam_ID,
       DOB,
-      Dam_Strain:pupLoss
+      Litter_num:pupLoss
     )
   
   AcuteStress_off <- LBN_data %>%
@@ -280,8 +280,8 @@ load_LBN_data <- function(
       Stress_cycle:LH_5.5,
       Dam_ID,
       DOB,
-      Dam:Litter_num,
-      Dam_Strain:pupLoss
+      Dam,
+      Litter_num:pupLoss
     )
   
   ChronicStress_off <- LBN_data %>%
@@ -294,8 +294,8 @@ load_LBN_data <- function(
       Chronic_stress_treatment:Stress_proestrus,
       Dam_ID,
       DOB,
-      Dam:Litter_num,
-      Dam_Strain:pupLoss
+      Dam,
+      Litter_num:pupLoss
     )
   
   
