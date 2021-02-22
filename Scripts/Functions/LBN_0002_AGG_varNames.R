@@ -154,6 +154,8 @@ LBN_varNames_func <- function(
 demoVars_forOff_quo = c(
   "Mouse_ID",
   "Dam_ID",
+  "Dam",
+  "Litter_num",
   "Sex",
   "DOB",
   "Treatment",
@@ -173,6 +175,8 @@ demoVars_forOff_quo = c(
 demoVars_forOff = exprs(
   Mouse_ID,
   Dam_ID,
+  Dam,
+  Litter_num,
   Sex,
   DOB,
   Treatment,
