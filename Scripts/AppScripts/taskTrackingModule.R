@@ -30,7 +30,7 @@ taskTrackingUI <- function(id){
   )
 }
 
-taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH){
+taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH, Off_dates, Off_dates_litter1){
   moduleServer(
     id,
     function(input, output, session) {
@@ -550,6 +550,21 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH){
             }
           }
           
+          for(val in Off_seq(df = Off_dates_litter1)){
+            if(
+              Off_not.na("check_VO", val, df = Off_dates_litter1) &
+              Off_day_greater(Day, "check_VO", val, df = Off_dates_litter1)
+            ){
+              printCat <- Off_tasks_app(
+                paste0(
+                  "Check for ", blueText("vaginal opening"), " of the following mice"
+                ), 
+                val, printCat,
+                df = Off_dates_litter1
+              )
+            }
+          }
+          
           printCat <- printLine_func_app(Count, printCat)
           
           #estrus
@@ -563,6 +578,21 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH){
                   "Check for ", blueText("first estrus"), " for the following mice"
                 ), 
                 val, printCat
+              )
+            }
+          }
+          
+          for(val in Off_seq(df = Off_dates_litter1)){  
+            if(
+              Off_not.na("check_Estrus", val, df = Off_dates_litter1) &
+              Off_day_greater(Day, "check_Estrus", val, df = Off_dates_litter1)
+            ){
+              printCat <- Off_tasks_app(
+                paste0(
+                  "Check for ", blueText("first estrus"), " for the following mice"
+                ), 
+                val, printCat,
+                df = Off_dates_litter1
               )
             }
           }
@@ -584,6 +614,21 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH){
             }
           }
           
+          for(val in Off_seq(df = Off_dates_litter1)){
+            if(
+              Off_not.na("check_PPS", val, df = Off_dates_litter1) &
+              Off_day_greater(Day, "check_PPS", val, df = Off_dates_litter1)
+            ){
+              printCat <- Off_tasks_app(
+                paste0(
+                  "Check for ", blueText("preputial separation"), " for the following mice"
+                ), 
+                val, printCat,
+                df = Off_dates_litter1
+              )
+            }
+          }
+          
           printCat <- printLine_func_app(Count, printCat)
           
           #cycle
@@ -598,6 +643,22 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH){
                   blueText("Cycle"), " the following mice"
                 ), 
                 val, printCat
+              )
+            }
+          }
+          
+          for(val in Off_seq(df = Off_dates_litter1)){
+            if(
+              Off_not.na("start_cycle", val, df = Off_dates_litter1) &
+              Off_day_greater(Day, "start_cycle", val, df = Off_dates_litter1) &
+              Off_day_less(Day, "end_cycle", val, df = Off_dates_litter1)
+            ){
+              printCat <- Off_tasks_app(
+                paste0(
+                  blueText("Cycle"), " the following mice"
+                ), 
+                val, printCat,
+                df = Off_dates_litter1
               )
             }
           }
@@ -623,8 +684,9 @@ taskTableUI <- function(id) {
     h4("CRH Dams"),
     dataTableOutput(ns("damTable_CRH")),
     h3("Offspring Tasks"),
-    dataTableOutput(ns("offspringTable"))
-    
+    dataTableOutput(ns("offspringTable")),
+    h4("Offspring Tasks - Litter 1"),
+    dataTableOutput(ns("offspringTable_litter1"))
   )
 }
 
@@ -633,7 +695,8 @@ taskTableServer <- function(
   Dam_dates,
   Dam_dates_litter1,
   Dam_dates_CRH,
-  Off_dates
+  Off_dates,
+  Off_dates_litter1
 ){
   moduleServer(
     id,
@@ -671,6 +734,14 @@ taskTableServer <- function(
       )
       
       output$offspringTable <- renderDataTable(
+        Off_dates %>% filter(DOB > as.Date("2020-12-01")) %>% arrange(DOB),
+        options = list(
+          scrollX = TRUE,
+          scroller = TRUE,
+          pageLength = 16)
+      )
+      
+      output$offspringTable_litter1 <- renderDataTable(
         Off_dates %>% filter(DOB > as.Date("2020-12-01")) %>% arrange(DOB),
         options = list(
           scrollX = TRUE,
