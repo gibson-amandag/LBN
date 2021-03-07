@@ -70,6 +70,9 @@ load_LBN_data <- function(
   Demo_dam <- Demo_dam %>%
     mutate(pupLoss = Litter_size_startPara - Litter_size_endPara)
   
+  
+    
+  
   #Combine into a single dataframe - to be used for variable names
   LBN_all <- Demo_off %>%
     left_join(Demo_dam, by = "Dam_ID") %>%
@@ -212,34 +215,6 @@ load_LBN_data <- function(
       Mouse_ID:Treatment,
       AGD_wean:PreputialSep_age, 
       VO_day:pupLoss
-    )
-  
-  Maturation_litter1 <- Maturation_litter1 %>%
-    mutate(
-      AGD_wean = (AGD_P22 + AGD_P23 + AGD_P24) / 3,
-      AGD_adult = (AGD_P70 + AGD_P71 + AGD_P72) / 3,
-      Mass_wean = (Mass_P22 + Mass_P23 + Mass_P24) / 3,
-      Mass_adult = (Mass_P70 + Mass_P71 + Mass_P72) / 3,
-      AGD_wean_by_mass = AGD_wean / Mass_wean,
-      AGD_adult_by_mass = AGD_adult / Mass_adult,
-      VO_age = as.numeric(VO_day - DOB), #if don't include as.numeric it will output in days
-      Estrus_age = as.numeric(Estrus_day - DOB),
-      PreputialSep_age = as.numeric(PreputialSep_day - DOB)
-    ) %>%
-    select(
-      Mouse_ID,
-      AGD_wean:PreputialSep_age, 
-      VO_day:Rebreed_date
-    )
-  
-  Litter1_all <- Litter1_all %>%
-    left_join(
-      Maturation_off %>%
-        select(
-          Mouse_ID,
-          AGD_wean:PreputialSep_age
-        ), 
-      by = "Mouse_ID"
     )
   
   EndPara_off <- LBN_data %>%

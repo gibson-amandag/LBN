@@ -54,6 +54,7 @@ Maturation_off_P2 <- Maturation_off %>%
     filter(ParaType == 2)
 Maturation_off_P4 <- Maturation_off %>%
     filter(ParaType == 4)
+Maturation_litter1 <- DFs$Maturation_litter1
 
 EndPara_off <- DFs$EndPara_off
 EndPara_off_P2 <- EndPara_off %>%
@@ -99,6 +100,7 @@ Dam_dates_litter1 <- damDatesFunc_litter1(Dam_litter1)
 Dam_dates_CRH <- damDatesFunc_CRH(Dam_CRH)
 
 Off_dates <<- offDatesFunc(LBN_data)
+Off_dates_litter1 <- offDatesFunc_litter1(Maturation_litter1)
 
 LBN_varNames <<- LBN_varNames_func(LBN_all)
 
@@ -163,7 +165,10 @@ ui <- navbarPage("LBN",
                      "Data",
                      rawDataUI("rawData",
                                Demo_dam,
-                               LBN_data)
+                               LBN_data,
+                               Dam_litter1,
+                               Dam_CRH,
+                               Maturation_litter1)
                  ),
                  
                  ### ANALYSIS P2-P9-------------------------
@@ -334,8 +339,8 @@ server <- function(input, output) {
     })
     
     #### TASK TRACKING HTML TEXT------------------
-    taskTrackingServer("tasks", Dam_dates, Dam_dates_litter1, Dam_dates_CRH)
-    taskTableServer("taskTable", Dam_dates, Dam_dates_litter1, Dam_dates_CRH, Off_dates)
+    taskTrackingServer("tasks", Dam_dates, Dam_dates_litter1, Dam_dates_CRH, Off_dates, Off_dates_litter1)
+    taskTableServer("taskTable", Dam_dates, Dam_dates_litter1, Dam_dates_CRH, Off_dates, Off_dates_litter1)
     
     #### RENDER DATA FRAMES----------------------
     rawDataServer(
@@ -348,7 +353,10 @@ server <- function(input, output) {
         Cycles_off,
         AcuteStress_off,
         ChronicStress_off,
-        LBN_data)
+        LBN_data,
+        Dam_litter1,
+        Dam_CRH,
+        Maturation_litter1)
     
     #### ANALYSIS MODULES ----------------------
     #P2-P9
