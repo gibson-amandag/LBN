@@ -213,39 +213,75 @@ offDatesFunc <- function(
       DOB,
       VO_day,
       Estrus_day,
-      PreputialSep_day
+      PreputialSep_day,
+      Sac_stop_off
     )%>%
     mutate(
       
       #offspring mass dates
-      mass_P22 = DOB + 22,
-      mass_P23 = DOB + 23,
-      mass_P24 = DOB + 24,
-      mass_P28 = DOB + 28,
-      mass_P35 = DOB + 35,
-      mass_P42 = DOB + 42,
-      mass_P49 = DOB + 49,
-      mass_P56 = DOB + 56,
-      mass_P63 = DOB + 63,
-      mass_P70 = DOB + 70,
-      mass_P71 = DOB + 71,
-      mass_P72 = DOB + 72,
+      mass_P22 = ifelse(is.na(Sac_stop_off), DOB + 22, NA),
+      mass_P23 = ifelse(is.na(Sac_stop_off), DOB + 23, NA),
+      mass_P24 = ifelse(is.na(Sac_stop_off), DOB + 24, NA),
+      mass_P28 = ifelse(is.na(Sac_stop_off), DOB + 28, NA),
+      mass_P35 = ifelse(is.na(Sac_stop_off), DOB + 35, NA),
+      mass_P42 = ifelse(is.na(Sac_stop_off), DOB + 42, NA),
+      mass_P49 = ifelse(is.na(Sac_stop_off), DOB + 49, NA),
+      mass_P56 = ifelse(is.na(Sac_stop_off), DOB + 56, NA),
+      mass_P63 = ifelse(is.na(Sac_stop_off), DOB + 63, NA),
+      mass_P70 = ifelse(is.na(Sac_stop_off), DOB + 70, NA),
+      mass_P71 = ifelse(is.na(Sac_stop_off), DOB + 71, NA),
+      mass_P72 = ifelse(is.na(Sac_stop_off), DOB + 72, NA),
       
       #AGD Dates
-      start_AGD = DOB + 22,
-      end_AGD = DOB + 24,
-      adult_AGD_start = DOB + 70,
-      adult_AGD_end = DOB + 72,
+      start_AGD = ifelse(is.na(Sac_stop_off), DOB + 22, NA),
+      end_AGD = ifelse(is.na(Sac_stop_off), DOB + 24, NA),
+      adult_AGD_start = ifelse(is.na(Sac_stop_off), DOB + 70, NA),
+      adult_AGD_end = ifelse(is.na(Sac_stop_off), DOB + 72, NA),
       
       #Females
-      check_VO = ifelse(Sex == "F" & is.na(VO_day), DOB + 21, NA),
-      check_Estrus = ifelse(Sex == "F" & !is.na(VO_day) & is.na(Estrus_day), DOB + 21, NA),
-      start_cycle = ifelse(Sex == "F", DOB + 70, NA),
-      end_cycle = ifelse(Sex == "F", DOB + 90, NA),
+      check_VO = ifelse(Sex == "F" & is.na(VO_day) & is.na(Sac_stop_off), DOB + 21, NA),
+      check_Estrus = ifelse(Sex == "F" & !is.na(VO_day) & is.na(Estrus_day) & is.na(Sac_stop_off), DOB + 21, NA),
+      start_cycle = ifelse(Sex == "F" & is.na(Sac_stop_off), DOB + 70, NA),
+      end_cycle = ifelse(Sex == "F" & is.na(Sac_stop_off), DOB + 90, NA),
       
       #Males
-      check_PPS = ifelse(Sex == "M" & is.na(PreputialSep_day), DOB + 21, NA)
+      check_PPS = ifelse(Sex == "M" & is.na(PreputialSep_day) & is.na(Sac_stop_off), DOB + 21, NA)
       
+    )
+  
+  #Because of the check of sex, it forces these into numerical rep of dates
+  Off_dates$check_VO <- as_date(Off_dates$check_VO)
+  Off_dates$check_Estrus <- as_date(Off_dates$check_Estrus)
+  Off_dates$start_cycle <- as_date(Off_dates$start_cycle)
+  Off_dates$end_cycle <- as_date(Off_dates$end_cycle)
+  Off_dates$check_PPS <- as_date(Off_dates$check_PPS)
+  
+  return(Off_dates)
+}
+
+offDatesFunc_litter1 <- function(
+  df
+)
+{
+  Off_dates <- df %>%
+    select(
+      Mouse_ID,
+      Sex,
+      DOB,
+      VO_day,
+      Estrus_day,
+      PreputialSep_day,
+      Sac_stop_off
+    )%>%
+    mutate(
+      #Females
+      check_VO = ifelse(Sex == "F" & is.na(VO_day) & is.na(Sac_stop_off), DOB + 21, NA),
+      check_Estrus = ifelse(Sex == "F" & !is.na(VO_day) & is.na(Estrus_day) & is.na(Sac_stop_off), DOB + 21, NA),
+      start_cycle = ifelse(Sex == "F" & is.na(Sac_stop_off), DOB + 70, NA),
+      end_cycle = ifelse(Sex == "F" & is.na(Sac_stop_off), DOB + 90, NA),
+      
+      #Males
+      check_PPS = ifelse(Sex == "M" & is.na(PreputialSep_day) & is.na(Sac_stop_off), DOB + 21, NA)
     )
   
   #Because of the check of sex, it forces these into numerical rep of dates
@@ -458,31 +494,31 @@ Dam_is.na <- function(var, val, df = Dam_dates){
 ### Offspring T/F ----------------------------
 
 #Sequence along the Mouse_ID column
-Off_seq <- function(){
-  seq_along(Off_dates$Mouse_ID)
+Off_seq <- function(df = Off_dates){
+  seq_along(df$Mouse_ID)
 }
 
 #Equals Day
-Off_day_equals <- function(Day, var, val){
-  Day == Off_dates[[var]][val]
+Off_day_equals <- function(Day, var, val, df = Off_dates){
+  Day == df[[var]][val]
 }
 
 #Day is greater than or equal to
-Off_day_greater <- function(Day, var, val){
-  Day >= Off_dates[[var]][val]
+Off_day_greater <- function(Day, var, val, df = Off_dates){
+  Day >= df[[var]][val]
 }
 
 #Day is less than or equal to
-Off_day_less <- function(Day, var, val){
-  Day <= Off_dates[[var]][val]
+Off_day_less <- function(Day, var, val, df = Off_dates){
+  Day <= df[[var]][val]
 }
 
 #Not NA
-Off_not.na <- function(var, val){
-  !is.na(Off_dates[[var]][val])
+Off_not.na <- function(var, val, df = Off_dates){
+  !is.na(df[[var]][val])
 }
 
 #Is NA
-Off_is.na <- function(var, val){
-  is.na(Off_dates[[var]][val])
+Off_is.na <- function(var, val, df = Off_dates){
+  is.na(df[[var]][val])
 }
