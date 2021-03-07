@@ -64,7 +64,7 @@ acuteStressUI <- function(id,
     zoomAxisUI(ns("zoom_y"), "y"),
     
     #plot dam mass
-    #plotOutput(ns("Plot"), height = "600px"),
+    plotOutput(ns("Plot"), height = "600px"),
     
     h3("Summary Table"),
     
@@ -102,30 +102,30 @@ acuteStressServer <- function(
       
       zoom_y <- zoomAxisServer("zoom_y", "y", minVal = 0, maxVal = 15)
       
-      # output$Plot <- renderPlot({
-      #   #needs to be before the averaging by litter
-      #   if(input$WhichSex == "M"){
-      #     AcuteStress_off <- AcuteStress_off %>%
-      #       filter(Sex == "M")
-      #   }else if(input$WhichSex == "F"){
-      #     AcuteStress_off <- AcuteStress_off %>%
-      #       filter(Sex == "F")
-      #   }
-      #   
-      #   if(input$By_dam == FALSE){
-      #    ###make long
-      #   }
-      #   
-      #   if(input$By_dam == TRUE){
-      #     AcuteStress_off_long <- AcuteStress_off %>%
-      #       getAvgByDam(Demo_dam) #%>%
-      #       ###make long
-      #   }
-      #   
-      #   AcuteStress_off_react <- filteringDFServer("ALPS_filter", AcuteStress_off_long)
-      #   
-      #   ###Plot Here
-      # })
+      output$Plot <- renderPlot({
+        #needs to be before the averaging by litter
+        if(input$WhichSex == "M"){
+          AcuteStress_off <- AcuteStress_off %>%
+            filter(Sex == "M")
+        }else if(input$WhichSex == "F"){
+          AcuteStress_off <- AcuteStress_off %>%
+            filter(Sex == "F")
+        }
+
+        if(input$By_dam == FALSE){
+         AcuteStress_off_long <- makeCortLong(AcuteStress_off)
+        }
+
+        if(input$By_dam == TRUE){
+          AcuteStress_off_long <- AcuteStress_off %>%
+            getAvgByDam(Demo_dam) %>%
+            makeCortLong()
+        }
+
+        AcuteStress_off_long_react <- filteringDFServer("ALPS_filter", AcuteStress_off_long)
+
+        stress_interaction_plot(AcuteStress_off_long_react(), Cort, "Cort (ng/mL)")
+      })
       
       ALPSSum <- summaryTableServer("ALPSSum", reactive(AcuteStress_off))
       
