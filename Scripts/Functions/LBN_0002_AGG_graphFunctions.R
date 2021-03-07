@@ -138,6 +138,20 @@ add_Day_col <- function(df){
   return(df)
 }
 
+makeCortLong <- function (df) {
+  df_long <- df %>%
+    gather(key = "Time", value = "Cort", c(Cort_pre, Cort_post), factor_key = TRUE)
+  
+  df_long <- df_long %>%
+    mutate(
+      Time_hr = case_when(
+        Time == "Cort_pre" ~ 0,
+        Time == "Cort_post" ~ 5
+        )
+      )
+  
+  return(df_long)
+}
 
 
 ### MY GEOMS -----------------------------------------------------------------------------------------------
@@ -485,6 +499,30 @@ cyclesPlotFunc <- function(df){
     scale_x_continuous(
       breaks = seq(1, 21, 3) #labels every third integer
     )
+}
+
+#depending on number trying to plot, can add "aes(shape = Mouse_ID)" to geom_point
+stress_interaction_plot = function(data, var_to_plot, ytitle = NULL, title = NULL){
+  var_to_plot = enquo(var_to_plot)
+  viz = data %>%
+    ggplot(aes(Time_hr, !! var_to_plot, color = Treatment, group = interaction(Treatment, Stress_treatment))) +
+    geom_line(alpha = .4, aes(linetype = Stress_treatment, group = Mouse_ID)) +
+    stat_summary(fun = mean, geom = "line", aes(linetype = Stress_treatment), size = 1) +
+    stat_summary(fun = mean, geom = "point",  shape = 18, size = 3) +
+    stat_summary(geom = "errorbar", fun.data = mean_se, size = .7, width = .3)+
+    expand_limits(y = -0.5)+ #set y axis to just before 0
+    labs(x = "Experimental Time (hr)")+
+    my_theme
+
+  if(is.null(ytitle)){
+    viz = viz
+  }else{viz = viz + labs(y = ytitle)}
+
+  if(is.null(title)){
+    viz = viz
+  }else{viz = viz + labs(title = title)}
+
+  return(viz)
 }
 
 
