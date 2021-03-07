@@ -29,6 +29,7 @@ library(ggfortify)
 library(openxlsx)
 library(lubridate)
 library(shiny)
+library(ggrepel)
 ```
 # Set up
 Set-up the notebook. This script loads the environment, and contains the names for the data file, and sources the additional scripts that will be used for the analysis.
@@ -397,6 +398,46 @@ Cycles_off_long %>%
 Cycles_off_long %>%
   filter(Treatment == "LBN") %>%
   cyclesPlotFunc()
+```
+
+```{r Acute Stress Plot}
+#Use gather to make this a long form table to plot. One column for cort, and another that tells whether it was pre or post
+Acute_stress_long_form <- makeCortLong(AcuteStress_off)
+
+Acute_stress_long_form <- Acute_stress_long_form %>%
+  filter(Sex == "M")
+
+AcuteStress_off
+
+Acute_stress_plot = stress_interaction_plot(Acute_stress_long_form, Cort, "Cort (ng/mL)")
+Acute_stress_plot
+
+```
+```{r}
+Demo_dam %>%
+  filter(! is.na(Nest_entries_block1)) %>%
+  ggplot(aes(x = Nest_entries_block1, y = Perc_on_nest_block1, color = Treatment))+
+  geom_point(alpha = 0.7) +
+  geom_label_repel(aes(label = Dam_ID), show.legend = FALSE) + 
+  # geom_text(
+  #   aes(label = Dam_ID), 
+  #   nudge_x = 5,
+  #   nudge_y = 10,
+  #   show.legend = FALSE
+  #   ) +
+  my_theme +
+  expand_limits(y = 0) +
+  labs(y = "% on Nest", x = "# of Nest Entries", title = "17:00-18:00 on P5")
+
+Demo_dam %>%
+  filter(! is.na(Nest_entries_block2)) %>%
+  ggplot(aes(x = Nest_entries_block2, y = Perc_on_nest_block2, color = Treatment))+
+  geom_point(alpha = 0.7) +
+  geom_label_repel(aes(label = Dam_ID),  show.legend = FALSE) + 
+  # geom_label(aes(label = Dam_ID)) +
+  my_theme +
+  expand_limits(y = 0) +
+  labs(y = "% on Nest", x = "# of Nest Entries", title = "03:00-04:00 on P6")
 ```
 
 # Write Dataframes to Workbooks
