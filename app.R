@@ -274,7 +274,7 @@ ui <- navbarPage("LBN",
                          ),
                          ### Offspring Maturation ----
                          tabPanel("Offspring Maturation",
-                                  maturationOffUI("maturationOff", Maturation_off_P4)
+                                  maturationOffUI("maturationOff", Maturation_off_P4, Maturation_litter1)
                          ),
 
                          ### Offspring Corticosterone ----
@@ -374,7 +374,7 @@ server <- function(input, output) {
     pupLossServer("pupLoss", Demo_dam_P4)
     damCortServer("damCort", Demo_dam_P4)
     massOffServer("massOff", Mass_off_P4, Demo_dam_P4)
-    maturationOffServer("maturationOff", Maturation_off_P4)
+    maturationOffServer("maturationOff", Maturation_off_P4, Maturation_litter1)
     acuteStressServer("acuteStress", AcuteStress_off_P4, Demo_dam_P4)
     cyclesServer("cycles", Cycles_off_P4)
     

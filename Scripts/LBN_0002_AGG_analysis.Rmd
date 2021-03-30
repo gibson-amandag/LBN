@@ -145,6 +145,104 @@ Dam_dates
 Off_dates
 ```
 
+```{r}
+mat_plot_lines_litterNum = function(
+  df,
+  matVar = expr(VO_age)
+)
+{
+  ggplot(
+    df, 
+    aes(
+      x = Litter_size, y = !! matVar, color = Treatment, shape = Litter_num, 
+      group = interaction(Treatment, Litter_num)
+    )
+  ) +
+    geom_jitter(
+      size = 3, 
+      alpha = .6, 
+      position = "dodge"
+      )+
+    stat_summary(geom = "errorbar", fun.data = mean_se, position = "dodge", width = 0.15) +
+    stat_summary(geom = "point", color = "red", size = 2, fun = mean) +
+    coord_cartesian(ylim = c(0, NA)) +
+    scale_colour_manual(
+      values = c("gray 5", "gray 75", "gray 40"), 
+      breaks = c("1", "2", "undisturbed"),
+      labels = c("First Litter", "Second Litter", "Undisturbed")
+    ) +
+    scale_shape_discrete(
+      breaks = c("1", "2", "undisturbed"),
+      labels = c("First Litter", "Second Litter", "Undisturbed")
+    ) +
+    my_theme
+    
+}
+
+Maturation_litter1_forBinding <- Maturation_litter1 %>%
+  select(
+    Mouse_ID,
+    VO_mass,
+    VO_age,
+    Estrus_mass,
+    Estrus_age,
+    PreputialSep_mass,
+    PreputialSep_age,
+    Sex,
+    Litter_num,
+    Treatment,
+    DOB,
+    Litter_size_wean
+  )
+
+Maturation_litter1_forBinding <- Maturation_litter1_forBinding %>%
+  mutate(
+    Litter_size = Litter_size_wean
+  )
+
+Maturation_off <- Maturation_off %>%
+  mutate(
+    Litter_size = Litter_size_endPara
+  )
+
+Maturation_off1 <- Maturation_off %>% full_join(Maturation_litter1_forBinding)
+
+Maturation_off1 %>%
+  ggplot(aes(
+    x = Litter_size, y = VO_age, 
+    color = Treatment,
+    shape = Litter_num
+    )
+  ) +
+  geom_point(
+    alpha = 0.6,
+    position = position_jitterdodge(jitter.width = .2)
+    )+
+  coord_cartesian(ylim = c(0, NA)) +
+  scale_colour_manual(
+    values = c("gray 20", "gray 70"),
+    breaks = c("Control", "LBN")
+  ) +
+  scale_shape_discrete(
+    breaks = c("1", "2", "undisturbed"),
+    labels = c("First Litter", "Second Litter", "Undisturbed")
+  ) +
+  stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
+  my_theme +
+  guides(color = FALSE) + 
+  scale_linetype_discrete(
+    breaks = c("Control.1", "LBN.1", "Control.undisturbed"),
+    labels = c("Control - Litter 1", "LBN - Litter 1", "Control - undisturbed")
+  )+
+  theme(legend.position="bottom",
+        legend.box="vertical", 
+        legend.margin=margin()
+        )
+
+Maturation_off1
+```
+
+
 ## Write the dates dataframes to an excel file
 This chunk creates a workbook and writes the Dam_dates and Off_dates dataframes to separate sheets. It also adds conditional formating that highlights when tasks should be completed relative to today's date.
 ```{r to Excel-File, include=FALSE}

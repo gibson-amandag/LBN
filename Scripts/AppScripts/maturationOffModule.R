@@ -4,7 +4,8 @@
 
 maturationOffUI <- function(
   id,
-  Maturation_off
+  Maturation_off,
+  Maturation_litter1
 ){
   ns <- NS(id)
   tagList(
@@ -12,6 +13,12 @@ maturationOffUI <- function(
     h3("Offspring Maturation"),
     
     filteringDFUI(ns("MaturationOff_filter")),
+    
+    # checkboxInput(
+    #   ns("undisturbedFirstLitter"),
+    #   label = "Plot undisturbed first litters",
+    #   value = FALSE
+    # ),
     
     tabsetPanel(
       tabPanel(
@@ -191,8 +198,15 @@ maturationOffUI <- function(
         
         verbatimTextOutput(ns("PPS_tTest"))
         
-      ) #End PPS summary
+      ), #End PPS summary
       
+      tabPanel(
+        "Litter Size",
+        
+        plotOutput(ns("LitterSizeVO")),
+        plotOutput(ns("LitterSizeFirstE")),
+        plotOutput(ns("LitterSizePPS"))
+      )
     ) #end tabsetPanel
     
   )
@@ -201,16 +215,61 @@ maturationOffUI <- function(
 
 maturationOffServer <- function(
   id,
-  Maturation_off
+  Maturation_off,
+  Maturation_litter1
 ){
   moduleServer(
     id,
     function(input, output, session) {
       
+      Maturation_litter1_forBinding <- Maturation_litter1 %>%
+        select(
+          Mouse_ID,
+          VO_mass,
+          VO_age,
+          Estrus_mass,
+          Estrus_age,
+          PreputialSep_mass,
+          PreputialSep_age,
+          Sex,
+          Litter_num,
+          Treatment,
+          DOB,
+          Litter_size_wean
+        )
+      
+      Maturation_litter1_forBinding <- Maturation_litter1_forBinding %>%
+        mutate(
+          Litter_size = Litter_size_wean
+        )
+      
+      Maturation_off <- Maturation_off %>%
+        mutate(
+          Litter_size = Litter_size_endPara
+        )
+      
+      Maturation_off <- Maturation_off %>% full_join(Maturation_litter1_forBinding)
+      
       MaturationOff_react <- filteringDFServer("MaturationOff_filter", Maturation_off)
+      
+      # MaturationOff_react <- reactive({
+      #   if(input$undisturbedFirstLitter){
+      #     df1 <- Maturation_off %>% full_join(Maturation_litter1_forBinding)
+      #     df <- filteringDFServer("MaturationOff_filter", df1)
+      #   } else {
+      #     df <- filteringDFServer("MaturationOff_filter", Maturation_off)
+      #   }
+      #   return (df())
+      # })
       
       ### Cumulative Frequency Plots --------
       cumFreq_zoomX <- zoomAxisServer("cumFreq_zoomX", "x", minVal = 21, maxVal = 50)
+      
+      lineSchemes <- scale_linetype_manual(
+        breaks = c("1", "2", "undisturbed"),
+        values = c("1" = "solid", "2" = "dashed", "undisturbed" = "twodash"),
+        labels = c("First Litter", "Second Litter", "Undisturbed")
+      )
       
       output$VO_cumFreq <- renderPlot({
         my_cumulative_freq_plot(
@@ -223,12 +282,7 @@ maturationOffServer <- function(
           change_xmax = cumFreq_zoomX$zoom(),
           xmax = cumFreq_zoomX$max(),
           xmin = cumFreq_zoomX$min()
-        ) +
-          scale_linetype_manual(
-            breaks = c("1", "2"),
-            values = c("1" = "solid", "2" = "dashed"),
-            labels = c("First Litter", "Second Litter")
-          )
+        ) + lineSchemes
       })
       
       output$FirstE_cumFreq <- renderPlot({
@@ -242,12 +296,7 @@ maturationOffServer <- function(
           change_xmax = cumFreq_zoomX$zoom(),
           xmax = cumFreq_zoomX$max(),
           xmin = cumFreq_zoomX$min()
-        )+
-          scale_linetype_manual(
-            breaks = c("1", "2"),
-            values = c("1" = "solid", "2" = "dashed"),
-            labels = c("First Litter", "Second Litter")
-          )
+        ) + lineSchemes
       })
       
       output$PPS_cumFreq <- renderPlot({
@@ -261,12 +310,7 @@ maturationOffServer <- function(
           change_xmax = cumFreq_zoomX$zoom(),
           xmax = cumFreq_zoomX$max(),
           xmin = cumFreq_zoomX$min()
-        ) +
-          scale_linetype_manual(
-            breaks = c("1", "2"),
-            values = c("1" = "solid", "2" = "dashed"),
-            labels = c("First Litter", "Second Litter")
-          )
+        ) + lineSchemes
       })
       
       ### Dot Plots Day -------- 
@@ -368,6 +412,114 @@ maturationOffServer <- function(
           ymax = dotMass_zoomY$max(),
           DaysOrMass = "Mass"
         )
+      })
+      
+      output$LitterSizeVO <- renderPlot({
+        MaturationOff_react() %>%
+        ggplot(aes(
+          x = Litter_size, y = VO_age, 
+          color = Treatment,
+          shape = Litter_num
+        )
+        ) +
+          geom_jitter(
+            alpha = 0.6,
+            width = 0.2,
+            size = 2
+            # position = position_jitterdodge(jitter.width = .2)
+          )+
+          coord_cartesian(ylim = c(0, NA)) +
+          scale_colour_manual(
+            values = c("gray 20", "gray 70"),
+            breaks = c("Control", "LBN")
+          ) +
+          scale_shape_discrete(
+            breaks = c("1", "2", "undisturbed"),
+            labels = c("First Litter", "Second Litter", "Undisturbed")
+          ) +
+          stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
+          my_theme +
+          guides(color = FALSE) + 
+          scale_linetype_discrete(
+            breaks = c("Control.1", "LBN.1", "Control.undisturbed"),
+            labels = c("Control - Litter 1", "LBN - Litter 1", "Control - undisturbed")
+          )+
+          theme(legend.position="bottom",
+                legend.box="vertical", 
+                legend.margin=margin()
+          )
+      })
+      
+      output$LitterSizeFirstE <- renderPlot({
+        MaturationOff_react() %>%
+          ggplot(aes(
+            x = Litter_size, y = Estrus_age, 
+            color = Treatment,
+            shape = Litter_num
+          )
+          ) +
+          geom_jitter(
+            alpha = 0.6,
+            width = 0.2,
+            size = 2
+            # position = position_jitterdodge(jitter.width = .2)
+          )+
+          coord_cartesian(ylim = c(0, NA)) +
+          scale_colour_manual(
+            values = c("gray 20", "gray 70"),
+            breaks = c("Control", "LBN")
+          ) +
+          scale_shape_discrete(
+            breaks = c("1", "2", "undisturbed"),
+            labels = c("First Litter", "Second Litter", "Undisturbed")
+          ) +
+          stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
+          my_theme +
+          guides(color = FALSE) + 
+          scale_linetype_discrete(
+            breaks = c("Control.1", "LBN.1", "Control.undisturbed"),
+            labels = c("Control - Litter 1", "LBN - Litter 1", "Control - undisturbed")
+          )+
+          theme(legend.position="bottom",
+                legend.box="vertical", 
+                legend.margin=margin()
+          )
+      })
+      
+      output$LitterSizePPS <- renderPlot({
+        MaturationOff_react() %>%
+          ggplot(aes(
+            x = Litter_size, y = PreputialSep_age, 
+            color = Treatment,
+            shape = Litter_num
+          )
+          ) +
+          geom_jitter(
+            alpha = 0.6,
+            width = 0.2,
+            size = 2
+            # position = position_jitterdodge(jitter.width = .2)
+          )+
+          coord_cartesian(ylim = c(0, NA)) +
+          scale_colour_manual(
+            values = c("gray 20", "gray 70"),
+            breaks = c("Control", "LBN")
+          ) +
+          scale_shape_discrete(
+            breaks = c("1", "2", "undisturbed"),
+            labels = c("First Litter", "Second Litter", "Undisturbed")
+          ) +
+          stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
+          my_theme +
+          guides(color = FALSE) + 
+          scale_linetype_discrete(
+            breaks = c("Control.1", "LBN.1", "Control.undisturbed"),
+            labels = c("Control - Litter 1", "LBN - Litter 1", "Control - undisturbed")
+          )+
+          theme(legend.position="bottom",
+                legend.box="vertical", 
+                legend.margin=margin()
+          )
       })
       
       ### AGD Summary -----

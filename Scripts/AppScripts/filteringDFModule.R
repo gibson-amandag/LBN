@@ -43,6 +43,14 @@ filteringDFUI <- function(id){
           c("Both", "First" = 1, "Second" = 2),
           selected = "Both"
         )
+      ),
+      column(
+        4,
+        checkboxInput(
+          ns("undisturbedFirstLitter"),
+          label = "Plot undisturbed first litters",
+          value = FALSE
+        )
       )
     )
     
@@ -80,13 +88,18 @@ filteringDFServer <- function(id,
         #     filter(Dam_Strain == "CBA")
         # }
         
+        if(!input$undisturbedFirstLitter){
+          df <- df %>%
+            filter(Litter_num != "undisturbed")
+        }
+        
         #Filter for Litter Number
         if(input$LitterNum == 1){
           df <- df %>%
-            filter(Litter_num == 1)
+            filter(Litter_num != "2")
         } else if(input$LitterNum == 2){
           df <- df %>%
-            filter(Litter_num == 2)
+            filter(Litter_num != "1")
         }
         return(df)
       })

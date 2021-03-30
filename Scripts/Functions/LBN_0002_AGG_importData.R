@@ -138,7 +138,11 @@ load_LBN_data <- function(
   
   #Add the dam demo info to litter 1 maturation table
   Maturation_litter1 <- Maturation_litter1 %>%
-    left_join(Dam_litter1_for_offspring, by = "Dam_ID")
+    left_join(Dam_litter1_for_offspring, by = "Dam_ID") %>%
+    mutate(
+      Litter_num = "undisturbed",
+      Treatment = "Control"
+    )
   
   
   #Combine all of the data into a single dataframe. Will add NAs where there isn't data

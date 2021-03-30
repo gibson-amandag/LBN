@@ -98,7 +98,7 @@ reshapeForMassPlot_dams <- function(df){
 ### CYCLES DATA PREPARATION -------------------------------------------------------------------------------
 make_cycles_long <- function(df){
   df %>%
-    drop_na(Day1:Day21) %>%
+    # drop_na(Day1:Day21) %>%
     gather(
       key = "DayNum",
       value = "Stage",
@@ -294,14 +294,14 @@ my_puberty_dot_geoms <- function(
     my_theme,
     if(colour == expr(Litter_num))
       scale_colour_manual(
-        values = c("gray 20", "gray 70"), 
-        breaks = c("1", "2"),
-        labels = c("First Litter", "Second Litter")
+        values = c("gray 5", "gray 75", "gray 40"), 
+        breaks = c("1", "2", "undisturbed"),
+        labels = c("First Litter", "Second Litter", "Undisturbed")
       ),
     if(shape == expr(Litter_num))
       scale_shape_discrete(
-        breaks = c("1", "2"),
-        labels = c("First Litter", "Second Litter")
+        breaks = c("1", "2", "undisturbed"),
+        labels = c("First Litter", "Second Litter", "Undisturbed")
       ),
     if(colour != expr(Litter_num))
       scale_colour_manual(
@@ -413,6 +413,43 @@ mass_plot_lines_litterNum = function(
       values = c("1" = "solid", "2" = "dashed"),
       labels = c("First Litter", "Second Litter")
     )
+}
+
+mat_plot_lines_litterNum = function(
+  df,
+  matVar = expr(VO_age)
+)
+{
+  ggplot(
+    df, 
+    aes(
+      x = Litter_size, y = !! matVar, color = Treatment, shape = Litter_num, 
+      group = interaction(Treatment, Litter_num)
+    )
+  ) +
+    geom_point(
+      size = 3, 
+      alpha = .6, 
+      position = position_jitterdodge(
+        jitter.width = NULL,
+        jitter.height = 0,
+        dodge.width = 0.75
+        )
+      )+
+    stat_summary(geom = "errorbar", fun.data = mean_se, position = "dodge", width = 0.15) +
+    stat_summary(geom = "point", color = "red", size = 2, fun = mean) +
+    coord_cartesian(ylim = c(0, NA)) +
+    scale_colour_manual(
+      values = c("gray 5", "gray 75", "gray 40"), 
+      breaks = c("1", "2", "undisturbed"),
+      labels = c("First Litter", "Second Litter", "Undisturbed")
+    ) +
+    scale_shape_discrete(
+      breaks = c("1", "2", "undisturbed"),
+      labels = c("First Litter", "Second Litter", "Undisturbed")
+    ) +
+    my_theme
+    
 }
 
 
