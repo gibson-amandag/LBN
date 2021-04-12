@@ -371,7 +371,7 @@ server <- function(input, output) {
     
     #P4-P11
     massDamServer("massDam", Demo_dam_P4)
-    pupLossServer("pupLoss", Demo_dam_P4)
+    pupLossServer("pupLoss", Demo_dam_P4, Dam_litter1)
     damCortServer("damCort", Demo_dam_P4)
     massOffServer("massOff", Mass_off_P4, Demo_dam_P4)
     maturationOffServer("maturationOff", Maturation_off_P4, Maturation_litter1)

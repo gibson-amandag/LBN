@@ -90,6 +90,11 @@ massOffUI <- function(
         "Treatment",
         "Dam_Strain"
       )
+    ),
+    
+    plotOutput(
+      ns("litterSizeMass"),
+      height = "600px"
     )
     
   )
@@ -151,7 +156,42 @@ massOffServer <- function(
       
       massOffSum <- summaryTableServer("massOffSum", Mass_off_sum_react)
       
-      
+      output$litterSizeMass <- renderPlot({
+        Mass_off %>%
+          ggplot(aes(
+            x = Litter_size_endPara, y = Mass_P21, 
+            color = Treatment,
+            shape = Litter_num
+          )
+          ) +
+          geom_jitter(
+            alpha = 0.6,
+            width = 0.2,
+            size = 2
+            # position = position_jitterdodge(jitter.width = .2)
+          )+
+          coord_cartesian(ylim = c(0, NA)) +
+          scale_colour_manual(
+            values = c("gray 20", "gray 70"),
+            breaks = c("Control", "LBN")
+          ) +
+          scale_shape_discrete(
+            breaks = c("1", "2", "undisturbed"),
+            labels = c("First Litter", "Second Litter", "Undisturbed")
+          ) +
+          stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
+          my_theme +
+          guides(color = FALSE) + 
+          scale_linetype_discrete(
+            breaks = c("Control.1", "LBN.1", "Control.undisturbed", "Control.2"),
+            labels = c("Control - Litter 1", "LBN - Litter 1", "Control - undisturbed", "Control - Litter 2")
+          )+
+          theme(legend.position="bottom",
+                legend.box="vertical", 
+                legend.margin=margin()
+          ) +
+          labs(x = "Litter Size", y = "Mass (g) at P21")
+      })
     }
   )
 }

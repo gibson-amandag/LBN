@@ -242,6 +242,65 @@ Maturation_off1 %>%
 Maturation_off1
 ```
 
+```{r}
+ggplot(
+  Dam_litter1 %>%
+    filter(!is.na(Litter_size_wean)), 
+  aes(x = Litter_size_wean, fill = "#F8766D")
+  )+
+  geom_histogram(binwidth = 1, color = "white") +
+  my_theme + 
+  scale_x_continuous(
+    breaks = seq(1, 8, by = 1)
+  ) + 
+  scale_y_continuous(
+    breaks = seq(1, 4, by = 1)
+  ) +
+  guides(color = FALSE, fill = FALSE) +
+  labs(x = "Litter Size", y = "# of Litters")
+
+ggplot(
+  Demo_dam %>% 
+    filter(Litter_num == 1) %>% 
+    filter(DOB > as.Date("2020-12-01")) %>%
+    filter(!is.na(Litter_size_startPara)), 
+  aes(
+    x = Litter_size_startPara,
+    fill = Treatment
+    )
+  )+
+  geom_histogram(position = "dodge", binwidth = 1, color = "white") +
+  my_theme + 
+  scale_x_continuous(
+    breaks = seq(1, 8, by = 1)
+  )+ 
+  scale_y_continuous(
+    breaks = seq(1, 4, by = 1)
+  ) +
+  guides(color = FALSE) +
+  labs(x = "Litter Size", y = "# of Litters")
+
+ggplot(
+  Demo_dam %>% 
+    filter(Litter_num == 2) %>%
+    filter(!is.na(Litter_size_startPara)), 
+  aes(
+    x = Litter_size_startPara,
+    fill = Treatment
+    )
+  )+
+  geom_histogram(position = "dodge", binwidth = 1, color = "white") +
+  my_theme+ 
+  scale_x_continuous(
+    breaks = seq(1, 8, by = 1)
+  )+ 
+  scale_y_continuous(
+    breaks = seq(1, 4, by = 1)
+  ) +
+  guides(color = FALSE) +
+  labs(x = "Litter Size", y = "# of Litters")
+```
+
 
 ## Write the dates dataframes to an excel file
 This chunk creates a workbook and writes the Dam_dates and Off_dates dataframes to separate sheets. It also adds conditional formating that highlights when tasks should be completed relative to today's date.
@@ -525,7 +584,7 @@ Demo_dam %>%
   #   ) +
   my_theme +
   expand_limits(y = 0) +
-  labs(y = "% on Nest", x = "# of Nest Entries", title = "17:00-18:00 on P5")
+  labs(y = "% on Nest", x = "# of Nest Entries", title = "Lights Off on P5")
 
 Demo_dam %>%
   filter(! is.na(Nest_entries_block2)) %>%
@@ -535,7 +594,7 @@ Demo_dam %>%
   # geom_label(aes(label = Dam_ID)) +
   my_theme +
   expand_limits(y = 0) +
-  labs(y = "% on Nest", x = "# of Nest Entries", title = "03:00-04:00 on P6")
+  labs(y = "% on Nest", x = "# of Nest Entries", title = "Lights On on P6")
 ```
 
 # Write Dataframes to Workbooks
