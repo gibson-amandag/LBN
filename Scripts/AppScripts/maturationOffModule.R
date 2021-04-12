@@ -150,7 +150,8 @@ maturationOffUI <- function(
           selected_group = c("Treatment")
         ),
         
-        verbatimTextOutput(ns("VO_tTest"))
+        verbatimTextOutput(ns("VO_tTest")),
+        verbatimTextOutput(ns("VO_mass_tTest")),
         
       ), #End VO summary
       
@@ -173,7 +174,8 @@ maturationOffUI <- function(
           selected_group = c("Treatment")
         ),
         
-        verbatimTextOutput(ns("Estrus_tTest"))
+        verbatimTextOutput(ns("Estrus_tTest")),
+        verbatimTextOutput(ns("Estrus_mass_tTest")),
         
       ), #End estrus summary
       
@@ -196,7 +198,8 @@ maturationOffUI <- function(
           selected_group = c("Treatment")
         ),
         
-        verbatimTextOutput(ns("PPS_tTest"))
+        verbatimTextOutput(ns("PPS_tTest")),
+        verbatimTextOutput(ns("PPS_mass_tTest")),
         
       ), #End PPS summary
       
@@ -541,14 +544,25 @@ maturationOffServer <- function(
         t.test(VO_age ~ Treatment, MaturationOff_react())
       })
       
+      output$VO_mass_tTest <- renderPrint({
+        t.test(VO_mass ~ Treatment, MaturationOff_react())
+      })
+      
       output$Estrus_tTest <- renderPrint({
         t.test(Estrus_age ~ Treatment, MaturationOff_react()) 
+      })
+      
+      output$Estrus_mass_tTest <- renderPrint({
+        t.test(Estrus_mass ~ Treatment, MaturationOff_react()) 
       })
       
       output$PPS_tTest <- renderPrint({
         t.test(PreputialSep_age ~ Treatment, MaturationOff_react())
       })
       
+      output$PPS_mass_tTest <- renderPrint({
+        t.test(PreputialSep_mass ~ Treatment, MaturationOff_react())
+      })
     }
   )
 }

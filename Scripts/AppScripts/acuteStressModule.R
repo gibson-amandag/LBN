@@ -124,7 +124,7 @@ acuteStressServer <- function(
 
         AcuteStress_off_long_react <- filteringDFServer("ALPS_filter", AcuteStress_off_long)
 
-        stress_interaction_plot(AcuteStress_off_long_react(), Cort, "Cort (ng/mL)")
+        stress_interaction_plot(AcuteStress_off_long_react(), Cort, "Cort (ng/mL)", plotMean = input$Mean_lines)
       })
       
       ALPSSum <- summaryTableServer("ALPSSum", reactive(AcuteStress_off))

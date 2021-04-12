@@ -539,17 +539,21 @@ cyclesPlotFunc <- function(df){
 }
 
 #depending on number trying to plot, can add "aes(shape = Mouse_ID)" to geom_point
-stress_interaction_plot = function(data, var_to_plot, ytitle = NULL, title = NULL){
+stress_interaction_plot = function(data, var_to_plot, ytitle = NULL, title = NULL, plotMean = TRUE){
   var_to_plot = enquo(var_to_plot)
   viz = data %>%
     ggplot(aes(Time_hr, !! var_to_plot, color = Treatment, group = interaction(Treatment, Stress_treatment))) +
     geom_line(alpha = .4, aes(linetype = Stress_treatment, group = Mouse_ID)) +
-    stat_summary(fun = mean, geom = "line", aes(linetype = Stress_treatment), size = 1) +
-    stat_summary(fun = mean, geom = "point",  shape = 18, size = 3) +
-    stat_summary(geom = "errorbar", fun.data = mean_se, size = .7, width = .3)+
     expand_limits(y = -0.5)+ #set y axis to just before 0
     labs(x = "Experimental Time (hr)")+
     my_theme
+  
+  if(plotMean == TRUE){
+    viz = viz + 
+      stat_summary(fun = mean, geom = "line", aes(linetype = Stress_treatment), size = 1) +
+      stat_summary(fun = mean, geom = "point",  shape = 18, size = 3) +
+      stat_summary(geom = "errorbar", fun.data = mean_se, size = .7, width = .3)
+  }
 
   if(is.null(ytitle)){
     viz = viz
