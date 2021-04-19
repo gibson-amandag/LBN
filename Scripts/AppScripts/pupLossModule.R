@@ -73,11 +73,16 @@ pupLossServer <- function(
             filter(DOB < as.Date("2021-03-04")), 
           aes(x = Litter_size_wean, fill = "#F8766D")
         )+
-          geom_histogram(binwidth = 1, color = "white") +
+          geom_bar(
+            position = position_dodge2(preserve = "single"),
+            # binwidth = 1,
+            width = 0.9,
+            color = "white"
+          ) +
           my_theme + 
           scale_x_continuous(
             breaks = seq(1, 8, by = 1)
-          ) + 
+          ) +
           scale_y_continuous(
             breaks = seq(1, 4, by = 1)
           ) +
@@ -92,11 +97,16 @@ pupLossServer <- function(
             filter(DOB > as.Date("2021-03-03")), 
           aes(x = Litter_size_startPara, fill = "#F8766D")
         )+
-          geom_histogram(binwidth = 1, color = "white") +
+          geom_bar(
+            position = position_dodge2(preserve = "single"),
+            # binwidth = 1, 
+            width = 0.9,
+            color = "white"
+          ) +
           my_theme + 
           scale_x_continuous(
             breaks = seq(1, 8, by = 1)
-          ) + 
+          ) +
           scale_y_continuous(
             breaks = seq(1, 4, by = 1)
           ) +
@@ -115,11 +125,16 @@ pupLossServer <- function(
             fill = Treatment
           )
         )+
-          geom_histogram(position = "dodge", binwidth = 1, color = "white") +
+          geom_bar(
+            position = position_dodge2(preserve = "single"),
+            # binwidth = 1, 
+            width = 0.9,
+            color = "white"
+            ) +
           my_theme + 
           scale_x_continuous(
             breaks = seq(1, 8, by = 1)
-          )+ 
+          )+
           scale_y_continuous(
             breaks = seq(1, 4, by = 1)
           ) +
@@ -137,11 +152,16 @@ pupLossServer <- function(
             fill = Treatment
           )
         )+
-          geom_histogram(position = "dodge", binwidth = 1, color = "white") +
-          my_theme+ 
+          geom_bar(
+            position = position_dodge2(preserve = "single"),
+            # binwidth = 1,
+            width = 0.9,
+            color = "white"
+          ) +
+          my_theme + 
           scale_x_continuous(
             breaks = seq(1, 8, by = 1)
-          )+ 
+          )+
           scale_y_continuous(
             breaks = seq(1, 4, by = 1)
           ) +

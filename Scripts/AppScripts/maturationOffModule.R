@@ -209,6 +209,14 @@ maturationOffUI <- function(
         plotOutput(ns("LitterSizeVO")),
         plotOutput(ns("LitterSizeFirstE")),
         plotOutput(ns("LitterSizePPS"))
+      ),
+      
+      tabPanel(
+        "PND by Mass",
+        
+        plotOutput(ns("PND_MassVO")),
+        plotOutput(ns("PND_MassFirstE")),
+        plotOutput(ns("PND_MassPPS"))
       )
     ) #end tabsetPanel
     
@@ -513,6 +521,118 @@ maturationOffServer <- function(
             labels = c("First Litter", "Second Litter", "Undisturbed")
           ) +
           stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
+          my_theme +
+          guides(color = FALSE) + 
+          scale_linetype_discrete(
+            breaks = c("Control.1", "LBN.1", "Control.undisturbed"),
+            labels = c("Control - Litter 1", "LBN - Litter 1", "Control - undisturbed")
+          )+
+          theme(legend.position="bottom",
+                legend.box="vertical", 
+                legend.margin=margin()
+          )
+      })
+      
+      output$PND_MassVO <- renderPlot({
+        MaturationOff_react() %>%
+          filter(!is.na(VO_age)) %>%
+          ggplot(aes(
+            x = VO_age, y = VO_mass, 
+            color = Treatment,
+            shape = Litter_num
+          )
+          ) +
+          geom_jitter(
+            alpha = 0.6,
+            width = 0.2,
+            size = 2
+            # position = position_jitterdodge(jitter.width = .2)
+          )+
+          coord_cartesian(ylim = c(0, NA)) +
+          scale_colour_manual(
+            values = c("gray 20", "gray 70"),
+            breaks = c("Control", "LBN")
+          ) +
+          scale_shape_discrete(
+            breaks = c("1", "2", "undisturbed"),
+            labels = c("First Litter", "Second Litter", "Undisturbed")
+          ) +
+          geom_smooth(method='lm', se = FALSE) +
+          # stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
+          my_theme +
+          # guides(color = FALSE) + 
+          # scale_linetype_discrete(
+          #   breaks = c("Control.1", "LBN.1", "Control.undisturbed"),
+          #   labels = c("Control - Litter 1", "LBN - Litter 1", "Control - undisturbed")
+          # )+
+          theme(legend.position="bottom",
+                legend.box="vertical", 
+                legend.margin=margin()
+          )
+      })
+      
+      output$PND_MassFirstE <- renderPlot({
+        MaturationOff_react() %>%
+          ggplot(aes(
+            x = Estrus_age, y = Estrus_mass, 
+            color = Treatment,
+            shape = Litter_num
+          )
+          ) +
+          geom_jitter(
+            alpha = 0.6,
+            width = 0.2,
+            size = 2
+            # position = position_jitterdodge(jitter.width = .2)
+          )+
+          coord_cartesian(ylim = c(0, NA)) +
+          scale_colour_manual(
+            values = c("gray 20", "gray 70"),
+            breaks = c("Control", "LBN")
+          ) +
+          scale_shape_discrete(
+            breaks = c("1", "2", "undisturbed"),
+            labels = c("First Litter", "Second Litter", "Undisturbed")
+          ) +
+          geom_smooth(method='lm', se = FALSE) +
+          # stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
+          my_theme +
+          guides(color = FALSE) + 
+          scale_linetype_discrete(
+            breaks = c("Control.1", "LBN.1", "Control.undisturbed"),
+            labels = c("Control - Litter 1", "LBN - Litter 1", "Control - undisturbed")
+          )+
+          theme(legend.position="bottom",
+                legend.box="vertical", 
+                legend.margin=margin()
+          )
+      })
+      
+      output$PND_MassPPS <- renderPlot({
+        MaturationOff_react() %>%
+          ggplot(aes(
+            x = PreputialSep_age, y = PreputialSep_mass, 
+            color = Treatment,
+            shape = Litter_num
+          )
+          ) +
+          geom_jitter(
+            alpha = 0.6,
+            width = 0.2,
+            size = 2
+            # position = position_jitterdodge(jitter.width = .2)
+          )+
+          coord_cartesian(ylim = c(0, NA)) +
+          scale_colour_manual(
+            values = c("gray 20", "gray 70"),
+            breaks = c("Control", "LBN")
+          ) +
+          scale_shape_discrete(
+            breaks = c("1", "2", "undisturbed"),
+            labels = c("First Litter", "Second Litter", "Undisturbed")
+          ) +
+          geom_smooth(method='lm', se = FALSE) +
+          # stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
           my_theme +
           guides(color = FALSE) + 
           scale_linetype_discrete(

@@ -158,6 +158,9 @@ massOffServer <- function(
       
       output$litterSizeMass <- renderPlot({
         Mass_off %>%
+          filter(
+            Litter_num == 1
+          ) %>%
           ggplot(aes(
             x = Litter_size_endPara, y = Mass_P21, 
             color = Treatment,
