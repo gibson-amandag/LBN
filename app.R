@@ -138,146 +138,157 @@ sourceModule("cyclesModule.R")
 ui <- navbarPage(
     "LBN",
 
-     ### TASK TRACKING PANEL ----------------------
-     tabPanel(
-         "Tasks",
-         fluidPage(
-             titlePanel("Limited Bedding and Nesting Task Tracking"),
-             tabsetPanel(
-                 tabPanel(
-                     "Task List",
-                     taskTrackingUI("tasks")
-                 ),
-                 tabPanel(
-                     "Task Table",
-                     taskTableUI("taskTable")
-                 )
-             )
+    ### TASK TRACKING PANEL ----------------------
+    tabPanel(
+        "Tasks",
+        fluidPage(
+            titlePanel("Limited Bedding and Nesting Task Tracking"),
+            tabsetPanel(
+                tabPanel(
+                    "Task List",
+                    taskTrackingUI("tasks")
+                ),
+                tabPanel(
+                    "Task Table",
+                    taskTableUI("taskTable")
+                )
+            )
+        )
+    ),
     
-         )
-     ),
-    
-     ### DATA FRAMES -----------------------
-     tabPanel(
-         "Data",
-         rawDataUI("rawData",
-                   Demo_dam,
-                   LBN_data,
-                   Dam_CRH)
-     ),
+    ### DATA FRAMES -----------------------
+    tabPanel(
+        "Data",
+        rawDataUI(
+            "rawData",
+            Demo_dam,
+            LBN_data,
+            Dam_CRH)
+    ),
     
      ### ANALYSIS P2-P9-------------------------
-     tabPanel(
-         "Analysis P2-P9",
-         titlePanel("LBN Analysis"),
-         h2("Offspring Date of Birth"),
-         checkboxInput("plot_DOB",
-                       "Plot Offspring DOBs?",
-                       value = FALSE),
-         uiOutput("Offspring_DOB_plot"),
-         uiOutput("Offspring_DOB_range"),
+    tabPanel(
+        "Analysis P2-P9",
+        titlePanel("LBN Analysis"),
+        h2("Offspring Date of Birth"),
+        checkboxInput(
+            "plot_DOB",
+            "Plot Offspring DOBs?",
+            value = FALSE
+        ),
+        uiOutput("Offspring_DOB_plot"),
+        uiOutput("Offspring_DOB_range"),
+        
+        tabsetPanel(
+            #Dams --------
+            tabPanel(
+                "Dam",
+                tabsetPanel(
+                    
+                    #Mass
+                    tabPanel(
+                        "Dam Mass",
+                        massDam_P2_9_UI("massDam_P2_9", Demo_dam_P2)
+                    ),
+                    
+                    #Pup Loss
+                    tabPanel(
+                        "Pup Loss",
+                        pupLossUI("pupLoss_P2_9", Demo_dam_P2)
+                    ),
+                    
+                    #Corticosterone
+                    tabPanel(
+                        "Dam Corticosterone",
+                        damCortUI("damCort_P2_9", Demo_dam_P2)
+                    )
+                )
+            ),
     
-         tabsetPanel(
+            #Offspring Mass -----------
+            tabPanel(
+                "Offspring Mass",
+                massOff_P2_9_UI("massOff_P2_9", Mass_off_P2)
+            ),
+            ### Offspring Maturation ----
+            tabPanel(
+                "Offspring Maturation",
+                maturationOff_P2_9_UI("maturationOff_P2_9", Maturation_off_P2)
+            ),
+            
+            ### Offspring Corticosterone ----
+            tabPanel(
+                "Acute Stress Paradigm",
+                acuteStressUI("acuteStress_P2_9", AcuteStress_off_P2)
+            ), #End off cort panel
     
-         #Dams --------
-         tabPanel("Dam",
-                  tabsetPanel(
-    
-                      #Mass
-                      tabPanel(
-                          "Dam Mass",
-                          massDam_P2_9_UI("massDam_P2_9", Demo_dam_P2)
-                      ),
-    
-                      #Pup Loss
-                      tabPanel(
-                          "Pup Loss",
-                          pupLossUI("pupLoss_P2_9", Demo_dam_P2)
-                      ),
-    
-                      #Corticosterone
-                      tabPanel(
-                          "Dam Corticosterone",
-                          damCortUI("damCort_P2_9", Demo_dam_P2)
-                      )
-                  )
-                  ),
-    
-         #Offspring Mass -----------
-         tabPanel("Offspring Mass",
-                  massOff_P2_9_UI("massOff_P2_9", Mass_off_P2)
-                  ),
-         ### Offspring Maturation ----
-         tabPanel("Offspring Maturation",
-                  maturationOff_P2_9_UI("maturationOff_P2_9", Maturation_off_P2)
-                  ),
-    
-         ### Offspring Corticosterone ----
-         tabPanel("Acute Stress Paradigm",
-                  acuteStressUI("acuteStress_P2_9", AcuteStress_off_P2)
-                  ), #End off cort panel
-    
-         ### Offspring Cycles ----
-         tabPanel("Offspring Cycles",
-                  cyclesUI("cycles_P2_9")
-                  ) #End cycles tabPanel
-         ) #end analysis tabsetPanel
+            ### Offspring Cycles ----
+            tabPanel(
+                "Offspring Cycles",
+                cyclesUI("cycles_P2_9")
+            ) #End cycles tabPanel
+        ) #end analysis tabsetPanel
      ### END ANALYSIS ----
      ), #end analysis tabPanel
     
     
-     ### ANALYSIS P4-P11-------------------------
-     tabPanel(
-         "Analysis P4-P11",
-         titlePanel("LBN Analysis - P4-P11"),
-         h2("Offspring Date of Birth"),
-         checkboxInput("plot_DOB_P4_11",
-                       "Plot Offspring DOBs?",
-                       value = FALSE),
-         uiOutput("Offspring_DOB_plot_P4_11"),
-         uiOutput("Offspring_DOB_range_P4_11"),
+    ### ANALYSIS P4-P11-------------------------
+    tabPanel(
+        "Analysis P4-P11",
+        titlePanel("LBN Analysis - P4-P11"),
+        h2("Offspring Date of Birth"),
+        checkboxInput(
+            "plot_DOB_P4_11",
+            "Plot Offspring DOBs?",
+            value = FALSE
+        ),
+        uiOutput("Offspring_DOB_plot_P4_11"),
+        uiOutput("Offspring_DOB_range_P4_11"),
     
-         tabsetPanel(
-    
-             #Dams --------
-             tabPanel("Dam",
-                      tabsetPanel(
-    
-                          #Mass
-                          tabPanel(
-                              "Dam Mass",
-                              massDamUI("massDam", Demo_dam_P4)
-                          ),
-    
-                          #Pup Loss
-                          tabPanel(
-                              "Pup Loss",
-                              pupLossUI("pupLoss", Demo_dam_P4)
-                          ),
-    
-                          #Corticosterone
-                          tabPanel(
-                              "Dam Corticosterone",
-                              damCortUI("damCort", Demo_dam_P4)
-                          )
+        tabsetPanel(
+            #Dams --------
+            tabPanel(
+                "Dam",
+                tabsetPanel(
+                    
+                    #Mass
+                    tabPanel(
+                        "Dam Mass",
+                        massDamUI("massDam", Demo_dam_P4)
+                    ),
+                    
+                    #Pup Loss
+                    tabPanel(
+                        "Pup Loss",
+                        pupLossUI("pupLoss", Demo_dam_P4)
+                    ),
+                    
+                    #Corticosterone
+                    tabPanel(
+                        "Dam Corticosterone",
+                        damCortUI("damCort", Demo_dam_P4)
                     )
-             ),
-    
-             #Offspring Mass -----------
-             tabPanel("Offspring Mass",
-                      massOffUI("massOff", Mass_off_P4)
-             ),
-             ### Offspring Maturation ----
-             tabPanel("Offspring Maturation",
-                      maturationOffUI("maturationOff", Maturation_off_P4)
-             ),
-    
-             ### Offspring Corticosterone ----
-             tabPanel("Acute Stress Paradigm",
-                      acuteStressUI("acuteStress", AcuteStress_off_P4)
-             ), #End off cort panel
-    
-             ### Offspring Cycles ----
+                )
+            ),
+            
+            #Offspring Mass -----------
+            tabPanel(
+                "Offspring Mass",
+                massOffUI("massOff", Mass_off_P4)
+            ),
+            ### Offspring Maturation ----
+            tabPanel(
+                "Offspring Maturation",
+                maturationOffUI("maturationOff", Maturation_off_P4)
+            ),
+            
+            ### Offspring Corticosterone ----
+            tabPanel(
+                "Acute Stress Paradigm",
+                acuteStressUI("acuteStress", AcuteStress_off_P4)
+            ), #End off cort panel
+            
+            ### Offspring Cycles ----
              tabPanel("Offspring Cycles",
                       cyclesUI("cycles")
              ) #End cycles tabPanel
@@ -295,7 +306,8 @@ server <- function(input, output) {
         if(input$plot_DOB){
             plotOutput(
                 "Offspring_DOB_hist",
-                height = "200px")
+                height = "200px"
+            )
         }
     })
     output$Offspring_DOB_hist <- renderPlot(
@@ -349,7 +361,8 @@ server <- function(input, output) {
         AcuteStress_off,
         ChronicStress_off,
         LBN_data,
-        Dam_CRH)
+        Dam_CRH
+    )
 
     #### ANALYSIS MODULES ----------------------
     #P2-P9
