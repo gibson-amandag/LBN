@@ -30,7 +30,7 @@ taskTrackingUI <- function(id){
   )
 }
 
-taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH, Off_dates, Off_dates_litter1){
+taskTrackingServer <- function(id, Dam_dates, Dam_dates_CRH, Off_dates){
   moduleServer(
     id,
     function(input, output, session) {
@@ -69,18 +69,6 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH, 
             }
           }
           
-          for(val in Dam_seq(df = Dam_dates_litter1)){
-            if(Dam_day_equals(Day, "Breed_date", val, df = Dam_dates_litter1)){
-              printCat <- Dam_tasks_app(
-                paste0(
-                  "Set up ", blueText("breeding cages"), " for the following dams"
-                ), 
-                val, printCat,
-                df = Dam_dates_litter1
-              )
-            }
-          }
-          
           for(val in Dam_seq(df = Dam_dates_CRH)){
             if(Dam_day_equals(Day, "Breed_date", val, df = Dam_dates_CRH)){
               printCat <- Dam_tasks_app(
@@ -104,19 +92,6 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH, 
                   "Check for ", blueText("plugs"), " from the following mice"
                 ), 
                 val, printCat
-              )
-            }
-          }
-          
-          for(val in Dam_seq(df = Dam_dates_litter1)){
-            if(Dam_dates_litter1$plug_check[val] == TRUE & 
-               Dam_day_greater(Day, "Breed_date", val, df = Dam_dates_litter1)){
-              printCat <- Dam_tasks_app(
-                paste0(
-                  "Check for ", blueText("plugs"), " from the following mice"
-                ), 
-                val, printCat,
-                df = Dam_dates_litter1
               )
             }
           }
@@ -148,22 +123,6 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH, 
                   "Check for ", blueText("pregnancy and/or separate"), " the following mice (by breed date)"
                 ), 
                 val, printCat
-              )
-            }
-          }
-          
-          for(val in Dam_seq(df = Dam_dates_litter1)){
-            if(Dam_is.na("mass_G12", val, df = Dam_dates_litter1) & 
-               sac_stop(val, df = Dam_dates_litter1) & 
-               Dam_not.na("mass_check", val, df = Dam_dates_litter1) & 
-               Dam_day_equals(Day, "mass_check", val, df = Dam_dates_litter1)
-            ){
-              printCat <- Dam_tasks_app(
-                paste0(
-                  "Check for ", blueText("pregnancy and/or separate"), " the following mice (by breed date)"
-                ), 
-                val, printCat,
-                df = Dam_dates_litter1
               )
             }
           }
@@ -201,22 +160,6 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH, 
             }
           }
           
-          for(val in Dam_seq(df = Dam_dates_litter1)){
-            if(
-              sac_stop(val, df = Dam_dates_litter1) &
-              Dam_not.na("mass_G12", val, df = Dam_dates_litter1) &
-              Dam_day_equals(Day, "mass_G12", val, df = Dam_dates_litter1)
-            ){
-              printCat <- Dam_tasks_app(
-                paste0(
-                  "Check for ", blueText("pregnancy and/or separate"), " the following mice (by plug date)"
-                ), 
-                val, printCat,
-                df = Dam_dates_litter1
-              )
-            }
-          }
-          
           for(val in Dam_seq(df = Dam_dates_CRH)){
             if(
               Dam_not.na("mass_G12", val, df = Dam_dates_CRH) &
@@ -247,21 +190,6 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH, 
                   "Watch for ", blueText("births"), " from the following dams"
                 ), 
                 val, printCat
-              )
-            }
-          }
-          
-          for(val in Dam_seq(df = Dam_dates_litter1)){
-            if(Dam_is.na("DOB", val, df = Dam_dates_litter1) & #if there is not a DOB yet
-               sac_stop(val, df = Dam_dates_litter1) &
-               Dam_not.na("start_birth_check", val, df = Dam_dates_litter1) &
-               Dam_day_greater(Day, "start_birth_check", val, df = Dam_dates_litter1)
-            ){
-              printCat <- Dam_tasks_app(
-                paste0(
-                  "Watch for ", blueText("births"), " from the following dams"
-                ), 
-                val, printCat, df = Dam_dates_litter1
               )
             }
           }
@@ -384,21 +312,6 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH, 
             
           }
           
-          for(val in Dam_seq(df = Dam_dates_litter1)){
-            if(Dam_not.na("mass_P21", val, df = Dam_dates_litter1) &
-               sac_stop(val, df = Dam_dates_litter1) &
-               Dam_day_equals(Day, "mass_P21", val, df = Dam_dates_litter1)
-            ){
-              printCat <- Dam_tasks_app(
-                paste0(
-                  "Take the ", blueText("mass"), " of the following dams"
-                ), 
-                val, printCat,
-                df = Dam_dates_litter1
-              )
-            }
-          }
-          
           for(val in Dam_seq(df = Dam_dates_CRH)){
             if(Dam_not.na("mass_P21", val, df = Dam_dates_CRH) &
                Dam_day_equals(Day, "mass_P21", val, df = Dam_dates_CRH)
@@ -426,20 +339,6 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH, 
                   blueText("Wean"), " the following cages"
                 ), 
                 val, printCat
-              )
-            }
-          }
-          
-          for(val in Dam_seq(df = Dam_dates_litter1)){
-            if(Dam_not.na("mass_P21", val, df = Dam_dates_litter1) &
-               sac_stop(val, df = Dam_dates_litter1) &
-               Dam_day_equals(Day, "mass_P21", val, df = Dam_dates_litter1)
-            ){
-              printCat <- Dam_tasks_app(
-                paste0(
-                  blueText("Wean"), " the following cages"
-                ), 
-                val, printCat, df = Dam_dates_litter1
               )
             }
           }
@@ -550,21 +449,6 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH, 
             }
           }
           
-          for(val in Off_seq(df = Off_dates_litter1)){
-            if(
-              Off_not.na("check_VO", val, df = Off_dates_litter1) &
-              Off_day_greater(Day, "check_VO", val, df = Off_dates_litter1)
-            ){
-              printCat <- Off_tasks_app(
-                paste0(
-                  "Check for ", blueText("vaginal opening"), " of the following mice"
-                ), 
-                val, printCat,
-                df = Off_dates_litter1
-              )
-            }
-          }
-          
           printCat <- printLine_func_app(Count, printCat)
           
           #estrus
@@ -582,21 +466,6 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH, 
             }
           }
           
-          for(val in Off_seq(df = Off_dates_litter1)){  
-            if(
-              Off_not.na("check_Estrus", val, df = Off_dates_litter1) &
-              Off_day_greater(Day, "check_Estrus", val, df = Off_dates_litter1)
-            ){
-              printCat <- Off_tasks_app(
-                paste0(
-                  "Check for ", blueText("first estrus"), " for the following mice"
-                ), 
-                val, printCat,
-                df = Off_dates_litter1
-              )
-            }
-          }
-          
           printCat <- printLine_func_app(Count, printCat)
           
           #preputial separation
@@ -610,21 +479,6 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH, 
                   "Check for ", blueText("preputial separation"), " for the following mice"
                 ), 
                 val, printCat
-              )
-            }
-          }
-          
-          for(val in Off_seq(df = Off_dates_litter1)){
-            if(
-              Off_not.na("check_PPS", val, df = Off_dates_litter1) &
-              Off_day_greater(Day, "check_PPS", val, df = Off_dates_litter1)
-            ){
-              printCat <- Off_tasks_app(
-                paste0(
-                  "Check for ", blueText("preputial separation"), " for the following mice"
-                ), 
-                val, printCat,
-                df = Off_dates_litter1
               )
             }
           }
@@ -647,22 +501,6 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_litter1, Dam_dates_CRH, 
             }
           }
           
-          for(val in Off_seq(df = Off_dates_litter1)){
-            if(
-              Off_not.na("start_cycle", val, df = Off_dates_litter1) &
-              Off_day_greater(Day, "start_cycle", val, df = Off_dates_litter1) &
-              Off_day_less(Day, "end_cycle", val, df = Off_dates_litter1)
-            ){
-              printCat <- Off_tasks_app(
-                paste0(
-                  blueText("Cycle"), " the following mice"
-                ), 
-                val, printCat,
-                df = Off_dates_litter1
-              )
-            }
-          }
-          
           printCat <- printLine_func_app(Count, printCat)
           printCat <- list_add(printCat, "<br>")
         }
@@ -679,41 +517,24 @@ taskTableUI <- function(id) {
     h3("Dam Tasks"),
     #date input
     dataTableOutput(ns("damTable")),
-    h4("First Litters"),
-    dataTableOutput(ns("damTable_litter1")),
     h4("CRH Dams"),
     dataTableOutput(ns("damTable_CRH")),
     h3("Offspring Tasks"),
-    dataTableOutput(ns("offspringTable")),
-    h4("Offspring Tasks - Litter 1"),
-    dataTableOutput(ns("offspringTable_litter1"))
+    dataTableOutput(ns("offspringTable"))
   )
 }
 
 taskTableServer <- function(
   id,
   Dam_dates,
-  Dam_dates_litter1,
   Dam_dates_CRH,
-  Off_dates,
-  Off_dates_litter1
+  Off_dates
 ){
   moduleServer(
     id,
     function(input, output, session) {
       output$damTable <- renderDataTable(
         Dam_dates %>%
-          filter(is.na(Sac_or_stop)) %>%
-          filter(Breed_date > as.Date("2020-12-01")) %>% 
-          arrange(DOB, Plug_date),
-        options = list(
-          scrollX = TRUE,
-          scroller = TRUE,
-          pageLength = 16)
-      )
-      
-      output$damTable_litter1 <- renderDataTable(
-        Dam_dates_litter1 %>%
           filter(is.na(Sac_or_stop)) %>%
           filter(Breed_date > as.Date("2020-12-01")) %>% 
           arrange(DOB, Plug_date),
@@ -740,16 +561,6 @@ taskTableServer <- function(
           scroller = TRUE,
           pageLength = 16)
       )
-      
-      output$offspringTable_litter1 <- renderDataTable(
-        Off_dates %>% filter(DOB > as.Date("2020-12-01")) %>% arrange(DOB),
-        options = list(
-          scrollX = TRUE,
-          scroller = TRUE,
-          pageLength = 16)
-      )
-      
-      
     }
   )
 }

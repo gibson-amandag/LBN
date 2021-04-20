@@ -54,7 +54,6 @@ Maturation_off_P2 <- Maturation_off %>%
     filter(ParaType == 2)
 Maturation_off_P4 <- Maturation_off %>%
     filter(ParaType == 4)
-Maturation_litter1 <- DFs$Maturation_litter1
 
 EndPara_off <- DFs$EndPara_off
 EndPara_off_P2 <- EndPara_off %>%
@@ -92,15 +91,12 @@ LBN_data_P2 <- LBN_data %>%
 LBN_data_P4 <- LBN_data %>%
     filter(ParaType == 4)
 
-Dam_litter1 <- DFs$Dam_litter1
 Dam_CRH <- DFs$Dam_CRH
 
 Dam_dates <<- damDatesFunc(Demo_dam)
-Dam_dates_litter1 <- damDatesFunc_litter1(Dam_litter1)
 Dam_dates_CRH <- damDatesFunc_CRH(Dam_CRH)
 
 Off_dates <<- offDatesFunc(LBN_data)
-Off_dates_litter1 <- offDatesFunc_litter1(Maturation_litter1)
 
 LBN_varNames <<- LBN_varNames_func(LBN_all)
 
@@ -138,159 +134,158 @@ sourceModule("acuteStressModule.R")
 sourceModule("cyclesModule.R")
 
 
-# Define UI for application that draws a histogram
-ui <- navbarPage("LBN",
-                 
-                 ### TASK TRACKING PANEL ----------------------
+# Define UI for application
+ui <- navbarPage(
+    "LBN",
+
+     ### TASK TRACKING PANEL ----------------------
+     tabPanel(
+         "Tasks",
+         fluidPage(
+             titlePanel("Limited Bedding and Nesting Task Tracking"),
+             tabsetPanel(
                  tabPanel(
-                     "Tasks",
-                     fluidPage(
-                         titlePanel("Limited Bedding and Nesting Task Tracking"),
-                         tabsetPanel(
-                             tabPanel(
-                                 "Task List",
-                                 taskTrackingUI("tasks")
-                             ),
-                             tabPanel(
-                                 "Task Table",
-                                 taskTableUI("taskTable")
-                             )
-                         )
-                         
-                     )
+                     "Task List",
+                     taskTrackingUI("tasks")
                  ),
-                 
-                 ### DATA FRAMES -----------------------
                  tabPanel(
-                     "Data",
-                     rawDataUI("rawData",
-                               Demo_dam,
-                               LBN_data,
-                               Dam_litter1,
-                               Dam_CRH,
-                               Maturation_litter1)
-                 ),
-                 
-                 ### ANALYSIS P2-P9-------------------------
-                 tabPanel(
-                     "Analysis P2-P9",
-                     titlePanel("LBN Analysis"),
-                     h2("Offspring Date of Birth"),
-                     checkboxInput("plot_DOB",
-                                   "Plot Offspring DOBs?",
-                                   value = FALSE),
-                     uiOutput("Offspring_DOB_plot"),
-                     uiOutput("Offspring_DOB_range"),
-                     
-                     tabsetPanel(
-                     
-                     #Dams --------
-                     tabPanel("Dam",
-                              tabsetPanel(
-                                  
-                                  #Mass
-                                  tabPanel(
-                                      "Dam Mass",
-                                      massDam_P2_9_UI("massDam_P2_9", Demo_dam_P2)
-                                  ),
-                                  
-                                  #Pup Loss
-                                  tabPanel(
-                                      "Pup Loss",
-                                      pupLossUI("pupLoss_P2_9", Demo_dam_P2)
-                                  ),
-                                  
-                                  #Corticosterone
-                                  tabPanel(
-                                      "Dam Corticosterone",
-                                      damCortUI("damCort_P2_9", Demo_dam_P2)
-                                  )
-                              )
-                              ),
-                     
-                     #Offspring Mass -----------
-                     tabPanel("Offspring Mass",
-                              massOff_P2_9_UI("massOff_P2_9", Mass_off_P2)
-                              ),
-                     ### Offspring Maturation ----
-                     tabPanel("Offspring Maturation",
-                              maturationOff_P2_9_UI("maturationOff_P2_9", Maturation_off_P2)
-                              ),
-                     
-                     ### Offspring Corticosterone ----
-                     tabPanel("Acute Stress Paradigm",
-                              acuteStressUI("acuteStress_P2_9", AcuteStress_off_P2)
-                              ), #End off cort panel
-                     
-                     ### Offspring Cycles ----
-                     tabPanel("Offspring Cycles",
-                              cyclesUI("cycles_P2_9")
-                              ) #End cycles tabPanel
-                     ) #end analysis tabsetPanel
-                 ### END ANALYSIS ----    
-                 ), #end analysis tabPanel
-                 
-                 
-                 ### ANALYSIS P4-P11-------------------------
-                 tabPanel(
-                     "Analysis P4-P11",
-                     titlePanel("LBN Analysis - P4-P11"),
-                     h2("Offspring Date of Birth"),
-                     checkboxInput("plot_DOB_P4_11",
-                                   "Plot Offspring DOBs?",
-                                   value = FALSE),
-                     uiOutput("Offspring_DOB_plot_P4_11"),
-                     uiOutput("Offspring_DOB_range_P4_11"),
+                     "Task Table",
+                     taskTableUI("taskTable")
+                 )
+             )
+    
+         )
+     ),
+    
+     ### DATA FRAMES -----------------------
+     tabPanel(
+         "Data",
+         rawDataUI("rawData",
+                   Demo_dam,
+                   LBN_data,
+                   Dam_CRH)
+     ),
+    
+     ### ANALYSIS P2-P9-------------------------
+     tabPanel(
+         "Analysis P2-P9",
+         titlePanel("LBN Analysis"),
+         h2("Offspring Date of Birth"),
+         checkboxInput("plot_DOB",
+                       "Plot Offspring DOBs?",
+                       value = FALSE),
+         uiOutput("Offspring_DOB_plot"),
+         uiOutput("Offspring_DOB_range"),
+    
+         tabsetPanel(
+    
+         #Dams --------
+         tabPanel("Dam",
+                  tabsetPanel(
+    
+                      #Mass
+                      tabPanel(
+                          "Dam Mass",
+                          massDam_P2_9_UI("massDam_P2_9", Demo_dam_P2)
+                      ),
+    
+                      #Pup Loss
+                      tabPanel(
+                          "Pup Loss",
+                          pupLossUI("pupLoss_P2_9", Demo_dam_P2)
+                      ),
+    
+                      #Corticosterone
+                      tabPanel(
+                          "Dam Corticosterone",
+                          damCortUI("damCort_P2_9", Demo_dam_P2)
+                      )
+                  )
+                  ),
+    
+         #Offspring Mass -----------
+         tabPanel("Offspring Mass",
+                  massOff_P2_9_UI("massOff_P2_9", Mass_off_P2)
+                  ),
+         ### Offspring Maturation ----
+         tabPanel("Offspring Maturation",
+                  maturationOff_P2_9_UI("maturationOff_P2_9", Maturation_off_P2)
+                  ),
+    
+         ### Offspring Corticosterone ----
+         tabPanel("Acute Stress Paradigm",
+                  acuteStressUI("acuteStress_P2_9", AcuteStress_off_P2)
+                  ), #End off cort panel
+    
+         ### Offspring Cycles ----
+         tabPanel("Offspring Cycles",
+                  cyclesUI("cycles_P2_9")
+                  ) #End cycles tabPanel
+         ) #end analysis tabsetPanel
+     ### END ANALYSIS ----
+     ), #end analysis tabPanel
+    
+    
+     ### ANALYSIS P4-P11-------------------------
+     tabPanel(
+         "Analysis P4-P11",
+         titlePanel("LBN Analysis - P4-P11"),
+         h2("Offspring Date of Birth"),
+         checkboxInput("plot_DOB_P4_11",
+                       "Plot Offspring DOBs?",
+                       value = FALSE),
+         uiOutput("Offspring_DOB_plot_P4_11"),
+         uiOutput("Offspring_DOB_range_P4_11"),
+    
+         tabsetPanel(
+    
+             #Dams --------
+             tabPanel("Dam",
+                      tabsetPanel(
+    
+                          #Mass
+                          tabPanel(
+                              "Dam Mass",
+                              massDamUI("massDam", Demo_dam_P4)
+                          ),
+    
+                          #Pup Loss
+                          tabPanel(
+                              "Pup Loss",
+                              pupLossUI("pupLoss", Demo_dam_P4)
+                          ),
+    
+                          #Corticosterone
+                          tabPanel(
+                              "Dam Corticosterone",
+                              damCortUI("damCort", Demo_dam_P4)
+                          )
+                    )
+             ),
+    
+             #Offspring Mass -----------
+             tabPanel("Offspring Mass",
+                      massOffUI("massOff", Mass_off_P4)
+             ),
+             ### Offspring Maturation ----
+             tabPanel("Offspring Maturation",
+                      maturationOffUI("maturationOff", Maturation_off_P4)
+             ),
+    
+             ### Offspring Corticosterone ----
+             tabPanel("Acute Stress Paradigm",
+                      acuteStressUI("acuteStress", AcuteStress_off_P4)
+             ), #End off cort panel
+    
+             ### Offspring Cycles ----
+             tabPanel("Offspring Cycles",
+                      cyclesUI("cycles")
+             ) #End cycles tabPanel
+         ) #end analysis tabsetPanel
+         ### END ANALYSIS ----
+     ) #end analysis tabPanel
 
-                     tabsetPanel(
-
-                         #Dams --------
-                         tabPanel("Dam",
-                                  tabsetPanel(
-
-                                      #Mass
-                                      tabPanel(
-                                          "Dam Mass",
-                                          massDamUI("massDam", Demo_dam_P4)
-                                      ),
-
-                                      #Pup Loss
-                                      tabPanel(
-                                          "Pup Loss",
-                                          pupLossUI("pupLoss", Demo_dam_P4)
-                                      ),
-
-                                      #Corticosterone
-                                      tabPanel(
-                                          "Dam Corticosterone",
-                                          damCortUI("damCort", Demo_dam_P4)
-                                      )
-                                )
-                         ),
-
-                         #Offspring Mass -----------
-                         tabPanel("Offspring Mass",
-                                  massOffUI("massOff", Mass_off_P4)
-                         ),
-                         ### Offspring Maturation ----
-                         tabPanel("Offspring Maturation",
-                                  maturationOffUI("maturationOff", Maturation_off_P4, Maturation_litter1)
-                         ),
-
-                         ### Offspring Corticosterone ----
-                         tabPanel("Acute Stress Paradigm",
-                                  acuteStressUI("acuteStress", AcuteStress_off_P4)
-                         ), #End off cort panel
-
-                         ### Offspring Cycles ----
-                         tabPanel("Offspring Cycles",
-                                  cyclesUI("cycles")
-                         ) #End cycles tabPanel
-                     ) #end analysis tabsetPanel
-                     ### END ANALYSIS ----
-                 ) #end analysis tabPanel
-                 
-############                 
+############
 )
 
 ############# SERVER #########################################################
@@ -309,14 +304,14 @@ server <- function(input, output) {
             labs(x = "Date of Birth", y = "# of mice")+
             my_theme
     )
-    
+
     output$Offspring_DOB_range <- renderUI({
         str <-  paste(
-            "<h4> The range of offspring DOBs is from", blueText(min(Mass_off_P2$DOB, na.rm = TRUE)), 
+            "<h4> The range of offspring DOBs is from", blueText(min(Mass_off_P2$DOB, na.rm = TRUE)),
             "to", blueText(max(Mass_off_P2$DOB, na.rm = TRUE)), "</h4>")
         HTML(str)
     })
-    
+
     output$Offspring_DOB_plot_P4_11 <- renderUI({
         if(input$plot_DOB_P4_11){
             plotOutput(
@@ -330,18 +325,18 @@ server <- function(input, output) {
             labs(x = "Date of Birth", y = "# of mice")+
             my_theme
     )
-    
+
     output$Offspring_DOB_range_P4_11 <- renderUI({
         str <-  paste(
-            "<h4> The range of offspring DOBs is from", blueText(min(Mass_off_P4$DOB, na.rm = TRUE)), 
+            "<h4> The range of offspring DOBs is from", blueText(min(Mass_off_P4$DOB, na.rm = TRUE)),
             "to", blueText(max(Mass_off_P4$DOB, na.rm = TRUE)), "</h4>")
         HTML(str)
     })
-    
+
     #### TASK TRACKING HTML TEXT------------------
-    taskTrackingServer("tasks", Dam_dates, Dam_dates_litter1, Dam_dates_CRH, Off_dates, Off_dates_litter1)
-    taskTableServer("taskTable", Dam_dates, Dam_dates_litter1, Dam_dates_CRH, Off_dates, Off_dates_litter1)
-    
+    taskTrackingServer("tasks", Dam_dates, Dam_dates_CRH, Off_dates)
+    taskTableServer("taskTable", Dam_dates, Dam_dates_CRH, Off_dates)
+
     #### RENDER DATA FRAMES----------------------
     rawDataServer(
         "rawData",
@@ -354,10 +349,8 @@ server <- function(input, output) {
         AcuteStress_off,
         ChronicStress_off,
         LBN_data,
-        Dam_litter1,
-        Dam_CRH,
-        Maturation_litter1)
-    
+        Dam_CRH)
+
     #### ANALYSIS MODULES ----------------------
     #P2-P9
     massDam_P2_9_Server("massDam_P2_9", Demo_dam_P2)
@@ -368,17 +361,17 @@ server <- function(input, output) {
     maturationOff_P2_9_Server("maturationOff_P2_9", Maturation_off_P2)
     acuteStressServer("acuteStress_P2_9", AcuteStress_off_P2, Demo_dam_P2)
     cyclesServer("cycles_P2_9", Cycles_off_P2)
-    
+
     #P4-P11
     massDamServer("massDam", Demo_dam_P4)
-    pupLossServer("pupLoss", Demo_dam_P4, Dam_litter1)
+    pupLossServer("pupLoss", Demo_dam_P4)
     damCortServer("damCort", Demo_dam_P4)
     massOffServer("massOff", Mass_off_P4, Demo_dam_P4)
-    maturationOffServer("maturationOff", Maturation_off_P4, Maturation_litter1)
+    maturationOffServer("maturationOff", Maturation_off_P4)
     acuteStressServer("acuteStress", AcuteStress_off_P4, Demo_dam_P4)
     cyclesServer("cycles", Cycles_off_P4)
-    
+
 }
 
-# Run the application 
+# Run the application
 shinyApp(ui = ui, server = server)

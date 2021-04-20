@@ -9,7 +9,7 @@ massDamUI <- function(id,
     h3("Dam Mass"),
     
     filteringDFUI(
-      ns("Mass_dams_filter")
+      ns("Mass_dams_filter"), Demo_dam
     ),
     
     fluidRow(
@@ -101,7 +101,8 @@ massDamServer <- function(
             Treatment:Strain,
             DOB:Litter_size_endPara, 
             pupLoss,
-            Litter_num
+            Litter_num,
+            Cohort
           ) 
         
         Mass_dams_long <- reshapeForMassPlot_dams(Mass_dams)

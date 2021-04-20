@@ -6,9 +6,7 @@ rawDataUI <- function(
   id,
   Demo_dam,
   LBN_data,
-  Dam_litter1,
-  Dam_CRH,
-  Maturation_litter1
+  Dam_CRH
   ){
   ns <- NS(id)
   tagList(
@@ -33,21 +31,6 @@ rawDataUI <- function(
             ),
             multiple = TRUE),
           dataTableOutput(ns("Demo_dam"))
-        ),
-        tabPanel(
-          "Litter 1 Dam Data",
-          varSelectInput(
-            ns("dam_litter1_vars_include"),
-            label = "Select Column Variables",
-            data = Dam_litter1,
-            selected = c(
-              "Dam_ID",
-              "Breed_date",
-              "Plug_date",
-              "DOB"
-            ),
-            multiple = TRUE),
-          dataTableOutput(ns("Dam_litter1"))
         ),
         tabPanel(
           "CRH Dam Data",
@@ -83,11 +66,6 @@ rawDataUI <- function(
           "Offspring Maturation",
           h3("Offspring Maturation"),
           dataTableOutput(ns("Maturation_off"))
-        ),
-        tabPanel(
-          "Litter 1 Maturation",
-          h3("Offspring Maturation - Litter 1"),
-          dataTableOutput(ns("Maturation_litter1"))
         ),
         tabPanel(
           "After Paradigm",
@@ -142,9 +120,7 @@ rawDataServer <- function(
   AcuteStress_off,
   ChronicStress_off,
   LBN_data,
-  Dam_litter1,
-  Dam_CRH,
-  Maturation_litter1
+  Dam_CRH
 ){
   moduleServer(
     id,

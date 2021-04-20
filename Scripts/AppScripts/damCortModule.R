@@ -10,7 +10,7 @@ damCortUI <- function(id, Demo_dam){
     
     h3("Dam Corticosterone on P21"),
     
-    filteringDFUI(ns("Cort_dams")),
+    filteringDFUI(ns("Cort_dams"), Demo_dam),
     
     zoomAxisUI(ns("zoom_y"), "y"),
     

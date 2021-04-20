@@ -20,8 +20,6 @@ load_LBN_data <- function(
   NameCycles_off = "Cycles_off",
   NameChronicStress_off = "ChronicStress_off",
   NameAcuteStress_off = "AcuteStress_off",
-  NameDam_litter1 = "Dam_litter1",
-  NameMaturation_litter1 = "Maturation_litter1",
   NameCRH_dam = "CRH_dam"
 ){
   
@@ -34,8 +32,6 @@ load_LBN_data <- function(
   Cycles_off <- myXLSX_func(dataFolder, excelName, NameCycles_off)
   AcuteStress_off <- myXLSX_func(dataFolder, excelName, NameAcuteStress_off) #replaced Offspring_acute_stress
   ChronicStress_off <- myXLSX_func(dataFolder, excelName, NameChronicStress_off) #replaced Offspring_chronic_stress
-  Dam_litter1 <- myXLSX_func(dataFolder, excelName, NameDam_litter1)
-  Maturation_litter1 <- myXLSX_func(dataFolder, excelName, NameMaturation_litter1)
   CRH_dam <- myXLSX_func(dataFolder, excelName, NameCRH_dam)
   
   #Format IDs as characters
@@ -51,11 +47,6 @@ load_LBN_data <- function(
   AcuteStress_off$Mouse_ID <- as.character(AcuteStress_off$Mouse_ID)
   ChronicStress_off$Mouse_ID <- as.character(ChronicStress_off$Mouse_ID)
   
-  Dam_litter1$Dam_ID <- as.character(Dam_litter1$Dam_ID)
-  Dam_litter1$Dam <- as.character(Dam_litter1$Dam)
-  Maturation_litter1$Dam_ID <- as.character(Maturation_litter1$Dam_ID)
-  Maturation_litter1$Mouse_ID <- as.character(Maturation_litter1$Mouse_ID)
-  
   CRH_dam$Dam_ID <- as.character(CRH_dam$Dam_ID)
   CRH_dam$Dam <- as.character(CRH_dam$Dam)
   
@@ -64,30 +55,25 @@ load_LBN_data <- function(
   
   #Make the litter number a factor variable
   Demo_dam$Litter_num <- as.factor(Demo_dam$Litter_num)
-  Dam_litter1$Litter_num <- as.factor(Dam_litter1$Litter_num)
+  
+  #Make the cohort a factor variable
+  Demo_dam$Cohort <- as.factor(Demo_dam$Cohort)
   
   #Add a "pupLoss" column to Demo_dam
   Demo_dam <- Demo_dam %>%
     mutate(pupLoss = Litter_size_startPara - Litter_size_endPara)
   
-  
-    
-  
   #Combine into a single dataframe - to be used for variable names
   LBN_all <- Demo_off %>%
     left_join(Demo_dam, by = "Dam_ID") %>%
     full_join(select(Mass_off, -ParaType), by = "Mouse_ID") %>%
-    full_join(Maturation_off, by = "Mouse_ID") %>%
+    # full_join(Maturation_off, by = "Mouse_ID") %>%
     full_join(EndPara_off, by = "Mouse_ID") %>%
     full_join(Cycles_off, by = "Mouse_ID") %>%
     full_join(AcuteStress_off, by = "Mouse_ID") %>%
     full_join(ChronicStress_off, by = "Mouse_ID")
   
-  Litter1_all <- Maturation_litter1 %>%
-    full_join(Dam_litter1, by = "Dam_ID")
-  
   #Create a new dataframe with the demographic info from the dam sheet that is relevant for pups
-  
   Demo_dam_for_offspring <- Demo_dam %>%
     select(
       Dam_ID,
@@ -95,6 +81,7 @@ load_LBN_data <- function(
       Dam_cage, 
       Treatment,
       Litter_num,
+      Cohort,
       Dam_Strain,
       Strain,
       ParaType,
@@ -106,29 +93,12 @@ load_LBN_data <- function(
       pupLoss
     )
   
-  #Create a new dataframe with the demographic info from the dam_litter1 sheet that is relevant for pups
-  
-  Dam_litter1_for_offspring <- Dam_litter1 %>%
-    select(
-      Dam_ID,
-      Dam,
-      Litter_num,
-      Dam_cage, 
-      Dam_Strain,
-      Strain,
-      Sire, 
-      DOB, 
-      Pups_through_wean,
-      Litter_size_wean,
-      Rebreed_date
-    )
-  
   #Add the demographic info, join by Dam_ID
   Demo_off <- Demo_off %>%
     left_join(Demo_dam_for_offspring, by = "Dam_ID") %>%
     select(
       Mouse_ID:Dam_ID, 
-      Dam:Litter_num,
+      Dam:Cohort,
       DOB, 
       Treatment:ParaType,
       Wean_Cage_Number:Dam_cage,
@@ -136,22 +106,13 @@ load_LBN_data <- function(
       Avg_litter_mass_startPara:pupLoss
     )
   
-  #Add the dam demo info to litter 1 maturation table
-  Maturation_litter1 <- Maturation_litter1 %>%
-    left_join(Dam_litter1_for_offspring, by = "Dam_ID") %>%
-    mutate(
-      Litter_num = "undisturbed",
-      Treatment = "Control"
-    )
-  
-  
   #Combine all of the data into a single dataframe. Will add NAs where there isn't data
   #can add ,by = ... to tell what column to join on
   #not including dam info
   
   LBN_data <- Demo_off %>%
     left_join(select(Mass_off, -ParaType), by = "Mouse_ID") %>%
-    left_join(Maturation_off, by = "Mouse_ID") %>%
+    # left_join(Maturation_off, by = "Mouse_ID") %>%
     left_join(EndPara_off, by = "Mouse_ID") %>%
     left_join(Cycles_off, by = "Mouse_ID") %>%
     left_join(AcuteStress_off, by = "Mouse_ID") %>%
@@ -176,9 +137,6 @@ load_LBN_data <- function(
   Maturation_off$VO_day = as_date(Maturation_off$VO_day)
   Maturation_off$Estrus_day = as_date(Maturation_off$Estrus_day)
   Maturation_off$PreputialSep_day = as_date(Maturation_off$PreputialSep_day)
-  Maturation_litter1$VO_day = as_date(Maturation_litter1$VO_day)
-  Maturation_litter1$Estrus_day = as_date(Maturation_litter1$Estrus_day)
-  Maturation_litter1$PreputialSep_day = as_date(Maturation_litter1$PreputialSep_day)
   
   Maturation_off <- LBN_data %>%
     select(
@@ -211,14 +169,20 @@ load_LBN_data <- function(
       Mass_adult = (Mass_P70 + Mass_P71 + Mass_P72) / 3,
       AGD_wean_by_mass = AGD_wean / Mass_wean,
       AGD_adult_by_mass = AGD_adult / Mass_adult,
-      VO_age = as.numeric(VO_day - DOB), #if don't include as.numeric it will output in days
-      Estrus_age = as.numeric(Estrus_day - DOB),
-      PreputialSep_age = as.numeric(PreputialSep_day - DOB)
+      #if don't include as.numeric it will output in days
+      # check if there's not a VO_age already included in the excel sheet. If not, calculate as difference between VO_day and DOB
+      VO_age = ifelse(is.na(VO_age) & Sex == "F", as.numeric(VO_day - DOB), VO_age),
+      Estrus_age = ifelse(is.na(Estrus_age) & Sex == "F", as.numeric(Estrus_day - DOB), Estrus_age),
+      PreputialSep_age = ifelse(is.na(PreputialSep_age) & Sex == "M", as.numeric(PreputialSep_day - DOB), PreputialSep_age)
     ) %>%
     select(
       Mouse_ID:Treatment,
-      AGD_wean:PreputialSep_age, 
-      VO_day:pupLoss
+      AGD_wean:AGD_adult_by_mass,
+      VO_age, VO_mass, 
+      Estrus_age, Estrus_mass, 
+      PreputialSep_age, PreputialSep_mass,
+      VO_day, Estrus_day, PreputialSep_day,
+      AGD_P22:pupLoss,
     )
   
   EndPara_off <- LBN_data %>%
@@ -283,7 +247,7 @@ load_LBN_data <- function(
       Maturation_off %>% 
         select(
           Mouse_ID,
-          AGD_wean:PreputialSep_age
+          AGD_wean:AGD_P72
         ), 
       by = "Mouse_ID"
     )
@@ -293,7 +257,7 @@ load_LBN_data <- function(
       Maturation_off %>%
         select(
           Mouse_ID,
-          AGD_wean:PreputialSep_age
+          AGD_wean:AGD_P72
         ), 
       by = "Mouse_ID"
     )
@@ -313,9 +277,6 @@ load_LBN_data <- function(
       "ChronicStress_off" = ChronicStress_off,
       "LBN_all" = LBN_all,
       "LBN_data" = LBN_data,
-      "Litter1_all" = Litter1_all,
-      "Dam_litter1" = Dam_litter1,
-      "Maturation_litter1" = Maturation_litter1,
       "Dam_CRH" = CRH_dam
     )
   )
