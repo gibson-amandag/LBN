@@ -11,7 +11,7 @@ massOffUI <- function(
     
     h3("Offspring Mass"),
     
-    filteringDFUI(ns("MassOff_filter")),
+    filteringDFUI(ns("MassOff_filter"), Mass_off),
     
     fluidRow(
       column(
@@ -68,7 +68,7 @@ massOffUI <- function(
     
     h3("Summary Table"),
     
-    filteringDFUI(ns("sum_filter")),
+    filteringDFUI(ns("sum_filter"), Mass_off),
     
     summaryTableUI(
       id = ns("massOffSum"), 
@@ -90,6 +90,11 @@ massOffUI <- function(
         "Treatment",
         "Dam_Strain"
       )
+    ),
+    varSelectInput(
+      ns("massDay"),
+      label = "Select Mass Day",
+      data = Mass_off %>% select(Mass_P11:Mass_P21)
     ),
     
     plotOutput(
@@ -137,7 +142,7 @@ massOffServer <- function(
         Mass_off_react <- filteringDFServer("MassOff_filter", Mass_off_long)
         
         mass_plot_lines_litterNum(
-          Mass_off_react(),
+          Mass_off_react() %>% filter(!is.na(Mass)),
           line_group = ifelse(input$By_dam, expr(Dam_ID), expr(Mouse_ID)),
           by_litterNum = input$By_litterNum,
           individualLines = input$Individual_lines,
@@ -157,14 +162,13 @@ massOffServer <- function(
       massOffSum <- summaryTableServer("massOffSum", Mass_off_sum_react)
       
       output$litterSizeMass <- renderPlot({
-        Mass_off %>%
-          filter(
-            Litter_num == 1
-          ) %>%
+        Mass_off_sum_react() %>%
+          filter(!is.na(!! input$massDay)) %>%
           ggplot(aes(
-            x = Litter_size_endPara, y = Mass_P21, 
+            x = Litter_size_endPara, y = !! input$massDay, 
             color = Treatment,
-            shape = Litter_num
+            shape = Cohort
+            # shape = Litter_num
           )
           ) +
           geom_jitter(
@@ -174,26 +178,27 @@ massOffServer <- function(
             # position = position_jitterdodge(jitter.width = .2)
           )+
           coord_cartesian(ylim = c(0, NA)) +
-          scale_colour_manual(
-            values = c("gray 20", "gray 70"),
-            breaks = c("Control", "LBN")
-          ) +
-          scale_shape_discrete(
-            breaks = c("1", "2", "undisturbed"),
-            labels = c("First Litter", "Second Litter", "Undisturbed")
-          ) +
-          stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
+          # scale_colour_manual(
+          #   values = c("gray 20", "gray 70"),
+          #   breaks = c("Control", "LBN")
+          # ) +
+          # scale_shape_discrete(
+          #   breaks = c("1", "2", "undisturbed"),
+          #   labels = c("First Litter", "Second Litter", "Undisturbed")
+          # ) +
+          stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Cohort)), size = 1, alpha = .6)+
+          # stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
           my_theme +
-          guides(color = FALSE) + 
-          scale_linetype_discrete(
-            breaks = c("Control.1", "LBN.1", "Control.undisturbed", "Control.2"),
-            labels = c("Control - Litter 1", "LBN - Litter 1", "Control - undisturbed", "Control - Litter 2")
-          )+
+          # guides(color = FALSE) + 
+          # scale_linetype_discrete(
+          #   breaks = c("Control.1", "LBN.1", "Control.undisturbed", "Control.2"),
+          #   labels = c("Control - Litter 1", "LBN - Litter 1", "Control - undisturbed", "Control - Litter 2")
+          # )+
           theme(legend.position="bottom",
                 legend.box="vertical", 
                 legend.margin=margin()
           ) +
-          labs(x = "Litter Size", y = "Mass (g) at P21")
+          labs(x = "Litter Size")
       })
     }
   )

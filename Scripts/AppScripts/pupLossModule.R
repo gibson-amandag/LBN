@@ -54,8 +54,7 @@ pupLossUI <- function(
 
 pupLossServer <- function(
   id,
-  Demo_dam,
-  Dam_litter1
+  Demo_dam
 ){
   moduleServer(
     id,
@@ -66,12 +65,13 @@ pupLossServer <- function(
           select(-Variable, - VarName)
       )
       
+      # Change to reference cohort
       output$LBN_0003 <- renderPlot({
         ggplot(
-          Dam_litter1 %>%
-            filter(!is.na(Litter_size_wean)) %>%
-            filter(DOB < as.Date("2021-03-04")), 
-          aes(x = Litter_size_wean, fill = "#F8766D")
+          Demo_dam %>%
+            filter(!is.na(Litter_size_endPara)) %>%
+            filter(Cohort == "3"),
+          aes(x = Litter_size_endPara, fill = "#F8766D")
         )+
           geom_bar(
             position = position_dodge2(preserve = "single"),
@@ -79,7 +79,7 @@ pupLossServer <- function(
             width = 0.9,
             color = "white"
           ) +
-          my_theme + 
+          my_theme +
           scale_x_continuous(
             breaks = seq(1, 8, by = 1)
           ) +
@@ -90,20 +90,21 @@ pupLossServer <- function(
           labs(x = "Litter Size", y = "# of Litters")
       })
       
+      # Change to reference cohort
       output$LBN_0005 <- renderPlot({
         ggplot(
-          Dam_litter1 %>%
-            filter(!is.na(Litter_size_startPara)) %>%
-            filter(DOB > as.Date("2021-03-03")), 
-          aes(x = Litter_size_startPara, fill = "#F8766D")
+          Demo_dam %>%
+            filter(!is.na(Litter_size_endPara)) %>%
+            filter(Cohort == "5"),
+          aes(x = Litter_size_endPara, fill = "#F8766D")
         )+
           geom_bar(
             position = position_dodge2(preserve = "single"),
-            # binwidth = 1, 
+            # binwidth = 1,
             width = 0.9,
             color = "white"
           ) +
-          my_theme + 
+          my_theme +
           scale_x_continuous(
             breaks = seq(1, 8, by = 1)
           ) +
@@ -117,8 +118,7 @@ pupLossServer <- function(
       output$LBN_0002 <- renderPlot({
         ggplot(
           Demo_dam %>% 
-            filter(Litter_num == 1) %>% 
-            filter(DOB > as.Date("2020-12-01")) %>%
+            filter(Cohort == "2") %>% 
             filter(!is.na(Litter_size_startPara)), 
           aes(
             x = Litter_size_startPara,
@@ -145,7 +145,7 @@ pupLossServer <- function(
       output$LBN_0004 <- renderPlot({
         ggplot(
           Demo_dam %>% 
-            filter(Litter_num == 2) %>%
+            filter(Cohort == "4") %>%
             filter(!is.na(Litter_size_startPara)), 
           aes(
             x = Litter_size_startPara,

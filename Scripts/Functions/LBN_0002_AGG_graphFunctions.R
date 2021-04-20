@@ -303,10 +303,8 @@ my_puberty_dot_geoms <- function(
         breaks = c("1", "2", "undisturbed"),
         labels = c("First Litter", "Second Litter", "Undisturbed")
       ),
-    if(colour != expr(Litter_num))
-      scale_colour_manual(
-        values = c("gray 20", "gray 70")
-      ),
+    if(colour == expr(Cohort))
+      scale_colour_grey(),
     # scale_colour_manual(
     #   values = c("gray 20", "gray 70"), 
     #   if(colour == expr(Litter_num)){breaks = c("1", "2")}, 
@@ -408,9 +406,10 @@ mass_plot_lines_litterNum = function(
       ymax = ymax, 
       width = width
     ) +
-    scale_linetype_manual(
+    # scale_linetype_manual(
+    scale_linetype_discrete(
       breaks = c("1", "2"),
-      values = c("1" = "solid", "2" = "dashed"),
+      # values = c("1" = "solid", "2" = "dashed"),
       labels = c("First Litter", "Second Litter")
     )
 }

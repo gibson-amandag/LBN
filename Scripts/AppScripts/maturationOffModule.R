@@ -4,21 +4,14 @@
 
 maturationOffUI <- function(
   id,
-  Maturation_off,
-  Maturation_litter1
+  Maturation_off
 ){
   ns <- NS(id)
   tagList(
     
     h3("Offspring Maturation"),
     
-    filteringDFUI(ns("MaturationOff_filter")),
-    
-    # checkboxInput(
-    #   ns("undisturbedFirstLitter"),
-    #   label = "Plot undisturbed first litters",
-    #   value = FALSE
-    # ),
+    filteringDFUI(ns("MaturationOff_filter"), Maturation_off),
     
     tabsetPanel(
       tabPanel(
@@ -226,102 +219,65 @@ maturationOffUI <- function(
 
 maturationOffServer <- function(
   id,
-  Maturation_off,
-  Maturation_litter1
+  Maturation_off
 ){
   moduleServer(
     id,
     function(input, output, session) {
-      
-      Maturation_litter1_forBinding <- Maturation_litter1 %>%
-        select(
-          Mouse_ID,
-          VO_mass,
-          VO_age,
-          Estrus_mass,
-          Estrus_age,
-          PreputialSep_mass,
-          PreputialSep_age,
-          Sex,
-          Litter_num,
-          Treatment,
-          DOB,
-          Litter_size_wean
-        )
-      
-      Maturation_litter1_forBinding <- Maturation_litter1_forBinding %>%
-        mutate(
-          Litter_size = Litter_size_wean
-        )
-      
-      Maturation_off <- Maturation_off %>%
-        mutate(
-          Litter_size = Litter_size_endPara
-        )
-      
-      Maturation_off <- Maturation_off %>% full_join(Maturation_litter1_forBinding)
-      
       MaturationOff_react <- filteringDFServer("MaturationOff_filter", Maturation_off)
-      
-      # MaturationOff_react <- reactive({
-      #   if(input$undisturbedFirstLitter){
-      #     df1 <- Maturation_off %>% full_join(Maturation_litter1_forBinding)
-      #     df <- filteringDFServer("MaturationOff_filter", df1)
-      #   } else {
-      #     df <- filteringDFServer("MaturationOff_filter", Maturation_off)
-      #   }
-      #   return (df())
-      # })
       
       ### Cumulative Frequency Plots --------
       cumFreq_zoomX <- zoomAxisServer("cumFreq_zoomX", "x", minVal = 21, maxVal = 50)
       
-      lineSchemes <- scale_linetype_manual(
-        breaks = c("1", "2", "undisturbed"),
-        values = c("1" = "solid", "2" = "dashed", "undisturbed" = "twodash"),
-        labels = c("First Litter", "Second Litter", "Undisturbed")
-      )
+      # lineSchemes <- scale_linetype_manual(
+      #   breaks = c("1", "2", "undisturbed"),
+      #   values = c("1" = "solid", "2" = "dashed", "undisturbed" = "twodash"),
+      #   labels = c("First Litter", "Second Litter", "Undisturbed")
+      # )
       
       output$VO_cumFreq <- renderPlot({
         my_cumulative_freq_plot(
           df = MaturationOff_react(),
           color_var = expr(Treatment),
-          linetype_var = expr(Litter_num),
+          linetype_var = expr(Cohort),
           var_to_plot = expr(VO_age), #as expr()
           phenotype_name = "VO", #string
           title = TRUE,
           change_xmax = cumFreq_zoomX$zoom(),
           xmax = cumFreq_zoomX$max(),
           xmin = cumFreq_zoomX$min()
-        ) + lineSchemes
+        ) 
+        # + lineSchemes
       })
       
       output$FirstE_cumFreq <- renderPlot({
         my_cumulative_freq_plot(
           df = MaturationOff_react(),
           color_var = expr(Treatment),
-          linetype_var = expr(Litter_num),
+          linetype_var = expr(Cohort),
           var_to_plot = expr(Estrus_age), #as expr()
           phenotype_name = "First Estrus", #string
           title = TRUE,
           change_xmax = cumFreq_zoomX$zoom(),
           xmax = cumFreq_zoomX$max(),
           xmin = cumFreq_zoomX$min()
-        ) + lineSchemes
+        ) 
+        # + lineSchemes
       })
       
       output$PPS_cumFreq <- renderPlot({
         my_cumulative_freq_plot(
           df = MaturationOff_react(),
           color_var = expr(Treatment),
-          linetype_var = expr(Litter_num),
+          linetype_var = expr(Cohort),
           var_to_plot = expr(PreputialSep_age), #as expr()
           phenotype_name = "PPS", #string
           title = TRUE,
           change_xmax = cumFreq_zoomX$zoom(),
           xmax = cumFreq_zoomX$max(),
           xmin = cumFreq_zoomX$min()
-        ) + lineSchemes
+        ) 
+        # + lineSchemes
       })
       
       ### Dot Plots Day -------- 
@@ -332,8 +288,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(VO_age), #expr()
           phenotype_name = "VO",
-          shape = expr(Litter_num),
-          colour = expr(Litter_num),
+          shape = expr(Cohort),
+          colour = expr(Cohort),
           width = 0.3,
           change_ymax = dotDay_zoomY$zoom(),
           ymin = dotDay_zoomY$min(),
@@ -352,8 +308,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(Estrus_age), #expr()
           phenotype_name = "First Estrus",
-          shape = expr(Litter_num),
-          colour = expr(Litter_num),
+          shape = expr(Cohort),
+          colour = expr(Cohort),
           width = 0.3,
           change_ymax = dotDay_zoomY$zoom(),
           ymin = dotDay_zoomY$min(),
@@ -367,8 +323,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(PreputialSep_age), #expr()
           phenotype_name = "PPS",
-          shape = expr(Litter_num),
-          colour = expr(Litter_num),
+          shape = expr(Cohort),
+          colour = expr(Cohort),
           width = 0.3,
           change_ymax = dotDay_zoomY$zoom(),
           ymin = dotDay_zoomY$min(),
@@ -385,8 +341,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(VO_mass), #expr()
           phenotype_name = "VO",
-          shape = expr(Litter_num),
-          colour = expr(Litter_num),
+          shape = expr(Cohort),
+          colour = expr(Cohort),
           width = 0.3,
           change_ymax = dotMass_zoomY$zoom(),
           ymin = dotMass_zoomY$min(),
@@ -400,8 +356,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(Estrus_mass), #expr()
           phenotype_name = "First Estrus",
-          shape = expr(Litter_num),
-          colour = expr(Litter_num),
+          shape = expr(Cohort),
+          colour = expr(Cohort),
           width = 0.3,
           change_ymax = dotMass_zoomY$zoom(),
           ymin = dotMass_zoomY$min(),
@@ -415,8 +371,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(PreputialSep_mass), #expr()
           phenotype_name = "PPS",
-          shape = expr(Litter_num),
-          colour = expr(Litter_num),
+          shape = expr(Cohort),
+          colour = expr(Cohort),
           width = 0.3,
           change_ymax = dotMass_zoomY$zoom(),
           ymin = dotMass_zoomY$min(),
@@ -428,7 +384,7 @@ maturationOffServer <- function(
       output$LitterSizeVO <- renderPlot({
         MaturationOff_react() %>%
         ggplot(aes(
-          x = Litter_size, y = VO_age, 
+          x = Litter_size_endPara, y = VO_age, 
           color = Treatment,
           shape = Litter_num
         )
@@ -464,7 +420,7 @@ maturationOffServer <- function(
       output$LitterSizeFirstE <- renderPlot({
         MaturationOff_react() %>%
           ggplot(aes(
-            x = Litter_size, y = Estrus_age, 
+            x = Litter_size_endPara, y = Estrus_age, 
             color = Treatment,
             shape = Litter_num
           )
@@ -500,7 +456,7 @@ maturationOffServer <- function(
       output$LitterSizePPS <- renderPlot({
         MaturationOff_react() %>%
           ggplot(aes(
-            x = Litter_size, y = PreputialSep_age, 
+            x = Litter_size_endPara, y = PreputialSep_age, 
             color = Treatment,
             shape = Litter_num
           )

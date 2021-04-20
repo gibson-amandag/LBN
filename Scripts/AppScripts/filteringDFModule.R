@@ -5,27 +5,13 @@
 
 # https://shiny.rstudio.com/articles/modules.html
 
-filteringDFUI <- function(id){
+filteringDFUI <- function(
+  id,
+  off_data = tibble(Litter_num = c(1:2, 1:2), Cohort = 1:4)
+  ){
   ns <- NS(id)
   tagList(
     fluidRow(
-      # column(
-      #   4,
-      #   radioButtons(
-      #     ns("ParaTypes"),
-      #     "Which paradigm type?",
-      #     c("Both", "P2-P9" = 2, "P4-P11" = 4),
-      #     selected = "Both"
-      #   )
-      # ),
-      # column(
-      #   4,
-      #   radioButtons(
-      #     ns("WhichStrain"),
-      #     "Which dam strains?",
-      #     c("Both", "B6", "CBA")
-      #   )
-      # ),
       column(
         4,
         dateRangeInput(
@@ -37,19 +23,22 @@ filteringDFUI <- function(id){
       ),
       column(
         4,
-        radioButtons(
+        selectInput(
           ns("LitterNum"),
           "Which litter number?",
-          c("Both", "First" = 1, "Second" = 2),
-          selected = "Both"
+          choices = levels(off_data$Litter_num),
+          multiple = TRUE,
+          selected = levels(off_data$Litter_num)
         )
       ),
       column(
         4,
-        checkboxInput(
-          ns("undisturbedFirstLitter"),
-          label = "Plot undisturbed first litters",
-          value = FALSE
+        selectInput(
+          ns("cohort"),
+          "Which cohorts?",
+          choices = levels(off_data$Cohort),
+          multiple = TRUE,
+          selected = levels(off_data$Cohort),
         )
       )
     )
@@ -58,53 +47,35 @@ filteringDFUI <- function(id){
 }
 
 
-filteringDFServer <- function(id,
-                              df){
+filteringDFServer <- function(
+  id,
+  df
+  ){
   moduleServer(
     id,
     function(input, output, session) {
       
       df_react <- reactive({
-        df
-        # #Filter for paradigm type
-        # if(input$ParaTypes == 2){
-        #   df <- df %>%
-        #     filter(ParaType == 2)
-        # }else if(input$ParaTypes == 4){
-        #   df <- df %>%
-        #     filter(ParaType == 4)
-        # }
-        
         #Filter for DOB
         df <- df %>%
           filter(DOB >= input$DOB_range[1] & DOB <= input$DOB_range[2])
         
-        # #Filter for Strain - By Dam Strain
-        # if(input$WhichStrain == "B6"){
-        #   df <- df %>%
-        #     filter(Dam_Strain == "B6")
-        # }else if(input$WhichStrain == "CBA"){
-        #   df <- df %>%
-        #     filter(Dam_Strain == "CBA")
-        # }
+        # Filter for litter number
+        df <- df %>%
+          filter(
+            Litter_num %in% as.character(input$LitterNum)
+          )
         
-        if(!input$undisturbedFirstLitter){
-          df <- df %>%
-            filter(Litter_num != "undisturbed")
-        }
+        # Filter for cohort
+        df <- df %>%
+          filter(
+            Cohort %in% as.character(input$cohort)
+          )
         
-        #Filter for Litter Number
-        if(input$LitterNum == 1){
-          df <- df %>%
-            filter(Litter_num != "2")
-        } else if(input$LitterNum == 2){
-          df <- df %>%
-            filter(Litter_num != "1")
-        }
         return(df)
       })
       
-      # return(df_react) #This is a reactive df
+      return(df_react) #This is a reactive df
     }
   )
 }

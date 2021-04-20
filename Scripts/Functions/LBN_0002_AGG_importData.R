@@ -67,7 +67,7 @@ load_LBN_data <- function(
   LBN_all <- Demo_off %>%
     left_join(Demo_dam, by = "Dam_ID") %>%
     full_join(select(Mass_off, -ParaType), by = "Mouse_ID") %>%
-    full_join(Maturation_off, by = "Mouse_ID") %>%
+    # full_join(Maturation_off, by = "Mouse_ID") %>%
     full_join(EndPara_off, by = "Mouse_ID") %>%
     full_join(Cycles_off, by = "Mouse_ID") %>%
     full_join(AcuteStress_off, by = "Mouse_ID") %>%
@@ -112,7 +112,7 @@ load_LBN_data <- function(
   
   LBN_data <- Demo_off %>%
     left_join(select(Mass_off, -ParaType), by = "Mouse_ID") %>%
-    left_join(Maturation_off, by = "Mouse_ID") %>%
+    # left_join(Maturation_off, by = "Mouse_ID") %>%
     left_join(EndPara_off, by = "Mouse_ID") %>%
     left_join(Cycles_off, by = "Mouse_ID") %>%
     left_join(AcuteStress_off, by = "Mouse_ID") %>%
@@ -173,7 +173,7 @@ load_LBN_data <- function(
       # check if there's not a VO_age already included in the excel sheet. If not, calculate as difference between VO_day and DOB
       VO_age = ifelse(is.na(VO_age) & Sex == "F", as.numeric(VO_day - DOB), VO_age),
       Estrus_age = ifelse(is.na(Estrus_age) & Sex == "F", as.numeric(Estrus_day - DOB), Estrus_age),
-      PreputialSep_age = ifelse(is.na(PreputialSep_age) & Sex == "F", as.numeric(PreputialSep_day - DOB), PreputialSep_age)
+      PreputialSep_age = ifelse(is.na(PreputialSep_age) & Sex == "M", as.numeric(PreputialSep_day - DOB), PreputialSep_age)
     ) %>%
     select(
       Mouse_ID:Treatment,
@@ -181,7 +181,8 @@ load_LBN_data <- function(
       VO_age, VO_mass, 
       Estrus_age, Estrus_mass, 
       PreputialSep_age, PreputialSep_mass,
-      VO_day, Estrus_day, PreputialSep_day
+      VO_day, Estrus_day, PreputialSep_day,
+      AGD_P22:pupLoss,
     )
   
   EndPara_off <- LBN_data %>%
@@ -246,7 +247,7 @@ load_LBN_data <- function(
       Maturation_off %>% 
         select(
           Mouse_ID,
-          AGD_wean:PreputialSep_day
+          AGD_wean:AGD_P72
         ), 
       by = "Mouse_ID"
     )
@@ -256,7 +257,7 @@ load_LBN_data <- function(
       Maturation_off %>%
         select(
           Mouse_ID,
-          AGD_wean:PreputialSep_day
+          AGD_wean:AGD_P72
         ), 
       by = "Mouse_ID"
     )
