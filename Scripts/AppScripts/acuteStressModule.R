@@ -9,7 +9,7 @@ acuteStressUI <- function(id,
     
     h3("Acute, Layered, Psychosocial Stress Paradigm"),
     
-    filteringDFUI(ns("ALPS_filter")),
+    filteringDFUI(ns("ALPS_filter"), AcuteStress_off),
     
     fluidRow(
       column(
@@ -77,11 +77,12 @@ acuteStressUI <- function(id,
         select(
           Sex:Treatment,
           Dam_ID,
-          Dam_Strain:ParaType
+          Dam_Strain:ParaType,
+          Stress_treatment
         ),
       selected_group = c(
         "Treatment",
-        "Dam_Strain"
+        "Stress_treatment"
       )
     )
     
@@ -102,7 +103,7 @@ acuteStressServer <- function(
       
       zoom_y <- zoomAxisServer("zoom_y", "y", minVal = 0, maxVal = 15)
       
-      output$Plot <- renderPlot({
+      AcuteStress_off_react <- reactive({
         #needs to be before the averaging by litter
         if(input$WhichSex == "M"){
           AcuteStress_off <- AcuteStress_off %>%
@@ -111,23 +112,30 @@ acuteStressServer <- function(
           AcuteStress_off <- AcuteStress_off %>%
             filter(Sex == "F")
         }
-
+        
+        AcuteStress_off_react <- filteringDFServer("ALPS_filter", AcuteStress_off)
+        return(AcuteStress_off_react())
+      })
+      
+      AcuteStress_off_long_react <- reactive({
         if(input$By_dam == FALSE){
-         AcuteStress_off_long <- makeCortLong(AcuteStress_off)
+          AcuteStress_off_long <- makeCortLong(AcuteStress_off_react())
         }
-
+        
         if(input$By_dam == TRUE){
-          AcuteStress_off_long <- AcuteStress_off %>%
+          AcuteStress_off_long <- AcuteStress_off_react() %>%
             getAvgByDam(Demo_dam) %>%
             makeCortLong()
         }
-
-        AcuteStress_off_long_react <- filteringDFServer("ALPS_filter", AcuteStress_off_long)
-
+        
+        return(AcuteStress_off_long)
+      })
+      
+      output$Plot <- renderPlot({
         stress_interaction_plot(AcuteStress_off_long_react(), Cort, "Cort (ng/mL)", plotMean = input$Mean_lines)
       })
       
-      ALPSSum <- summaryTableServer("ALPSSum", reactive(AcuteStress_off))
+      ALPSSum <- summaryTableServer("ALPSSum", AcuteStress_off_react)
       
       
     }

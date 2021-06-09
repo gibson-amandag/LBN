@@ -1,0 +1,376 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+# Set up
+Set-up the notebook. This script loads the environment, and contains the names for the data file, and sources the additional scripts that will be used for the analysis.
+```{r GetReady}
+source("./Scripts/LBN_0002_AGG_setUp.R")
+dateToday = Sys.Date()
+filterDateForTaskDFs = as.Date("2020-12-01") #Look for breed dates/DOBs after this date
+```
+
+# Load Data
+The "load_LBN_data" function takes the data folder and excel file name and outputs a list with the processed dataframes. These have the demographic data and any "mutations" (calculated columns) added already.
+The output of this chunk is each of these dataframes.
+```{r LoadData, include=FALSE}
+DFs <- load_LBN_data(
+  dataFolder = DataFolder,
+  excelName = LBN_DataName
+)
+
+Demo_dam <- DFs$Demo_dam
+Demo_off <- DFs$Demo_off
+Mass_off <- DFs$Mass_off
+Maturation_off <- DFs$Maturation_off
+EndPara_off <- DFs$EndPara_off
+Cycles_off <- DFs$Cycles_off
+AcuteStress_off <- DFs$AcuteStress_off
+ChronicStress_off <- DFs$ChronicStress_off
+LBN_all <- DFs$LBN_all
+LBN_data <- DFs$LBN_data
+CRH_dam <- DFs$CRH_dam
+```
+
+
+# 2021-06-08
+
+## Save cort data to clipboard
+
+Using the `write.table` function, with the `clipboard` argument, you can save a data table to the clipboard for easy pasting into excel
+```{r}
+AcuteStress_off %>%
+  filter(
+    !is.na(Cort_pre),
+    Cohort == 2,
+    Sex == "F"
+  ) %>%
+  arrange(
+    Treatment, Stress_treatment
+  ) %>%
+  write.table("clipboard", sep="\t", row.names=FALSE)
+
+```
+
+## Repeated Measured ANOVA
+
+Trying to figure out how to use the `rstatix` package in order to do an anova for the corticosterone interaction statstics. I realized that the true "repeated measures" anova webpage that I was looking for the KNDy data earlier in the week was expecting all variables to be repeated within subjects, and this explains the errors that I was getting. Instead, this is really a mixed anova, because some of the factors are within subject and some are between subjects
+
+This is early-life treatment x adult treatment x time. The treatments are between subject factors, whereas time is within subject
+
+```{r}
+# https://www.datanovia.com/en/lessons/repeated-measures-anova-in-r/#two-way-repeated-measures-anova <--- WRONG - WANT MIXED MODEL
+# https://www.datanovia.com/en/lessons/mixed-anova-in-r/
+```
+
+### Table
+
+Here, I make the data table into long form, and then make all of the relevant variables factors
+I rename the `time` variable with just "pre" and "post" as the factor labels
+
+This also uses the `rstatix` summaries to get a summary table
+```{r}
+AcuteStress_long <- AcuteStress_off %>%
+  filter(
+    !is.na(Cort_pre),
+    Cohort == 2,
+    Sex == "F"
+  ) %>%
+  makeCortLong() %>%
+  convert_as_factor(
+    Mouse_ID, Time, Treatment, Stress_treatment
+  )
+
+AcuteStress_long$Time <- factor(
+  AcuteStress_long$Time,
+  levels = c("Cort_pre","Cort_post"),
+  labels = c("pre", "post")
+)
+
+AcuteStress_long %>%
+  group_by(
+    Treatment,
+    Stress_treatment,
+    Time
+  ) %>%
+  get_summary_stats(
+    Cort, type = "mean_sd"
+  )
+```
+
+### Possible graphs
+
+I still dont' think that I've found the perfect graph for this data, yet. There are a lot of different ways that the data can be emphasized. I like the ggpaired, but I can't figure out how to remove the boxplot and leave me with the jittered points.
+
+
+```{r}
+#A graph option - ggpaired, using long data
+bxp <- ggpaired(
+  AcuteStress_long, 
+  x = "Time",
+  y = "Cort",
+  facet.by = "Treatment",
+  color = "Stress_treatment",
+  line.color = "Stress_treatment",
+  palette = "jco",
+  short.panel.labs = FALSE
+)
+bxp
+
+# A graph option - ggpaired, using not long data
+bxp2 <- ggpaired(
+  AcuteStress_off %>% 
+    filter(
+      !is.na(Cort_pre),
+      Cohort == 2,
+      Sex == "F"
+    ),
+  cond1 = "Cort_pre",
+  cond2 = "Cort_post",
+  id = "Mouse_ID",
+  facet.by = "Treatment",
+  fill = "Stress_treatment",
+  palette = "jco",
+  line.color = "Stress_treatment",
+  short.panel.labs = FALSE
+)
+bxp2
+
+#Box plot, but plain doesn't show lines
+bxp3 <- ggboxplot(
+  AcuteStress_long,
+  x = "Stress_treatment",
+  y = "Cort",
+  color = "Time",
+  palette = "jco",
+  facet.by = "Treatment",
+  short.panel.labs = FALSE
+)
+bxp3
+
+jitterPlot <- ggerrorplot(
+  AcuteStress_long,
+  x = "Stress_treatment",
+  y = "Cort",
+  color = "Time",
+  facet.by = "Treatment",
+  add = "jitter",
+  short.panel.labs = FALSE,
+  palette = "jco",
+  panel.labs = list(Treatment = c("std rear", "LBN")),
+  xlab = "adult treatment",
+  ylab = "corticosterone (ng/mL)"
+) 
+jitterPlot
+
+jitterPlot2 <- ggerrorplot(
+  AcuteStress_long,
+  x = "Time",
+  y = "Cort",
+  color = "Stress_treatment",
+  facet.by = "Treatment",
+  add = "jitter",
+  short.panel.labs = FALSE,
+  palette = "jco"
+)
+jitterPlot2
+
+# Facet the interaction plot
+test_interact <- stress_interaction_plot(
+  AcuteStress_long,
+  Cort
+) + facet_wrap(
+  vars(Treatment)
+)
+test_interact
+```
+
+
+### Identify outliers and test for normality 
+
+```{r}
+AcuteStress_long %>%
+  group_by(
+    Treatment,
+    Stress_treatment,
+    Time
+  ) %>%
+  identify_outliers(
+    Cort
+  )
+
+AcuteStress_long %>%
+  group_by(
+    Treatment,
+    Stress_treatment,
+    Time
+  ) %>%
+  shapiro_test(
+    Cort
+  )
+
+ggqqplot(
+  AcuteStress_long,
+  "Cort",
+  ggtheme = theme_bw()
+) +
+  facet_grid(
+    Treatment + Stress_treatment ~ Time,
+    labeller = "label_both"
+  )
+```
+
+### Create the ANOVA!
+
+```{r}
+res.aov <- AcuteStress_long %>%
+  anova_test(
+  dv = Cort,
+  wid = Mouse_ID,
+  within = Time, # !! this is what was getting me before. This is the only within subject variable. The others are between
+  between = c(Treatment, Stress_treatment),
+  type = 3
+)
+
+get_anova_table(res.aov)
+```
+
+#### Secondary tests based on which interactions are significant
+
+Don't test everything, just use what interactions are significant to guide decisions.
+
+This is the two-way interaction of adult treatment and time for each level of early-life treatment
+
+```{r}
+#The interaction of ALPS treatment and time was signficant
+# Group by LBN treatment to investigate further
+two.way <- AcuteStress_long %>%
+  group_by(
+    Treatment
+  ) %>%
+  anova_test(
+    dv = Cort,
+    wid = Mouse_ID,
+    between = Stress_treatment,
+    within = Time
+  )
+two.way
+
+# The interaction between ALPS treatment and time is significant for both standard reared and lbn animals
+```
+
+Now we can look at the effect of time for each ALPS treatment group. We have to remember to adjust the level of significance based on the number of simple main effects we're considering
+
+```{r}
+# Effect of time for each ALPS treatment group
+
+time.effect <- AcuteStress_long %>%
+  group_by(
+    Treatment,
+    Stress_treatment
+  ) %>%
+  anova_test(
+    dv = Cort,
+    wid = Mouse_ID,
+    within = Time 
+  ) %>%
+  get_anova_table()
+
+time.effect
+
+#Significance should be accepted at 0.05 / 4 (0.0125) for 4 simple simple main effects
+
+#with adjustment -> Signficant simple simple main effect of tiem for the standard-reared control animals who were stressed in adulthood and for the LBN animals who were stressed in adulthood
+```
+
+##### Pairwise comparisons
+
+We can look specifically at the effect of time for the different treatment groups. Again, we'll be doing a bonferroni correction
+
+```{r}
+#Pairwise comparisons - effect of time for the different groups
+pwc <- AcuteStress_long %>%
+  group_by(
+    Treatment,
+    Stress_treatment
+  ) %>%
+  pairwise_t_test(
+    Cort ~ Time,
+    paired = TRUE,
+    p.adjust.method = "bonferroni"
+  ) %>%
+  select(
+    -statistic,
+    -df,
+    -p
+  )
+
+pwc
+```
+
+### Add tests to the plot
+
+We can add the pairwise comparisons and the test information directly to the plots, which is quite nice, actually
+
+```{r}
+pwc3 <- pwc %>%
+  add_xy_position(
+    x = "Stress_treatment"
+  )
+bxp3 +
+  stat_pvalue_manual(
+    pwc3,
+    tip.length = 0,
+    hide.ns = TRUE
+  ) + 
+  labs(
+    subtitle = get_test_label(res.aov, detailed = TRUE),
+    caption = get_pwc_label(pwc3)
+  )
+
+
+
+pwc1 <- pwc %>%
+  add_xy_position(
+    x = "Time"
+  )
+bxp +
+  stat_pvalue_manual(
+    pwc1,
+    tip.length = 0,
+    hide.ns = TRUE
+  ) + 
+  labs(
+    subtitle = get_test_label(res.aov, detailed = TRUE),
+    caption = get_pwc_label(pwc1)
+  )
+
+test_interact +
+  stat_pvalue_manual(
+    pwc1,
+    tip.length = 0,
+    hide.ns = TRUE
+  ) + 
+  labs(
+    subtitle = get_test_label(res.aov, detailed = TRUE),
+    caption = get_pwc_label(pwc1)
+  )
+```
+
+```{r}
+jitterPlot + 
+  stat_pvalue_manual(
+    pwc3,
+    tip.length = 0,
+    hide.ns = TRUE
+  ) + 
+  labs(
+    subtitle = get_test_label(res.aov, detailed = TRUE),
+    caption = get_pwc_label(pwc3)
+  ) 
+```

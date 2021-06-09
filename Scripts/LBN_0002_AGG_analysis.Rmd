@@ -10,26 +10,9 @@ output:
     toc: yes
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
-
-```{r Load-Packages, include=FALSE}
-library(tidyverse)
-library(readr)
-library(rlang)
-library(purrr)
-library(scales)
-library(knitr)
-#library(flextable) #error with data.table
-library(officer)
-library(GGally)
-library(dplyr)
-library(ggfortify)
-library(openxlsx)
-library(lubridate)
-library(shiny)
-library(ggrepel)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
 ```
 # Set up
 Set-up the notebook. This script loads the environment, and contains the names for the data file, and sources the additional scripts that will be used for the analysis.
@@ -593,6 +576,7 @@ Demo_dam %>%
   expand_limits(y = 0) +
   labs(y = "% on Nest", x = "# of Nest Entries", title = "Lights On on P6")
 ```
+
 
 # Write Dataframes to Workbooks
 This chunk creates a dataframe workbook for the LBN data. Each dataframe is written as its own sheet to this file.
