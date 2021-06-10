@@ -295,7 +295,8 @@ maturationOffServer <- function(
           ymin = dotDay_zoomY$min(),
           ymax = dotDay_zoomY$max(),
           DaysOrMass = "Days"
-        ) 
+        ) + 
+          stat_compare_means(method = "t.test", label.y = max(MaturationOff_react()$VO_age, na.rm = TRUE) + 2)
         #+
           # scale_color_discrete(
           #   breaks = c("1", "2"),
@@ -315,7 +316,8 @@ maturationOffServer <- function(
           ymin = dotDay_zoomY$min(),
           ymax = dotDay_zoomY$max(),
           DaysOrMass = "Days"
-        )
+        ) + 
+          stat_compare_means(method = "t.test", label.y = max(MaturationOff_react()$Estrus_age, na.rm = TRUE) + 2)
       })
       
       output$PPS_dot <- renderPlot({
@@ -330,7 +332,8 @@ maturationOffServer <- function(
           ymin = dotDay_zoomY$min(),
           ymax = dotDay_zoomY$max(),
           DaysOrMass = "Days"
-        )
+        ) + 
+          stat_compare_means(method = "t.test", label.y = max(MaturationOff_react()$PreputialSep_age, na.rm = TRUE) + 2)
       })
       
       ### Dot Plots Mass --------
@@ -348,7 +351,8 @@ maturationOffServer <- function(
           ymin = dotMass_zoomY$min(),
           ymax = dotMass_zoomY$max(),
           DaysOrMass = "Mass"
-        )
+        ) + 
+          stat_compare_means(method = "t.test", label.y = max(MaturationOff_react()$VO_mass, na.rm = TRUE) + 2)
       })
       
       output$FirstE_dot_mass <- renderPlot({
@@ -363,7 +367,8 @@ maturationOffServer <- function(
           ymin = dotMass_zoomY$min(),
           ymax = dotMass_zoomY$max(),
           DaysOrMass = "Mass"
-        )
+        ) + 
+          stat_compare_means(method = "t.test", label.y = max(MaturationOff_react()$Estrus_mass, na.rm = TRUE) + 2)
       })
       
       output$PPS_dot_mass <- renderPlot({
@@ -378,7 +383,8 @@ maturationOffServer <- function(
           ymin = dotMass_zoomY$min(),
           ymax = dotMass_zoomY$max(),
           DaysOrMass = "Mass"
-        )
+        ) + 
+          stat_compare_means(method = "t.test", label.y = max(MaturationOff_react()$PreputialSep_mass, na.rm = TRUE) + 2)
       })
       
       output$LitterSizeVO <- renderPlot({
