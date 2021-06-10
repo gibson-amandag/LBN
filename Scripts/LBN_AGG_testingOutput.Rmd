@@ -279,7 +279,10 @@ time.effect <- AcuteStress_long %>%
     wid = Mouse_ID,
     within = Time 
   ) %>%
-  get_anova_table()
+  get_anova_table() 
+
+colnames(time.effect)[1] <- "Early.Life"
+colnames(time.effect)[2] <- "Adult.Treatment"
 
 time.effect
 
@@ -373,4 +376,106 @@ jitterPlot +
     subtitle = get_test_label(res.aov, detailed = TRUE),
     caption = get_pwc_label(pwc3)
   ) 
+
+
+AcuteStress_long %>%
+  ggplot(aes(y=Cort)) +
+  facet_wrap(
+    vars(Treatment)
+  ) +
+  geom_line(
+      aes(interaction(Stress_treatment, Time, lex.order = TRUE), group = Mouse_ID)
+  ) 
 ```
+
+```{r}
+AcuteStress_long %>%
+ggplot(aes(Time, Cort, color = Treatment, group = interaction(Treatment, Stress_treatment))) +
+    geom_line(
+      alpha = .4, 
+      aes(linetype = Stress_treatment, group = Mouse_ID)) +
+    expand_limits(y = -0.5)+ #set y axis to just before 0
+    labs(x = "Experimental Time (hr)")+
+    my_theme + 
+    stat_summary(fun = mean, geom = "line", aes(linetype = Stress_treatment), size = 1) +
+    stat_summary(fun = mean, geom = "point",  shape = 18, size = 3) +
+    stat_summary(geom = "errorbar", fun.data = mean_se, size = .7, width = .3) +
+  facet_wrap(
+    vars(Stress_treatment)
+  )
+```
+# 2021-06-09 
+
+
+```{r}
+two.way %>%
+  adjust_pvalue(
+    method = "bonferroni"
+  ) %>%
+  add_significance(
+    p.col = "p.adj"
+  ) %>%
+  get_anova_table() %>%
+  ungroup() %>%
+  select(
+    -p
+  )
+
+two.way[,"p"]
+
+p4 <- AcuteStress_off %>%
+  filter(
+    ParaType == 4
+  )
+
+unique(p4$Cohort)
+```
+
+Testing out the use of {{ }} for functions
+
+```{r}
+meanSummaryList <- list(
+  mean = ~mean(.x, na.rm=TRUE),
+  SD = ~sd(.x, na.rm=TRUE),
+  n = ~n(),
+  SEM = ~sd(.x, na.rm=TRUE)/sqrt(n())
+)
+
+doMeanSummaryForColumn <- function(col, df, includeVarInColName = TRUE, addVarCol = FALSE, niceNamesDF = KNDy_VarNames) {
+  #provide col as expression
+    # examples - expr(bn), expr(bn:bf), expr(c(bn, bf))
+  
+  if(includeVarInColName ){
+    colNames <- "{col}.{.fn}"
+  } else{
+    colNames <- "{.fn}"
+  }
+  
+  sumDF <- df %>%
+    summarise(
+      across(
+        {{ col }}, #from !!!
+        meanSummaryList,
+        .names = colNames
+      ),
+      .groups = 'drop'
+    )
+  
+  if(addVarCol){
+    sumDF <- addColNameToSummary(sumDF, col, niceNamesDF)
+  }
+  
+  return(sumDF)
+}
+
+## All of these work
+doMeanSummaryForColumn(Cort, AcuteStress_long)
+doMeanSummaryForColumn("Cort", AcuteStress_long)
+doMeanSummaryForColumn(c(VO_age, Estrus_age), Maturation_off)
+doMeanSummaryForColumn(c("VO_age", "Estrus_age"), Maturation_off)
+doMeanSummaryForColumn(expr(VO_age), Maturation_off)
+doMeanSummaryForColumn(VO_age:PreputialSep_age, Maturation_off)
+doMeanSummaryForColumn("VO_age":"PreputialSep_age", Maturation_off)
+
+```
+
