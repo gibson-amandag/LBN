@@ -100,18 +100,6 @@ LBN_all
 ```{r echo=FALSE}
 LBN_data
 ```
-## All Litter 1 Data
-```{r echo=FALSE}
-Litter1_all
-```
-## Maturation Litter 1
-```{r echo=FALSE}
-Maturation_litter1
-```
-## Dams litter 1
-```{r echo=FALSE}
-Dam_litter1
-```
 ## CRH Dams
 ```{r echo=FALSE}
 CRH_dam
@@ -175,127 +163,6 @@ mat_plot_lines_litterNum = function(
     my_theme
     
 }
-
-Maturation_litter1_forBinding <- Maturation_litter1 %>%
-  select(
-    Mouse_ID,
-    VO_mass,
-    VO_age,
-    Estrus_mass,
-    Estrus_age,
-    PreputialSep_mass,
-    PreputialSep_age,
-    Sex,
-    Litter_num,
-    Treatment,
-    DOB,
-    Litter_size_wean
-  )
-
-Maturation_litter1_forBinding <- Maturation_litter1_forBinding %>%
-  mutate(
-    Litter_size = Litter_size_wean
-  )
-
-Maturation_off <- Maturation_off %>%
-  mutate(
-    Litter_size = Litter_size_endPara
-  )
-
-Maturation_off1 <- Maturation_off %>% full_join(Maturation_litter1_forBinding)
-
-Maturation_off1 %>%
-  ggplot(aes(
-    x = Litter_size, y = VO_age, 
-    color = Treatment,
-    shape = Litter_num
-    )
-  ) +
-  geom_point(
-    alpha = 0.6,
-    position = position_jitterdodge(jitter.width = .2)
-    )+
-  coord_cartesian(ylim = c(0, NA)) +
-  scale_colour_manual(
-    values = c("gray 20", "gray 70"),
-    breaks = c("Control", "LBN")
-  ) +
-  scale_shape_discrete(
-    breaks = c("1", "2", "undisturbed"),
-    labels = c("First Litter", "Second Litter", "Undisturbed")
-  ) +
-  stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
-  my_theme +
-  guides(color = FALSE) + 
-  scale_linetype_discrete(
-    breaks = c("Control.1", "LBN.1", "Control.undisturbed"),
-    labels = c("Control - Litter 1", "LBN - Litter 1", "Control - undisturbed")
-  )+
-  theme(legend.position="bottom",
-        legend.box="vertical", 
-        legend.margin=margin()
-        )
-
-Maturation_off1
-```
-
-```{r}
-ggplot(
-  Dam_litter1 %>%
-    filter(!is.na(Litter_size_wean)), 
-  aes(x = Litter_size_wean, fill = "#F8766D")
-  )+
-  geom_histogram(binwidth = 1, color = "white") +
-  my_theme + 
-  scale_x_continuous(
-    breaks = seq(1, 8, by = 1)
-  ) + 
-  scale_y_continuous(
-    breaks = seq(1, 4, by = 1)
-  ) +
-  guides(color = FALSE, fill = FALSE) +
-  labs(x = "Litter Size", y = "# of Litters")
-
-ggplot(
-  Demo_dam %>% 
-    filter(Litter_num == 1) %>% 
-    filter(DOB > as.Date("2020-12-01")) %>%
-    filter(!is.na(Litter_size_startPara)), 
-  aes(
-    x = Litter_size_startPara,
-    fill = Treatment
-    )
-  )+
-  geom_histogram(position = "dodge", binwidth = 1, color = "white") +
-  my_theme + 
-  scale_x_continuous(
-    breaks = seq(1, 8, by = 1)
-  )+ 
-  scale_y_continuous(
-    breaks = seq(1, 4, by = 1)
-  ) +
-  guides(color = FALSE) +
-  labs(x = "Litter Size", y = "# of Litters")
-
-ggplot(
-  Demo_dam %>% 
-    filter(Litter_num == 2) %>%
-    filter(!is.na(Litter_size_startPara)), 
-  aes(
-    x = Litter_size_startPara,
-    fill = Treatment
-    )
-  )+
-  geom_histogram(position = "dodge", binwidth = 1, color = "white") +
-  my_theme+ 
-  scale_x_continuous(
-    breaks = seq(1, 8, by = 1)
-  )+ 
-  scale_y_continuous(
-    breaks = seq(1, 4, by = 1)
-  ) +
-  guides(color = FALSE) +
-  labs(x = "Litter Size", y = "# of Litters")
 ```
 
 
@@ -457,7 +324,10 @@ This chunck reshapes the mass dataframe so that each day is a different row, and
 ```{r echo=FALSE}
 Mass_off_long <- reshapeForMassPlot(Mass_off)
 
+Mass_off_long <- Mass_off_long %>% filter(!is.na(Mass))
 Mass_off_long
+
+Mass_off_long %>% filter(is.na(PND))
 
 mass_plot_lines(Mass_off_long,
                 individualLines = TRUE,
@@ -592,6 +462,156 @@ Demo_dam %>%
   my_theme +
   expand_limits(y = 0) +
   labs(y = "% on Nest", x = "# of Nest Entries", title = "Lights On on P6")
+```
+
+Multiple Regression Models
+```{r}
+Maturation_off %>% filter(ParaType == 4)
+VO_multReg <- lm(
+  VO_age ~ Treatment + Litter_size_endPara, 
+  data = Maturation_off %>% 
+    filter(ParaType == 4) %>%
+    filter(Cohort == 2)
+  )
+summary(VO_multReg)
+
+VO_lm <- lm(
+  VO_age ~ Treatment, 
+  data = Maturation_off %>% filter(ParaType == 4) 
+  %>% filter(Cohort == 2)
+  )
+summary(VO_lm)
+```
+```{r}
+
+matVar = expr(VO_age)
+
+filtered_Maturation <- LBN_data %>%
+  filter(ParaType == 4) %>%
+  # filter(Cohort == 2) %>%
+  # filter(Treatment == "Control") %>%
+  filter(!is.na(!! matVar))
+
+filtered_Maturation
+
+VO_lm_size <- lm(
+  eval(matVar) ~ 
+    Litter_size_endPara +
+    Mass_P21,
+    # Treatment,
+  data = filtered_Maturation
+)
+
+summary(VO_lm_size)
+
+filtered_Maturation %>%
+  ggplot(aes(
+    x = Litter_size_endPara, y = !! matVar,
+    color = Treatment,
+    # shape = Cohort
+  )
+  ) +
+    geom_jitter(
+      alpha = 0.6,
+      width = 0.2,
+      size = 2
+      # position = position_jitterdodge(jitter.width = .2)
+    )+
+    coord_cartesian(ylim = c(0, NA)) +
+    # scale_colour_manual(
+    #   values = c("gray 20", "gray 70"),
+    #   breaks = c("Control", "LBN")
+    # ) +
+    geom_smooth(method='lm', se = FALSE) +
+    my_theme +
+    theme(legend.position="bottom",
+          legend.box="vertical", 
+          legend.margin=margin()
+    )
+```
+```{r}
+LBN_data %>%
+  filter(
+    Cohort == 6,
+    is.na(Sac_stop_off)
+  ) %>%
+  group_by(
+    Treatment,
+    Sex
+  ) %>%
+  summarise(
+    n(),
+    .groups = "drop"
+  )
+
+Demo_dam %>%
+  filter(
+    Cohort == 4,
+    !is.na(DOB),
+    Dam_ID != "D020-02",
+    is.na(Pups_through_wean) | Pups_through_wean != FALSE
+  ) %>%
+  group_by(
+    Treatment
+  ) %>% summarise(
+    n(),
+    minDOB = min(DOB),
+    maxAge = dateToday - minDOB,
+    maxDOB = max(DOB),
+    minAge = dateToday - maxDOB,
+    .groups = "drop"
+  )
+
+Demo_dam %>%
+  filter(
+    Cohort == 6,
+    !is.na(DOB),
+    is.na(Pups_through_wean) | Pups_through_wean != FALSE
+  ) %>%
+  group_by(
+    Treatment
+  ) %>% summarise(
+    n(),
+    minDOB = min(DOB),
+    maxAge = dateToday - minDOB,
+    maxDOB = max(DOB),
+    minAge = dateToday - maxDOB,
+    .groups = "drop"
+  )
+
+dateToday - as.Date("2021-03-18")
+
+as.Date("2021-07-03") - as.Date("2021-04-03")
+
+as.Date("2021-06-07") + 90
+
+
+LBN_data %>%
+  filter(
+    Cohort == 4,
+    Sex == "M",
+    is.na(Sac_stop_off)
+  ) %>%
+  ggplot(
+    aes(DOB)
+  ) +
+  geom_histogram(
+    binwidth = 1
+  )
+
+LBN_data %>%
+  filter(
+    Cohort == 4
+  ) %>%
+  group_by(
+    Treatment
+  ) %>%
+  summarise(
+    mean = mean(Mass_P12, na.rm = TRUE)
+  )
+
+8.21-7.028
+
 ```
 
 # Write Dataframes to Workbooks
