@@ -9,7 +9,7 @@ acuteStressUI <- function(id,
     
     h3("Acute, Layered, Psychosocial Stress Paradigm"),
     
-    filteringDFUI(ns("ALPS_filter")),
+    filteringDFUI(ns("ALPS_filter"), AcuteStress_off),
     
     fluidRow(
       column(
@@ -50,12 +50,12 @@ acuteStressUI <- function(id,
           ns("Title"),
           "Graph Title:"
         ),
-        #plot by dam?
-        checkboxInput(
-          ns("By_dam"),
-          "Plot by litter?",
-          value = FALSE
-        )
+        #plot by dam? - can't diff treatments
+        # checkboxInput(
+        #   ns("By_dam"),
+        #   "Plot by litter?",
+        #   value = FALSE
+        # )
       )
     ),
     
@@ -65,6 +65,26 @@ acuteStressUI <- function(id,
     
     #plot dam mass
     plotOutput(ns("Plot"), height = "600px"),
+    
+    h3("ANOVA"),
+    
+    tableOutput(ns("anova")),
+    
+    h4("Interaction of ALPS Treatment and Time"),
+    
+    p("This explores the two-way ANOVA at each level of early-life treatment"),
+    
+    tableOutput(ns("twoway")),
+    
+    h4("Effect of time"),
+    
+    p("This further explores the effect of time for each treatment group. p-value for significance needs to be adjusted for multiple comparison by Bonferroni"),
+    
+    tableOutput(ns("timeEffect")),
+    
+    h4("Pairwise Comparisons"),
+    
+    tableOutput(ns("pairwise")),
     
     h3("Summary Table"),
     
@@ -77,11 +97,12 @@ acuteStressUI <- function(id,
         select(
           Sex:Treatment,
           Dam_ID,
-          Dam_Strain:ParaType
+          Dam_Strain:ParaType,
+          Stress_treatment
         ),
       selected_group = c(
         "Treatment",
-        "Dam_Strain"
+        "Stress_treatment"
       )
     )
     
@@ -102,7 +123,7 @@ acuteStressServer <- function(
       
       zoom_y <- zoomAxisServer("zoom_y", "y", minVal = 0, maxVal = 15)
       
-      output$Plot <- renderPlot({
+      AcuteStress_off_react <- reactive({
         #needs to be before the averaging by litter
         if(input$WhichSex == "M"){
           AcuteStress_off <- AcuteStress_off %>%
@@ -111,24 +132,118 @@ acuteStressServer <- function(
           AcuteStress_off <- AcuteStress_off %>%
             filter(Sex == "F")
         }
-
-        if(input$By_dam == FALSE){
-         AcuteStress_off_long <- makeCortLong(AcuteStress_off)
-        }
-
-        if(input$By_dam == TRUE){
-          AcuteStress_off_long <- AcuteStress_off %>%
-            getAvgByDam(Demo_dam) %>%
-            makeCortLong()
-        }
-
-        AcuteStress_off_long_react <- filteringDFServer("ALPS_filter", AcuteStress_off_long)
-
+        
+        AcuteStress_off  <- AcuteStress_off %>%
+          filter(!is.na(Cort_pre) & !is.na(Cort_post))
+        
+        AcuteStress_off_react <- filteringDFServer("ALPS_filter", AcuteStress_off)
+        return(AcuteStress_off_react())
+      })
+      
+      AcuteStress_off_long_react <- reactive({
+        AcuteStress_off_long <- makeCortLong(AcuteStress_off_react())
+        
+        AcuteStress_off_long %>%
+          convert_as_factor(
+            Mouse_ID, Time, Treatment, Stress_treatment
+          )
+        
+        AcuteStress_off_long$Time <- factor(
+          AcuteStress_off_long$Time,
+          levels = c("Cort_pre","Cort_post"),
+          labels = c("pre", "post")
+        )
+        
+        return(AcuteStress_off_long)
+      })
+      
+      output$Plot <- renderPlot({
         stress_interaction_plot(AcuteStress_off_long_react(), Cort, "Cort (ng/mL)", plotMean = input$Mean_lines)
       })
       
-      ALPSSum <- summaryTableServer("ALPSSum", reactive(AcuteStress_off))
+      ALPSSum <- summaryTableServer("ALPSSum", AcuteStress_off_react)
       
+      output$anova <- renderTable({
+        res.aov <- AcuteStress_off_long_react() %>%
+          anova_test(
+            dv = Cort,
+            wid = Mouse_ID,
+            within = Time, 
+            between = c(Treatment, Stress_treatment),
+            type = 3
+          )
+        
+        return(get_anova_table(res.aov))
+      })
+      
+      output$twoway <- renderTable({
+        two.way <- AcuteStress_off_long_react() %>%
+          group_by(
+            Treatment
+          ) %>%
+          anova_test(
+            dv = Cort,
+            wid = Mouse_ID,
+            between = Stress_treatment,
+            within = Time
+          ) %>%
+          get_anova_table() %>%
+          adjust_pvalue(
+            method = "bonferroni"
+          )%>%
+          add_significance("p.adj")
+        
+        colnames(two.way)[1] <- "Early.Life"
+        
+        return(two.way)
+      })
+      
+      output$timeEffect <- renderTable({
+        time.effect <- AcuteStress_off_long_react() %>%
+          group_by(
+            Treatment,
+            Stress_treatment
+          ) %>%
+          anova_test(
+            dv = Cort,
+            wid = Mouse_ID,
+            within = Time 
+          ) %>%
+          get_anova_table() %>%
+          adjust_pvalue(
+            method = "bonferroni"
+          )%>%
+          add_significance("p.adj")
+          
+        
+        colnames(time.effect)[1] <- "Early.Life"
+        colnames(time.effect)[2] <- "Adult.Treatment"
+        
+        return(time.effect)
+      })
+      
+      output$pairwise <- renderTable({
+        pwc <- AcuteStress_off_long_react() %>%
+          group_by(
+            Treatment,
+            Stress_treatment
+          ) %>%
+          pairwise_t_test(
+            Cort ~ Time,
+            paired = TRUE,
+            p.adjust.method = "bonferroni"
+          ) %>%
+          select(
+            -statistic,
+            -df,
+            -p
+          )
+        
+        colnames(pwc)[1] <- "Early.Life"
+        colnames(pwc)[2] <- "Adult.Treatment"
+        
+        pwc
+      })
       
     }
   )

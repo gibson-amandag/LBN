@@ -26,9 +26,9 @@ filteringDFUI <- function(
         selectInput(
           ns("LitterNum"),
           "Which litter number?",
-          choices = levels(off_data$Litter_num),
+          choices = unique(off_data$Litter_num), # Changed from levels to unique
           multiple = TRUE,
-          selected = levels(off_data$Litter_num)
+          selected = unique(off_data$Litter_num)
         )
       ),
       column(
@@ -36,9 +36,9 @@ filteringDFUI <- function(
         selectInput(
           ns("cohort"),
           "Which cohorts?",
-          choices = levels(off_data$Cohort),
+          choices = unique(off_data$Cohort),
           multiple = TRUE,
-          selected = levels(off_data$Cohort),
+          selected = unique(off_data$Cohort),
         )
       )
     )

@@ -1,3 +1,22 @@
+#### Load Libraries ##############################
+library(tidyverse)
+library(readr)
+library(rlang)
+library(purrr)
+library(scales)
+library(knitr)
+#library(flextable) #error with data.table
+library(officer)
+library(GGally)
+library(dplyr)
+library(ggfortify)
+library(openxlsx)
+library(lubridate)
+library(shiny)
+library(ggrepel)
+library(ggpubr)
+library(rstatix)
+
 #### SET UP ENVIRONMENT, FOLDER PATHS, SOURCE FUNCTIONS ###########################################################################
 
 readRenviron("./.Renviron") #read the .Renviron document from the project root folder
