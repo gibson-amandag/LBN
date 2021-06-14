@@ -124,9 +124,11 @@ sourceModule("pupLossModule.R")
 sourceModule("damCortModule.R")
 
 sourceModule("massOffModule.R")
+sourceModule("massRegModule.R")
 sourceModule(file.path("P2-9", "massOffModule_P2_9.R"))
 
 sourceModule("maturationOffModule.R")
+sourceModule("maturationRegModule.R")
 sourceModule(file.path("P2-9", "maturationOffModule_P2_9.R"))
 
 sourceModule("acuteStressModule.R")
@@ -279,7 +281,7 @@ ui <- navbarPage(
             ### Offspring Maturation ----
             tabPanel(
                 "Offspring Maturation",
-                maturationOffUI("maturationOff", Maturation_off_P4)
+                maturationOffUI("maturationOff", Maturation_off_P4, LBN_data %>% filter(ParaType == 4))
             ),
             
             ### Offspring Corticosterone ----
@@ -380,7 +382,7 @@ server <- function(input, output) {
     pupLossServer("pupLoss", Demo_dam_P4)
     damCortServer("damCort", Demo_dam_P4)
     massOffServer("massOff", Mass_off_P4, Demo_dam_P4)
-    maturationOffServer("maturationOff", Maturation_off_P4)
+    maturationOffServer("maturationOff", Maturation_off_P4, LBN_data %>% filter(ParaType == 4))
     acuteStressServer("acuteStress", AcuteStress_off_P4, Demo_dam_P4)
     cyclesServer("cycles", Cycles_off_P4)
 
