@@ -46,7 +46,11 @@ pupLossUI <- function(
     
     h4("Litter Size LBN_0005"),
     
-    plotOutput(ns("LBN_0005"))
+    plotOutput(ns("LBN_0005")),
+    
+    h4("Litter Size LBN_0006"),
+    
+    plotOutput(ns("LBN_0006"))
     
   )
 }
@@ -146,6 +150,33 @@ pupLossServer <- function(
         ggplot(
           Demo_dam %>% 
             filter(Cohort == "4") %>%
+            filter(!is.na(Litter_size_startPara)), 
+          aes(
+            x = Litter_size_startPara,
+            fill = Treatment
+          )
+        )+
+          geom_bar(
+            position = position_dodge2(preserve = "single"),
+            # binwidth = 1,
+            width = 0.9,
+            color = "white"
+          ) +
+          my_theme + 
+          scale_x_continuous(
+            breaks = seq(1, 8, by = 1)
+          )+
+          scale_y_continuous(
+            breaks = seq(1, 4, by = 1)
+          ) +
+          guides(color = FALSE) +
+          labs(x = "Litter Size", y = "# of Litters")
+      })
+      
+      output$LBN_0006 <- renderPlot({
+        ggplot(
+          Demo_dam %>% 
+            filter(Cohort == "6") %>%
             filter(!is.na(Litter_size_startPara)), 
           aes(
             x = Litter_size_startPara,
