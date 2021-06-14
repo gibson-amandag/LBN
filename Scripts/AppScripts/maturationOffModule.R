@@ -4,7 +4,8 @@
 
 maturationOffUI <- function(
   id,
-  Maturation_off
+  Maturation_off,
+  LBN_data
 ){
   ns <- NS(id)
   tagList(
@@ -142,7 +143,7 @@ maturationOffUI <- function(
             ),
           selected_group = c("Treatment")
         ),
-        
+        p("Welch test corrects for different sample sizes, and may result in a different p-value than the regression analysis "),
         verbatimTextOutput(ns("VO_tTest")),
         verbatimTextOutput(ns("VO_mass_tTest")),
         
@@ -166,7 +167,7 @@ maturationOffUI <- function(
             ),
           selected_group = c("Treatment")
         ),
-        
+        p("Welch test corrects for different sample sizes, and may result in a different p-value than the regression analysis "),
         verbatimTextOutput(ns("Estrus_tTest")),
         verbatimTextOutput(ns("Estrus_mass_tTest")),
         
@@ -191,6 +192,7 @@ maturationOffUI <- function(
           selected_group = c("Treatment")
         ),
         
+        p("Welch test corrects for different sample sizes, and may result in a different p-value than the regression analysis "),
         verbatimTextOutput(ns("PPS_tTest")),
         verbatimTextOutput(ns("PPS_mass_tTest")),
         
@@ -210,6 +212,11 @@ maturationOffUI <- function(
         plotOutput(ns("PND_MassVO")),
         plotOutput(ns("PND_MassFirstE")),
         plotOutput(ns("PND_MassPPS"))
+      ),
+      
+      tabPanel(
+        "Regression",
+        maturationRegUI(ns("matReg"), Maturation_off, LBN_data)
       )
     ) #end tabsetPanel
     
@@ -219,11 +226,13 @@ maturationOffUI <- function(
 
 maturationOffServer <- function(
   id,
-  Maturation_off
+  Maturation_off,
+  LBN_data
 ){
   moduleServer(
     id,
     function(input, output, session) {
+      maturationRegServer("matReg", Maturation_off, LBN_data)
       MaturationOff_react <- filteringDFServer("MaturationOff_filter", Maturation_off)
       
       ### Cumulative Frequency Plots --------
@@ -386,7 +395,7 @@ maturationOffServer <- function(
         ggplot(aes(
           x = Litter_size_endPara, y = VO_age, 
           color = Treatment,
-          shape = Litter_num
+          shape = Cohort
         )
         ) +
           geom_jitter(
@@ -400,17 +409,8 @@ maturationOffServer <- function(
             values = c("gray 20", "gray 70"),
             breaks = c("Control", "LBN")
           ) +
-          scale_shape_discrete(
-            breaks = c("1", "2", "undisturbed"),
-            labels = c("First Litter", "Second Litter", "Undisturbed")
-          ) +
-          stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
+          geom_smooth(method='lm', se = FALSE) +
           my_theme +
-          guides(color = FALSE) + 
-          scale_linetype_discrete(
-            breaks = c("Control.1", "LBN.1", "Control.undisturbed"),
-            labels = c("Control - Litter 1", "LBN - Litter 1", "Control - undisturbed")
-          )+
           theme(legend.position="bottom",
                 legend.box="vertical", 
                 legend.margin=margin()
@@ -440,7 +440,8 @@ maturationOffServer <- function(
             breaks = c("1", "2", "undisturbed"),
             labels = c("First Litter", "Second Litter", "Undisturbed")
           ) +
-          stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
+          geom_smooth(method='lm', se = FALSE) +
+          # stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
           my_theme +
           guides(color = FALSE) + 
           scale_linetype_discrete(
@@ -476,7 +477,8 @@ maturationOffServer <- function(
             breaks = c("1", "2", "undisturbed"),
             labels = c("First Litter", "Second Litter", "Undisturbed")
           ) +
-          stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
+          geom_smooth(method='lm', se = FALSE) +
+          # stat_summary(fun = mean, geom = "line", aes(linetype = interaction(Treatment, Litter_num)), size = 1, alpha = .6)+
           my_theme +
           guides(color = FALSE) + 
           scale_linetype_discrete(
