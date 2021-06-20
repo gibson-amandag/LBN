@@ -16,6 +16,14 @@ library(shiny)
 library(ggrepel)
 library(ggpubr)
 library(rstatix)
+library(cowplot)
+library(extrafont)
+# font_import()
+if(! length(fonts()) > 0){
+  # have to add fonts to be able to load them into pdfs
+  # https://fromthebottomoftheheap.net/2013/09/09/preparing-figures-for-plos-one-with-r/
+  loadfonts(dev="pdf")
+}
 
 #### SET UP ENVIRONMENT, FOLDER PATHS, SOURCE FUNCTIONS ###########################################################################
 

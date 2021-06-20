@@ -1,0 +1,45 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+# Set up
+Set-up the notebook. This script loads the environment, and contains the names for the data file, and sources the additional scripts that will be used for the analysis.
+```{r GetReady}
+source("./Scripts/LBN_0002_AGG_setUp.R")
+dateToday = Sys.Date()
+filterDateForTaskDFs = as.Date("2020-12-01") #Look for breed dates/DOBs after this date
+```
+
+# Load Data
+The "load_LBN_data" function takes the data folder and excel file name and outputs a list with the processed dataframes. These have the demographic data and any "mutations" (calculated columns) added already.
+The output of this chunk is each of these dataframes.
+```{r LoadData, include=FALSE}
+DFs <- load_LBN_data(
+  dataFolder = DataFolder,
+  excelName = LBN_DataName
+)
+
+Demo_dam <- DFs$Demo_dam
+Demo_off <- DFs$Demo_off
+Mass_off <- DFs$Mass_off
+Maturation_off <- DFs$Maturation_off
+EndPara_off <- DFs$EndPara_off
+Cycles_off <- DFs$Cycles_off
+AcuteStress_off <- DFs$AcuteStress_off
+ChronicStress_off <- DFs$ChronicStress_off
+LBN_all <- DFs$LBN_all
+LBN_data <- DFs$LBN_data
+CRH_dam <- DFs$CRH_dam
+```
+
+```{r}
+library(imager)
+```
+
+
+
