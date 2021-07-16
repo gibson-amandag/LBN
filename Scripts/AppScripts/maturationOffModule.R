@@ -248,7 +248,7 @@ maturationOffServer <- function(
         my_cumulative_freq_plot(
           df = MaturationOff_react(),
           color_var = expr(Treatment),
-          linetype_var = expr(Cohort),
+          linetype_var = expr(Treatment),
           var_to_plot = expr(VO_age), #as expr()
           phenotype_name = "VO", #string
           title = TRUE,
@@ -263,7 +263,7 @@ maturationOffServer <- function(
         my_cumulative_freq_plot(
           df = MaturationOff_react(),
           color_var = expr(Treatment),
-          linetype_var = expr(Cohort),
+          linetype_var = expr(Treatment),
           var_to_plot = expr(Estrus_age), #as expr()
           phenotype_name = "First Estrus", #string
           title = TRUE,
@@ -278,7 +278,7 @@ maturationOffServer <- function(
         my_cumulative_freq_plot(
           df = MaturationOff_react(),
           color_var = expr(Treatment),
-          linetype_var = expr(Cohort),
+          linetype_var = expr(Treatment),
           var_to_plot = expr(PreputialSep_age), #as expr()
           phenotype_name = "PPS", #string
           title = TRUE,
@@ -297,8 +297,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(VO_age), #expr()
           phenotype_name = "VO",
-          shape = expr(Cohort),
-          colour = expr(Cohort),
+          shape = expr(Treatment),
+          colour = expr(Treatment),
           width = 0.3,
           change_ymax = dotDay_zoomY$zoom(),
           ymin = dotDay_zoomY$min(),
@@ -318,8 +318,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(Estrus_age), #expr()
           phenotype_name = "First Estrus",
-          shape = expr(Cohort),
-          colour = expr(Cohort),
+          shape = expr(Treatment),
+          colour = expr(Treatment),
           width = 0.3,
           change_ymax = dotDay_zoomY$zoom(),
           ymin = dotDay_zoomY$min(),
@@ -334,8 +334,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(PreputialSep_age), #expr()
           phenotype_name = "PPS",
-          shape = expr(Cohort),
-          colour = expr(Cohort),
+          shape = expr(Treatment),
+          colour = expr(Treatment),
           width = 0.3,
           change_ymax = dotDay_zoomY$zoom(),
           ymin = dotDay_zoomY$min(),
@@ -353,8 +353,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(VO_mass), #expr()
           phenotype_name = "VO",
-          shape = expr(Cohort),
-          colour = expr(Cohort),
+          shape = expr(Treatment),
+          colour = expr(Treatment),
           width = 0.3,
           change_ymax = dotMass_zoomY$zoom(),
           ymin = dotMass_zoomY$min(),
@@ -369,8 +369,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(Estrus_mass), #expr()
           phenotype_name = "First Estrus",
-          shape = expr(Cohort),
-          colour = expr(Cohort),
+          shape = expr(Treatment),
+          colour = expr(Treatment),
           width = 0.3,
           change_ymax = dotMass_zoomY$zoom(),
           ymin = dotMass_zoomY$min(),
@@ -385,8 +385,8 @@ maturationOffServer <- function(
           df = MaturationOff_react(),
           expr(PreputialSep_mass), #expr()
           phenotype_name = "PPS",
-          shape = expr(Cohort),
-          colour = expr(Cohort),
+          shape = expr(Treatment),
+          colour = expr(Treatment),
           width = 0.3,
           change_ymax = dotMass_zoomY$zoom(),
           ymin = dotMass_zoomY$min(),
