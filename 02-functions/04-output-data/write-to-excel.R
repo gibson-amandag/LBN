@@ -1,0 +1,50 @@
+writeToWorkbook = function(sheetName, df, wb, tableStyle = "TableStyleMedium2"){
+  addWorksheet(wb, sheetName)
+  writeDataTable(wb, sheetName, df, tableStyle = tableStyle)
+}
+
+saveDFsToExcel <- function(
+  fileBaseName,
+  prefix = filePrefix,
+  addDate = dateToday,
+  saveFolder = dataOutputFolder,
+  ... # use sheetName = df, sheetName2 = df2, sheetName3 = df3 for each df you want to add to a new sheet
+){
+  dfList <- list(...)
+  
+  wb <- createWorkbook()
+  
+  for(sheetName in names(dfList)){
+    writeToWorkbook(sheetName, dfList[[sheetName]], wb)
+  }
+  
+  fileName <- paste0(prefix, fileBaseName, "_", addDate, ".xlsx")
+  filePath <- file.path(saveFolder, fileName)
+  print(filePath)
+  
+  saveWorkbook(wb, filePath, overwrite = TRUE)
+}
+
+greenFill <- function(){
+  createStyle(bgFill = "#C6EFCE")
+}
+
+yellowFill <- function(){
+  createStyle(bgFill = "#ffff00")
+}
+
+redFill <- function(){
+  createStyle(bgFill = "#FFC7CE")
+}
+
+greyFill <- function(){
+  createStyle(bgFill = 	"#D3D3D3")
+}
+
+blueFill <- function(){
+  createStyle(bgFill = "#9edaff")
+}
+
+pinkFill <- function(){
+  createStyle(bgFill = "#f3b4f6")
+}

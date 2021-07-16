@@ -1,0 +1,71 @@
+---
+title: "Cycles"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+# Cohort 4 Females
+```{r}
+cycles_0004 <- Cycles_off %>%
+  filter(
+    Cohort == 4
+  )
+cyclesLong_0004 <- makeCyclesLong(cycles_0004)
+
+cycles_0004_STD_plot <- plotCycleTraces(cyclesLong_0004 %>% filter(earlyLifeTrt == "STD"))
+cycles_0004_LBN_plot <- plotCycleTraces(cyclesLong_0004 %>% filter(earlyLifeTrt == "LBN"))
+
+cycles_0004_STD_plot
+cycles_0004_LBN_plot
+
+ggsave(
+  filename = paste0(filePrefix, "cycles_0004_STD.pdf"),
+  plot = cycles_0004_STD_plot,
+  device = "pdf",
+  path = file.path(plotOutputFolder),
+  width = 10,
+  height = 7,
+  units = "in",
+  useDingbats = FALSE
+)
+ggsave(
+  filename = paste0(filePrefix, "cycles_0004_LBN.pdf"),
+  plot = cycles_0004_LBN_plot,
+  device = "pdf",
+  path = file.path(plotOutputFolder),
+  width = 10,
+  height = 7,
+  units = "in",
+  useDingbats = FALSE
+)
+```
+
+# Percent days in stage
+```{r}
+cyclesPerc_long_0004 <- makeCyclesPercLong(cycles_0004)
+cyclesPercPlot_0004 <- plotCyclesPercent(cyclesPerc_long_0004)
+cyclesPercPlot_0004
+```
+
+# Cycles distribution
+```{r}
+cycles_0004_contTable <- table(
+  cyclesLong_0004$earlyLifeTrt,
+  cyclesLong_0004$stageName
+)
+
+cycles_0004_ChiSq <- chisq_test(cycles_0004_contTable)
+cycles_0004_ChiSq %>% flextable()
+
+chisq_descriptives(cycles_0004_ChiSq) %>% flextable()
+```
+
