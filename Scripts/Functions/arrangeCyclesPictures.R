@@ -3,7 +3,8 @@ my_gg_image <- function(img, imgTitle = NULL){
     background_image(img) +
     labs(title = imgTitle) +
     theme(
-      aspect.ratio = dim(img)[2] / dim(img)[1]
+      aspect.ratio = dim(img)[2] / dim(img)[1],
+      text = element_text(size = 11, family = "Arial")
     )
   return(viz)
 }
@@ -11,7 +12,9 @@ my_gg_image <- function(img, imgTitle = NULL){
 arrangeCycleImgs <- function(
   mouseName,
   imgsFolderPath,
-  outputFolder
+  outputFolder,
+  ncol =5,
+  maxRows = 4
 ){
   imgs <- load.dir(imgsFolderPath, pattern = ".jpg")
   imgNames <- names(imgs)
@@ -22,23 +25,31 @@ arrangeCycleImgs <- function(
   }
   names(imgPlots) <- imgNames
   
-  totalRows <- ceiling(numImgs / 5)
+  totalRows <- ceiling(numImgs / ncol)
   
   nRowsPerPage <- ifelse(
-    totalRows <= 4,
+    totalRows <= maxRows,
     totalRows,
-    4
+    maxRows
   )
   
   arrangedPlots <- ggarrange(
     plotlist = imgPlots,
-    ncol = 5,
+    ncol = ncol,
     nrow = nRowsPerPage
   )
   
+  if(totalRows>maxRows){
+    asSinglePage <- do.call(marrangeGrob, args = list(grobs = arrangedPlots, ncol=1, nrow=1)
+                            )
+  }else {
+    asSinglePage <- arrangedPlots
+  }
+  
   ggsave(
     file.path(outputFolder, paste0(mouseName, "_cycles.pdf")),
-    plot = arrangedPlots,
+    plot = asSinglePage,
+    device = "pdf",
     width = 11,
     height = 8.5,
     scale = 1,
