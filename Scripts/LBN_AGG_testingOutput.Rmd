@@ -35,6 +35,7 @@ ChronicStress_off <- DFs$ChronicStress_off
 LBN_all <- DFs$LBN_all
 LBN_data <- DFs$LBN_data
 CRH_dam <- DFs$CRH_dam
+behavior <- DFs$behavior
 ```
 
 
@@ -476,6 +477,522 @@ doMeanSummaryForColumn(c("VO_age", "Estrus_age"), Maturation_off)
 doMeanSummaryForColumn(expr(VO_age), Maturation_off)
 doMeanSummaryForColumn(VO_age:PreputialSep_age, Maturation_off)
 doMeanSummaryForColumn("VO_age":"PreputialSep_age", Maturation_off)
+
+```
+
+Male Masses
+```{r}
+stress_LBN_0004_males <- AcuteStress_off %>% 
+  filter(
+    Cohort == 4,
+    Sex == "M",
+    !is.na(Stress_treatment)
+  )
+
+stress_LBN_0004_males
+```
+
+Body Mass
+```{r}
+anova_test(
+  stress_LBN_0004_males,
+  dv = "Body_mass_stress",
+  between = c("Treatment", "Stress_treatment"),
+  type = 3
+)
+
+t_test(stress_LBN_0004_males, Body_mass_stress ~ Treatment)
+
+stress_LBN_0004_males %>%
+  renameStressGroups() %>%
+  twoWayDotPlot(
+    yVar = Body_mass_stress,
+    yLab = "body mass (g)"
+  )
+```
+
+Seminal Vesicle Mass
+```{r}
+anova_test(
+  stress_LBN_0004_males,
+  dv = "ReproTract_mass",
+  between = c("Treatment", "Stress_treatment"),
+  type = 3
+)
+
+t_test(stress_LBN_0004_males, ReproTract_mass ~ Treatment)
+
+stress_LBN_0004_males %>%
+  renameStressGroups() %>%
+  twoWayDotPlot(
+    yVar = ReproTract_mass,
+    yLab = "seminal vesicle mass (mg)"
+  )
+```
+
+Testicular Mass
+```{r}
+anova_test(
+  stress_LBN_0004_males,
+  dv = "Gonad_mass",
+  between = c("Treatment", "Stress_treatment"),
+  type = 3
+)
+
+t_test(stress_LBN_0004_males, Gonad_mass ~ Treatment)
+
+stress_LBN_0004_males %>%
+  renameStressGroups() %>%
+  twoWayDotPlot(
+    yVar = Gonad_mass,
+    yLab = "testicular mass (mg)"
+  )
+```
+
+Dam Mass
+```{r}
+damMass <- Demo_dam %>%
+  select(
+    Dam_ID,
+    Treatment,
+    Litter_num,
+    Cohort,
+    Litter_size,
+    Dam_Mass_P4,
+    Dam_Mass_P11,
+    Dam_Mass_P21
+  ) %>%
+  filter(
+    Litter_num == 2,
+    Cohort == 4 | Cohort == 6,
+    !is.na(Dam_Mass_P21)
+  )
+
+damMass
+
+damMass_long <- pivot_longer(
+  damMass,
+  c(Dam_Mass_P4,
+    Dam_Mass_P11,
+    Dam_Mass_P21),
+  names_to = "day",
+  names_prefix = "Dam_Mass_P",
+  values_to = "mass",
+  values_drop_na = TRUE
+)
+
+damMass_long
+
+anova_test(
+  damMass_long,
+  dv = mass,
+  wid = Dam_ID,
+  within = day,
+  between = Treatment,
+  type = 3
+)
+```
+
+offspring mass
+```{r}
+Mass_off_2nd_litters <- Mass_off %>%
+  filter(
+    Litter_num == 2,
+    Cohort == 4 | Cohort == 6
+  ) %>%
+  rename(
+    Mass_P4 = Avg_litter_mass_startPara
+  ) %>% 
+  select(
+    # Mass_P11, Mass_P21, Mass_P56
+    -c(Mass_P4, Mass_P9, Mass_P10)
+  )
+
+Mass_off_2nd_litters
+
+Mass_off_2nd_litters_long <- pivot_longer(
+  Mass_off_2nd_litters,
+  cols = starts_with("Mass_P"),
+  names_to = "day",
+  names_prefix = "Mass_P",
+  values_to = "mass",
+  values_drop_na = TRUE,
+  names_transform = list("day" = as.integer)
+)
+
+Mass_off_2nd_litters_long
+
+anova_test(
+  Mass_off_2nd_litters_long,
+  dv = mass,
+  wid = Mouse_ID,
+  within = day,
+  between = c(Treatment, Sex),
+  type = 3
+)
+
+Mass_off_2nd_litters_long %>%
+  group_by(
+    day
+  ) %>%
+  anova_test(
+    dv = mass,
+    between = c(Treatment, Sex),
+  ) %>%
+  adjust_pvalue(method = "bonferroni")
+Mass_off_2nd_litters_long %>%
+  group_by(
+    day
+  ) %>%
+  t_test(
+    mass ~ Treatment
+  ) %>%
+  adjust_pvalue(method = "bonferroni")
+
+t_test(
+  Demo_dam %>%
+    filter(
+      Litter_num == 2,
+      Cohort == 4 | Cohort == 6,
+      !is.na(Dam_Mass_P21)
+    ),
+  Avg_litter_mass_startPara ~ Treatment
+)
+
+```
+
+Vaginal Opening
+```{r}
+Mat_off_females <- Maturation_off %>%
+  filter(
+    Litter_num == 2,
+    Cohort == 4 | Cohort == 6,
+    Sex == "F"
+  )
+
+Mat_off_males <- Maturation_off %>%
+  filter(
+    Litter_num == 2,
+    Cohort == 4 | Cohort == 6,
+    Sex == "M"
+  )
+
+Mat_off_females
+Mat_off_males
+
+Mat_off_females %>%
+  filter(!is.na(VO_age))%>%
+  t_test(
+    VO_age ~ Treatment
+  )
+
+Mat_off_females %>%
+  filter(!is.na(Estrus_age))%>%
+  t_test(
+    Estrus_age ~ Treatment
+  )
+
+Mat_off_males %>%
+  filter(!is.na(PreputialSep_age))%>%
+  t_test(
+    PreputialSep_age ~ Treatment
+  )
+```
+
+```{r}
+# added to load data
+behavior_ZT0 <- myXLSX_func(DataFolder, LBN_DataName, "Dam_behavior_ZT0")
+behavior_ZT0
+behavior_ZT14 <- myXLSX_func(DataFolder, LBN_DataName, "Dam_behavior_ZT14")
+behavior_noDemo <- bind_rows(
+  behavior_ZT0,
+  behavior_ZT14
+)
+behavior <- behavior_noDemo %>%
+  left_join(
+    Demo_dam,
+    by = "Dam_ID"
+  )
+behavior
+
+behavior_wide <- behavior_noDemo %>%
+  pivot_wider(
+    id_cols = Dam_ID,
+    names_from = time,
+    values_from = Duration:Avg_dur_on_nest,
+    names_prefix = "ZT",
+    names_sep = "_"
+  )
+behavior_wide
+
+behavior_wide %>%
+  mutate(
+    across(c(Duration_ZT0, Num_entries_ZT14), as.integer)
+  )
+```
+
+```{r}
+# makeFactors <- function(df, cols){
+#   df <- df %>%
+#     mutate(
+#       across(
+#         {{ cols }},
+#         as.factor
+#       )
+#     )
+#   return(df)
+# }
+# Function in formateDataFrames file
+
+makeFactors(behavior_wide, c(Duration_ZT0, Num_entries_ZT14))
+makeFactors(behavior_wide, Duration_ZT0:Num_entries_ZT14)
+makeFactors(behavior_wide, Duration_ZT0)
+```
+
+```{r}
+behavior
+behavior  %>%
+  ggplot(aes(
+    x = time,
+    y = Num_entries,
+    color = Treatment
+  )) +
+  # my_geom_line(
+  #   linetype_var = expr(Treatment),
+  #   lineGroup_var = expr(Dam_ID)
+  # )
+  my_LBN_mass_geoms(
+    useLinetype = TRUE, #TRUE/FALSE
+    linetype_var = expr(Treatment),
+    lineGroup_var = expr(Dam_ID),
+    xtitle = "ZT",
+    ytitle = "number of nest entries",
+    title = NULL, #title of the graph
+    individualLines = TRUE, #if want individual lines
+    mean_lines = TRUE, #if want to include mean line with SEM
+    zoom_x = TRUE, #Zoom to a part of x axis
+    xmin = 0,
+    xmax = 24,
+    zoom_y = TRUE, #Zoom to a part of y axis
+    ymin = 0,
+    ymax = NA,
+    width = 1 #for error bars
+  )
+
+behavior  %>%
+  ggplot(aes(
+    x = time,
+    y = Perc_on_nest,
+    color = Treatment
+  )) +
+  # my_geom_line(
+  #   linetype_var = expr(Treatment),
+  #   lineGroup_var = expr(Dam_ID)
+  # )
+  my_LBN_mass_geoms(
+    useLinetype = TRUE, #TRUE/FALSE
+    linetype_var = expr(Treatment),
+    lineGroup_var = expr(Dam_ID),
+    xtitle = "ZT",
+    ytitle = "% on nest",
+    title = NULL, #title of the graph
+    individualLines = TRUE, #if want individual lines
+    mean_lines = TRUE, #if want to include mean line with SEM
+    zoom_x = TRUE, #Zoom to a part of x axis
+    xmin = 0,
+    xmax = 24,
+    zoom_y = TRUE, #Zoom to a part of y axis
+    ymin = 0,
+    ymax = NA,
+    width = 1 #for error bars
+  )
+behavior  %>%
+  ggplot(aes(
+    x = time,
+    y = Avg_dur_on_nest,
+    color = Treatment
+  )) +
+  # my_geom_line(
+  #   linetype_var = expr(Treatment),
+  #   lineGroup_var = expr(Dam_ID)
+  # )
+  my_LBN_mass_geoms(
+    useLinetype = TRUE, #TRUE/FALSE
+    linetype_var = expr(Treatment),
+    lineGroup_var = expr(Dam_ID),
+    xtitle = "ZT",
+    ytitle = "avg duration on nest",
+    title = NULL, #title of the graph
+    individualLines = TRUE, #if want individual lines
+    mean_lines = TRUE, #if want to include mean line with SEM
+    zoom_x = TRUE, #Zoom to a part of x axis
+    xmin = 0,
+    xmax = 24,
+    zoom_y = TRUE, #Zoom to a part of y axis
+    ymin = 0,
+    ymax = NA,
+    width = 1 #for error bars
+  )
+```
+
+```{r}
+cat("# exits\n")
+behavior %>%
+  anova_test(
+    dv = Num_exits,
+    wid = Dam_ID,
+    within = time,
+    between = Treatment,
+    type = 3
+  )
+
+behavior %>%
+  filter(
+    time == 0
+  ) %>%
+  t_test(
+    Num_exits ~ Treatment
+  )
+
+behavior %>%
+  filter(
+    time == 14
+  ) %>%
+  t_test(
+    Num_exits ~ Treatment
+  )
+
+cat("\n% on nest\n")
+behavior %>%
+  anova_test(
+    dv = Perc_on_nest,
+    wid = Dam_ID,
+    within = time,
+    between = Treatment,
+    type = 3
+  )
+
+behavior %>%
+  filter(
+    time == 0
+  ) %>%
+  t_test(
+    Perc_on_nest ~ Treatment
+  )
+
+behavior %>%
+  filter(
+    time == 14
+  ) %>%
+  t_test(
+    Perc_on_nest ~ Treatment
+  )
+
+cat("\navg duration on nest\n")
+behavior %>%
+  anova_test(
+    dv = Avg_dur_on_nest,
+    wid = Dam_ID,
+    within = time,
+    between = Treatment,
+    type = 3
+  )
+
+behavior %>%
+  filter(
+    time == 0
+  ) %>%
+  t_test(
+    Avg_dur_on_nest ~ Treatment
+  )
+
+behavior %>%
+  filter(
+    time == 14
+  ) %>%
+  t_test(
+    Avg_dur_on_nest ~ Treatment
+  )
+
+
+
+# Note that the grouped error bars don't show up for different colors when using my_line_mean_geom without linetype
+```
+
+```{r}
+behavior %>%
+  filter(
+    time == 0
+  ) %>%
+  ggplot(aes(
+    x = Num_exits,
+    y = Perc_on_nest,
+    color = Treatment
+  )) +
+  geom_jitter() +
+  expand_limits(y = 0, x= 0)
+behavior %>%
+  filter(
+    time == 14
+  ) %>%
+  ggplot(aes(
+    x = Num_exits,
+    y = Perc_on_nest,
+    color = Treatment
+  )) +
+  geom_jitter() +
+  expand_limits(y = 0, x= 0)
+```
+
+```{r}
+behaviorDFs <- list(behavior_ZT0, behavior_ZT14)
+combineZTdfs(behaviorDFs)
+bind_rows(behaviorDFs)
+
+behavior_ZT0 %>%
+  relocate(
+    Duration:Num_entries,
+    Time_on_nest,
+    .after = Perc_off_nest
+  )
+```
+
+```{r}
+LH_code
+LH_off
+Cort_off
+AcuteStress_off
+
+nonNumVars <- AcuteStress_off %>%
+  group_by(Dam_ID) %>%
+  select(
+    !where(is.numeric)
+  )
+
+sumNum <- AcuteStress_off %>%
+  group_by(Dam_ID) %>%
+  summarise(
+    across(
+      where(is.numeric),
+      ~ mean(.x, na.rm = TRUE)
+    ),
+    .groups = "drop"
+  ) %>%
+  addDamDemoData(damDemo_forOff = Demo_dam_for_offspring %>% 
+                   select(!where(is.numeric)))
+
+nonNumVars
+sumNum
+```
+
+```{r}
+cyclesLong <- makeCyclesLong(Cycles_off)
+cyclesLong
+
+plotCycleTraces(cyclesLong)
+```
+
+```{r}
 
 ```
 
