@@ -68,17 +68,25 @@ PlotFolder <- file.path(OutputFolder, "Plots")
 #Where data output should be saved
 DataOutFolder <- file.path(OutputFolder, "Data")
 
-#Load the LBN Functions
-source(file.path(FunctionsFolder, FunctionsFileName))
+# #Load the LBN Functions
+# source(file.path(FunctionsFolder, FunctionsFileName))
+# 
+# #Load the import data function
+# source(file.path(FunctionsFolder, ImportDataFunctionsFileName))
+# 
+# #Load the Variable Names Functions
+# source(file.path(FunctionsFolder, VarNamesFunctionsFileName))
+# 
+# #Load the Task Functions
+# source(file.path(FunctionsFolder, TaskFunctionsFileName))
+# 
+# #Load the Graph Functions
+# source(file.path(FunctionsFolder, GraphFunctionsFileName))
 
-#Load the import data function
-source(file.path(FunctionsFolder, ImportDataFunctionsFileName))
-
-#Load the Variable Names Functions
-source(file.path(FunctionsFolder, VarNamesFunctionsFileName))
-
-#Load the Task Functions
-source(file.path(FunctionsFolder, TaskFunctionsFileName))
-
-#Load the Graph Functions
-source(file.path(FunctionsFolder, GraphFunctionsFileName))
+functionFiles <- list.files(
+  FunctionsFolder, 
+  full.names = TRUE,
+  recursive = TRUE, 
+  pattern = "*.R"
+)
+sapply(functionFiles, source)

@@ -20,7 +20,9 @@ load_LBN_data <- function(
   NameCycles_off = "Cycles_off",
   NameChronicStress_off = "ChronicStress_off",
   NameAcuteStress_off = "AcuteStress_off",
-  NameCRH_dam = "CRH_dam"
+  NameCRH_dam = "CRH_dam",
+  NameBehavZT0 = "Dam_behavior_ZT0",
+  NameBehavZT14 = "Dam_behavior_ZT14"
 ){
   
   
@@ -33,35 +35,69 @@ load_LBN_data <- function(
   AcuteStress_off <- myXLSX_func(dataFolder, excelName, NameAcuteStress_off) #replaced Offspring_acute_stress
   ChronicStress_off <- myXLSX_func(dataFolder, excelName, NameChronicStress_off) #replaced Offspring_chronic_stress
   CRH_dam <- myXLSX_func(dataFolder, excelName, NameCRH_dam)
+  behavior_ZT0 <- myXLSX_func(DataFolder, LBN_DataName, "Dam_behavior_ZT0")
+  behavior_ZT14 <- myXLSX_func(DataFolder, LBN_DataName, "Dam_behavior_ZT14")
   
-  #Format IDs as characters
-  Demo_dam$Dam_ID <- as.character(Demo_dam$Dam_ID)
-  Demo_dam$Dam <- as.character(Demo_dam$Dam)
-  Demo_off$Dam_ID <- as.character(Demo_off$Dam_ID)
+  #Make factor variables
+    # Dam_ID
+    # Dam
+    # Mouse_ID
+    # Paradigm
+    # Litter number
+    # Cohort
   
-  Demo_off$Mouse_ID <- as.character(Demo_off$Mouse_ID)
-  Mass_off$Mouse_ID <- as.character(Mass_off$Mouse_ID)
-  Maturation_off$Mouse_ID <- as.character(Maturation_off$Mouse_ID)
-  EndPara_off$Mouse_ID <- as.character(EndPara_off$Mouse_ID)
-  Cycles_off$Mouse_ID <- as.character(Cycles_off$Mouse_ID)
-  AcuteStress_off$Mouse_ID <- as.character(AcuteStress_off$Mouse_ID)
-  ChronicStress_off$Mouse_ID <- as.character(ChronicStress_off$Mouse_ID)
+  Demo_dam <- Demo_dam %>%
+    makeFactors(
+      c(
+        Dam_ID,
+        Dam,
+        ParaType,
+        Litter_num,
+        Cohort
+      )
+    )
   
-  CRH_dam$Dam_ID <- as.character(CRH_dam$Dam_ID)
-  CRH_dam$Dam <- as.character(CRH_dam$Dam)
-  
-  #Make the paradigm type a factor variable
-  Demo_dam$ParaType <- as.factor(Demo_dam$ParaType)
-  
-  #Make the litter number a factor variable
-  Demo_dam$Litter_num <- as.factor(Demo_dam$Litter_num)
-  
-  #Make the cohort a factor variable
-  Demo_dam$Cohort <- as.factor(Demo_dam$Cohort)
+  Demo_off <- makeFactors(Demo_off, c(Dam_ID, Mouse_ID))
+  Mass_off <- makeFactors(Mass_off, Mouse_ID)
+  Maturation_off <- makeFactors(Maturation_off, Mouse_ID)
+  EndPara_off <- makeFactors(EndPara_off, Mouse_ID)
+  Cycles_off <- makeFactors(Cycles_off, Mouse_ID)
+  AcuteStress_off <- makeFactors(AcuteStress_off, Mouse_ID)
+  ChronicStress_off <- makeFactors(ChronicStress_off, Mouse_ID)
+  CRH_dam <- makeFactors(CRH_dam, c(Dam_ID,Dam))
+  behavior_ZT0 <- makeFactors(behavior_ZT0, Dam_ID)
+  behavior_ZT14 <- makeFactors(behavior_ZT14, Dam_ID)
   
   #Add a "pupLoss" column to Demo_dam
   Demo_dam <- Demo_dam %>%
     mutate(pupLoss = Litter_size_startPara - Litter_size_endPara)
+  
+  # Combine behavior into one long table
+  behavior_noDemo <- bind_rows(
+    behavior_ZT0,
+    behavior_ZT14
+  )
+  
+  # Add demo to long behavior
+  behavior <- behavior_noDemo %>%
+    left_join(
+      Demo_dam,
+      by = "Dam_ID"
+    )
+  
+  # Make wide behavior table
+  behavior_wide <- behavior_noDemo %>%
+    pivot_wider(
+      id_cols = Dam_ID,
+      names_from = time,
+      values_from = Duration:Avg_dur_on_nest,
+      names_prefix = "ZT",
+      names_sep = "_"
+    )
+  
+  # Add behavior wide to Demo_dam
+  Demo_dam <- Demo_dam %>%
+    left_join(behavior_wide, by = "Dam_ID")
   
   #Combine into a single dataframe - to be used for variable names
   LBN_all <- Demo_off %>%
@@ -90,7 +126,8 @@ load_LBN_data <- function(
       Avg_litter_mass_startPara, 
       Litter_size_startPara, 
       Litter_size_endPara,
-      pupLoss
+      pupLoss,
+      Duration_ZT0:Avg_dur_on_nest_ZT14
     )
   
   #Add the demographic info, join by Dam_ID
@@ -103,7 +140,8 @@ load_LBN_data <- function(
       Treatment:ParaType,
       Wean_Cage_Number:Dam_cage,
       Sire,
-      Avg_litter_mass_startPara:pupLoss
+      Avg_litter_mass_startPara:pupLoss,
+      Duration_ZT0:Avg_dur_on_nest_ZT14
     )
   
   #Combine all of the data into a single dataframe. Will add NAs where there isn't data
@@ -130,7 +168,8 @@ load_LBN_data <- function(
       Dam_ID,
       Dam,
       DOB,
-      Litter_num:pupLoss
+      Litter_num:pupLoss,
+      Duration_ZT0:Avg_dur_on_nest_ZT14
     )
   
   #Format Mat Dates as date
@@ -158,7 +197,8 @@ load_LBN_data <- function(
       Dam_ID,
       DOB,
       Dam,
-      Litter_num:pupLoss
+      Litter_num:pupLoss,
+      Duration_ZT0:Avg_dur_on_nest_ZT14
     )
   
   Maturation_off <- Maturation_off %>%
@@ -183,6 +223,7 @@ load_LBN_data <- function(
       PreputialSep_age, PreputialSep_mass,
       VO_day, Estrus_day, PreputialSep_day,
       AGD_P22:pupLoss,
+      Duration_ZT0:Avg_dur_on_nest_ZT14
     )
   
   EndPara_off <- LBN_data %>%
@@ -196,7 +237,8 @@ load_LBN_data <- function(
       Dam_ID,
       DOB,
       Dam,
-      Litter_num:pupLoss
+      Litter_num:pupLoss,
+      Duration_ZT0:Avg_dur_on_nest_ZT14
     )
   
   Cycles_off <- LBN_data %>%
@@ -210,7 +252,8 @@ load_LBN_data <- function(
       Cycle_length:Proestrus_days,
       Dam_ID,
       DOB,
-      Litter_num:pupLoss
+      Litter_num:pupLoss,
+      Duration_ZT0:Avg_dur_on_nest_ZT14
     )
   
   AcuteStress_off <- LBN_data %>%
@@ -224,7 +267,8 @@ load_LBN_data <- function(
       Dam_ID,
       DOB,
       Dam,
-      Litter_num:pupLoss
+      Litter_num:pupLoss,
+      Duration_ZT0:Avg_dur_on_nest_ZT14
     )
   
   ChronicStress_off <- LBN_data %>%
@@ -238,7 +282,8 @@ load_LBN_data <- function(
       Dam_ID,
       DOB,
       Dam,
-      Litter_num:pupLoss
+      Litter_num:pupLoss,
+      Duration_ZT0:Avg_dur_on_nest_ZT14
     )
   
   
@@ -277,7 +322,8 @@ load_LBN_data <- function(
       "ChronicStress_off" = ChronicStress_off,
       "LBN_all" = LBN_all,
       "LBN_data" = LBN_data,
-      "Dam_CRH" = CRH_dam
+      "Dam_CRH" = CRH_dam,
+      "behavior" = behavior
     )
   )
 }

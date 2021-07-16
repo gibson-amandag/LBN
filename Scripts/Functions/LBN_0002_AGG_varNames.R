@@ -171,7 +171,25 @@ demoVars_forOff_quo = c(
   "Lost_cage_mate",
   "Litter_size_startPara",
   "Litter_size_endPara",
-  "pupLoss"
+  "pupLoss",
+  "Duration_ZT0",
+  "Duration_ZT14",
+  "Num_exits_ZT0",
+  "Num_exits_ZT14",
+  "Num_entries_ZT14",
+  "Num_entries_ZT14",
+  "Time_off_nest_ZT0",
+  "Time_off_nest_ZT14",
+  "Time_on_nest_ZT0",
+  "Time_on_nest_ZT14",
+  "Perc_off_nest_ZT0",
+  "Perc_off_nest_ZT14",
+  "Perc_on_nest_ZT14",
+  "Perc_on_nest_ZT0",
+  "Avg_dur_off_nest_ZT0",
+  "Avg_dur_off_nest_ZT14",
+  "Avg_dur_on_nest_ZT0",
+  "Avg_dur_on_nest_ZT14"
 )
 
 demoVars_forOff = exprs(
