@@ -70,21 +70,27 @@ acuteStressUI <- function(id,
     
     tableOutput(ns("anova")),
     
-    h4("Interaction of ALPS Treatment and Time"),
+    h4("Interaction of LBN and ALPS Treatment"),
+
+    p("This explores the two-way ANOVA at each time point"),
+
+    tableOutput(ns("twowayTreat")),
     
-    p("This explores the two-way ANOVA at each level of early-life treatment"),
-    
-    tableOutput(ns("twoway")),
-    
-    h4("Effect of time"),
-    
-    p("This further explores the effect of time for each treatment group. p-value for significance needs to be adjusted for multiple comparison by Bonferroni"),
-    
-    tableOutput(ns("timeEffect")),
-    
-    h4("Pairwise Comparisons"),
-    
-    tableOutput(ns("pairwise")),
+    # h4("Interaction of ALPS Treatment and Time"),
+    # 
+    # p("This explores the two-way ANOVA at each level of early-life treatment"),
+    # 
+    # tableOutput(ns("twoway")),
+    # 
+    # h4("Effect of time"),
+    # 
+    # p("This further explores the effect of time for each treatment group. p-value for significance needs to be adjusted for multiple comparison by Bonferroni"),
+    # 
+    # tableOutput(ns("timeEffect")),
+    # 
+    # h4("Pairwise Comparisons"),
+    # 
+    # tableOutput(ns("pairwise")),
     
     h3("Summary Table"),
     
@@ -194,6 +200,23 @@ acuteStressServer <- function(
           add_significance("p.adj")
         
         colnames(two.way)[1] <- "Early.Life"
+        
+        return(two.way)
+      })
+      output$twowayTreat <- renderTable({
+        two.way <- AcuteStress_off_long_react() %>%
+          group_by(
+            Time
+          ) %>%
+          anova_test(
+            dv = Cort,
+            between = c(Treatment, Stress_treatment)
+          ) %>%
+          get_anova_table() %>%
+          adjust_pvalue(
+            method = "bonferroni"
+          )%>%
+          add_significance("p.adj")
         
         return(two.way)
       })

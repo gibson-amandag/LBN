@@ -1,0 +1,211 @@
+---
+title: "LBN_0004 Male Stress"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+# Set up
+Set-up the notebook. This script loads the environment, and contains the names for the data file, and sources the additional scripts that will be used for the analysis.
+```{r GetReady}
+source("./Scripts/LBN_0002_AGG_setUp.R")
+dateToday = Sys.Date()
+filterDateForTaskDFs = as.Date("2020-12-01") #Look for breed dates/DOBs after this date
+```
+
+# Load Data
+The "load_LBN_data" function takes the data folder and excel file name and outputs a list with the processed dataframes. These have the demographic data and any "mutations" (calculated columns) added already.
+The output of this chunk is each of these dataframes.
+```{r LoadData, include=FALSE}
+DFs <- load_LBN_data(
+  dataFolder = DataFolder,
+  excelName = LBN_DataName
+)
+
+Demo_dam <- DFs$Demo_dam
+Demo_off <- DFs$Demo_off
+Mass_off <- DFs$Mass_off
+Maturation_off <- DFs$Maturation_off
+EndPara_off <- DFs$EndPara_off
+Cycles_off <- DFs$Cycles_off
+AcuteStress_off <- DFs$AcuteStress_off
+ChronicStress_off <- DFs$ChronicStress_off
+LBN_all <- DFs$LBN_all
+LBN_data <- DFs$LBN_data
+CRH_dam <- DFs$CRH_dam
+```
+
+```{r}
+stress_LBN_0004_males <- AcuteStress_off %>% 
+  filter(
+    Cohort == 4,
+    Sex == "M",
+    !is.na(Stress_treatment)
+  )
+
+stress_LBN_0004_males
+```
+
+# Body Mass
+```{r}
+bodyMass_anova <- stress_LBN_0004_males %>%
+  rename(
+    earlyLifeTrt = Treatment,
+    adultTrt = Stress_treatment
+  ) %>%
+  anova_test(
+  dv = "Body_mass_stress",
+  between = c("earlyLifeTrt", "adultTrt"),
+  type = 3
+)
+
+bodyMass_t_test <- t_test(stress_LBN_0004_males, Body_mass_stress ~ Treatment)
+
+bodyMass_plot <- stress_LBN_0004_males %>%
+  renameStressGroups() %>%
+  combineStressGroups() %>%
+  twoWayDotPlot(
+    yVar = Body_mass_stress,
+    yLab = "body mass (g)",
+    fillVar = comboTrt,
+    shapeVar = comboTrt
+  ) + scale_shape_color()
+
+bodyMass_anova
+bodyMass_t_test
+bodyMass_plot
+```
+
+# Seminal Vesicle Mass
+```{r}
+semVes_anova <- stress_LBN_0004_males %>%
+  rename(
+    earlyLifeTrt = Treatment,
+    adultTrt = Stress_treatment
+  ) %>%
+  anova_test(
+  dv = "ReproTract_mass",
+  between = c("earlyLifeTrt", "adultTrt"),
+  type = 3
+)
+
+semVes_t_test <- t_test(stress_LBN_0004_males %>% filter(!Mouse_ID == "D033-02_66"), ReproTract_mass ~ Treatment)
+
+semVes_plot <- stress_LBN_0004_males %>%
+  renameStressGroups() %>%
+  combineStressGroups() %>%
+  twoWayDotPlot(
+    yVar = ReproTract_mass,
+    yLab = "seminal vesicle mass (mg)",
+    fillVar = comboTrt,
+    shapeVar = comboTrt
+  ) + scale_shape_color()
+
+semVes_anova
+semVes_t_test
+semVes_plot
+```
+
+# Testicular Mass
+```{r}
+testes_anova <- stress_LBN_0004_males %>%
+  rename(
+    earlyLifeTrt = Treatment,
+    adultTrt = Stress_treatment
+  ) %>%
+  anova_test(
+  dv = "Gonad_mass",
+  between = c("earlyLifeTrt", "adultTrt"),
+  type = 3
+)
+
+testes_t_test <- t_test(stress_LBN_0004_males, Gonad_mass ~ Treatment)
+
+testes_plot <- stress_LBN_0004_males %>%
+  renameStressGroups() %>%
+  combineStressGroups() %>%
+  twoWayDotPlot(
+    yVar = Gonad_mass,
+    yLab = "testicular mass (mg)",
+    fillVar = comboTrt,
+    shapeVar = comboTrt
+  ) + scale_shape_color()
+
+testes_anova
+testes_t_test
+testes_plot
+```
+# Adrenal Mass
+```{r}
+adrenal_anova <- stress_LBN_0004_males %>%
+  rename(
+    earlyLifeTrt = Treatment,
+    adultTrt = Stress_treatment
+  ) %>%
+  anova_test(
+  dv = "Adrenal_mass",
+  between = c("earlyLifeTrt", "adultTrt"),
+  type = 3
+)
+
+adrenal_t_test <- t_test(stress_LBN_0004_males, Adrenal_mass ~ Treatment)
+
+adrenal_plot <- stress_LBN_0004_males %>%
+  renameStressGroups() %>%
+  combineStressGroups() %>%
+  twoWayDotPlot(
+    yVar = Adrenal_mass,
+    yLab = "adrenal mass (mg)",
+    fillVar = comboTrt,
+    shapeVar = comboTrt
+  ) + scale_shape_color()
+
+adrenal_anova
+adrenal_t_test
+adrenal_plot
+```
+
+
+
+```{r}
+earlyLifeLegend <- get_legend(
+  bodyMass_plot + 
+    theme(
+      legend.position = "top", 
+      legend.text = element_text(size = 11, family = "Arial")
+    ) + labs(fill = NULL)
+)
+maleMassPlot <- plot_grid(
+  bodyMass_plot + rremove("x.text") + rremove("x.ticks") + theme(plot.margin = margin(0, 0, 6, 0)),
+  adrenal_plot + rremove("x.text") + rremove("x.ticks"),
+  semVes_plot + expand_limits(y = 260) + rremove("x.text") + rremove("x.ticks"),
+  testes_plot + expand_limits(y = 260) + rremove("x.text") + rremove("x.ticks"),
+  labels = c("A", "B", "C","D"),
+  ncol = 4,
+  label_fontfamily = "Arial"
+)
+
+maleMassPlotWLegend <- plot_grid(
+  earlyLifeLegend,
+  maleMassPlot,
+  ncol = 1,
+  rel_heights = c(0.1, 1)
+)
+
+maleMassPlotWLegend
+
+ggsave(
+  file.path(PlotFolder, "LBN_0004_male_masses.pdf"),
+  plot = maleMassPlotWLegend,
+  device = "pdf",
+  width = 7.5,
+  height = 2.75,
+  units = c("in"),
+  useDingbats = FALSE
+)
+
+```
+
+

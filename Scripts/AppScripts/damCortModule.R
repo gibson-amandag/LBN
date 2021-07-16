@@ -15,6 +15,7 @@ damCortUI <- function(id, Demo_dam){
     zoomAxisUI(ns("zoom_y"), "y"),
     
     plotOutput(ns("Dam_cort21")),
+    plotOutput(ns("Dam_cort11")),
     
     h3("Summary Data"),
     
@@ -78,6 +79,30 @@ damCortServer <- function(id,
           alt_ytitle = TRUE,
           ytitle = "Corticosterone (ng/mL)" #alternative y title
         )
+      })
+      output$Dam_cort11 <- renderPlot({
+        Cort_dams <- Demo_dam %>%
+          drop_na(Treatment, Cort_dam_P11)
+        
+        Cort_dams_react <- filteringDFServer(
+          "Cort_dams",
+          Cort_dams
+        )
+        
+        my_puberty_dot_plot(
+          df = Cort_dams_react(),
+          var_to_plot = expr(Cort_dam_P11), #expr()
+          phenotype_name = NULL,
+          shape = expr(Dam_Strain),
+          colour = expr(Treatment),
+          width = 0.3,
+          change_ymax = zoom_y$zoom(),
+          ymin = zoom_y$min(),
+          ymax = zoom_y$max(),
+          alt_ytitle = TRUE,
+          ytitle = "Corticosterone (ng/mL)" #alternative y title
+        )+ 
+          stat_compare_means(method = "t.test", label.y = max(Cort_dams_react()$Cort_dam_P11, na.rm = TRUE) + 10)
       })
       
       damCortSum <- summaryTableServer("damCortSum", reactive(Demo_dam))

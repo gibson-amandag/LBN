@@ -184,7 +184,7 @@ my_line_mean_geom <- function(
 ){
   list(
     stat_summary(fun = mean, geom = "line", if(useLinetype){aes(linetype = !! linetype_var)}, size = 1.4, alpha = 1),
-    stat_summary(geom = "errorbar", fun.data = mean_se, size = 1, width = width, color = "grey10", alpha = 0.6)
+    stat_summary(geom = "errorbar", fun.data = mean_se, if(useLinetype){aes(group = !! linetype_var)}, size = 1, width = width, color = "grey10", alpha = 0.6)
   )
 }
 
