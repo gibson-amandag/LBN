@@ -21,3 +21,11 @@ boxTheme <- function(axisSize = 0.5){
     legend.box.background = element_blank()
   )
 }
+
+earlyLifeFill <- function(
+  STD = "STD",
+  LBN = "LBN"
+){
+  fill <- scale_fill_manual("early life trt", values = c(STD="white", LBN="black"))
+  return(fill)
+}
