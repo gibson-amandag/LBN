@@ -89,11 +89,31 @@ longCortPlot <- function(
       strip.position = "bottom",
       ncol = 4,
       nrow = 1
-    )+
+    ) +
     rremove(
       "legend"
     ) + 
     textTheme()+
     boxTheme()
   return(longPlot)
+}
+
+plotByUterineMass <- function(
+  df,
+  yVar,
+  yLab
+){
+  plot <- df %>%
+    ggplot(
+      aes(
+        x = ReproTract_mass,
+        y = {{ yVar }}
+      )
+    ) +
+    geom_jitter() +
+    expand_limits(x = 0, y = 0) +
+    labs(x = "uterine mass (mg)", y = yLab)+
+    textTheme()+
+    boxTheme()
+  return(plot)
 }

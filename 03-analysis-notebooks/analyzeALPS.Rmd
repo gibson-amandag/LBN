@@ -28,6 +28,18 @@ femalesCort_0002_long
 
 femalesCort_0002_plot <- cortPlot(femalesCort_0002)
 femalesCort_0002_plot
+
+femalesAcuteStress_0002 <- AcuteStress_off %>%
+  filter(
+    sex == "F",
+    Cohort == 2
+  )
+```
+
+## Basal Cort & Uterine Mass
+```{r}
+femalesAcuteStress_0002 %>%
+  plotByUterineMass(yVar = cort_hr0, "basal cort (ng/mL)")
 ```
 
 # Males Cohort 4
@@ -44,5 +56,36 @@ malesCort_0004_long
 
 malesCort_0004_plot <- cortPlot(malesCort_0004)
 malesCort_0004_plot
+```
+# Females Cohort 4
+```{r}
+femalesAcuteStress_0004 <- AcuteStress_off %>%
+  filter(
+    sex == "F",
+    Cohort == 4
+  )
+femalesAcuteStress_0004
+femaleGroupNums_0004 <- getStressTrtNumbers(femalesAcuteStress_0004)
+femaleGroupNums_0004
+
+
+```
+
+## uterine masses
+```{r}
+femalesAcuteStress_0004 %>%
+  plotByUterineMass(yVar = cort_hr0, "basal cort (ng/mL)")
+```
+
+# Cohort 5 Females - Detecting Proestrus
+```{r}
+females_LH_0005 <- AcuteStress_off %>%
+  filter(
+    Cohort == 5,
+    sex == "F"
+  )
+
+females_LH_0005 %>%
+  plotByUterineMass(yVar = LH_hr6, "evening LH (ng/mL)")
 ```
 
