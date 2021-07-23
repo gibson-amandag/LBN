@@ -12,3 +12,74 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
 ```
+
+```{r}
+dam_behavior_litter2 <- dam_behavior %>%
+  filter(
+    Litter_num == 2
+  )
+```
+
+# Number of Exits - Lights Off
+```{r}
+dam_behavior_litter2 %>%
+  filter(
+    time == 14
+  ) %>%
+  scatterPlotLBN(
+    yVar = Num_exits,
+    yLab = "number of exits"
+  )
+```
+
+## Correlation with % on nest
+```{r}
+dam_behavior_litter2 %>%
+  filter(
+    time == 14
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = Num_exits,
+    yLab = "number of exits",
+    xVar = Perc_on_nest,
+    xLab = "% on nest"
+  )
+```
+
+# Number of exits lights on
+```{r}
+numExits_ZT0 <- dam_behavior_litter2 %>%
+  filter(
+    time == 0
+  ) %>%
+  scatterPlotLBN(
+    yVar = Num_exits,
+    yLab = "number of exits"
+  )
+numExits_ZT0
+```
+
+## Correlation with % on nest
+```{r}
+numExitsAndPercOn <- dam_behavior_litter2 %>%
+  filter(
+    time == 0
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = Num_exits,
+    yLab = "number of exits",
+    xVar = Perc_on_nest,
+    xLab = "% on nest"
+  )
+numExitsAndPercOn
+```
+
+```{r}
+behaviorOverTime <- dam_behavior %>%
+  behavior_overTime(
+    yVar = Num_exits,
+    yLab = "# of exits"
+  )
+behaviorOverTime
+```
+
