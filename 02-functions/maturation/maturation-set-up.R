@@ -54,7 +54,8 @@ setUpMaturation <-  function(df) {
     addEstrusAge() %>%
     addPreputialSepAge() %>%
     getMeanAcrossDays(colsToAvg = c(AGD_P22, AGD_P23, AGD_P24), avgColName = AGD_wean) %>%
-    getMeanAcrossDays(colsToAvg = c(AGD_P70, AGD_P71, AGD_P72), avgColName = AGD_adult)
+    getMeanAcrossDays(colsToAvg = c(AGD_P70, AGD_P71, AGD_P72), avgColName = AGD_adult) %>%
+    getMeanAcrossDays(colsToAvg = c(Mass_P70, Mass_P71, Mass_P72), avgColName = Mass_adult)
   return(df)
 }
 

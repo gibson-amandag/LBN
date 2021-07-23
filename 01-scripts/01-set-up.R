@@ -18,6 +18,7 @@ library(ggpubr)
 library(rstatix)
 library(cowplot)
 library(extrafont)
+library(flextable)
 # font_import()
 if(! length(fonts()) > 0){
   # have to add fonts to be able to load them into pdfs

@@ -32,6 +32,14 @@ combineStress <- function(df){
   return(df)
 }
 
+orderAdultTrt <- function(df){
+  df <- df %>%
+    mutate(
+      adultTrt = factor(adultTrt, levels = c("CON", "ALPS"))
+    )
+  return(df)
+}
+
 convertStartPara <- function(df){
   df <- df %>%
     mutate(

@@ -37,12 +37,14 @@ Demo_dam <- Demo_dam %>%
   )) %>%
   orderEarlyLifeTrt()
 
-Demo_off <- makeFactors(Demo_off, c(Dam_ID, Mouse_ID))
+Demo_off <- makeFactors(Demo_off, c(Dam_ID, Mouse_ID, sex))
 Mass_off <- makeFactors(Mass_off, Mouse_ID)
 Maturation_off <- makeFactors(Maturation_off, Mouse_ID)
 EndPara_off <- makeFactors(EndPara_off, Mouse_ID)
 Cycles_off <- makeFactors(Cycles_off, Mouse_ID)
-AcuteStress_off <- makeFactors(AcuteStress_off, Mouse_ID)
+AcuteStress_off_demo <- AcuteStress_off_demo %>%
+  orderAdultTrt() %>%
+  makeFactors(c(Mouse_ID, adultTrt))
 ChronicStress_off <- makeFactors(ChronicStress_off, Mouse_ID)
 CRH_dam <- makeFactors(CRH_dam, c(Dam_ID,Dam))
 behavior_ZT0 <- makeFactors(behavior_ZT0, Dam_ID)
