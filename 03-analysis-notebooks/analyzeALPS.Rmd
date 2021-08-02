@@ -1,6 +1,13 @@
 ---
 title: "ALPS"
-output: html_notebook
+output:
+  html_notebook:
+    toc: yes
+  word_document:
+    toc: yes
+  html_document:
+    df_print: kable
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -8,9 +15,153 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 # options(digits=3)
 ```
 
-```{r}
+```{r include=FALSE}
 source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+proUterineCutoff <- 130
+```
+
+# Uterine Mass and Evening LH - all P4-P11 controls
+At the moment, this is just the pilot "detecting proestrus" mice. These were first litter offspring of dams with no treatment used to try to correlate vaginal smear, uterine mass, and LH surge.
+
+```{r named-1}
+AcuteStress_off %>%
+  filter(
+    sex == "F",
+    Cohort != 1,
+    adultTrt == "CON",
+    Dam_Strain == "CBA"
+  ) %>%
+  plotByUterineMass(yVar = maxLH, yLab = "max evening LH (ng/mL)")
+```
+```{r}
+AcuteStress_off %>%
+  filter(
+    sex == "F",
+    Cohort != 1,
+    adultTrt == "CON",
+    Dam_Strain == "CBA",
+    !is.na(maxLH)
+  )%>%
+  select(
+    Mouse_ID,
+    ReproTract_mass,
+    maxLH
+  )
+```
+
+
+```{r eval=FALSE, include=FALSE}
+# Cohort 5 Females - Detecting Proestrus
+# These were first litter offspring of dams with no treatment used to try to correlate vaginal smear, uterine mass, and LH surge 
+females_LH_0005 <- AcuteStress_off %>%
+  filter(
+    Cohort == 5,
+    sex == "F"
+  )
+
+females_LH_0005 %>%
+  plotByUterineMass(yVar = maxLH, "max evening LH (ng/mL)")
+```
+
+# Cohort 1 Females
+These were sampled regardless of stage. 
+P2-P9
+B6 and CBA dams
+
+## LH profile
+```{r}
+LH_off %>%
+  filter(
+    Cohort == 1
+  ) %>%
+  LHPlot() +
+  facet_wrap(
+    ~ adultTrt
+  )
+```
+
+
+```{r}
+femalesAcuteStress_0001 <- AcuteStress_off %>%
+  filter(
+    Cohort == 1,
+    Dam_Strain == "CBA",
+    sex == "F"
+  )
+```
+
+### Uterine mass and LH
+Uterine masses of the control CBA mice by max afternoon LH. Despite some high uterine masses, there were no detected surges that had started by 4p in these mice
+
+```{r}
+femalesAcuteStress_0001 %>%
+  filter(
+    adultTrt == "CON"
+  ) %>%
+  plotByUterineMass(yVar = maxLH, yLab = "max evening LH (ng/mL)")
+```
+
+```{r eval=FALSE, include=FALSE}
+## Corticosterone and uterine mass
+femalesAcuteStress_0001 %>%
+  plotByUterineMass(yVar = cort_hr5, yLab = "corticosterone (ng/mL)")
+```
+
+```{r}
+femalesCort_0001 <- Cort_off %>%
+  filter(
+    Cohort == 1,
+    Dam_Strain == "CBA",
+    sex == "F"
+  )
+```
+
+## Corticosterone Response
+This includes only the offspring of CBA dams
+
+```{r}
+femalesCort_0001_base <- baseCortPlot(femalesCort_0001)
+
+femalesCort_0001_long <- longCortPlot(femalesCort_0001_base)
+femalesCort_0001_long
+
+femalesCort_0001_plot <- cortPlot(femalesCort_0001)
+femalesCort_0001_plot
+```
+
+```{r}
+femalesCort_0001 %>%
+  cortAnova()
+```
+
+# Cohort 1 Males
+```{r}
+malesCort_0001 <- Cort_off %>%
+  filter(
+    Cohort == 1,
+    Dam_Strain == "CBA",
+    sex == "M"
+  )
+```
+
+## Corticosterone Response
+This includes only the offspring of CBA dams
+
+```{r}
+malesCort_0001_base <- baseCortPlot(malesCort_0001)
+
+malesCort_0001_long <- longCortPlot(malesCort_0001_base)
+malesCort_0001_long
+
+malesCort_0001_plot <- cortPlot(malesCort_0001)
+malesCort_0001_plot
+
+malesCort_0001 %>%
+  cortAnova()
 ```
 
 # Females Cohort 2
@@ -34,58 +185,205 @@ femalesAcuteStress_0002 <- AcuteStress_off %>%
     sex == "F",
     Cohort == 2
   )
+
+femalesCort_0002 %>%
+  cortAnova()
 ```
 
-## Basal Cort & Uterine Mass
+## Uterine Mass By Group
 ```{r}
 femalesAcuteStress_0002 %>%
-  plotByUterineMass(yVar = cort_hr0, "basal cort (ng/mL)")
+  plotUterineMassByGroup(hLineVal = proUterineCutoff)
 ```
 
-# Males Cohort 4
+# Males Cohort 2
 ```{r}
-malesCort_0004 <- Cort_off %>%
-  filter(
-    sex == "M",
-    Cohort == 4
-  )
-malesCort_0004_base <- baseCortPlot(malesCort_0004)
-
-malesCort_0004_long <- longCortPlot(malesCort_0004_base)
-malesCort_0004_long
-
-malesCort_0004_plot <- cortPlot(malesCort_0004)
-malesCort_0004_plot
-```
-# Females Cohort 4
-```{r}
-femalesAcuteStress_0004 <- AcuteStress_off %>%
+malesCort_0002 <- Cort_off %>%
   filter(
     sex == "F",
-    Cohort == 4
+    Cohort == 2
   )
-femalesAcuteStress_0004
-femaleGroupNums_0004 <- getStressTrtNumbers(femalesAcuteStress_0004)
-femaleGroupNums_0004
 
+malesCort_0002_base <- baseCortPlot(malesCort_0002)
 
+malesCort_0002_long <- longCortPlot(malesCort_0002_base)
+malesCort_0002_long
+
+malesCort_0002_plot <- cortPlot(malesCort_0002)
+malesCort_0002_plot
+
+femalesAcuteStress_0002 <- AcuteStress_off %>%
+  filter(
+    sex == "F",
+    Cohort == 2
+  )
+```
+
+```{r males-cohort2-anova}
+malesCort_0002 %>%
+  cortAnova()
+```
+
+# Males - Second Litter Offspring
+```{r}
+AcuteStress_off %>%
+  filter(
+    sex == "M",
+    Litter_num == 2
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  )%>%
+  meanSummary(c(cort_hr0, cort_hr5))
+```
+
+```{r}
+malesCort_2ndLitter <- Cort_off %>%
+  filter(
+    sex == "M",
+    Litter_num == 2
+  )
+malesCort_2ndLitter_base <- baseCortPlot(malesCort_2ndLitter)
+
+malesCort_2ndLitter_long <- longCortPlot(malesCort_2ndLitter_base)
+malesCort_2ndLitter_long
+
+malesCort_2ndLitter_plot <- cortPlot(malesCort_2ndLitter, pointSize = 1.5)
+malesCort_2ndLitter_plot
+```
+
+```{r}
+malesCort_2ndLitter %>%
+  cortAnova()
+```
+
+```{r eval=FALSE, include=FALSE}
+ggsave(
+  file.path(plotOutputFolder, "malesCort_LBN_0004.pdf"),
+  malesCort_2ndLitter_plot + 
+    guides(
+      fill=guide_legend(nrow=2,byrow=TRUE),
+      shape=guide_legend(nrow=2,byrow=TRUE),
+      color=guide_legend(nrow = 2, byrow = TRUE),
+      linetype=guide_legend(nrow = 2, byrow = TRUE)
+    ) +
+    theme(
+      legend.title = element_blank(),
+      legend.margin = margin(),
+      legend.text = element_text(family = "Arial", size = 12)
+    ),
+  device = "pdf",
+  width = 4,
+  height = 2,
+  units = "in",
+  useDingbats = FALSE 
+)
+```
+
+# Females - Second Litter
+```{r}
+femalesAcuteStress_2ndLitter <- AcuteStress_off %>%
+  filter(
+    sex == "F",
+    Litter_num == 2
+  )
+femalesAcuteStress_2ndLitter %>%
+  arrange(
+    DOB,
+    Mouse_ID
+  )
+```
+
+Group numbers, regardless of uterine mass
+```{r}
+femalesGroupNums_2ndLitter <- getStressTrtNumbers(femalesAcuteStress_2ndLitter)
+femalesGroupNums_2ndLitter
+```
+
+Numbers over pro uterine mass cutoff of `r proUterineCutoff` mg
+
+```{r}
+femalesAcuteStress_2ndLitter %>%
+  filter(
+    ReproTract_mass > proUterineCutoff
+  ) %>%
+  getStressTrtNumbers()
 ```
 
 ## uterine masses
 ```{r}
-femalesAcuteStress_0004 %>%
-  plotByUterineMass(yVar = cort_hr0, "basal cort (ng/mL)")
+femalesAcuteStress_2ndLitter %>%
+  plotUterineMassByGroup(hLineVal = proUterineCutoff)
 ```
 
-# Cohort 5 Females - Detecting Proestrus
+## Cort
 ```{r}
-females_LH_0005 <- AcuteStress_off %>%
+femalesCort_2ndLitter <- Cort_off %>%
   filter(
-    Cohort == 5,
-    sex == "F"
+    sex == "F",
+    Litter_num == 2,
+    ReproTract_mass > proUterineCutoff
   )
+femalesCort_2ndLitter_base <- baseCortPlot(femalesCort_2ndLitter)
 
-females_LH_0005 %>%
-  plotByUterineMass(yVar = LH_hr6, "evening LH (ng/mL)")
+femalesCort_2ndLitter_long <- longCortPlot(femalesCort_2ndLitter_base)
+femalesCort_2ndLitter_long
+
+femalesCort_2ndLitter_plot <- cortPlot(femalesCort_2ndLitter, pointSize = 1.5)
+femalesCort_2ndLitter_plot
 ```
+
+### Evening cort by uterine mass
+```{r}
+femalesAcuteStress_2ndLitter %>%
+  plotByUterineMass(yVar = cort_hr5, yLab = "corticosterone (ng/mL)")
+```
+
+```{r}
+femalesAcuteStress_2ndLitter %>%
+  filter(
+    SinglyHoused == TRUE
+  )
+```
+
+
+
+# All CBA Females
+This includes the P2-P9 CBA female first litter offspring (Cohort 1) and P4-11 first litter offspring (Cohort 2)
+
+```{r}
+Cort_off %>%
+  filter(
+    sex == "F",
+    Dam_Strain == "CBA"
+  ) %>%
+  cortPlot()
+
+Cort_off %>%
+  filter(
+    sex == "F",
+    Dam_Strain == "CBA"
+  ) %>%
+  cortAnova()
+```
+
+# All CBA males
+This includes the P2-P9 CBA male first litter offspring (Cohort 1), P4-P11 first litter offspring (Cohort 2), and P4-P11 second litter offspring (Cohort 4)
+
+```{r}
+Cort_off %>%
+  filter(
+    sex == "M",
+    Dam_Strain == "CBA"
+  ) %>%
+  cortPlot()
+
+Cort_off %>%
+  filter(
+    sex == "M",
+    Dam_Strain == "CBA"
+  ) %>%
+  cortAnova() 
+```
+
 

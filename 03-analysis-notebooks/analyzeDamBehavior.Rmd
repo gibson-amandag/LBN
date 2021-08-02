@@ -74,6 +74,43 @@ numExitsAndPercOn <- dam_behavior_litter2 %>%
 numExitsAndPercOn
 ```
 
+# Number of Exits - 5 hr after lights off
+```{r}
+dam_behavior_litter2 %>%
+  filter(
+    time == 19
+  ) %>%
+  scatterPlotLBN(
+    yVar = Num_exits,
+    yLab = "number of exits"
+  )
+```
+## t-test
+```{r}
+dam_behavior_litter2 %>%
+  filter(
+    time == 19
+  ) %>%
+  t_test(
+    Num_exits ~ earlyLifeTrt
+  )
+```
+
+
+## Correlation with % on nest
+```{r}
+dam_behavior_litter2 %>%
+  filter(
+    time == 19
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = Num_exits,
+    yLab = "number of exits",
+    xVar = Perc_on_nest,
+    xLab = "% on nest"
+  )
+```
+
 ```{r}
 behaviorOverTime <- dam_behavior %>%
   behavior_overTime(

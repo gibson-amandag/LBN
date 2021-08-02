@@ -1,6 +1,9 @@
 ---
 title: "Cycles"
-output: html_notebook
+output:
+  word_document: default
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -8,9 +11,16 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 # options(digits=3)
 ```
 
-```{r}
+```{r include=FALSE}
+# If can't find it, be sure that the directory is the project directory
+# Arrow between notebook and settings gear -> Knit directory
 source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
+
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
 ```
 
 # Cohort 4 Females
@@ -23,9 +33,6 @@ cyclesLong_0004 <- makeCyclesLong(cycles_0004)
 
 cycles_0004_STD_plot <- plotCycleTraces(cyclesLong_0004 %>% filter(earlyLifeTrt == "STD"))
 cycles_0004_LBN_plot <- plotCycleTraces(cyclesLong_0004 %>% filter(earlyLifeTrt == "LBN"))
-
-cycles_0004_STD_plot
-cycles_0004_LBN_plot
 
 ggsave(
   filename = paste0(filePrefix, "cycles_0004_STD.pdf"),
@@ -47,6 +54,15 @@ ggsave(
   units = "in",
   useDingbats = FALSE
 )
+```
+## Standard-reared
+```{r}
+cycles_0004_STD_plot
+```
+
+## LBN
+```{r}
+cycles_0004_LBN_plot
 ```
 
 # Percent days in stage
