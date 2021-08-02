@@ -47,3 +47,16 @@ getAvgByDam <- function(df, damDemo_forOff = Demo_dam_for_offspring){
     )
   return(avgDF)
 }
+
+
+# Get maximum -------------------------------------------------------------
+
+getMaxFromRepMeasures <- function(df, col, maxColName, groupingVar){
+  df_max <- df %>%
+    group_by( {{ groupingVar }} ) %>%
+    summarize(
+      {{ maxColName }} := max({{ col }}, na.rm = TRUE),
+      .groups = "drop"
+    )
+  return(df_max)
+}
