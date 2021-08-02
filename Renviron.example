@@ -6,3 +6,12 @@ DATA_FOLDER="path/example/Data"
 OUTPUT_FOLDER="path/example/Output"
 
 EXCEL_FILE_NAME="fileName.xlsx"
+
+FILE_PREFIX="prefix_"
+
+# type of images to save for plots. 
+# .png, .svg, or .pdf, for example
+PLOT_OUTPUT_FORMAT=".png"
+
+#save individual plot files?
+SAVE_PLOTS=TRUE
