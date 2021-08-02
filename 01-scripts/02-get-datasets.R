@@ -14,6 +14,7 @@ ChronicStress_off <- myXLSX_func(dataFolder, LBN_DataName, "ChronicStress_off")
 CRH_dam <- myXLSX_func(dataFolder, LBN_DataName, "CRH_dam")
 behavior_ZT0 <- myXLSX_func(dataFolder, LBN_DataName, "Dam_behavior_ZT0")
 behavior_ZT14 <- myXLSX_func(dataFolder, LBN_DataName, "Dam_behavior_ZT14")
+behavior_ZT19 <- myXLSX_func(dataFolder, LBN_DataName, "Dam_behavior_ZT19")
 niceNames <- myXLSX_func(dataFolder, LBN_DataName, "plotLabels")
 
 
@@ -55,7 +56,8 @@ LH_off <- makeFactors(LH_off, c(sampleID))
 
 behaviorDFs <- list(
   behavior_ZT0,
-  behavior_ZT14
+  behavior_ZT14,
+  behavior_ZT19
 )
 
 
@@ -123,6 +125,14 @@ LH_off <- LH_off %>%
     by = "sampleID"
   )
 
+# Get max LH value after baseline for each mouse
+LH_max <- LH_off %>%
+  getMaxFromRepMeasures(
+    col = LH,
+    maxColName = maxLH,
+    groupingVar = Mouse_ID
+  )
+
 # Make wide version of LH
 LH_off_wide <- LH_off %>%
   pivot_wider(
@@ -130,6 +140,10 @@ LH_off_wide <- LH_off %>%
     names_from = time,
     values_from = LH,
     names_prefix = "LH_hr",
+  ) %>%
+  left_join( # Add max column
+    LH_max,
+    by = "Mouse_ID"
   )
 
 # Add LH data to AcuteStress_off
