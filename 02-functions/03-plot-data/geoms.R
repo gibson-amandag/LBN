@@ -1,5 +1,5 @@
 jitterGeom <- function(
-  size = 1.2,
+  size = 1.5,
   alpha = 1,
   width = 0.35,
   height = 0
@@ -17,8 +17,10 @@ addMeanHorizontalBar <- function(
   width = 0.7,
   size = 0.4,
   addLineType = FALSE,
+  lineTypeName = "early life trt",
   lineTypeGuide = c("STD" = "dotted", "LBN" = "solid"),
-  typeVar = earlyLifeTrt
+  typeVar = earlyLifeTrt,
+  ... # Into aes
 ){
   if(!addLineType){
     geom <- stat_summary(
@@ -27,7 +29,8 @@ addMeanHorizontalBar <- function(
         fun = mean, 
         fun.max = mean, 
         width = width,
-        size = size
+        size = size,
+        aes(...)
       )
   } else{
     geom <- list(
@@ -38,20 +41,23 @@ addMeanHorizontalBar <- function(
         fun.max = mean, 
         width = width,
         size = size,
-        aes(linetype = {{ typeVar }})
+        aes(linetype = {{ typeVar }}, ...)
       ),
-      scale_linetype_manual(values = lineTypeGuide)
+      scale_linetype_manual(lineTypeName, values = lineTypeGuide)
     )
   }
 }
 
 addMeanSE_vertBar <- function(
-  size = 0.4
+  size = 0.4,
+  ... # into aes
 ){
   stat_summary(
     geom = "linerange", 
     fun.data = mean_se,
-    size = size
+    size = size,
+    aes(...),
+    show.legend = FALSE
   )
 }
 

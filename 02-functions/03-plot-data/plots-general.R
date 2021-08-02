@@ -16,13 +16,14 @@ scatterPlotLBN <- function(
     addMeanSE_vertBar()+
     labs(y = yLab)+
     earlyLifeFill() +
-    textTheme()+
-    boxTheme() +
+    theme_pubr()+
     expand_limits(y=0)+
     theme(
       axis.title.x = element_blank(),
       legend.position = "none"
-    )
+    )+
+    textTheme()+
+    boxTheme()
   
   return(viz)
 }
