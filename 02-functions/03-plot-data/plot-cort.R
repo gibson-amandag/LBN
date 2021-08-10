@@ -12,8 +12,8 @@ cortPlot <- function(
   ) +
     geom_line(
       alpha = 0.4,
-      color = "black",
-      aes(group = Mouse_ID),
+      # color = "black",
+      aes(group = Mouse_ID, linetype = comboTrt, color = comboTrt),
       position = position_dodge(1.2)
     ) +
     geom_point(

@@ -1,4 +1,4 @@
-textTheme <- function(size = 12){
+textTheme <- function(size = 11){
   theme = theme(
     text = element_text(size = size, family = "Arial", color = "black"),
     axis.text = element_text(size = size, family = "Arial", color = "black"), # for some reason, not acquiring consistently

@@ -21,7 +21,7 @@ source(file.path(scriptsFolder, "02-get-datasets.R"))
 ```
 
 ```{r}
-proUterineCutoff <- 130
+proUterineCutoff <- 135
 ```
 
 # Uterine Mass and Evening LH - all P4-P11 controls
@@ -188,6 +188,13 @@ femalesAcuteStress_0002 <- AcuteStress_off %>%
 
 femalesCort_0002 %>%
   cortAnova()
+
+AcuteStress_off %>%
+  filter(
+    sex == "F",
+    Cohort == 2
+  ) %>%
+  getStressTrtNumbers()
 ```
 
 ## Uterine Mass By Group
@@ -313,7 +320,8 @@ femalesAcuteStress_2ndLitter %>%
 ## uterine masses
 ```{r}
 femalesAcuteStress_2ndLitter %>%
-  plotUterineMassByGroup(hLineVal = proUterineCutoff)
+  plotUterineMassByGroup(hLineVal = proUterineCutoff)+
+  geom_hline(yintercept = 140, color = "blue")
 ```
 
 ## Cort
