@@ -1,0 +1,360 @@
+---
+title: "Effect of LBN on offspring maturation"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '4'
+  html_notebook:
+    toc: yes
+    toc_depth: 4
+  word_document:
+    toc: yes
+    toc_depth: '4'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+# If can't find it, be sure that the directory is the project directory
+# Arrow between notebook and settings gear -> Knit directory
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+
+# Second Litter
+The paradigm was run with dams' second litters
+
+```{r}
+Maturation_off_litter1_females <- Maturation_off %>%
+  filter(
+    Litter_num == 1,
+    Cohort == 2,
+    sex == "F"
+  )
+Maturation_off_litter1_males <- Maturation_off %>%
+  filter(
+    Litter_num == 1,
+    Cohort ==2,
+    sex == "M"
+  )
+
+df_females <- Maturation_off_litter1_females
+df_males <- Maturation_off_litter1_males
+```
+## Maturation
+
+### Vaginal Opening
+#### Age
+```{r}
+df_females %>%
+  group_by(earlyLifeTrt) %>%
+  meanSummary(VO_age) %>%
+  myDisplay()
+t_test(
+  df_females %>% filter(!is.na(VO_age)),
+  VO_age ~ earlyLifeTrt,
+  p.adjust.method = "bonferroni"
+) %>%
+  myDisplay()
+max_VO_age <- df_females$VO_age %>% max(na.rm = TRUE)
+```
+#### Mass
+```{r}
+df_females %>%
+  group_by(earlyLifeTrt) %>%
+  meanSummary(VO_mass)%>%
+  myDisplay()
+t_test(
+  df_females %>% filter(!is.na(VO_mass)),
+  VO_mass ~ earlyLifeTrt,
+  p.adjust.method = "bonferroni"
+)%>%
+  myDisplay()
+max_VO_mass <- df_females$VO_mass %>% max(na.rm = TRUE)
+```
+
+```{r}
+VO_age_plot <- df_females %>%
+  scatterPlotLBN(yVar = VO_age, "age at VO (days)")
+VO_mass_plot <- df_females %>%
+  scatterPlotLBN(yVar = VO_mass, "mass at VO (g)")
+```
+
+### First Estrus
+#### Age
+```{r}
+df_females %>%
+  group_by(earlyLifeTrt) %>%
+  meanSummary(Estrus_age)%>%
+  myDisplay()
+t_test(
+  df_females %>% filter(!is.na(Estrus_age)),
+  Estrus_age ~ earlyLifeTrt,
+  p.adjust.method = "bonferroni"
+)%>%
+  myDisplay()
+max_estrus_age <- df_females$Estrus_age %>% max(na.rm = TRUE)
+```
+#### Mass
+```{r}
+df_females %>%
+  group_by(earlyLifeTrt) %>%
+  meanSummary(Estrus_mass)%>%
+  myDisplay()
+t_test(
+  df_females %>% filter(!is.na(Estrus_mass)),
+  Estrus_mass ~ earlyLifeTrt,
+  p.adjust.method = "bonferroni"
+)%>%
+  myDisplay()
+max_estrus_mass <- df_females$Estrus_mass %>% max(na.rm = TRUE)
+```
+
+```{r}
+Estrus_age_plot <- df_females %>%
+  scatterPlotLBN(yVar = Estrus_age, "age at first estrus (days)")
+Estrus_mass_plot <- Maturation_off_litter1_females %>%
+  scatterPlotLBN(yVar = Estrus_mass, "mass at first estrus (g)")
+```
+
+### Preputial Separation
+#### Age
+```{r}
+df_males %>%
+  group_by(earlyLifeTrt) %>%
+  meanSummary(PreputialSep_age)%>%
+  myDisplay()
+t_test(
+  df_males %>% filter(!is.na(PreputialSep_age)),
+  PreputialSep_age ~ earlyLifeTrt,
+  p.adjust.method = "bonferroni"
+)%>%
+  myDisplay()
+max_PPS_age <- df_males$PreputialSep_age %>% max(na.rm = TRUE)
+```
+#### Mass
+```{r}
+df_males %>%
+  group_by(earlyLifeTrt) %>%
+  meanSummary(PreputialSep_mass)%>%
+  myDisplay()
+t_test(
+  df_males %>% filter(!is.na(PreputialSep_mass)),
+  PreputialSep_mass ~ earlyLifeTrt,
+  p.adjust.method = "bonferroni"
+)%>%
+  myDisplay()
+max_PPS_mass <- df_males$PreputialSep_age %>% max(na.rm = TRUE)
+```
+
+```{r}
+PreputialSep_age_plot <- df_males %>%
+  scatterPlotLBN(yVar = PreputialSep_age, "age at preputial sep. (days)")
+PreputialSep_mass_plot <- df_males %>%
+  scatterPlotLBN(yVar = PreputialSep_mass, "mass at preputial sep. (g)")
+```
+
+### Age Plots
+```{r}
+max_age <- max(max_VO_age, max_estrus_age, max_PPS_age, na.rm = TRUE) + 3
+age_plots <- plot_grid(
+  VO_age_plot + expand_limits(y = max_age) + 
+    labs(y = "age (days)", title = "vaginal opening") + 
+    theme(title = element_text(size = 11, face = "bold")
+    ),
+  Estrus_age_plot + expand_limits(y = max_age) + 
+    labs(y = "age (days)", title = "first estrus")+ 
+    theme(title = element_text(size = 11, face = "bold")
+    ),
+  PreputialSep_age_plot + expand_limits(y = max_age) + 
+    labs(y = "age (days)", title = "preputial separation")+ 
+    theme(title = element_text(size = 11, face = "bold")
+    ),
+  nrow = 1,
+  align = "hv"
+)
+age_plots
+```
+
+### Mass Plots
+```{r}
+max_mass <- max(max_VO_mass, max_estrus_mass, max_PPS_mass, na.rm = TRUE) + 3
+mass_plots <- plot_grid(
+  VO_mass_plot + expand_limits(y = max_mass),
+  Estrus_mass_plot + expand_limits(y = max_mass),
+  PreputialSep_mass_plot + expand_limits(y = max_mass),
+  nrow = 1,
+  align = "hv"
+)
+```
+
+```{r eval=FALSE, include=FALSE}
+grantPlot <- plot_grid(
+  VO_age_plot + expand_limits(y = max_age) + 
+    labs(y = "age (days)") + 
+    theme(#title = element_text(size = 11, face = "bold"), 
+          plot.margin = unit(c(0, 0, 0, 0), "cm")
+          ),
+  NULL,
+  Estrus_age_plot + expand_limits(y = max_age) + 
+    labs(y = "age (days)")+ 
+    theme(#title = element_text(size = 11, face = "bold"), 
+          plot.margin = unit(c(0, 0, 0, 0), "cm")
+          ),
+  # PreputialSep_age_plot + expand_limits(y = max_age) + 
+  #   labs(y = "age (days)")+ 
+  #   theme(#title = element_text(size = 11, face = "bold"), 
+  #         plot.margin = unit(c(0, 0, 0, 0), "cm")
+  #         ),
+  NULL,
+  femalesCort_0002_plot +
+    labs(y = "corticosterone\n(ng/mL)")+
+    theme(
+      legend.position = "none", 
+      plot.margin = unit(c(0, 0, 0, 0), "cm")
+    ),
+  nrow = 1,
+  rel_widths = c(0.5, 0.07, 0.5, 0.05, 1)
+)
+ggsave(
+  file.path(plotOutputFolder, paste0(filePrefix, "NRSA_plot_litter1_small2.pdf")),
+  plot = grantPlot,
+  device = "pdf",
+  width = 5,
+  height = 0.95,
+  units = "in",
+  useDingbats = FALSE
+)
+# ggsave(
+#   file.path(plotOutputFolder, paste0(filePrefix, "NRSA_plot_litter1.png")),
+#   plot = grantPlot,
+#   device = "png",
+#   width = 5.6,
+#   height = 1.45,
+#   units = "in"
+#   # useDingbats = FALSE
+# )
+```
+
+## AGD
+
+### Females
+
+
+#### Summary
+##### Adult AGD
+```{r}
+df_females %>%
+  group_by(earlyLifeTrt) %>%
+  meanSummary(AGD_adult)%>%
+  myDisplay()
+t_test(
+  df_females %>% filter(!is.na(AGD_adult)),
+  AGD_adult ~ earlyLifeTrt,
+  p.adjust.method = "bonferroni"
+)%>%
+  myDisplay()
+```
+
+##### Adult Mass
+```{r}
+df_females %>%
+  group_by(earlyLifeTrt) %>%
+  meanSummary(Mass_adult)%>%
+  myDisplay()
+t_test(
+  df_females %>% filter(!is.na(Mass_adult)),
+  Mass_adult ~ earlyLifeTrt,
+  p.adjust.method = "bonferroni"
+)%>%
+  myDisplay()
+```
+
+#### Plots
+```{r}
+AGD_plot_females <- df_females %>%
+  scatterPlotLBN(
+    AGD_adult,
+    "anogenital distance (mm)"
+  )
+AdMass_plot_females <- df_females %>%
+  scatterPlotLBN(
+    Mass_adult,
+    "body mass (g)"
+  )
+plot_grid(
+  AGD_plot_females,
+  AdMass_plot_females,
+  align = c("hv")
+)
+```
+
+```{r eval=FALSE, include=FALSE}
+# Correlation between agd and mass
+df_females %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = AGD_adult,
+    yLab = "anogenital distance (mm)",
+    xVar = Mass_adult,
+    xLab = "body mass (g)"
+  )
+```
+
+### Males
+#### Summary
+##### Adult AGD
+```{r}
+df_males %>%
+  group_by(earlyLifeTrt) %>%
+  meanSummary(AGD_adult)%>%
+  myDisplay()
+t_test(
+  df_males %>% filter(!is.na(AGD_adult)),
+  AGD_adult ~ earlyLifeTrt,
+  p.adjust.method = "bonferroni"
+)%>%
+  myDisplay()
+```
+
+##### Adult Mass
+```{r}
+df_males %>%
+  group_by(earlyLifeTrt) %>%
+  meanSummary(Mass_adult)%>%
+  myDisplay()
+t_test(
+  df_males %>% filter(!is.na(Mass_adult)),
+  Mass_adult ~ earlyLifeTrt,
+  p.adjust.method = "bonferroni"
+)%>%
+  myDisplay()
+```
+
+#### Plots
+```{r}
+AGD_plot_males <- df_males %>%
+  scatterPlotLBN(
+    AGD_adult,
+    "anogenital distance (mm)"
+  )
+AdMass_plot_males <- df_males %>%
+  scatterPlotLBN(
+    Mass_adult,
+    "body mass (g)"
+  )
+plot_grid(
+  AGD_plot_males,
+  AdMass_plot_males,
+  align = c("hv")
+)
+```

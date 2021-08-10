@@ -1,0 +1,118 @@
+---
+title: "mass"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+Dam_demo_1stLitters <- Demo_dam %>%
+  filter(
+    Litter_num == 1,
+    Cohort == 2,
+    ParaType == 4,
+    is.na(Pups_through_wean) | Pups_through_wean == TRUE,
+    !is.na(Dam_Mass_P21)
+  )
+
+Dam_demo_1stLitters
+Dam_demo_1stLitters %>%
+  t_test(
+  Avg_litter_mass_startPara ~ earlyLifeTrt
+)
+```
+
+```{r}
+Mass_1stLitters <- Mass_off %>%
+  filter(
+    Litter_num == 1,
+    Cohort == 2,
+    ParaType == 4
+  )
+
+Mass_1stLitters_long <- pivot_longer(
+  Mass_1stLitters,
+  cols = starts_with("Mass_P"),
+  names_to = "day",
+  names_prefix = "Mass_P",
+  values_to = "mass",
+  values_drop_na = TRUE,
+  names_transform = list("day" = as.integer)
+) %>%
+  relocate(
+    day,
+    mass,
+    .after = earlyLifeTrt
+  )
+```
+
+## Repeated measured ANOVA, without sex
+```{r}
+Mass_1stLitters_long %>%
+  filter(
+    day != 4 # don't include day 4, start of paradigm
+  ) %>%
+  anova_test(
+    dv = mass,
+    wid = Mouse_ID,
+    within = day,
+    between = earlyLifeTrt,
+    type = 3
+  )
+
+Mass_1stLitters_long %>%
+  filter(
+    day != 4 # don't include day 4, start of paradigm
+  ) %>%
+  group_by(
+    day
+  ) %>%
+  anova_test(
+    dv = mass,
+    wid = Mouse_ID,
+    between = earlyLifeTrt,
+    type = 3
+  )%>%
+  adjust_pvalue(method = "bonferroni")
+```
+```
+
+
+## Repeated measured ANOVA, with sex
+```{r}
+Mass_1stLitters_long %>%
+  filter(
+    day != 4 # don't include day 4, start of paradigm
+  ) %>%
+  anova_test(
+    dv = mass,
+    wid = Mouse_ID,
+    within = day,
+    between = c(earlyLifeTrt, sex),
+    type = 3
+  )
+
+Mass_1stLitters_long %>%
+  filter(
+    day != 4 # don't include day 4, start of paradigm
+  ) %>%
+  group_by(
+    day
+  ) %>%
+  anova_test(
+    dv = mass,
+    wid = Mouse_ID,
+    between = c(earlyLifeTrt, sex),
+    type = 3
+  )%>%
+  adjust_pvalue(method = "bonferroni")
+```
+
