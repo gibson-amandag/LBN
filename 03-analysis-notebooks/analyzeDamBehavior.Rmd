@@ -120,3 +120,24 @@ behaviorOverTime <- dam_behavior %>%
 behaviorOverTime
 ```
 
+```{r}
+dam_behavior_litter2 %>%
+  anova_test(
+    dv = Num_exits,
+    wid = Dam_ID,
+    between = earlyLifeTrt,
+    within = time,
+    type = 3
+  )
+```
+
+
+# Cohort 2
+```{r}
+dam_behavior_cohort2 <- dam_behavior %>%
+  filter(
+    Cohort == 2
+  )
+dam_behavior_cohort2
+```
+
