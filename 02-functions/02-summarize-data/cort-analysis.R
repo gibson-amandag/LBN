@@ -1,21 +1,61 @@
+#' Get a table with numbers of animals in stress treatment groups
+#' 
+#' A count table for early-life and adult stress treatment groups
+#'
+#' @param df a dataframe with columns adultTrt and earlyLifeTrt
+#'
+#' @return a count table
+#' @export
+#'
+#' @examples
 getStressTrtNumbers <- function(df){
   countTable <- table(df$adultTrt, df$earlyLifeTrt)
   return(countTable)
 }
 
+#' Analyze two-way anova for early-life and adult treatment effects on corticosterone
+#'
+#' Runs the two-way anova with rstatix::anova_test(). 
+#' The dependent variable is cort
+#' Within animal id is Mouse_ID
+#' Between animal variables are early-life and adult treatment (earlyLifeTrt, adultTrt)
+#' The within animal variable is time
+#' 
+#' Formats the output as a flextable using formatAnova()
+#' 
+#' @param df a long-form data frame with the columns cort, Mouse_ID, earlyLifeTrt, adultTrt, and time
+#'
+#' @return a flextable with the formatted anova results
+#' @export
+#'
+#' @examples
 cortAnova <- function(df){
   anovaRes <- df %>%
-  anova_test(
-    dv = cort,
-    wid = Mouse_ID,
-    between = c(earlyLifeTrt, adultTrt),
-    within = time
-  )
+    anova_test(
+      dv = cort,
+      wid = Mouse_ID,
+      between = c(earlyLifeTrt, adultTrt),
+      within = time
+    )
   flxTbl <- formatAnova(anovaRes)
   return(flxTbl)
   # return(anovaRes)
 }
 
+#' Format LBN x ALPS stress anova output
+#' 
+#' takes the rstatix::anova_test() output and makes it a dataframe, then mutates to make the following changes:
+#' If p is less than 0.001, it is reported as "<0.001"
+#' Makes it a flextable
+#' Bolds rows where p is < 0.05
+#' Font size is 11
+#'
+#' @param anovaDF 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 formatAnova <- function(anovaDF){
   flxTbl <- anovaDF %>%
     as_data_frame() %>%

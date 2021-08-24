@@ -73,13 +73,13 @@ behaviorDFs <- list(
 
 CohortCyclingFolder <- CohortCyclingFolder %>%
   mutate(
-    cyclingFolderPath = file.path(LBN_ServerFolder, paste0("LBN_", sprintf("%04d", as.integer(Cohort))), CyclesFolder)
+    cyclingFolderPath = ifelse(!is.na(CyclesFolder), file.path(LBN_ServerFolder, paste0("LBN_", sprintf("%04d", Cohort)), CyclesFolder), NA)
   )
 ## Format Dam Demo ------------------------------------------------------
 Demo_dam <- Demo_dam %>%
   mutate(pupLoss = Litter_size_startPara - Litter_size_endPara) %>%
   convertStartPara() %>%
-  left_join()
+  left_join(CohortCyclingFolder)
 
 # DAM BEHAVIOR ------------------------------------------------------------
 

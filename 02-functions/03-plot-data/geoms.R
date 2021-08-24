@@ -1,3 +1,17 @@
+#' Add a jitter geom to a ggplot
+#' 
+#' Defaults to a circle with fill and outline (shape 21). Provides defaults for
+#' size, alpha (fill density), jitter width, and jitter height
+#'
+#' @param size a number. Size of the shape. Default is 1.5
+#' @param alpha a number. density of fill. Default is 1
+#' @param width a number. jitter width - spread of the data horizontally. Default is 0.35
+#' @param height a number. jitter height - spread of the data vertically. Default is 0
+#'
+#' @return a geom_jitter with selected values
+#' @export
+#'
+#' @examples
 jitterGeom <- function(
   size = 1.5,
   alpha = 1,
