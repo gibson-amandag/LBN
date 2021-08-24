@@ -1,0 +1,36 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+samplingDF_today <- AcuteStress_off %>%
+  filter(
+    Sac_date == dateToday
+  )
+
+samplingDF_today <- samplingDF_today %>%
+  addRegExForSamplingDF() %>%
+  addSamplingImgFilePaths()
+
+samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+samplingPPT <- ph_with(
+  samplingPPT,
+  value = paste(dateToday),
+  location = ph_location_type("ctrTitle")
+)
+addSamplingSlidesFromDF(samplingDF_today, samplingPPT = samplingPPT)
+print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", dateToday, ".pptx")))
+```
+
+

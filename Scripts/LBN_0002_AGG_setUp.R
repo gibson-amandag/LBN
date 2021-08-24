@@ -30,7 +30,8 @@ if(! length(fonts()) > 0){
 readRenviron("./.Renviron") #read the .Renviron document from the project root folder
 
 #Data File name
-LBN_DataName <- Sys.getenv("EXCEL_FILE_NAME")
+# LBN_DataName <- Sys.getenv("EXCEL_FILE_NAME")
+LBN_DataName <- "LBN_AGG_data_reorg.xlsx"
 
 #Test Cyles File Name - I'm not sure that this is actually it's only file now, AGG 12/31/2020
 # Cycles_DataName <- Sys.getenv("CYCLES_FILE_NAME")

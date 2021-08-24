@@ -25,7 +25,11 @@ proUterineCutoff <- 135
 ```
 
 # Uterine Mass and Evening LH - all P4-P11 controls
-At the moment, this is just the pilot "detecting proestrus" mice. These were first litter offspring of dams with no treatment used to try to correlate vaginal smear, uterine mass, and LH surge.
+At the moment, this is just the pilot "detecting proestrus" mice. These were first litter offspring of dams with no treatment used to try to correlate vaginal smear, uterine mass, and LH surge. The samples were taken around 4:30-5:00p
+
+The red line is `r proUterineCutoff` mg
+
+The blue line is 140 mg
 
 ```{r named-1}
 AcuteStress_off %>%
@@ -35,7 +39,9 @@ AcuteStress_off %>%
     adultTrt == "CON",
     Dam_Strain == "CBA"
   ) %>%
-  plotByUterineMass(yVar = maxLH, yLab = "max evening LH (ng/mL)")
+  plotByUterineMass(yVar = maxLH, yLab = "max evening LH (ng/mL)") +
+  geom_vline(xintercept = proUterineCutoff, color = "blue") +
+  geom_vline(xintercept = 140, color = "red")
 ```
 ```{r}
 AcuteStress_off %>%
@@ -207,7 +213,7 @@ femalesAcuteStress_0002 %>%
 ```{r}
 malesCort_0002 <- Cort_off %>%
   filter(
-    sex == "F",
+    sex == "M",
     Cohort == 2
   )
 
@@ -218,12 +224,6 @@ malesCort_0002_long
 
 malesCort_0002_plot <- cortPlot(malesCort_0002)
 malesCort_0002_plot
-
-femalesAcuteStress_0002 <- AcuteStress_off %>%
-  filter(
-    sex == "F",
-    Cohort == 2
-  )
 ```
 
 ```{r males-cohort2-anova}
@@ -233,11 +233,15 @@ malesCort_0002 %>%
 
 # Males - Second Litter Offspring
 ```{r}
-AcuteStress_off %>%
+malesAcuteStress_2ndLitter <- AcuteStress_off %>%
   filter(
     sex == "M",
     Litter_num == 2
-  ) %>%
+  ) 
+```
+
+```{r}
+malesAcuteStress_2ndLitter%>%
   group_by(
     earlyLifeTrt, adultTrt
   )%>%
@@ -250,6 +254,37 @@ malesCort_2ndLitter <- Cort_off %>%
     sex == "M",
     Litter_num == 2
   )
+```
+
+
+## Numbers
+
+### Completed
+
+```{r}
+malesAcuteStress_2ndLitter %>%
+  getStressTrtNumbers()
+```
+
+### Available
+```{r}
+Demo_off%>%
+  filter(
+    Cohort == 6,
+    sex == "M"
+  ) %>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  summarise(
+    n = n(),
+    .groups = "drop"
+  )
+```
+
+
+```{r}
+
 malesCort_2ndLitter_base <- baseCortPlot(malesCort_2ndLitter)
 
 malesCort_2ndLitter_long <- longCortPlot(malesCort_2ndLitter_base)
@@ -262,6 +297,165 @@ malesCort_2ndLitter_plot
 ```{r}
 malesCort_2ndLitter %>%
   cortAnova()
+```
+
+## Masses
+
+### Seminal Vesicle Mass
+
+```{r}
+malesAcuteStress_2ndLitter %>%
+  scatterPlotComboTrt(
+    yVar = ReproTract_mass,
+    yLab = "seminal vesicle mass (mg)"
+  )
+```
+
+```{r}
+malesAcuteStress_2ndLitter %>%
+  filter(
+    !is.na(ReproTract_mass)
+  )%>%
+  anova_test(
+    dv = ReproTract_mass,
+    between = c(earlyLifeTrt, adultTrt),
+    type = 3
+  ) %>%
+  formatAnova()
+```
+#### By body mass
+
+```{r}
+malesAcuteStress_2ndLitter %>%
+  scatterPlotComboTrt(
+    yVar = ReproTract_mass_perBody_g,
+    yLab = "seminal vesicle mass / body mass (mg/g)"
+  )
+```
+
+```{r}
+malesAcuteStress_2ndLitter %>%
+  filter(
+    !is.na(ReproTract_mass_perBody_g)
+  )%>%
+  anova_test(
+    dv = ReproTract_mass_perBody_g,
+    between = c(earlyLifeTrt, adultTrt),
+    type = 3
+  ) %>%
+  formatAnova()
+```
+
+### Testicular Mass
+```{r}
+malesAcuteStress_2ndLitter %>%
+  scatterPlotComboTrt(
+    yVar = Gonad_mass,
+    yLab = "testicular mass (mg)"
+  )
+```
+
+```{r}
+malesAcuteStress_2ndLitter %>%
+  filter(
+    !is.na(Gonad_mass)
+  )%>%
+  anova_test(
+    dv = Gonad_mass,
+    between = c(earlyLifeTrt, adultTrt),
+    type = 3
+  ) %>%
+  formatAnova()
+```
+#### Per body mass
+```{r}
+malesAcuteStress_2ndLitter %>%
+  scatterPlotComboTrt(
+    yVar = Gonad_mass_perBody_g,
+    yLab = "testicular mass / body mass (mg/g)"
+  )
+```
+
+```{r}
+malesAcuteStress_2ndLitter %>%
+  filter(
+    !is.na(Gonad_mass_perBody_g)
+  )%>%
+  anova_test(
+    dv = Gonad_mass_perBody_g,
+    between = c(earlyLifeTrt, adultTrt),
+    type = 3
+  ) %>%
+  formatAnova()
+```
+
+### Adrenal Mass
+```{r}
+malesAcuteStress_2ndLitter %>%
+  scatterPlotComboTrt(
+    yVar = Adrenal_mass,
+    yLab = "adrenal mass (mg)"
+  )
+```
+
+```{r}
+malesAcuteStress_2ndLitter %>%
+  filter(
+    !is.na(Adrenal_mass),
+    # Adrenal_mass < 7
+  )%>%
+  anova_test(
+    dv = Adrenal_mass,
+    between = c(earlyLifeTrt, adultTrt),
+    type = 3
+  ) %>%
+  formatAnova()
+```
+#### Per Body Mass
+```{r}
+malesAcuteStress_2ndLitter %>%
+  filter(
+    # Adrenal_mass < 7
+  )%>%
+  scatterPlotComboTrt(
+    yVar = Adrenal_mass_perBody_g,
+    yLab = "adrenal mass / body mass (mg/g)"
+  )
+```
+
+```{r}
+malesAcuteStress_2ndLitter %>%
+  filter(
+    !is.na(Adrenal_mass_perBody_g),
+    # Adrenal_mass < 7
+  )%>%
+  anova_test(
+    dv = Adrenal_mass_perBody_g,
+    between = c(earlyLifeTrt, adultTrt),
+    type = 3
+  ) %>%
+  formatAnova()
+```
+### Body Mass
+```{r}
+malesAcuteStress_2ndLitter %>%
+  scatterPlotComboTrt(
+    yVar = Body_mass_sac,
+    yLab = "body mass (g)"
+  )
+```
+
+```{r}
+malesAcuteStress_2ndLitter %>%
+  filter(
+    !is.na(Body_mass_sac)
+  )%>%
+  anova_test(
+    dv = Body_mass_sac,
+    between = c(earlyLifeTrt, adultTrt),
+    type = 3
+  ) %>%
+  formatAnova()
 ```
 
 ```{r eval=FALSE, include=FALSE}
@@ -299,6 +493,16 @@ femalesAcuteStress_2ndLitter %>%
     DOB,
     Mouse_ID
   )
+femalesAcuteStress_2ndLitter %>%
+  filter(
+    is.na(cort_hr0)
+  )
+
+femalesAcuteStress_2ndLitter %>%
+  arrange(
+    comboTrt,
+    ReproTract_mass
+  )
 ```
 
 Group numbers, regardless of uterine mass
@@ -317,7 +521,32 @@ femalesAcuteStress_2ndLitter %>%
   getStressTrtNumbers()
 ```
 
+Remaining second litter females
+```{r}
+LBN_data %>%
+  filter(
+    sex == "F",
+    Litter_num == 2,
+    is.na(Sac_date),
+    is.na(Sac_stop_off)
+  ) %>%
+  group_by(
+    earlyLifeTrt,
+    Cohort
+  ) %>%
+  summarise(
+    n = n(),
+    .groups = "drop"
+  )
+```
+
+
 ## uterine masses
+
+The red line is `r proUterineCutoff` mg
+
+The blue line is 140 mg
+
 ```{r}
 femalesAcuteStress_2ndLitter %>%
   plotUterineMassByGroup(hLineVal = proUterineCutoff)+
@@ -325,6 +554,8 @@ femalesAcuteStress_2ndLitter %>%
 ```
 
 ## Cort
+This is only for the animals that were greater than the proestrus uterine cutoff value
+
 ```{r}
 femalesCort_2ndLitter <- Cort_off %>%
   filter(
@@ -394,4 +625,7 @@ Cort_off %>%
   cortAnova() 
 ```
 
+```{r}
+
+```
 

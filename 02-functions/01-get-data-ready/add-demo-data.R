@@ -23,6 +23,7 @@ addOffspringDemoData <- function(
     left_join(offDemo_toAdd, by = "Mouse_ID") %>%
     relocate( # move to start
       Mouse_ID,
+      num_ID,
       sex,
       earlyLifeTrt
     )

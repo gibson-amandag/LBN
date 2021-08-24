@@ -60,3 +60,39 @@ getMaxFromRepMeasures <- function(df, col, maxColName, groupingVar){
     )
   return(df_max)
 }
+
+# AgeInDays -------------------------------------------------------------
+
+calcAgeInDays <- function(
+  df,
+  DOBVar = DOB,
+  ageAtDateVar = Sac_date,
+  DOBisDay = 0
+){
+  df <- df %>%
+    mutate(
+      AgeInDays = ifelse(
+        !is.na({{ageAtDateVar}}) & !is.na({{DOBVar}}),
+        as.numeric({{ageAtDateVar}} - {{DOBVar}}) + DOBisDay,
+        NA
+      ),
+      .after = {{ageAtDateVar}}
+    )
+  return(df)
+}
+
+
+# Organ mass by body mass -------------------------------------------------
+
+calcOrganMassByBodyMass <- function(
+  df,
+  organMassVar,
+  bodyMassVar = Body_mass_sac
+){
+  df <- df %>%
+    mutate(
+      "{{ organMassVar }}_perBody_g" := {{ organMassVar }} / {{ bodyMassVar }},
+      .after = {{ organMassVar }}
+    )
+  return(df)
+}

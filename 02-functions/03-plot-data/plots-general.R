@@ -52,3 +52,37 @@ scatterPlotTwoVars_byLBN <- function(
   
   return(viz)
 }
+
+scatterPlotComboTrt <- function(
+  df,
+  yVar,
+  yLab
+){
+  viz <- df %>%
+    filter(
+      !is.na({{ yVar }})
+    ) %>%
+    ggplot(
+      aes(
+        x = comboTrt,
+        y = {{ yVar }},
+        fill = comboTrt,
+        shape = comboTrt
+      )
+    ) +
+    jitterGeom() +
+    addMeanHorizontalBar() +
+    addMeanSE_vertBar()+
+    labs(y = yLab)+
+    comboTrtFillShape() +
+    theme_pubr()+
+    expand_limits(y=0)+
+    theme(
+      axis.title.x = element_blank(),
+      legend.position = "none"
+    )+
+    textTheme()+
+    boxTheme()
+  
+  return(viz)
+}

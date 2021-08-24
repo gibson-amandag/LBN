@@ -1,3 +1,25 @@
+if (!require(tidyverse)) install.packages('tidyverse')
+if (!require(readr)) install.packages('readr')
+if (!require(purrr)) install.packages('purrr')
+if (!require(rlang)) install.packages('rlang')
+if (!require(scales)) install.packages('scales')
+if (!require(knitr)) install.packages('knitr')
+if (!require(officer)) install.packages('officer')
+if (!require(GGally)) install.packages('GGally')
+if (!require(dplyr)) install.packages('dplyr')
+if (!require(ggfortify)) install.packages('ggfortify')
+if (!require(openxlsx)) install.packages('openxlsx')
+if (!require(lubridate)) install.packages('lubridate')
+if (!require(shiny)) install.packages('shiny')
+if (!require(ggrepel)) install.packages('ggrepel')
+if (!require(ggpubr)) install.packages('ggpubr')
+if (!require(rstatix)) install.packages('rstatix')
+if (!require(cowplot)) install.packages('cowplot')
+if (!require(extrafont)) install.packages('extrafont')
+if (!require(flextable)) install.packages('flextable')
+if(!require(remotes)) install.packages('remotes')
+if(!require(fs)) install.packages('fs')
+
 #### Load Libraries ##############################
 library(tidyverse)
 library(readr)
@@ -19,12 +41,19 @@ library(rstatix)
 library(cowplot)
 library(extrafont)
 library(flextable)
+library(fs)
+## 2021-08-17 - had to install older version of Rttf2pt1 for the font_import from extrafont to work appropriately
+## https://github.com/wch/extrafont/issues/88
+#remotes::install_version("Rttf2pt1", version = "1.3.8")
 # font_import()
 if(! length(fonts()) > 0){
   # have to add fonts to be able to load them into pdfs
   # https://fromthebottomoftheheap.net/2013/09/09/preparing-figures-for-plos-one-with-r/
+  print("Loading fonts")
   loadfonts(dev="pdf")
 }
+
+
 
 # READ ENVIRONMENT --------------------------------------------------------
 
@@ -49,6 +78,11 @@ LBN_DataName <- "LBN_AGG_data.xlsx"
 
 #Where data files are saved
 dataFolder <- Sys.getenv("DATA_FOLDER")
+
+LBN_0004_CyclingFolder <- Sys.getenv("LBN_0004_CYCLING_FOLDER")
+LBN_0006_CyclingFolder <- Sys.getenv("LBN_0006_CYCLING_FOLDER")
+
+LBN_ServerFolder <- Sys.getenv("LBN_SERVER_FOLDER")
 
 #Where output should be saved
 outputFolder <- Sys.getenv("OUTPUT_FOLDER")

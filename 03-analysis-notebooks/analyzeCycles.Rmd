@@ -23,20 +23,23 @@ source(file.path(scriptsFolder, "02-get-datasets.R"))
 doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
 ```
 
-# Cohort 4 Females
-```{r}
-cycles_0004 <- Cycles_off %>%
-  filter(
-    Cohort == 4
-  )
-cyclesLong_0004 <- makeCyclesLong(cycles_0004)
+# Second Litter Females
 
-cycles_0004_STD_plot <- plotCycleTraces(cyclesLong_0004 %>% filter(earlyLifeTrt == "STD"))
-cycles_0004_LBN_plot <- plotCycleTraces(cyclesLong_0004 %>% filter(earlyLifeTrt == "LBN"))
+Cohorts 4 + 6
+
+```{r}
+cycles_2ndLitter <- Cycles_off %>%
+  filter(
+    Litter_num == 2
+  )
+cyclesLong_2ndLitter <- makeCyclesLong(cycles_2ndLitter)
+
+cycles_2ndLitter_STD_plot <- plotCycleTraces(cyclesLong_2ndLitter %>% filter(earlyLifeTrt == "STD"))
+cycles_2ndLitter_LBN_plot <- plotCycleTraces(cyclesLong_2ndLitter %>% filter(earlyLifeTrt == "LBN"))
 
 ggsave(
-  filename = paste0(filePrefix, "cycles_0004_STD.pdf"),
-  plot = cycles_0004_STD_plot,
+  filename = paste0(filePrefix, "cycles_2ndLitter_STD.pdf"),
+  plot = cycles_2ndLitter_STD_plot,
   device = "pdf",
   path = file.path(plotOutputFolder),
   width = 10,
@@ -45,8 +48,8 @@ ggsave(
   useDingbats = FALSE
 )
 ggsave(
-  filename = paste0(filePrefix, "cycles_0004_LBN.pdf"),
-  plot = cycles_0004_LBN_plot,
+  filename = paste0(filePrefix, "cycles_2ndLitter_LBN.pdf"),
+  plot = cycles_2ndLitter_LBN_plot,
   device = "pdf",
   path = file.path(plotOutputFolder),
   width = 10,
@@ -57,31 +60,82 @@ ggsave(
 ```
 ## Standard-reared
 ```{r}
-cycles_0004_STD_plot
+cycles_2ndLitter_STD_plot
 ```
 
 ## LBN
 ```{r}
-cycles_0004_LBN_plot
+cycles_2ndLitter_LBN_plot
 ```
 
 # Percent days in stage
 ```{r}
-cyclesPerc_long_0004 <- makeCyclesPercLong(cycles_0004)
-cyclesPercPlot_0004 <- plotCyclesPercent(cyclesPerc_long_0004)
-cyclesPercPlot_0004
+cyclesPerc_long_2ndLitter <- makeCyclesPercLong(cycles_2ndLitter)
+cyclesPercPlot_2ndLitter <- plotCyclesPercent(cyclesPerc_long_2ndLitter)
+cyclesPercPlot_2ndLitter
+ggsave(
+  filename = paste0(filePrefix, "cycles_2ndLitter_percDaysStage.pdf"),
+  plot = cyclesPercPlot_2ndLitter,
+  device = "pdf",
+  path = file.path(plotOutputFolder),
+  width = 5,
+  height = 5,
+  units = "in",
+  useDingbats = FALSE
+)
 ```
 
 # Cycles distribution
 ```{r}
-cycles_0004_contTable <- table(
-  cyclesLong_0004$earlyLifeTrt,
-  cyclesLong_0004$stageName
+cycles_2ndLitter_contTable <- table(
+  cyclesLong_2ndLitter$earlyLifeTrt,
+  cyclesLong_2ndLitter$stageName
 )
 
-cycles_0004_ChiSq <- chisq_test(cycles_0004_contTable)
-cycles_0004_ChiSq %>% flextable()
+cycles_2ndLitter_ChiSq <- chisq_test(cycles_2ndLitter_contTable)
+cycles_2ndLitter_ChiSq %>% flextable()
 
-chisq_descriptives(cycles_0004_ChiSq) %>% flextable()
+chisq_descriptives(cycles_2ndLitter_ChiSq) %>% flextable()
 ```
+
+```{r}
+cycles_2ndLitter %>%
+t_test(Proestrus_days ~ earlyLifeTrt)
+```
+# Cycle Pics in PPT
+
+## Cohort 4
+```{r}
+LBN_0004_CyclingFolder <- "/Volumes/Shared3/Physiology-Moenter_Lab/gibsonag/LBN/LBN_0004/Cycles"
+LBN_0004_Folders <- Cycles_off %>%
+  filter(
+    Cohort == 4
+  ) %>%
+  arrange(
+    earlyLifeTrt,
+    DOB
+  ) %>%
+  select(
+    FolderName
+  )
+LBN_0004_cyclePPT <- read_pptx("./estrousCycleTemplate.pptx")
+LBN_0004_cyclePPT <- ph_with(LBN_0004_cyclePPT, "LBN_0004 Female Cycle Pictures: P70-90", location = ph_location_type("title"))
+```
+
+```{r}
+for(mouse in LBN_0004_Folders$FolderName){
+  LBN_0004_cyclePPT <- addMouseFolderImgsTocyclePPT(
+    mouse,
+    LBN_0004_CyclingFolder,
+    LBN_0004_cyclePPT,
+    numPerSlide = 12
+  )
+}
+```
+
+```{r}
+print(LBN_0004_cyclePPT, file.path(reportOutputFolder, "cyclePPTS", "LBN_0004_cycleImgs_P70-90.pptx"))
+```
+
+
 

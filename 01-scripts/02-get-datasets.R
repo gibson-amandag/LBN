@@ -2,11 +2,13 @@
 
 Demo_dam <- myXLSX_func(dataFolder, LBN_DataName, "Demo_dam")
 Demo_off <- myXLSX_func(dataFolder, LBN_DataName, "Demo_off")
+Off_ID <- myXLSX_func(dataFolder, LBN_DataName, "Off_ID")
 Mass_off <- myXLSX_func(dataFolder, LBN_DataName, "Mass_off")
 Maturation_off <- myXLSX_func(dataFolder, LBN_DataName, "Maturation_off")
 EndPara_off <- myXLSX_func(dataFolder, LBN_DataName, "EndParadigm_off")
 Cycles_off <- myXLSX_func(dataFolder, LBN_DataName, "Cycles_off")
-AcuteStress_off_demo <- myXLSX_func(dataFolder, LBN_DataName, "AcuteStress_off")
+CohortCyclingFolder <- myXLSX_func(dataFolder, LBN_DataName, "CohortCyclingFolder")
+Sacrifice_off <- myXLSX_func(dataFolder, LBN_DataName, "Sacrifice_off")
 Cort_off <- myXLSX_func(dataFolder, LBN_DataName, "Cort_off")
 LH_code <- myXLSX_func(dataFolder, LBN_DataName, "LH_code")
 LH_off <- myXLSX_func(dataFolder, LBN_DataName, "LH_off")
@@ -39,13 +41,22 @@ Demo_dam <- Demo_dam %>%
   orderEarlyLifeTrt()
 
 Demo_off <- makeFactors(Demo_off, c(Dam_ID, Mouse_ID, sex))
+Off_ID <- makeFactors(Off_ID, c(Mouse_ID))
+
+Demo_off <- Demo_off %>%
+  left_join(Off_ID, by = "Mouse_ID")
+
 Mass_off <- makeFactors(Mass_off, Mouse_ID)
 Maturation_off <- makeFactors(Maturation_off, Mouse_ID)
 EndPara_off <- makeFactors(EndPara_off, Mouse_ID)
 Cycles_off <- makeFactors(Cycles_off, Mouse_ID)
-AcuteStress_off_demo <- AcuteStress_off_demo %>%
+CohortCyclingFolder <- makeFactors(CohortCyclingFolder, Cohort)
+Sacrifice_off <- Sacrifice_off %>%
   orderAdultTrt() %>%
-  makeFactors(c(Mouse_ID, adultTrt))
+  makeFactors(c(Mouse_ID, adultTrt)) %>%
+  calcOrganMassByBodyMass(ReproTract_mass) %>%
+  calcOrganMassByBodyMass(Gonad_mass) %>%
+  calcOrganMassByBodyMass(Adrenal_mass)
 ChronicStress_off <- makeFactors(ChronicStress_off, Mouse_ID)
 CRH_dam <- makeFactors(CRH_dam, c(Dam_ID,Dam))
 behavior_ZT0 <- makeFactors(behavior_ZT0, Dam_ID)
@@ -60,11 +71,15 @@ behaviorDFs <- list(
   behavior_ZT19
 )
 
-
-## Formate Dam Demo ------------------------------------------------------
+CohortCyclingFolder <- CohortCyclingFolder %>%
+  mutate(
+    cyclingFolderPath = file.path(LBN_ServerFolder, paste0("LBN_", sprintf("%04d", as.integer(Cohort))), CyclesFolder)
+  )
+## Format Dam Demo ------------------------------------------------------
 Demo_dam <- Demo_dam %>%
   mutate(pupLoss = Litter_size_startPara - Litter_size_endPara) %>%
-  convertStartPara()
+  convertStartPara() %>%
+  left_join()
 
 # DAM BEHAVIOR ------------------------------------------------------------
 
@@ -104,8 +119,8 @@ Cort_off_wide <- Cort_off %>%
     names_prefix = "cort_hr",
   )
 
-# Add cort data to AcuteStress_off
-AcuteStress_off <- AcuteStress_off_demo %>%
+# Add cort data to Sacrifice_off to make AcuteStress_off
+AcuteStress_off <- Sacrifice_off %>%
   left_join(
     Cort_off_wide,
     by = "Mouse_ID"
@@ -114,7 +129,7 @@ AcuteStress_off <- AcuteStress_off_demo %>%
 # Add stress day demo to long cort df
 Cort_off <- Cort_off %>%
   left_join(
-    AcuteStress_off_demo,
+    Sacrifice_off,
     by = "Mouse_ID"
   )
 
@@ -156,7 +171,7 @@ AcuteStress_off <- AcuteStress_off %>%
 # Add stress day demo to long cort df
 LH_off <- LH_off %>%
   left_join(
-    AcuteStress_off_demo,
+    Sacrifice_off,
     by = "Mouse_ID"
   )
 
@@ -246,7 +261,8 @@ Cycles_off <- Cycles_off %>%
 
 AcuteStress_off <- AcuteStress_off %>%
   addOffspringDemoData() %>%
-  combineStress() # combined stress label
+  combineStress() %>% # combined stress label
+  calcAgeInDays()
 
 ChronicStress_off <- ChronicStress_off %>%
   addOffspringDemoData()

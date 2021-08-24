@@ -1,0 +1,577 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+# If can't find it, be sure that the directory is the project directory
+# Arrow between notebook and settings gear -> Knit directory
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+varName = "ReproTract_mass"
+AcuteStress_off %>%
+  mutate(
+    "{varName}_mg":= ReproTract_mass / Body_mass_sac,
+    .after = ReproTract_mass
+  )
+
+calcOrganMassByBodyMass <- function(
+  df,
+  organMassVar,
+  bodyMassVar = Body_mass_sac
+){
+  df <- df %>%
+    mutate(
+      "{{ organMassVar }}_mg" := {{ organMassVar }} / {{ bodyMassVar }},
+      .after = {{ organMassVar }}
+    )
+  return(df)
+}
+
+AcuteStress_off %>%
+  calcOrganMassByBodyMass(
+    ReproTract_mass
+  )
+```
+
+## Quick Example with just one picture
+Reads the powerpoint template
+Gets the external image
+Adds a new slide with the 12-picture layout
+Adds the slide to the image
+```{r}
+cyclePPT <- read_pptx("./estrousCycleTemplate.pptx")
+cyclePPT
+layout_properties(cyclePPT, layout = "estrousCycle12", master = "Office Theme")
+testImg <- external_img("./2021-08-16-LBN_0004-0026.jpg", width = 2.68, heigh = 2.14)
+cyclePPT <- add_slide(x = cyclePPT, layout = "estrousCycle12")
+cyclePPT <- ph_with(x = cyclePPT, value = "test",
+                    location = ph_location_label(
+                      "text1"
+                    ),
+                    use_loc_size = TRUE)
+cyclePPT <- ph_with(x = cyclePPT, value = testImg,
+                    location = ph_location_label(
+                      "img1"
+                    ),
+                    use_loc_size = TRUE)
+print(cyclePPT, target = "./testCycleOutput.pptx")
+```
+
+## Get the file names
+
+```{r}
+# install.packages("fs")
+library(fs)
+mouseFolder = "/Volumes/Shared3/Physiology-Moenter_Lab/gibsonag/LBN/LBN_0004/Cycles/01-D029-02_60"
+
+cycleImgFiles <- list.files(
+  mouseFolder, 
+  full.names = TRUE,
+  recursive = TRUE, 
+  pattern = "*.jpg"
+)
+cycleImgFiles
+
+cycleImgFiles[1] %>%
+  path_file() %>%
+  path_ext_remove()
+```
+
+```{r}
+cyclePPT <- read_pptx("./estrousCycleTemplate.pptx")
+```
+
+The dir_ls function from fs package gets the file paths
+```{r}
+# Get all of the paths within folder
+cycleImgPaths <- dir_ls(
+  path = mouseFolder,
+  all = FALSE,
+  recurse = FALSE,
+  type = "file",
+  glob = "*.jpg",
+)
+
+# Number of images within path
+numImgs <- length(cycleImgPaths)
+
+# Add a section header and add mouse name
+cyclePPT <- add_slide(x = cyclePPT, layout = "Section Header")
+cyclePPT <- ph_with(x = cyclePPT, value = "Mouse 1", location = ph_location_type("title"))
+
+# Number of images per slide. Current options are 9 or 12
+numPerSlide <- 9
+
+# First index
+iImg <- 1
+
+for(path in cycleImgPaths){
+  fileName <- path %>% path_file() %>% path_ext_remove() # get the file name w/o path or extension
+  img <- external_img(path, width = 2.68, heigh = 2.14) # get the image
+  textID <- paste0("text", iImg)
+  imgID <- paste0("img", iImg)
+  
+  # If img index is 1, add a new slide
+  if(iImg == 1){
+    slideLayout <- paste0("estrousCycle", numPerSlide)
+    cyclePPT <- add_slide(x = cyclePPT, layout = slideLayout)
+  }
+  
+  # add the title
+  cyclePPT <- ph_with(
+    x = cyclePPT, value = fileName,
+    location = ph_location_label(
+      textID
+    ),
+    use_loc_size = TRUE)
+  
+  # add the image
+  cyclePPT <- ph_with(
+    x = cyclePPT, value = img,
+    location = ph_location_label(
+      imgID
+    ),
+    use_loc_size = TRUE)
+  
+  # if index is less than the number per slide, add one, otherwise, restart at 1
+  if(iImg < numPerSlide) {
+    iImg <- iImg + 1
+  } else {
+    iImg <- 1
+  }
+}
+```
+
+```{r}
+getMouseCycleImgPaths <- function(
+  cohortCyclingFolderPath,
+  mouseFolderName
+){
+  cycleImgPaths <- dir_ls(
+    path = file.path(cohortCyclingFolderPath, mouseFolderName),
+    all = FALSE,
+    recurse = FALSE,
+    type = "file",
+    glob = "*.jpg",
+  )
+  return(cycleImgPaths)
+}
+
+addImgsToCyclePPT <- function(
+  cycleImgPaths,
+  sectionLabel,
+  cyclePPT,
+  numPerSlide = 12 # 9 or 12
+) {
+  # Number of images within directory
+  numImgs <- length(cycleImgPaths)
+  
+  # Add a section header and add section label
+  cyclePPT <- add_slide(x = cyclePPT, layout = "Section Header")
+  cyclePPT <- ph_with(x = cyclePPT, value = sectionLabel, location = ph_location_type("title"))
+  
+  # First index
+  iImg <- 1
+  print(iImg)
+  for(path in cycleImgPaths){
+    fileName <- path %>% path_file() %>% path_ext_remove() # get the file name w/o path or extension
+    img <- external_img(path, width = 2.68, heigh = 2.14) # get the image
+    textID <- paste0("text", iImg)
+    imgID <- paste0("img", iImg)
+    
+    # If img index is 1, add a new slide
+    if(iImg == 1){
+      print("adding slide")
+      slideLayout <- paste0("estrousCycle", numPerSlide)
+      cyclePPT <- add_slide(x = cyclePPT, layout = slideLayout)
+    }
+    
+    # add the title
+    cyclePPT <- ph_with(
+      x = cyclePPT, value = fileName,
+      location = ph_location_label(
+        textID
+      ),
+      use_loc_size = TRUE)
+    
+    # add the image
+    cyclePPT <- ph_with(
+      x = cyclePPT, value = img,
+      location = ph_location_label(
+        imgID
+      ),
+      use_loc_size = TRUE)
+    
+    # if index is less than the number per slide, add one, otherwise, restart at 1
+    if(iImg < numPerSlide) {
+      iImg <- iImg + 1
+    } else {
+      iImg <- 1
+    }
+  }
+  return(cyclePPT)
+}
+```
+
+```{r}
+cohort4CyclingFolder <- "/Volumes/Shared3/Physiology-Moenter_Lab/gibsonag/LBN/LBN_0004/Cycles"
+mouseID <- "01-D029-02_60"
+
+cyclingImgPaths <- getMouseCycleImgPaths(cohort4CyclingFolder, mouseID)
+cyclePPT <- addImgsToCyclePPT(
+  cycleImgPaths = cyclingImgPaths,
+  mouseID,
+  cyclePPT,
+  12
+)
+```
+
+```{r}
+cohort4Folders <- Cycles_off %>%
+  filter(
+    Cohort == 4,
+    Dam_ID == "D033-02"
+  ) %>%
+  arrange(
+    earlyLifeTrt,
+    DOB
+  ) %>%
+  select(
+    FolderName
+  )
+cohort4Folders
+```
+```{r}
+addMouseFolderImgsTocyclePPT <- function(
+  mouseFolder,
+  cohortCyclingFolderPath,
+  cyclePPT,
+  numPerSlide = 12
+){
+  cyclingImgPaths <- getMouseCycleImgPaths(
+    cohortCyclingFolderPath = cohortCyclingFolderPath, 
+    mouseFolderName = mouseFolder
+  )
+  cyclePPT <- addImgsToCyclePPT(
+    cycleImgPaths = cyclingImgPaths,
+    sectionLabel = mouseFolder,
+    cyclePPT = cyclePPT,
+    numPerSlide = numPerSlide
+  )
+  return(cyclePPT)
+}
+```
+
+```{r}
+for(mouse in cohort4Folders$FolderName){
+  cyclePPT <- addMouseFolderImgsTocyclePPT(
+    mouse,
+    cohort4CyclingFolder,
+    cyclePPT,
+    numPerSlide = 12
+  )
+}
+```
+
+
+```{r}
+print(cyclePPT, target = "./testCycleOutput.pptx")
+```
+
+
+```{r}
+LBN_0004_CyclingFolder
+
+dir_ls(
+  path = LBN_0004_CyclingFolder,
+  all = TRUE,
+  recurse = TRUE,
+  type = "any",
+  glob = "*-0026.jpg",
+  regexp = NULL,
+  invert = FALSE,
+  fail = TRUE
+)
+
+paste(as_date("2021-08-22"))
+buildCycleFileName <- function(
+  cycleID,
+  date,
+  cohort
+){
+  cohortText <- paste0("LBN_000", cohort)
+  idText <- sprintf("%04d", as.integer(cycleID))
+  fileName <- paste0(date, "-", cohortText, "-", idText, ".jpg")
+  return(fileName)
+}
+
+buildCycleFileName(33, as_date("2021-08-22"), 4)
+
+regExCycleFileName <- function(
+  date,
+  cycleID
+){
+  idText <- sprintf("%04d", as.integer(cycleID))
+  yyyy <- year(date)
+  mm <- month(date)
+  dd <- day(date)
+  regEx <- paste0("^.*", date, ".*[-_]", idText, "\\.jpg$")
+  return(regEx)
+}
+writeLines(regExCycleFileName(as_date("2021-08-22"), 33))
+dir_ls(
+  path = LBN_0006_CyclingFolder,
+  all = TRUE,
+  recurse = TRUE,
+  type = "any",
+  glob = NULL,
+  regexp = regExCycleFileName(as_date("2021-08-22"), 33),
+  invert = FALSE,
+  fail = TRUE
+)
+```
+
+```{r}
+
+stressFilesDF <- AcuteStress_off %>%
+  filter(
+    sex == "F",
+    Litter_num == 2
+  ) %>%
+  select(
+    Mouse_ID,
+    num_ID,
+    Sac_date,
+    Cohort,
+    ReproTract_mass,
+    maxLH
+  ) %>%
+  arrange(
+    ReproTract_mass
+  ) %>%
+  mutate(
+    amRegEx = regExCycleFileName(Sac_date, num_ID),
+    ayerRegEx = regExCycleFileName(Sac_date - 1, num_ID),
+    anteAyerRegEx = regExCycleFileName(Sac_date - 2, num_ID)
+  )
+
+stressFilesDF <- stressFilesDF %>%
+  rowwise() %>%
+  mutate(
+    AMPath = dir_ls(
+      path = ifelse(
+        Cohort == 4,
+        LBN_0004_CyclingFolder,
+        LBN_0006_CyclingFolder
+      ),
+      all = TRUE,
+      recurse = TRUE,
+      type = "any",
+      regexp = amRegEx,
+      invert = FALSE,
+      fail = TRUE
+    ),
+    ayerPath = dir_ls(
+      path = ifelse(
+        Cohort == 4,
+        LBN_0004_CyclingFolder,
+        LBN_0006_CyclingFolder
+      ),
+      all = TRUE,
+      recurse = TRUE,
+      type = "any",
+      regexp = ayerRegEx,
+      invert = FALSE,
+      fail = TRUE
+    ),
+    anteAyerPath = dir_ls(
+      path = ifelse(
+        Cohort == 4,
+        LBN_0004_CyclingFolder,
+        LBN_0006_CyclingFolder
+      ),
+      all = TRUE,
+      recurse = TRUE,
+      type = "any",
+      regexp = anteAyerRegEx,
+      invert = FALSE,
+      fail = TRUE
+    )
+  )
+stressFilesDF
+```
+
+```{r}
+samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+samplingPPT
+samplingPPT <- add_slide(samplingPPT, layout = "samplingSlide")
+amImg <- external_img(stressFilesDF$AMPath[1], width = 2.68, height = 2.14)
+ayerImg <- external_img(stressFilesDF$ayerPath[1], width = 2.68, height = 2.14)
+anteAyerImg <- external_img(stressFilesDF$anteAyerPath[1], width = 2.68, height = 2.14)
+
+samplingPPT <- ph_with(
+  x = samplingPPT,
+  value = amImg,
+  location = ph_location_label(
+    "imgAM"
+  ),
+  use_loc_size = TRUE
+)
+samplingPPT <- ph_with(
+  x = samplingPPT,
+  value = ayerImg,
+  location = ph_location_label(
+    "imgAyer"
+  ),
+  use_loc_size = TRUE
+)
+samplingPPT <- ph_with(
+  x = samplingPPT,
+  value = anteAyerImg,
+  location = ph_location_label(
+    "imgAnteAyer"
+  ),
+  use_loc_size = TRUE
+)
+print(samplingPPT, target = "./testCycleOutput.pptx")
+
+
+createSamplingSlide <- function(
+  mouseID,
+  cycleID,
+  maxLH = NULL,
+  uterineMass,
+  amImgPath,
+  prevDayImgPath,
+  twoDayPrevImgPath,
+  samplingPPT
+){
+  samplingPPT <- add_slide(samplingPPT, layout = "samplingSlide")
+  print(amImgPath)
+  amImg <- external_img(amImgPath, width = 2.68, height = 2.14)
+  ayerImg <- external_img(prevDayImgPath, width = 2.68, height = 2.14)
+  anteAyerImg <- external_img(twoDayPrevImgPath, width = 2.68, height = 2.14)
+  
+  mouseLabel <- paste0(mouseID, " - ", cycleID)
+  maxLHLabel <- ifelse(!is.na(maxLH), paste0(maxLH, " ng/mL"), "")
+  uterineMassLabel <- paste0(uterineMass, " mg")
+  
+  samplingPPT <- ph_with(
+    x = samplingPPT,
+    value = mouseLabel,
+    location = ph_location_label(
+      "mouseID"
+    ),
+    use_loc_size = TRUE
+  )
+  samplingPPT <- ph_with(
+    x = samplingPPT,
+    value = maxLHLabel,
+    location = ph_location_label(
+      "maxLH"
+    ),
+    use_loc_size = TRUE
+  )
+  samplingPPT <- ph_with(
+    x = samplingPPT,
+    value = uterineMassLabel,
+    location = ph_location_label(
+      "uterineMass"
+    ),
+    use_loc_size = TRUE
+  )
+  samplingPPT <- ph_with(
+    x = samplingPPT,
+    value = amImg,
+    location = ph_location_label(
+      "imgAM"
+    ),
+    use_loc_size = TRUE
+  )
+  samplingPPT <- ph_with(
+    x = samplingPPT,
+    value = ayerImg,
+    location = ph_location_label(
+      "imgAyer"
+    ),
+    use_loc_size = TRUE
+  )
+  samplingPPT <- ph_with(
+    x = samplingPPT,
+    value = anteAyerImg,
+    location = ph_location_label(
+      "imgAnteAyer"
+    ),
+    use_loc_size = TRUE
+  )
+  return(samplingPPT)
+}
+
+df <- stressFilesDF %>%
+  filter(
+    Sac_date == as_date("2021-08-12")
+  )
+
+df
+
+pwalk(
+  list(
+    mouseID = df$Mouse_ID,
+    cycleID = df$num_ID,
+    maxLH = df$maxLH,
+    uterineMass = df$ReproTract_mass,
+    amImgPath = df$AMPath,
+    prevDayImgPath = df$ayerPath,
+    twoDayPrevImgPath = df$anteAyerPath
+  ),
+  createSamplingSlide,
+  samplingPPT = samplingPPT
+)
+
+samplingPPT <- createSamplingSlide(
+  mouseID = df$Mouse_ID[1],
+  cycleID = df$num_ID[1],
+  maxLH = df$maxLH[1],
+  uterineMass = df$ReproTract_mass[1],
+  amImgPath = df$AMPath[1],
+  prevDayImgPath = df$ayerPath[1],
+  twoDayPrevImgPath = df$anteAyerPath[1],
+  samplingPPT = samplingPPT
+)
+
+print(samplingPPT, target = "./testCycleOutput.pptx")
+```
+
+Need to figure out best to way to organize adding this stuff. The regex in the dataframe is actually pretty helpful. Could create a function to loop through and get each of the pictures and then add it to the powerpoint
+Should have a function for getting image and adding it and title to a specific slot on a slide
+Need to figure out if I can use any sort of map_dfr instead of having to loop. But I'm not sure how you'd actually get the final powerpoint out
+And need to be able to read and add and save. I guess walk might do the trick
+
+```{r}
+samplingDF_today <- AcuteStress_off %>%
+  filter(
+    Sac_date == dateToday
+  )
+
+samplingDF_today
+
+samplingDF_today <- samplingDF_today %>%
+  addRegExForSamplingDF() %>%
+  addSamplingImgFilePaths()
+
+samplingDF_today
+
+testSamplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+addSamplingSlidesFromDF(samplingDF_today, samplingPPT = testSamplingPPT)
+print(testSamplingPPT, target = "./testCycleOutput.pptx")
+```
+
