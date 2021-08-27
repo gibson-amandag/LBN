@@ -83,6 +83,7 @@ LBN_0004_CyclingFolder <- Sys.getenv("LBN_0004_CYCLING_FOLDER")
 LBN_0006_CyclingFolder <- Sys.getenv("LBN_0006_CYCLING_FOLDER")
 
 LBN_ServerFolder <- Sys.getenv("LBN_SERVER_FOLDER")
+LBN_uterinePicsFolder <- file.path(LBN_ServerFolder, "uterinePics")
 
 #Where output should be saved
 outputFolder <- Sys.getenv("OUTPUT_FOLDER")

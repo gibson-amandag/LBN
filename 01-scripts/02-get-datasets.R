@@ -7,6 +7,7 @@ Mass_off <- loadExcelSheet(dataFolder, LBN_DataName, "Mass_off")
 Maturation_off <- loadExcelSheet(dataFolder, LBN_DataName, "Maturation_off")
 EndPara_off <- loadExcelSheet(dataFolder, LBN_DataName, "EndParadigm_off")
 Cycles_off <- loadExcelSheet(dataFolder, LBN_DataName, "Cycles_off")
+Cycles_off_extra <- loadExcelSheet(dataFolder, LBN_DataName, "Cycles_off_extra")
 CohortCyclingFolder <- loadExcelSheet(dataFolder, LBN_DataName, "CohortCyclingFolder")
 Sacrifice_off <- loadExcelSheet(dataFolder, LBN_DataName, "Sacrifice_off")
 Cort_off <- loadExcelSheet(dataFolder, LBN_DataName, "Cort_off")
@@ -50,6 +51,7 @@ Mass_off <- makeFactors(Mass_off, Mouse_ID)
 Maturation_off <- makeFactors(Maturation_off, Mouse_ID)
 EndPara_off <- makeFactors(EndPara_off, Mouse_ID)
 Cycles_off <- makeFactors(Cycles_off, Mouse_ID)
+Cycles_off_extra <- makeFactors(Cycles_off_extra, Mouse_ID)
 CohortCyclingFolder <- makeFactors(CohortCyclingFolder, Cohort)
 Sacrifice_off <- Sacrifice_off %>%
   orderAdultTrt() %>%
@@ -79,7 +81,7 @@ CohortCyclingFolder <- CohortCyclingFolder %>%
 Demo_dam <- Demo_dam %>%
   mutate(pupLoss = Litter_size_startPara - Litter_size_endPara) %>%
   convertStartPara() %>%
-  left_join(CohortCyclingFolder)
+  left_join(CohortCyclingFolder, by = "Cohort")
 
 # DAM BEHAVIOR ------------------------------------------------------------
 
@@ -183,6 +185,7 @@ LBN_all <- Demo_off %>%
   # full_join(Maturation_off, by = "Mouse_ID") %>%
   full_join(EndPara_off, by = "Mouse_ID") %>%
   full_join(Cycles_off, by = "Mouse_ID") %>%
+  full_join(Cycles_off_extra, by = "Mouse_ID")%>%
   full_join(AcuteStress_off, by = "Mouse_ID") %>%
   full_join(ChronicStress_off, by = "Mouse_ID")
 
@@ -195,6 +198,7 @@ Demo_dam_for_offspring <- Demo_dam %>%
     Litter_num,
     DOB, 
     Cohort,
+    cyclingFolderPath,
     ParaType,
     pupLoss,
     Litter_size,
@@ -224,6 +228,7 @@ LBN_data <- Demo_off %>%
   # left_join(Maturation_off, by = "Mouse_ID") %>%
   left_join(EndPara_off, by = "Mouse_ID") %>%
   left_join(Cycles_off, by = "Mouse_ID") %>%
+  left_join(Cycles_off_extra, by = "Mouse_ID") %>%
   left_join(AcuteStress_off, by = "Mouse_ID") %>%
   left_join(ChronicStress_off, by = "Mouse_ID")
 
@@ -258,6 +263,9 @@ EndPara_off <- EndPara_off %>%
 Cycles_off <- Cycles_off %>%
   addOffspringDemoData() %>%
   countEstrousStageDays()
+
+Cycles_off_all <- Cycles_off %>%
+  left_join(Cycles_off_extra, by = "Mouse_ID")
 
 AcuteStress_off <- AcuteStress_off %>%
   addOffspringDemoData() %>%

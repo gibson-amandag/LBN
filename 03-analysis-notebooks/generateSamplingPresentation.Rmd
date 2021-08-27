@@ -16,7 +16,7 @@ source(file.path(scriptsFolder, "02-get-datasets.R"))
 ```{r}
 samplingDF_today <- AcuteStress_off %>%
   filter(
-    Sac_date == dateToday
+    Sac_date == as_date("2021-08-22")
   )
 
 samplingDF_today <- samplingDF_today %>%
@@ -24,13 +24,60 @@ samplingDF_today <- samplingDF_today %>%
   addSamplingImgFilePaths()
 
 samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+layout_properties(samplingPPT, layout = "samplingSlide2")
+samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
 samplingPPT <- ph_with(
   samplingPPT,
   value = paste(dateToday),
-  location = ph_location_type("ctrTitle")
+  location = ph_location_label("Title 1")
 )
-addSamplingSlidesFromDF(samplingDF_today, samplingPPT = samplingPPT)
-print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", dateToday, ".pptx")))
+addSamplingSlidesFromDF(
+  samplingDF_today, 
+  samplingPPT = samplingPPT, 
+  cyclingDF = Cycles_off_all %>%
+    filter(
+      Mouse_ID %in% samplingDF_today$Mouse_ID
+    )
+)
+print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling2_", dateToday, ".pptx")))
 ```
 
+Full Presentation
+```{r}
+samplingDF_ALPS <- AcuteStress_off %>%
+  filter(
+    sex == "F",
+    !is.na(cyclingFolderPath),
+    Cohort == 4 | Cohort == 5 | Cohort == 6
+  ) %>%
+  arrange(
+    ReproTract_mass
+  )
+
+samplingDF_ALPS <- samplingDF_ALPS %>%
+  addRegExForSamplingDF() %>%
+  addSamplingImgFilePaths()
+
+samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
+samplingPPT <- ph_with(
+  samplingPPT,
+  value = "LBN Cycling Images, Uterine Mass, and LH Values",
+  location = ph_location_label("Title 1")
+)
+addSamplingSlidesFromDF(
+  samplingDF_ALPS, 
+  samplingPPT = samplingPPT, 
+  cyclingDF = Cycles_off_all %>%
+    filter(
+      Mouse_ID %in% samplingDF_ALPS$Mouse_ID
+    )
+)
+print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0(
+  "LBN_ALPS_samplingImgs", 
+  # dateToday, 
+  ".pptx")
+  )
+)
+```
 

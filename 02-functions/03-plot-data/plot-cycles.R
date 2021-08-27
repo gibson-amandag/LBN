@@ -76,7 +76,7 @@ plotCycleTraces <- function(
       labels = c("E", "D", "P") #replace with E, D, and P
     ) +
     scale_x_continuous(
-      breaks = seq(1, 21, 3) #labels every third integer
+      breaks = seq(1, 100, 3) #labels every third integer
     ) +
     expand_limits(
       y = 0
@@ -101,6 +101,59 @@ plotCycleTraces <- function(
       strip.background = element_blank()
     )
   }
+  
+  return(viz)
+}
+
+plotCycleTraces_single <- function(
+  df,
+  day = day,
+  stage = stage,
+  mouseID = Mouse_ID,
+  ncol = NULL,
+  nrow = NULL,
+  lineColorVar = earlyLifeTrt,
+  colorKey = c("STD" = "grey", "LBN" = "black"),
+  removeFacets = FALSE,
+  removeLegend = TRUE
+){
+  viz <- ggplot(df, aes(x = {{ day }}, y = {{ stage }}, color = {{ lineColorVar }})) +
+    geom_line(aes(group = {{ mouseID }})) +
+    # facet_wrap(
+    #   vars( {{ mouseID }} ),
+    #   ncol = ncol,
+    #   nrow = nrow
+    # ) +
+    scale_y_continuous(
+      breaks = c(1, 2, 3), #axis ticks only at 1, 2, 3
+      labels = c("E", "D", "P") #replace with E, D, and P
+    ) +
+    scale_x_continuous(
+      breaks = seq(1, 100, 3) #labels every third integer
+    ) +
+    expand_limits(
+      y = 0
+    )
+  
+  viz <- viz + 
+    theme_pubr() +
+    textTheme() + 
+    boxTheme()
+  
+  if(!is.null(enquo(lineColorVar))){
+    viz <- viz + scale_color_manual(values = colorKey)
+  }
+  
+  if(removeLegend == TRUE) {
+    viz <- viz + rremove("legend")
+  } 
+  
+  # if(removeFacets == TRUE) {
+  #   viz <- viz + theme(
+  #     strip.text = element_blank(), 
+  #     strip.background = element_blank()
+  #   )
+  # }
   
   return(viz)
 }

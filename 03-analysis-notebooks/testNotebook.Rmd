@@ -575,3 +575,125 @@ addSamplingSlidesFromDF(samplingDF_today, samplingPPT = testSamplingPPT)
 print(testSamplingPPT, target = "./testCycleOutput.pptx")
 ```
 
+```{r}
+samplingDF_today <- AcuteStress_off %>%
+  filter(
+    Sac_date == dateToday
+  )
+
+samplingDF_today <- samplingDF_today %>%
+  addRegExForSamplingDF() %>%
+  addSamplingImgFilePaths()
+
+samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
+samplingPPT <- ph_with(
+  samplingPPT,
+  value = paste(dateToday),
+  location = ph_location_label("Title 1")
+)
+samplingPPT <- add_slide(samplingPPT, layout = "samplingSlide")
+cyclingDF_long <- Cycles_off_all %>%
+  makeCyclesLong()
+cyclingPlot <- cyclingDF_long %>%
+  filter(
+    Mouse_ID %in% samplingDF_today$Mouse_ID,
+    day <= 32 & day >= 12
+  ) %>%
+  plotCycleTraces()
+
+samplingPPT <- ph_with(
+  samplingPPT,
+  value = cyclingPlot,
+  location = ph_location_label(
+    "cyclePlot"
+  )
+)
+
+addSamplingSlidesFromDF(
+  samplingDF_today, 
+  samplingPPT = samplingPPT, 
+  cyclingDF = Cycles_off_all
+)
+print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", dateToday, ".pptx")))
+
+layout_properties(samplingPPT, layout = "samplingSlide")
+```
+
+```{r}
+samplingDF_today
+createSamplingSlide(
+  mouseID = samplingDF_today$Mouse_ID[1],
+  cycleID = samplingDF_today$num_ID[1],
+  maxLH = NULL,
+  uterineMass = samplingDF_today$ReproTract_mass[1],
+  amImgPath = samplingDF_today$AMPath[1],
+  prevDayImgPath = samplingDF_today$ayerPath[1],
+  twoDayPrevImgPath = samplingDF_today$anteAyerPath[1],
+  startCycleDay = samplingDF_today$startCycleDay[1],
+  endCycleDay = samplingDF_today$endCycleDay[1],
+  samplingPPT = samplingPPT,
+  cyclingDF_long = cyclingDF_long
+)
+```
+
+```{r}
+AcuteStress_off$cyclingFolderPath
+
+test_long <- Cycles_off_all%>%
+  makeCyclesLong()
+
+test_long %>%
+  filter(
+    Mouse_ID == "D044-02_44"
+  ) %>%
+  plotCycleTraces_single()
+
+testFunc <- function(
+  mouseID,
+  testPPT,
+  test_long
+){
+  plot <- test_long %>%
+    filter(
+      Mouse_ID == mouseID
+    ) %>%
+    plotCycleTraces()
+  testPPT <- add_slide(testPPT)
+  testPPT <- ph_with(testPPT,
+          plot,
+          location = ph_location_type(
+            "body"
+          ))
+  return(testPPT)
+}
+testFunc("D044-02_44")
+testPPT <- read_pptx()
+
+pwalk(
+  list(
+    mouseID = Cycles_off_all$Mouse_ID
+  ),
+  testFunc,
+  testPPT,
+  test_long
+)
+
+for(mouse in Cycl$mouse)
+
+testPPT <- add_slide(testPPT)
+testPPT <- ph_with(
+  testPPT,
+  value = test_long %>%
+  filter(
+    Mouse_ID == "D044-02_44"
+  ) %>%
+  plotCycleTraces(),
+  location = ph_location_type(
+    "body"
+  )
+)
+layout_properties(testPPT)
+print(testPPT, target = "./testCycleOutput.pptx")
+```
+
