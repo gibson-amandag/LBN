@@ -106,7 +106,8 @@ t_test(Proestrus_days ~ earlyLifeTrt)
 
 ## Cohort 4
 ```{r}
-LBN_0004_CyclingFolder <- "/Volumes/Shared3/Physiology-Moenter_Lab/gibsonag/LBN/LBN_0004/Cycles"
+LBN_0004_CyclingFolder <- CohortCyclingFolder$cyclingFolderPath[CohortCyclingFolder$Cohort == 4]
+
 LBN_0004_Folders <- Cycles_off %>%
   filter(
     Cohort == 4
@@ -119,7 +120,10 @@ LBN_0004_Folders <- Cycles_off %>%
     FolderName
   )
 LBN_0004_cyclePPT <- read_pptx("./estrousCycleTemplate.pptx")
-LBN_0004_cyclePPT <- ph_with(LBN_0004_cyclePPT, "LBN_0004 Female Cycle Pictures: P70-90", location = ph_location_type("title"))
+LBN_0004_cyclePPT <- ph_with(
+  LBN_0004_cyclePPT, 
+  "LBN_0004 Female Cycle Pictures: P70-90", 
+  location = ph_location_label("Title 1"))
 ```
 
 ```{r}
@@ -137,5 +141,40 @@ for(mouse in LBN_0004_Folders$FolderName){
 print(LBN_0004_cyclePPT, file.path(reportOutputFolder, "cyclePPTS", "LBN_0004_cycleImgs_P70-90.pptx"))
 ```
 
+## Cohort 5
+```{r}
+LBN_0005_CyclingFolder <- CohortCyclingFolder$cyclingFolderPath[CohortCyclingFolder$Cohort == 5]
 
+LBN_0005_Folders <- Cycles_off %>%
+  filter(
+    Cohort == 5
+  ) %>%
+  arrange(
+    earlyLifeTrt,
+    DOB
+  ) %>%
+  select(
+    FolderName
+  )
+LBN_0005_cyclePPT <- read_pptx("./estrousCycleTemplate.pptx")
+LBN_0005_cyclePPT <- ph_with(
+  LBN_0005_cyclePPT, 
+  "LBN_0005 Female Cycle Pictures", 
+  location = ph_location_label("Title 1")
+  )
+```
 
+```{r}
+for(mouse in LBN_0005_Folders$FolderName){
+  LBN_0005_cyclePPT <- addMouseFolderImgsTocyclePPT(
+    mouse,
+    LBN_0005_CyclingFolder,
+    LBN_0005_cyclePPT,
+    numPerSlide = 12
+  )
+}
+```
+
+```{r}
+print(LBN_0005_cyclePPT, file.path(reportOutputFolder, "cyclePPTS", "LBN_0005_cycleImgs.pptx"))
+```

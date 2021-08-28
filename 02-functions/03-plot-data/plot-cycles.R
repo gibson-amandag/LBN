@@ -76,7 +76,7 @@ plotCycleTraces <- function(
       labels = c("E", "D", "P") #replace with E, D, and P
     ) +
     scale_x_continuous(
-      breaks = seq(1, 100, 3) #labels every third integer
+      breaks = seq(70, 150, 3) #labels every third integer
     ) +
     expand_limits(
       y = 0
@@ -129,7 +129,7 @@ plotCycleTraces_single <- function(
       labels = c("E", "D", "P") #replace with E, D, and P
     ) +
     scale_x_continuous(
-      breaks = seq(1, 100, 3) #labels every third integer
+      breaks = seq(70, 150, 3) #labels every third integer
     ) +
     expand_limits(
       y = 0

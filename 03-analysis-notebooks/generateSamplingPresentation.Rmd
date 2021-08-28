@@ -13,18 +13,17 @@ source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
 ```
 
+
 ```{r}
 samplingDF_today <- AcuteStress_off %>%
   filter(
-    Sac_date == as_date("2021-08-22")
+    Sac_date == dateToday
   )
-
 samplingDF_today <- samplingDF_today %>%
   addRegExForSamplingDF() %>%
   addSamplingImgFilePaths()
 
 samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
-layout_properties(samplingPPT, layout = "samplingSlide2")
 samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
 samplingPPT <- ph_with(
   samplingPPT,
@@ -39,11 +38,12 @@ addSamplingSlidesFromDF(
       Mouse_ID %in% samplingDF_today$Mouse_ID
     )
 )
-print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling2_", dateToday, ".pptx")))
+# print(samplingPPT, target = "./testCyclingOutput.pptx")
+print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", dateToday, ".pptx")))
 ```
 
 Full Presentation
-```{r}
+```{r eval=FALSE, include=FALSE}
 samplingDF_ALPS <- AcuteStress_off %>%
   filter(
     sex == "F",

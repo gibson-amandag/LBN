@@ -50,8 +50,8 @@ addRegExForSamplingDF <- function(
       ReproTract_mass
     ) %>%
     mutate(
-      endCycleDay = AgeInDays - 70 + 1,
-      startCycleDay = ifelse(endCycleDay - 20 > 0, endCycleDay - 20, 1),
+      endCycleDay = AgeInDays,
+      startCycleDay = ifelse(endCycleDay - 20 > 69, endCycleDay - 20, 70),
       amRegEx = regExCycleFileName(Sac_date, num_ID),
       ayerRegEx = regExCycleFileName(Sac_date - 1, num_ID),
       anteAyerRegEx = regExCycleFileName(Sac_date - 2, num_ID),
