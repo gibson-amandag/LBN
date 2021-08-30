@@ -521,6 +521,21 @@ femalesAcuteStress_2ndLitter %>%
   getStressTrtNumbers()
 ```
 
+```{r}
+femalesAcuteStress_2ndLitter %>%
+  filter(
+    Sac_cycle != "proestrus" | is.na(Sac_cycle)
+  )
+
+femalesAcuteStress_2ndLitter %>%
+  filter(
+    # ReproTract_mass<100,#proUterineCutoff,
+    Sac_cycle == "diestrus"
+  ) %>%
+  getStressTrtNumbers()
+
+```
+
 Remaining second litter females
 ```{r}
 LBN_data %>%

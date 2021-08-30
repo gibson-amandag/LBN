@@ -697,3 +697,30 @@ layout_properties(testPPT)
 print(testPPT, target = "./testCycleOutput.pptx")
 ```
 
+```{r}
+empty <- dir_ls(
+  path = LBN_uterinePicsFolder,
+  all = TRUE,
+  recurse = FALSE,
+  type = "any",
+  regexp = regExUterinePicFileName("D044-02_44"),
+  invert = FALSE,
+  fail = TRUE
+)
+
+contains <- dir_ls(
+  path = LBN_uterinePicsFolder,
+  all = TRUE,
+  recurse = FALSE,
+  type = "any",
+  regexp = regExUterinePicFileName("D029-02_46"),
+  # regexp = "^.*uterus-D029-02_46.*\\.jpg$", #regExUterinePicFileName("D029-02_46"),
+  invert = FALSE,
+  fail = TRUE
+)
+contains
+
+length(empty)
+length(contains)
+```
+
