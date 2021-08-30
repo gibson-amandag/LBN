@@ -56,7 +56,9 @@ scatterPlotTwoVars_byLBN <- function(
 scatterPlotComboTrt <- function(
   df,
   yVar,
-  yLab
+  yLab,
+  dotSize = 1.2,
+  fontSize = 11
 ){
   viz <- df %>%
     filter(
@@ -70,7 +72,7 @@ scatterPlotComboTrt <- function(
         shape = comboTrt
       )
     ) +
-    jitterGeom() +
+    jitterGeom(size = dotSize) +
     addMeanHorizontalBar() +
     addMeanSE_vertBar()+
     labs(y = yLab)+
@@ -81,7 +83,7 @@ scatterPlotComboTrt <- function(
       axis.title.x = element_blank(),
       legend.position = "none"
     )+
-    textTheme()+
+    textTheme(size = fontSize)+
     boxTheme()
   
   return(viz)

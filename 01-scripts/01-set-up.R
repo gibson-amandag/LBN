@@ -19,6 +19,7 @@ if (!require(extrafont)) install.packages('extrafont')
 if (!require(flextable)) install.packages('flextable')
 if(!require(remotes)) install.packages('remotes')
 if(!require(fs)) install.packages('fs')
+if(!require(DT)) install.packages('DT')
 
 #### Load Libraries ##############################
 library(tidyverse)
@@ -42,6 +43,7 @@ library(cowplot)
 library(extrafont)
 library(flextable)
 library(fs)
+library(DT)
 ## 2021-08-17 - had to install older version of Rttf2pt1 for the font_import from extrafont to work appropriately
 ## https://github.com/wch/extrafont/issues/88
 #remotes::install_version("Rttf2pt1", version = "1.3.8")
@@ -94,6 +96,7 @@ reportOutputFolder <- file.path(outputFolder, "reports")
 
 #Where R script files are saved
 scriptsFolder <- file.path("01-scripts")
+appScriptsFolder <- file.path(scriptsFolder, "appScripts")
 
 #Where Function files are saved
 functionsFolder <- file.path("02-functions")

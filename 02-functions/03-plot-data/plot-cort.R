@@ -1,6 +1,7 @@
 cortPlot <- function(
   df_long,
-  pointSize = 1.2
+  pointSize = 1.2,
+  fontSize = 11
 ){
   ggplot(
     df_long,
@@ -42,12 +43,13 @@ cortPlot <- function(
       breaks = c(0, 5),
       labels = c("pre", "post")
     ) +
-    textTheme()+
+    textTheme(size = fontSize)+
     boxTheme()+
     guides()#linetype = "none")
 }
 baseCortPlot <- function(
-  df_long
+  df_long,
+  dotSize = 1.2
 ){
   ggplot(
     df_long,
@@ -64,15 +66,21 @@ baseCortPlot <- function(
       position = position_dodge(0.4)
     ) +
     geom_point(
-      shape = 21,
       alpha = 1, 
-      aes(fill=earlyLifeTrt,group=Mouse_ID), 
+      aes(fill=comboTrt,group=Mouse_ID, shape=comboTrt, color=comboTrt), 
       position = position_dodge(0.4), 
-      size = 1.2
+      size = dotSize
       ) +
-    addMeanHorizontalBar(width = 0.85)+
-    addMeanSE_vertBar()+
-    scale_fill_manual(values = c("white", "black")) +
+    addMeanHorizontalBar(
+      width = 0.85, 
+      addLineType = TRUE,
+      lineTypeName = "treatment",
+      lineTypeGuide = c("dotted", "dotted", "solid", "solid"),
+      typeVar=comboTrt,
+      color=comboTrt
+    )+
+    addMeanSE_vertBar(color=comboTrt)+
+    comboTrtFillShape()+
     theme_pubr() +
     rremove("xlab") +
     labs(
@@ -86,7 +94,8 @@ baseCortPlot <- function(
 }
 
 longCortPlot <- function(
-  basePlot
+  basePlot,
+  fontSize = 11
 ){
   longPlot <- basePlot +
     facet_wrap(
@@ -98,7 +107,7 @@ longCortPlot <- function(
     rremove(
       "legend"
     ) + 
-    textTheme()+
+    textTheme(size = fontSize)+
     boxTheme()
   return(longPlot)
 }
@@ -106,7 +115,9 @@ longCortPlot <- function(
 plotByUterineMass <- function(
   df,
   yVar,
-  yLab
+  yLab,
+  fontSize = 11,
+  dotSize = 1.2
 ){
   plot <- df %>%
     ggplot(
@@ -118,12 +129,12 @@ plotByUterineMass <- function(
         color = comboTrt,
       )
     ) +
-    geom_jitter() +
+    geom_jitter(size = dotSize) +
     expand_limits(x = 0, y = 0) +
     labs(x = "uterine mass (mg)", y = yLab)+
     comboTrtFillShape()+
     theme_pubr()+
-    textTheme()+
+    textTheme(size = fontSize)+
     boxTheme()
   return(plot)
 }
@@ -132,7 +143,9 @@ plotUterineMassByGroup <- function(
   df,
   showHline = TRUE,
   hLineVal = 140,
-  xGroupVar = comboTrt
+  xGroupVar = comboTrt,
+  fontSize = 11,
+  dotSize = 1.2
 ){
   viz <- df %>%
     ggplot(
@@ -148,7 +161,7 @@ plotUterineMassByGroup <- function(
       alpha = 1, 
       aes(fill=comboTrt,group=Mouse_ID, shape=comboTrt), 
       position = position_dodge(0.4), 
-      size = 1.2
+      size = dotSize
     ) +
     comboTrtFillShape()+
     theme_pubr() +
@@ -157,7 +170,7 @@ plotUterineMassByGroup <- function(
       y = "uterine mass (mg)"
     )+
     expand_limits(y = 0)+
-    textTheme()+
+    textTheme(size = fontSize)+
     boxTheme()
   
   if(showHline){
@@ -167,7 +180,9 @@ plotUterineMassByGroup <- function(
 }
 
 LHPlot <- function(
-  df_long
+  df_long,
+  fontSize = 11,
+  dotSize = 1.2
 ){
   ggplot(
     df_long,
@@ -188,7 +203,7 @@ LHPlot <- function(
       alpha = 1, 
       aes(fill=comboTrt,group=Mouse_ID, shape=comboTrt), 
       position = position_dodge(0.4), 
-      size = 1.2
+      size = dotSize
     ) +
     addMeanHorizontalBar(width = 0.85, addLineType = TRUE)+
     addMeanSE_vertBar()+
@@ -197,7 +212,7 @@ LHPlot <- function(
     labs(
       y = "LH (ng/mL)"
     ) +
-    textTheme()+
+    textTheme(size = fontSize)+
     boxTheme()+
     guides(linetype = "none")
 }
