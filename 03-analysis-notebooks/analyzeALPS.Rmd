@@ -268,10 +268,11 @@ malesAcuteStress_2ndLitter %>%
 
 ### Available
 ```{r}
-Demo_off%>%
+LBN_data %>%
   filter(
     Cohort == 6,
-    sex == "M"
+    sex == "M",
+    is.na(Sac_date)
   ) %>%
   group_by(
     earlyLifeTrt

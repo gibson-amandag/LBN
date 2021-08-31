@@ -81,3 +81,42 @@ print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0
 )
 ```
 
+Remaining Today
+```{r eval=FALSE, include=FALSE}
+remainingDF_today <- LBN_data %>%
+  filter(
+    sex == "F",
+    Litter_num == 2,
+    is.na(Sac_date),
+    is.na(Sac_stop_off)
+  ) %>%
+  mutate(
+    Sac_date = dateToday
+  ) %>%
+  calcAgeInDays()
+
+remainingDF_today <- remainingDF_today %>%
+  addRegExForSamplingDF() %>%
+  addSamplingImgFilePaths()
+
+samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
+samplingPPT <- ph_with(
+  samplingPPT,
+  value = paste(dateToday),
+  location = ph_location_label("Title 1")
+)
+addSamplingSlidesFromDF(
+  remainingDF_today, 
+  samplingPPT = samplingPPT, 
+  cyclingDF = Cycles_off_all %>%
+    filter(
+      Mouse_ID %in% remainingDF_today$Mouse_ID
+    )
+)
+
+remainingDF_today
+
+print(samplingPPT, target = file.path(reportOutputFolder, "remainingPPTs", paste0("remaining_", dateToday, ".pptx")))
+```
+
