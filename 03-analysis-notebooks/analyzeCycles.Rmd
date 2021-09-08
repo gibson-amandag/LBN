@@ -37,26 +37,41 @@ cyclesLong_2ndLitter <- makeCyclesLong(cycles_2ndLitter)
 cycles_2ndLitter_STD_plot <- plotCycleTraces(cyclesLong_2ndLitter %>% filter(earlyLifeTrt == "STD"))
 cycles_2ndLitter_LBN_plot <- plotCycleTraces(cyclesLong_2ndLitter %>% filter(earlyLifeTrt == "LBN"))
 
-ggsave(
-  filename = paste0(filePrefix, "cycles_2ndLitter_STD.pdf"),
+flexSave(
+  "cycles_2ndLitter_STD",
   plot = cycles_2ndLitter_STD_plot,
-  device = "pdf",
-  path = file.path(plotOutputFolder),
   width = 10,
   height = 7,
-  units = "in",
-  useDingbats = FALSE
+  units = "in"
 )
-ggsave(
-  filename = paste0(filePrefix, "cycles_2ndLitter_LBN.pdf"),
+# ggsave(
+#   filename = paste0(filePrefix, "cycles_2ndLitter_STD.pdf"),
+#   plot = cycles_2ndLitter_STD_plot,
+#   device = "pdf",
+#   path = file.path(plotOutputFolder),
+#   width = 10,
+#   height = 7,
+#   units = "in",
+#   useDingbats = FALSE
+# )
+flexSave(
+  "cycles_2ndLitter_LBN",
   plot = cycles_2ndLitter_LBN_plot,
-  device = "pdf",
-  path = file.path(plotOutputFolder),
   width = 10,
   height = 7,
-  units = "in",
-  useDingbats = FALSE
+  units = "in"
 )
+# ggsave(
+#   filename = paste0(filePrefix, "cycles_2ndLitter_LBN.pdf"),
+#   plot = cycles_2ndLitter_LBN_plot,
+#   device = "pdf",
+#   path = file.path(plotOutputFolder),
+#   width = 10,
+#   height = 7,
+#   units = "in",
+#   useDingbats = FALSE
+# )
+
 ```
 ## Standard-reared
 ```{r}
@@ -73,16 +88,23 @@ cycles_2ndLitter_LBN_plot
 cyclesPerc_long_2ndLitter <- makeCyclesPercLong(cycles_2ndLitter)
 cyclesPercPlot_2ndLitter <- plotCyclesPercent(cyclesPerc_long_2ndLitter)
 cyclesPercPlot_2ndLitter
-ggsave(
-  filename = paste0(filePrefix, "cycles_2ndLitter_percDaysStage.pdf"),
+flexSave(
+  "cycles_2ndLitter_percDaysStag",
   plot = cyclesPercPlot_2ndLitter,
-  device = "pdf",
-  path = file.path(plotOutputFolder),
   width = 5,
   height = 5,
-  units = "in",
-  useDingbats = FALSE
+  units = "in"
 )
+# ggsave(
+#   filename = paste0(filePrefix, "cycles_2ndLitter_percDaysStage.pdf"),
+#   plot = cyclesPercPlot_2ndLitter,
+#   device = "pdf",
+#   path = file.path(plotOutputFolder),
+#   width = 5,
+#   height = 5,
+#   units = "in",
+#   useDingbats = FALSE
+# )
 ```
 
 # Cycles distribution

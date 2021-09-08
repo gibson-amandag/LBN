@@ -878,3 +878,35 @@ dateToday + round(lagToP90)
 as_date("2021-09-15") + round(lagToP90)
 ```
 
+```{r}
+fonts()
+Sys.getenv("R_GSCMD")
+```
+
+```{r}
+ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point() +
+  ggtitle("Title text goes here") +
+  theme(text = element_text(size = 16
+                            , family = "Arial"
+                            )
+        )
+library(ragg)
+ggsave(
+  "test.png",
+  device = agg_png
+)
+flexSave("test", filePath = ".")
+
+flexSave("myPlot", fileType = "pdf", filePath = ".")
+# ggsave("myplot.pdf", width = 4, height = 4
+#        , family = "Arial"
+#        , fonts = "Arial"
+#        )
+
+# embed_fonts("myplot.pdf")
+# sessionInfo()
+# loadfonts(device = "win")
+# loadfonts(device = "pdf")
+```
+
+

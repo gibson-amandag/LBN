@@ -58,7 +58,7 @@ cortAnova <- function(df){
 #' @examples
 formatAnova <- function(anovaDF){
   flxTbl <- anovaDF %>%
-    as_data_frame() %>%
+    as_tibble() %>% # replaced as_data_frame()
     mutate(
       p = case_when(
         p < 0.001 ~ as.character("<0.001"),

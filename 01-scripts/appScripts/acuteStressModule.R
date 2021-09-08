@@ -19,10 +19,7 @@ acuteStressUI <- function(id,
           ns("proUterineCutoff"),
           "Uterine mass (mg) min for proestrus:",
           value = 135
-        )
-      ),
-      column(
-        4,
+        ),
         numericInput(
           ns("diUterineCutoff"),
           "Uterine mass (mg) max for diestrus:",
@@ -37,7 +34,20 @@ acuteStressUI <- function(id,
           choices = c("Proestrus", "Diestrus", "All"),
           selected = "Proestrus"
         ),
-        p("Currently have it set so that intended stage and mass have to match for selected stage")
+        checkboxInput(
+          ns("useMass"),
+          "Filter by mass",
+          value = TRUE
+        ),
+      ),
+      column(
+        4,
+        numericInput(
+          ns("dotSize"),
+          "Dot size",
+          value = 2
+        )
+        # p("Currently have it set so that intended stage and mass have to match for selected stage")
       )
     ),
     
@@ -389,14 +399,14 @@ acuteStressServer <- function(
         if(input$cycleStage == "Proestrus"){
           df <- df %>%
             filter(
-              ReproTract_mass > input$proUterineCutoff,
-              Sac_cycle == "proestrus"
+              if(input$useMass == TRUE) {ReproTract_mass > input$proUterineCutoff & Sac_cycle == "proestrus"}
+              else {Sac_cycle == "proestrus"}
             )
         } else if(input$cycleStage == "Diestrus"){
           df <- df %>%
             filter(
-              ReproTract_mass < input$diUterineCutoff,
-              Sac_cycle == "diestrus"
+              if(input$useMass == TRUE) {ReproTract_mass < input$diUterineCutoff & Sac_cycle == "diestrus"}
+              else {Sac_cycle == "diestrus"}
             )
         }
         return(df)
@@ -422,7 +432,7 @@ acuteStressServer <- function(
           plotUterineMassByGroup(
             hLineVal = input$proUterineCutoff,
             fontSize = 16,
-            dotSize = 2
+            dotSize = input$dotSize
           ) +
           geom_hline(
             yintercept = input$diUterineCutoff,
@@ -504,7 +514,7 @@ acuteStressServer <- function(
             yVar = !! input$uterineMass_yVar,
             yLab = yLabText,
             fontSize = 16,
-            dotSize = 2
+            dotSize = input$dotSize
           ) +
           geom_vline(
             xintercept = input$proUterineCutoff,
@@ -561,7 +571,7 @@ acuteStressServer <- function(
         plot <- df%>%
           LHPlot(
             fontSize = 16,
-            dotSize = 2
+            dotSize = input$dotSize
           )+
           facet_wrap(
             ~adultTrt
@@ -614,7 +624,7 @@ acuteStressServer <- function(
             filter(
               ! (row_number() %in% input$cortPlot_males_table_rows_selected)
             ) %>%
-            baseCortPlot(dotSize = 2)
+            baseCortPlot(dotSize = input$dotSize)
           plot <- basePlot %>%
             longCortPlot(fontSize = 16)
         } else {
@@ -691,7 +701,7 @@ acuteStressServer <- function(
             filter(
               ! (row_number() %in% input$cortPlot_females_table_rows_selected)
             ) %>%
-            baseCortPlot(dotSize = 2)
+            baseCortPlot(dotSize = input$dotSize)
           plot <- basePlot %>%
             longCortPlot(fontSize = 16)
         } else {
@@ -770,7 +780,7 @@ acuteStressServer <- function(
           scatterPlotComboTrt(
             yVar = !! input$massVar,
             yLab = yText,
-            dotSize = 2,
+            dotSize = input$dotSize,
             fontSize = 16
           )
       })
@@ -861,7 +871,7 @@ acuteStressServer <- function(
           scatterPlotComboTrt(
             yVar = !! input$massVar,
             yLab = yText,
-            dotSize = 2,
+            dotSize = input$dotSize,
             fontSize = 16
           )
       })

@@ -1,12 +1,12 @@
 ---
 title: "ALPS"
 output:
-  html_notebook:
+  html_document:
+    df_print: kable
     toc: yes
   word_document:
     toc: yes
-  html_document:
-    df_print: kable
+  html_notebook:
     toc: yes
 ---
 
@@ -517,7 +517,14 @@ Numbers over pro uterine mass cutoff of `r proUterineCutoff` mg
 ```{r}
 femalesAcuteStress_2ndLitter %>%
   filter(
+    #ReproTract_mass > proUterineCutoff
+    Sac_cycle == "proestrus"
+  ) %>%
+  getStressTrtNumbers()
+femalesAcuteStress_2ndLitter %>%
+  filter(
     ReproTract_mass > proUterineCutoff
+    #Sac_cycle == "proestrus"
   ) %>%
   getStressTrtNumbers()
 ```
@@ -526,11 +533,12 @@ femalesAcuteStress_2ndLitter %>%
 femalesAcuteStress_2ndLitter %>%
   filter(
     Sac_cycle != "proestrus" | is.na(Sac_cycle)
-  )
+  )%>%
+  getStressTrtNumbers()
 
 femalesAcuteStress_2ndLitter %>%
   filter(
-    # ReproTract_mass<100,#proUterineCutoff,
+    ReproTract_mass<100,#proUterineCutoff,
     Sac_cycle == "diestrus"
   ) %>%
   getStressTrtNumbers()

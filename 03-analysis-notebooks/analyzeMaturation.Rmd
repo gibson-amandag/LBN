@@ -160,15 +160,6 @@ PreputialSep_age_plot <- df_males %>%
   scatterPlotLBN(yVar = PreputialSep_age, "age at preputial sep. (days)")
 PreputialSep_mass_plot <- df_males %>%
   scatterPlotLBN(yVar = PreputialSep_mass, "mass at preputial sep. (g)")
-ggsave(
-  file.path(plotOutputFolder, "test.pdf"),
-  PreputialSep_mass_plot,
-  device = "pdf",
-  useDingbats = FALSE,
-  units = "in",
-  width = 3,
-  height = 3
-)
 ```
 
 ### Age Plots
@@ -231,15 +222,22 @@ grantPlot <- plot_grid(
   nrow = 1,
   align = "hv"
 )
-ggsave(
-  file.path(plotOutputFolder, paste0(filePrefix, "NRSA_plot.pdf")),
-  plot = grantPlot,
-  device = "pdf",
+flexSave(
+  "NRSA_plot",
+  plot = grandPlot,
   width = 5.6,
   height = 1.45,
-  units = "in",
-  useDingbats = FALSE
+  units = "in"
 )
+# ggsave(
+#   file.path(plotOutputFolder, paste0(filePrefix, "NRSA_plot.pdf")),
+#   plot = grantPlot,
+#   device = "pdf",
+#   width = 5.6,
+#   height = 1.45,
+#   units = "in",
+#   useDingbats = FALSE
+# )
 ```
 
 ## AGD

@@ -1,15 +1,12 @@
 if (!require(tidyverse)) install.packages('tidyverse')
-if (!require(readr)) install.packages('readr')
-if (!require(purrr)) install.packages('purrr')
 if (!require(rlang)) install.packages('rlang')
-if (!require(scales)) install.packages('scales')
+if (!require(scales)) install.packages('scales') # with tidyverse?
 if (!require(knitr)) install.packages('knitr')
 if (!require(officer)) install.packages('officer')
 if (!require(GGally)) install.packages('GGally')
-if (!require(dplyr)) install.packages('dplyr')
 if (!require(ggfortify)) install.packages('ggfortify')
 if (!require(openxlsx)) install.packages('openxlsx')
-if (!require(lubridate)) install.packages('lubridate')
+if (!require(lubridate)) install.packages('lubridate') # with tidyverse?
 if (!require(shiny)) install.packages('shiny')
 if (!require(ggrepel)) install.packages('ggrepel')
 if (!require(ggpubr)) install.packages('ggpubr')
@@ -18,20 +15,18 @@ if (!require(cowplot)) install.packages('cowplot')
 if (!require(extrafont)) install.packages('extrafont')
 if (!require(flextable)) install.packages('flextable')
 if(!require(remotes)) install.packages('remotes')
-if(!require(fs)) install.packages('fs')
+if(!require(fs)) install.packages('fs') # with tidyverse?
 if(!require(DT)) install.packages('DT')
+if(!require(Cairo)) install.packages('Cairo')
+
 
 #### Load Libraries ##############################
 library(tidyverse)
-library(readr)
 library(rlang)
-library(purrr)
 library(scales)
 library(knitr)
-#library(flextable) #error with data.table
 library(officer)
 library(GGally)
-library(dplyr)
 library(ggfortify)
 library(openxlsx)
 library(lubridate)
@@ -44,18 +39,27 @@ library(extrafont)
 library(flextable)
 library(fs)
 library(DT)
+library(Cairo)
+  # Save a PDF - in ggsave, device = cairo_pdf on Windows
+  # https://r-graphics.org/recipe-output-fonts-pdf - even when following these
+  # steps (downloaded Ghostscript, added to environment, embedded fonts), the
+  # pdf text is still overlapping on windows
+
+
 ## 2021-08-17 - had to install older version of Rttf2pt1 for the font_import from extrafont to work appropriately
 ## https://github.com/wch/extrafont/issues/88
-#remotes::install_version("Rttf2pt1", version = "1.3.8")
-# font_import()
+## Download Rtools for Windows: https://cran.r-project.org/bin/windows/Rtools/
+
+## Run these lines once on the computer
+  # remotes::install_version("Rttf2pt1", version = "1.3.8")
+  # font_import()
+
 if(! length(fonts()) > 0){
   # have to add fonts to be able to load them into pdfs
   # https://fromthebottomoftheheap.net/2013/09/09/preparing-figures-for-plos-one-with-r/
   print("Loading fonts")
   loadfonts(dev="pdf")
 }
-
-
 
 # READ ENVIRONMENT --------------------------------------------------------
 
@@ -73,6 +77,9 @@ imgTypePlots <- Sys.getenv("PLOT_OUTPUT_FORMAT")
 
 # save individual plot files?
 savePlots <- Sys.getenv("SAVE_PLOTS")
+
+#Current Computer Type
+currentCompType <- Sys.getenv("COMP_TYPE")
 
 #Data File name
 # LBN_DataName <- Sys.getenv("EXCEL_FILE_NAME")
