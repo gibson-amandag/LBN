@@ -449,6 +449,7 @@ createSamplingSlide <- function(
   mouseID,
   cycleID,
   maxLH = NULL,
+  trt = NULL,
   uterineMass,
   amImgPath,
   prevDayImgPath,
@@ -462,7 +463,7 @@ createSamplingSlide <- function(
   anteAyerImg <- external_img(twoDayPrevImgPath, width = 2.68, height = 2.14)
   
   mouseLabel <- paste0(mouseID, " - ", cycleID)
-  maxLHLabel <- ifelse(!is.na(maxLH), paste0(maxLH, " ng/mL"), "")
+  maxLHLabel <- ifelse(!is.na(maxLH), paste0(maxLH, " ng/mL - ", trt), "")
   uterineMassLabel <- paste0(uterineMass, " mg")
   
   samplingPPT <- ph_with(
@@ -722,5 +723,158 @@ contains
 
 length(empty)
 length(contains)
+```
+
+Reorganizing LH Code
+
+```{r}
+LH_code_2ndLitters <- LH_code %>%
+  filter(
+    Litter_num == 2#,
+    # Sac_cycle == "proestrus"
+    # Sac_cycle == "diestrus"
+  ) %>%
+  mutate(
+    originalID = as.numeric(as.character(originalID)),
+    sampleID = as.numeric(as.character(sampleID))
+  ) %>%
+  arrange(
+    num_ID,
+    time
+  ) %>%
+  relocate(
+    originalID,
+    sampleID,
+    Sac_cycle,
+    comboTrt,
+    .before = sex
+  )
+LH_code_2ndLitters
+```
+
+```{r}
+LH_code_2ndLitters_IDs <- LH_code_2ndLitters %>%
+  group_by(
+    Mouse_ID
+  ) %>%
+  summarize(
+    num_ID = mean(num_ID, na.rm = TRUE)
+  )
+
+set.seed(42)
+rows <- sample(nrow(LH_code_2ndLitters_IDs))
+LH_code_2ndLitters_IDs <- LH_code_2ndLitters_IDs[rows, ] %>%
+  mutate(
+    plateOrder = row_number()
+  ) %>%
+  select(
+    -num_ID
+  )
+LH_code_2ndLitters_IDs
+```
+
+```{r}
+LH_code_2ndLitters_ordered <- LH_code_2ndLitters %>%
+  left_join(
+    LH_code_2ndLitters_IDs,
+    by = "Mouse_ID"
+  ) %>%
+  arrange(
+    plateOrder,
+    time
+  ) %>%
+  mutate(
+    sampleID = row_number()
+  )
+LH_code_2ndLitters_ordered
+```
+
+```{r}
+lastSample <- 0
+LH_code_morning <- LH_code_2ndLitters %>%
+  filter(
+    time == 0
+  ) %>%
+  left_join(
+    LH_code_2ndLitters_IDs,
+    by = "Mouse_ID"
+  ) %>%
+  arrange(
+    plateOrder
+  ) %>%
+  mutate(
+    sampleID = row_number() + lastSample
+  )
+lastSample <- nrow(LH_code_morning)
+
+LH_code_morning
+```
+
+```{r}
+LH_code_afternoon <- LH_code_2ndLitters %>%
+  filter(
+    time > 0
+  ) %>%
+  left_join(
+    LH_code_2ndLitters_IDs,
+    by = "Mouse_ID"
+  ) %>%
+  arrange(
+    plateOrder
+  ) %>%
+  mutate(
+    sampleID = row_number() + lastSample
+  )
+```
+
+```{r}
+LH_code_all <- rbind(LH_code_morning, LH_code_afternoon) %>%
+  arrange(sampleID)
+LH_code_all
+```
+
+```{r}
+LBN_data %>%
+  filter(
+    Litter_num == 2
+  )
+
+summaryDF <- Demo_dam %>%
+  filter(
+    Litter_num == 2,
+    !is.na(DOB)
+  ) %>%
+  mutate(
+    P70 = DOB + 70,
+    P90 = DOB + 90
+  ) %>%
+  relocate(
+    Breed_date,
+    DOB,
+    P70,
+    P90,
+    .after = Dam
+  ) %>%
+  calcAgeInDays(
+    DOBVar = Breed_date,
+    ageAtDateVar = P70,
+    ageColName = waitDaysP70
+  ) %>%
+  calcAgeInDays(
+    DOBVar = Breed_date,
+    ageAtDateVar = P90,
+    ageColName = waitDaysP90
+  ) %>%
+  meanSummary(c(waitDaysP70,waitDaysP90))
+
+lagToP70 <- summaryDF$mean[1]
+lagToP90 <- summaryDF$mean[2]
+lagToP70
+lagToP90
+
+dateToday + round(lagToP70)
+dateToday + round(lagToP90)
+
+as_date("2021-09-15") + round(lagToP90)
 ```
 
