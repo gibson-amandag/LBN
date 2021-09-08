@@ -1,6 +1,6 @@
 
 # File Names --------------------------------------------------------------
-buildCycleFileName <- function(
+buildLBNCycleFileName <- function(
   cycleID,
   date,
   cohort
@@ -13,13 +13,30 @@ buildCycleFileName <- function(
 
 regExCycleFileName <- function(
   date,
-  cycleID
+  cycleID,
+  excludePM = TRUE,
+  excludeUterus = TRUE
 ){
   idText <- sprintf("%04d", as.integer(cycleID))
   yyyy <- year(date)
-  mm <- month(date)
-  dd <- day(date)
-  regEx <- paste0("^.*", date, ".*[-_]", idText, "\\.jpg$")
+  mm <- sprintf("%02d", month(date))
+  dd <- sprintf("%02d", day(date))
+  regEx <- paste0(
+    # "^.*/", # looks for the whole file path when matching, not just file name
+    "^", # looks for the whole file path when matching, not just file name
+    if(excludePM)"(?!.*PM)",
+    if(excludeUterus)"(?!.*uterus)",
+    ".*/",
+    yyyy,
+    "[-_]",
+    mm,
+    "[-_]",
+    dd,
+    # date, 
+    ".*[-_]", 
+    "*",
+    idText, "\\.jpg$")
+  # print(regEx)
   return(regEx)
 }
 regExUterinePicFileName <- function(
@@ -29,11 +46,11 @@ regExUterinePicFileName <- function(
   return(regEx)
 }
 
-
 # Get Paths for Data Frame ------------------------------------------------
 
 addRegExForSamplingDF <- function(
-  samplingDF
+  samplingDF,
+  arrangeByCycle = FALSE
 ){
   df <- samplingDF %>%
     select(
@@ -41,12 +58,15 @@ addRegExForSamplingDF <- function(
       num_ID,
       Sac_date,
       Cohort,
+      comboTrt,
+      Sac_cycle,
       cyclingFolderPath,
       ReproTract_mass,
       maxLH,
       AgeInDays
     ) %>%
     arrange(
+      if(arrangeByCycle) Sac_cycle,
       ReproTract_mass
     ) %>%
     mutate(
@@ -60,6 +80,45 @@ addRegExForSamplingDF <- function(
   return(df)
 }
 
+#' Find file matching regular expression within folder
+#' 
+#' This will return the first match, even if there are multiple found
+#'
+#' @param folderPath folder path to search within
+#' @param regEx a regular expression for the name of the file. The entire file path must match
+#' @param searchSubFolders TRUE/FALSE - should it search within the subfolders of the folderPath
+#'
+#' @return a single file path
+#' @export
+#'
+#' @examples
+findMatchingFile <- function(
+  folderPath,
+  regEx,
+  mouseID = NULL,
+  type = NULL,
+  searchSubFolders = TRUE
+){
+  foundPaths <- dir_ls(
+    path = folderPath,
+    all = TRUE,
+    recurse = searchSubFolders,
+    type = "any",
+    regexp = regEx,
+    invert = FALSE,
+    fail = TRUE,
+    perl = T
+  )
+  if(length(foundPaths) == 0){
+    print(paste0("no file found ", mouseID, " ", type))
+  } else if(length(foundPaths) > 1){
+    print(paste0("multiple files found ", mouseID, " ", type))
+    print(foundPaths)
+  }
+  path <- ifelse(length(foundPaths) > 0, foundPaths[1], NA)
+  return(path)
+}
+
 addSamplingImgFilePaths <- function(
   samplingDF_withRegEx,
   uterinePicFolder = LBN_uterinePicsFolder
@@ -67,56 +126,10 @@ addSamplingImgFilePaths <- function(
   df <- samplingDF_withRegEx %>%
     rowwise() %>%
     mutate(
-      AMPath = dir_ls(
-        path = cyclingFolderPath,
-        all = TRUE,
-        recurse = TRUE,
-        type = "any",
-        regexp = amRegEx,
-        invert = FALSE,
-        fail = TRUE
-      ),
-      ayerPath = dir_ls(
-        path = cyclingFolderPath,
-        all = TRUE,
-        recurse = TRUE,
-        type = "any",
-        regexp = ayerRegEx,
-        invert = FALSE,
-        fail = TRUE
-      ),
-      anteAyerPath = dir_ls(
-        path = cyclingFolderPath,
-        all = TRUE,
-        recurse = TRUE,
-        type = "any",
-        regexp = anteAyerRegEx,
-        invert = FALSE,
-        fail = TRUE
-      ),
-      uterinePicPath = ifelse(
-        length(
-          dir_ls(
-            path = uterinePicFolder,
-            all = TRUE,
-            recurse = FALSE,
-            type = "any",
-            regexp = uterinePicRegEx,
-            invert = FALSE,
-            fail = FALSE
-          )
-        ) > 0,
-        dir_ls(
-          path = uterinePicFolder,
-          all = TRUE,
-          recurse = FALSE,
-          type = "any",
-          regexp = uterinePicRegEx,
-          invert = FALSE,
-          fail = FALSE
-        ),
-        NA
-      )
+      AMPath = findMatchingFile(cyclingFolderPath, amRegEx, Mouse_ID, "AM pic"),
+      ayerPath = findMatchingFile(cyclingFolderPath, ayerRegEx, Mouse_ID, "yesterday pic"),
+      anteAyerPath = findMatchingFile(cyclingFolderPath, anteAyerRegEx, Mouse_ID, "2 days before pic"),
+      uterinePicPath = findMatchingFile(uterinePicFolder, uterinePicRegEx, Mouse_ID, "uterus pic")
     )
   return(df)
 }
@@ -221,6 +234,7 @@ createSamplingSlide <- function(
   cycleID,
   maxLH = NULL,
   uterineMass,
+  trt = NULL,
   amImgPath,
   prevDayImgPath,
   twoDayPrevImgPath,
@@ -233,12 +247,9 @@ createSamplingSlide <- function(
 ){
   samplingPPT <- add_slide(samplingPPT, layout = paste0("samplingSlide", slideVersion))
   # print(amImgPath)
-  amImg <- external_img(amImgPath, width = 2.68, height = 2.14)
-  ayerImg <- external_img(prevDayImgPath, width = 2.68, height = 2.14)
-  anteAyerImg <- external_img(twoDayPrevImgPath, width = 2.68, height = 2.14)
   
   mouseLabel <- paste0(mouseID, " - ", cycleID)
-  maxLHLabel <- ifelse(!is.na(maxLH), paste0(maxLH, " ng/mL"), "")
+  maxLHLabel <- ifelse(!is.na(maxLH), paste0(maxLH, " ng/mL - ", trt), "")
   uterineMassLabel <- ifelse(!is.na(uterineMass), paste0(uterineMass, " mg"), "")
   
   # print(paste("Mouse:", mouseID, "Start Day:", startCycleDay, "End Day:", endCycleDay))
@@ -273,30 +284,42 @@ createSamplingSlide <- function(
     ),
     use_loc_size = TRUE
   )
-  samplingPPT <- ph_with(
-    x = samplingPPT,
-    value = amImg,
-    location = ph_location_label(
-      "imgAM"
-    ),
-    use_loc_size = TRUE
-  )
-  samplingPPT <- ph_with(
-    x = samplingPPT,
-    value = ayerImg,
-    location = ph_location_label(
-      "imgAyer"
-    ),
-    use_loc_size = TRUE
-  )
-  samplingPPT <- ph_with(
-    x = samplingPPT,
-    value = anteAyerImg,
-    location = ph_location_label(
-      "imgAnteAyer"
-    ),
-    use_loc_size = TRUE
-  )
+  
+  if(!is.na(amImgPath)){
+    amImg <- external_img(amImgPath, width = 2.68, height = 2.14)
+    samplingPPT <- ph_with(
+      x = samplingPPT,
+      value = amImg,
+      location = ph_location_label(
+        "imgAM"
+      ),
+      use_loc_size = TRUE
+    )
+  }
+  
+  if(!is.na(prevDayImgPath)){
+    ayerImg <- external_img(prevDayImgPath, width = 2.68, height = 2.14)
+    samplingPPT <- ph_with(
+      x = samplingPPT,
+      value = ayerImg,
+      location = ph_location_label(
+        "imgAyer"
+      ),
+      use_loc_size = TRUE
+    )
+  }
+  
+  if(!is.na(twoDayPrevImgPath)){
+    anteAyerImg <- external_img(twoDayPrevImgPath, width = 2.68, height = 2.14)
+    samplingPPT <- ph_with(
+      x = samplingPPT,
+      value = anteAyerImg,
+      location = ph_location_label(
+        "imgAnteAyer"
+      ),
+      use_loc_size = TRUE
+    )
+  }
   
   if(!is.na(uterinePicPath) & slideVersion == 2){
     uterineImg <- external_img(uterinePicPath)
@@ -333,6 +356,7 @@ addSamplingSlidesFromDF <- function(
       mouseID = samplingDF$Mouse_ID,
       cycleID = samplingDF$num_ID,
       maxLH = samplingDF$maxLH,
+      trt = samplingDF$comboTrt,
       uterineMass = samplingDF$ReproTract_mass,
       amImgPath = samplingDF$AMPath,
       prevDayImgPath = samplingDF$ayerPath,
