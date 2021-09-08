@@ -1,0 +1,138 @@
+---
+title: "Recode LH Samples"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+# If can't find it, be sure that the directory is the project directory
+# Arrow between notebook and settings gear -> Knit directory
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+# Get Second Litter Samples
+
+```{r}
+LH_code_2ndLitters <- LH_code %>%
+  filter(
+    Litter_num == 2#,
+    # Sac_cycle == "proestrus"
+    # Sac_cycle == "diestrus"
+  ) %>%
+  mutate(
+    originalID = as.numeric(as.character(originalID)),
+    sampleID = as.numeric(as.character(sampleID))
+  ) %>%
+  arrange(
+    num_ID,
+    time
+  ) %>%
+  relocate(
+    originalID,
+    sampleID,
+    Sac_cycle,
+    comboTrt,
+    .before = sex
+  )
+LH_code_2ndLitters
+```
+
+# Get IDs and randomly order
+
+```{r}
+LH_code_2ndLitters_IDs <- LH_code_2ndLitters %>%
+  group_by(
+    Mouse_ID
+  ) %>%
+  summarize(
+    num_ID = mean(num_ID, na.rm = TRUE)
+  )
+
+set.seed(42)
+rows <- sample(nrow(LH_code_2ndLitters_IDs))
+LH_code_2ndLitters_IDs <- LH_code_2ndLitters_IDs[rows, ] %>%
+  mutate(
+    plateOrder = row_number()
+  ) %>%
+  select(
+    -num_ID
+  )
+LH_code_2ndLitters_IDs
+```
+
+```{r eval=FALSE, include=FALSE}
+# orders all
+LH_code_2ndLitters_ordered <- LH_code_2ndLitters %>%
+  left_join(
+    LH_code_2ndLitters_IDs,
+    by = "Mouse_ID"
+  ) %>%
+  arrange(
+    plateOrder,
+    time
+  ) %>%
+  mutate(
+    sampleID = row_number()
+  )
+LH_code_2ndLitters_ordered
+```
+
+# Order morning samples separately
+Decide which morning samples to include
+
+```{r}
+lastSample <- 0 # starting point for my samples
+LH_code_morning <- LH_code_2ndLitters %>%
+  filter(
+    time == 0
+  ) %>%
+  left_join(
+    LH_code_2ndLitters_IDs,
+    by = "Mouse_ID"
+  ) %>%
+  arrange(
+    plateOrder
+  ) %>%
+  mutate(
+    sampleID = row_number() + lastSample
+  )
+lastSample <- nrow(LH_code_morning)
+
+LH_code_morning
+```
+
+# Order all afternoon samples
+Keep together by mouse
+Decide which should be excluded
+
+```{r}
+LH_code_afternoon <- LH_code_2ndLitters %>%
+  filter(
+    time > 0
+  ) %>%
+  left_join(
+    LH_code_2ndLitters_IDs,
+    by = "Mouse_ID"
+  ) %>%
+  arrange(
+    plateOrder
+  ) %>%
+  mutate(
+    sampleID = row_number() + lastSample
+  )
+LH_code_afternoon
+```
+
+# Join together morning and afternoon
+Put the two dataframes back together
+
+```{r}
+LH_code_all <- rbind(LH_code_morning, LH_code_afternoon) %>%
+  arrange(sampleID)
+LH_code_all
+```

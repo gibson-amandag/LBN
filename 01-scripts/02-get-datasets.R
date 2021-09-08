@@ -283,6 +283,14 @@ LH_off <- LH_off %>%
   addOffspringDemoData() %>%
   combineStress()
 
+LH_code <- LH_code %>%
+  left_join(
+    Sacrifice_off,
+    by = "Mouse_ID"
+  )%>%
+  addOffspringDemoData() %>%
+  combineStress()
+
 # UPDATE COMBO FRAMES WITH MATURATION -------------------------------------
 LBN_all <- LBN_all %>%
   left_join(
