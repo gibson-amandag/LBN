@@ -1,9 +1,9 @@
 #Replace paths with your paths on your computer. Relative to project root
 #Change name of this file to .Renviron
 
-DATA_FOLDER="path/example/Data"
+DATA_FOLDER="/path/example/DataForR/"
 
-OUTPUT_FOLDER="path/example/Output"
+OUTPUT_FOLDER="/path/example/OutputFromR"
 
 EXCEL_FILE_NAME="fileName.xlsx"
 
@@ -15,3 +15,8 @@ PLOT_OUTPUT_FORMAT=".png"
 
 #save individual plot files?
 SAVE_PLOTS=TRUE
+
+LBN_0004_CYCLING_FOLDER = "/path/example/LBN/LBN_0004/Cycles"
+LBN_0006_CYCLING_FOLDER = "/path/example/LBN/LBN_0006/Cycles"
+
+LBN_SERVER_FOLDER = "/path/example/LBN"
