@@ -157,115 +157,10 @@ sapply(moduleFiles, source)
 # Define UI for application
 ui <- navbarPage(
     "LBN",
-
-    ## TASK TRACKING PANEL ----------------------
+    
     tabPanel(
-        "Tasks",
-        fluidPage(
-            titlePanel("Limited Bedding and Nesting Task Tracking"),
-            tabsetPanel(
-                tabPanel(
-                    "Task List",
-                    # taskTrackingUI("tasks")
-                ),
-                tabPanel(
-                    "Task Table",
-                    # taskTableUI("taskTable")
-                )
-            )
-        )
-    ),
-    
-    ## DATA FRAMES -----------------------
-    tabPanel(
-        "Data",
-        # rawDataUI(
-        #     "rawData",
-        #     Demo_dam,
-        #     LBN_data,
-        #     Dam_CRH)
-    ),
-    
-    ## ANALYSIS P2-P9-------------------------
-    # tabPanel(
-    #     "Analysis P2-P9",
-    #     titlePanel("LBN Analysis"),
-    #     h2("Offspring Date of Birth"),
-    #     checkboxInput(
-    #         "plot_DOB",
-    #         "Plot Offspring DOBs?",
-    #         value = FALSE
-    #     ),
-    #     uiOutput("Offspring_DOB_plot"),
-    #     uiOutput("Offspring_DOB_range"),
-    #     
-    #     tabsetPanel(
-    #         ###Dams --------
-    #         tabPanel(
-    #             "Dam",
-    #             tabsetPanel(
-    #                 
-    #                 #Mass
-    #                 tabPanel(
-    #                     "Dam Mass",
-    #                     massDam_P2_9_UI("massDam_P2_9", Demo_dam_P2)
-    #                 ),
-    #                 
-    #                 #Pup Loss
-    #                 tabPanel(
-    #                     "Pup Loss",
-    #                     pupLossUI("pupLoss_P2_9", Demo_dam_P2)
-    #                 ),
-    #                 
-    #                 #Corticosterone
-    #                 tabPanel(
-    #                     "Dam Corticosterone",
-    #                     damCortUI("damCort_P2_9", Demo_dam_P2)
-    #                 )
-    #             )
-    #         ),
-    # 
-    #         ###Offspring Mass -----------
-    #         tabPanel(
-    #             "Offspring Mass",
-    #             massOff_P2_9_UI("massOff_P2_9", Mass_off_P2)
-    #         ),
-    #         ### Offspring Maturation ----
-    #         tabPanel(
-    #             "Offspring Maturation",
-    #             maturationOff_P2_9_UI("maturationOff_P2_9", Maturation_off_P2)
-    #         ),
-    #         
-    #         ### Offspring Corticosterone ----
-    #         tabPanel(
-    #             "Acute Stress Paradigm",
-    #             acuteStressUI("acuteStress_P2_9", AcuteStress_off_P2)
-    #         ), #End off cort panel
-    # 
-    #         ### Offspring Cycles ----
-    #         tabPanel(
-    #             "Offspring Cycles",
-    #             cyclesUI("cycles_P2_9")
-    #         ) #End cycles tabPanel
-    #     ) #end analysis tabsetPanel
-    #  ### END ANALYSIS ----
-    #  ), #end analysis tabPanel
-    
-    
-    
-    ## ANALYSIS P4-P11-------------------------
-    tabPanel(
-        "Analysis P4-P11",
-        titlePanel("LBN Analysis - P4-P11"),
-        h2("Offspring Date of Birth"),
-        checkboxInput(
-            "plot_DOB_P4_11",
-            "Plot Offspring DOBs?",
-            value = FALSE
-        ),
-        # uiOutput("Offspring_DOB_plot_P4_11"),
-        # uiOutput("Offspring_DOB_range_P4_11"),
-    
+        "Analysis",
+        titlePanel("LBN Analysis"),
         tabsetPanel(
             ### Dams --------
             tabPanel(
@@ -310,12 +205,43 @@ ui <- navbarPage(
             ), #End off cort panel
             
             ### Offspring Cycles ----
-             tabPanel("Offspring Cycles",
-                      # cyclesUI("cycles")
-             ) #End cycles tabPanel
-         ) #end analysis tabsetPanel
-         ### END ANALYSIS ----
-     ) #end analysis tabPanel
+            tabPanel("Offspring Cycles",
+                     cyclesUI("cycles")
+            ), #End cycles tabPanel
+            tabPanel(
+                "Sampling PPTs",
+                samplingPPTsUI("samplingPPTs")
+            ) #End sampling PPTs tabPanel
+        ) #end analysis tabsetPanel
+    ),
+
+    ## TASK TRACKING PANEL ----------------------
+    tabPanel(
+        "Tasks",
+        fluidPage(
+            titlePanel("Limited Bedding and Nesting Task Tracking"),
+            tabsetPanel(
+                tabPanel(
+                    "Task List",
+                    # taskTrackingUI("tasks")
+                ),
+                tabPanel(
+                    "Task Table",
+                    # taskTableUI("taskTable")
+                )
+            )
+        )
+    ),
+    
+    ## DATA FRAMES -----------------------
+    tabPanel(
+        "Data",
+        # rawDataUI(
+        #     "rawData",
+        #     Demo_dam,
+        #     LBN_data,
+        #     Dam_CRH)
+    )
 
 ############
 )
@@ -323,48 +249,6 @@ ui <- navbarPage(
 ############# SERVER #########################################################
 server <- function(input, output) {
     ### OFFSPRING DOB ----------------------
-    # output$Offspring_DOB_plot <- renderUI({
-    #     if(input$plot_DOB){
-    #         plotOutput(
-    #             "Offspring_DOB_hist",
-    #             height = "200px"
-    #         )
-    #     }
-    # })
-    # output$Offspring_DOB_hist <- renderPlot(
-    #     ggplot(Mass_off_P2 %>% filter(!is.na(DOB)), aes(DOB)) +
-    #         geom_histogram(binwidth = 7)+
-    #         labs(x = "Date of Birth", y = "# of mice")+
-    #         my_theme
-    # )
-    # 
-    # output$Offspring_DOB_range <- renderUI({
-    #     str <-  paste(
-    #         "<h4> The range of offspring DOBs is from", blueText(min(Mass_off_P2$DOB, na.rm = TRUE)),
-    #         "to", blueText(max(Mass_off_P2$DOB, na.rm = TRUE)), "</h4>")
-    #     HTML(str)
-    # })
-    # 
-    # output$Offspring_DOB_plot_P4_11 <- renderUI({
-    #     if(input$plot_DOB_P4_11){
-    #         plotOutput(
-    #             "Offspring_DOB_hist_P4_11",
-    #             height = "200px")
-    #     }
-    # })
-    # output$Offspring_DOB_hist_P4_11 <- renderPlot(
-    #     ggplot(Mass_off_P4 %>% filter(!is.na(DOB)), aes(DOB)) +
-    #         geom_histogram(binwidth = 7)+
-    #         labs(x = "Date of Birth", y = "# of mice")+
-    #         my_theme
-    # )
-    # 
-    # output$Offspring_DOB_range_P4_11 <- renderUI({
-    #     str <-  paste(
-    #         "<h4> The range of offspring DOBs is from", blueText(min(Mass_off_P4$DOB, na.rm = TRUE)),
-    #         "to", blueText(max(Mass_off_P4$DOB, na.rm = TRUE)), "</h4>")
-    #     HTML(str)
-    # })
     # 
     # #### TASK TRACKING HTML TEXT------------------
     # taskTrackingServer("tasks", Dam_dates, Dam_dates_CRH, Off_dates)
@@ -403,7 +287,8 @@ server <- function(input, output) {
     # massOffServer("massOff", Mass_off_P4, Demo_dam_P4)
     # maturationOffServer("maturationOff", Maturation_off_P4, LBN_data %>% filter(ParaType == 4))
     acuteStressServer("acuteStress", AcuteStress_off, LH_off, Cort_off, Demo_dam, niceNames)
-    # cyclesServer("cycles", Cycles_off_P4)
+    cyclesServer("cycles", Cycles_off)
+    samplingPPTsServer("samplingPPTs", dateToday, AcuteStress_off, LBN_data, Cycles_off_all)
 
 }
 

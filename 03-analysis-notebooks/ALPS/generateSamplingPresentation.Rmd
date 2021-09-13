@@ -40,6 +40,24 @@ addSamplingSlidesFromDF(
       Mouse_ID %in% samplingDF_today$Mouse_ID
     )
 )
+# file.access(
+file.info(
+  file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", 
+                                                       # "2021-09-02",
+                                                       dateToday,
+                                                       ".pptx"))
+  # ,
+  # mode = 4
+)
+file.info(
+  file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", 
+                                                       "2021-09-02",
+                                                       # dateToday,
+                                                       ".pptx"))
+  # ,
+  # mode = 4
+)
+reportOutputFolder
 # print(samplingPPT, target = "./testCyclingOutput.pptx")
 print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", dateToday, ".pptx")))
 ```
@@ -118,7 +136,7 @@ print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0
 )
 ```
 
-Remaining Today
+# Remaining Today
 ```{r eval=FALSE, include=FALSE}
 remainingDF_today <- LBN_data %>%
   filter(
