@@ -239,7 +239,7 @@ cyclePPT <- addImgsToCyclePPT(
 cohort4Folders <- Cycles_off %>%
   filter(
     Cohort == 4,
-    Dam_ID == "D033-02"
+    damID == "D033-02"
   ) %>%
   arrange(
     earlyLifeTrt,

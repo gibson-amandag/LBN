@@ -25,7 +25,7 @@ niceNames <- loadExcelSheet(dataFolder, LBN_DataName, "plotLabels")
 # FORMAT DATASETS ---------------------------------------------------------
 
 #Make factor variables
-# Dam_ID
+# damID
 # Dam
 # mouseID
 # Paradigm
@@ -34,7 +34,7 @@ niceNames <- loadExcelSheet(dataFolder, LBN_DataName, "plotLabels")
 
 Demo_dam <- Demo_dam %>%
   makeFactors(c(
-    Dam_ID,
+    damID,
     Dam,
     ParaType,
     Litter_num,
@@ -42,7 +42,7 @@ Demo_dam <- Demo_dam %>%
   )) %>%
   orderEarlyLifeTrt()
 
-Demo_off <- makeFactors(Demo_off, c(Dam_ID, mouseID, sex))
+Demo_off <- makeFactors(Demo_off, c(damID, mouseID, sex))
 Off_ID <- makeFactors(Off_ID, c(mouseID))
 
 Demo_off <- Demo_off %>%
@@ -61,9 +61,9 @@ Sacrifice_off <- Sacrifice_off %>%
   calcOrganMassByBodyMass(Gonad_mass) %>%
   calcOrganMassByBodyMass(Adrenal_mass)
 ChronicStress_off <- makeFactors(ChronicStress_off, mouseID)
-CRH_dam <- makeFactors(CRH_dam, c(Dam_ID,Dam))
-behavior_ZT0 <- makeFactors(behavior_ZT0, Dam_ID)
-behavior_ZT14 <- makeFactors(behavior_ZT14, Dam_ID)
+CRH_dam <- makeFactors(CRH_dam, c(damID,Dam))
+behavior_ZT0 <- makeFactors(behavior_ZT0, damID)
+behavior_ZT14 <- makeFactors(behavior_ZT14, damID)
 Cort_off <- makeFactors(Cort_off, mouseID)
 LH_code <- makeFactors(LH_code, c(sampleID, mouseID))
 LH_off <- makeFactors(LH_off, c(sampleID))
@@ -93,13 +93,13 @@ dam_behavior_noDemo <- bind_rows(behaviorDFs)
 dam_behavior <- dam_behavior_noDemo %>%
   left_join(
     Demo_dam,
-    by = "Dam_ID"
+    by = "damID"
   )
 
 # Make wide behavior table
 dam_behavior_wide <- dam_behavior_noDemo %>%
   pivot_wider(
-    id_cols = Dam_ID,
+    id_cols = damID,
     names_from = time,
     values_from = Duration:Avg_dur_on_nest,
     names_prefix = "ZT",
@@ -108,7 +108,7 @@ dam_behavior_wide <- dam_behavior_noDemo %>%
 
 # Add behavior wide to Demo_dam
 Demo_dam <- Demo_dam %>%
-  left_join(dam_behavior_wide, by = "Dam_ID")
+  left_join(dam_behavior_wide, by = "damID")
 
 
 # CORT AND LH -------------------------------------------------------------
@@ -181,7 +181,7 @@ LH_off <- LH_off %>%
 # COMBINE ALL DFS INTO ONE ------------------------------------------------
 
 LBN_all <- Demo_off %>%
-  left_join(Demo_dam, by = "Dam_ID") %>%
+  left_join(Demo_dam, by = "damID") %>%
   full_join(select(Mass_off, -ParaType), by = "mouseID") %>%
   # full_join(Maturation_off, by = "mouseID") %>%
   full_join(EndPara_off, by = "mouseID") %>%
@@ -194,7 +194,7 @@ LBN_all <- Demo_off %>%
 
 Demo_dam_for_offspring <- Demo_dam %>%
   select(
-    Dam_ID,
+    damID,
     earlyLifeTrt,
     Litter_num,
     DOB, 

@@ -19,13 +19,13 @@ behavior_overTime <- function(
     geom_line(
       alpha = 0.4,
       color = "black",
-      aes(group = Dam_ID, linetype = earlyLifeTrt),
+      aes(group = damID, linetype = earlyLifeTrt),
       position = position_dodge(0.4)
     ) +
     geom_point(
       shape = 21,
       alpha = 1, 
-      aes(fill=earlyLifeTrt,group=Dam_ID), 
+      aes(fill=earlyLifeTrt,group=damID), 
       position = position_dodge(0.4), 
       size = 1.2
     ) +

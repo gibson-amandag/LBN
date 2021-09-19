@@ -49,24 +49,24 @@ quartilesSummary <- function(df, col){
 
 #' group a dataframe by dam ID
 #'
-#' @param df a dataframe with the column Dam_ID
+#' @param df a dataframe with the column damID
 #'
-#' @return a dataframe grouped by Dam_ID
+#' @return a dataframe grouped by damID
 #' @export
 #'
 #' @examples
 groupByDam <- function(df){
   df_byDam <- df %>%
-    group_by(Dam_ID)
+    group_by(damID)
   return(df_byDam)
 }
 
 #' Get the average of numeric variables for a litter
 #' 
-#' Summarizes all numeric variables for the provided dataframe by dam_ID
+#' Summarizes all numeric variables for the provided dataframe by damID
 #' Adds back in the non-numeric variables from the damDemo_forOff dataframe
 #'
-#' @param df a dataframe of offspring data. Must contain Dam_ID column
+#' @param df a dataframe of offspring data. Must contain damID column
 #' @param damDemo_forOff a dataframe with the dam demographic information that is re-added to the offspring dataframe
 #'
 #' @return a dataframe with the offspring numeric data averaged for each dam

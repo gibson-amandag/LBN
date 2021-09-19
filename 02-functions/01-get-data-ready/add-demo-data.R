@@ -14,7 +14,7 @@
 addDamDemoData <- function(
   offDF,
   damDemo_forOff,
-  damIDName = "Dam_ID"
+  damIDName = "damID"
 ){
   df <- offDF %>%
     left_join(damDemo_forOff, by = damIDName) %>%
@@ -23,7 +23,7 @@ addDamDemoData <- function(
       Cohort,
       DOB,
       earlyLifeTrt:ParaType,
-      .after = Dam_ID
+      .after = damID
     )
   return(df)
 }

@@ -9,7 +9,7 @@
 #' @examples
 #' Demo_dam %>%
 #' makeFactors(c(
-#'  Dam_ID,
+#'  damID,
 #'  Dam,
 #'  ParaType,
 #'  Litter_num,
