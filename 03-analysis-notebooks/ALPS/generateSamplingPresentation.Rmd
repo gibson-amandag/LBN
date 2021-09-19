@@ -17,8 +17,8 @@ source(file.path(scriptsFolder, "02-get-datasets.R"))
 ```{r}
 samplingDF_today <- AcuteStress_off %>%
   filter(
-    # Sac_date == dateToday
-    Cohort == 5
+    Sac_date == dateToday
+    # cohort == 5
   )
 samplingDF_today <- samplingDF_today %>%
   addRegExForSamplingDF() %>%
@@ -41,8 +41,7 @@ addSamplingSlidesFromDF(
     )
 )
 print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", 
-                                                                                 # dateToday, 
-                                                                                 "test",
+                                                                                 dateToday,
                                                                                  ".pptx")))
 ```
 
@@ -52,8 +51,8 @@ samplingDF_ALPS <- AcuteStress_off %>%
   filter(
     sex == "F",
     !is.na(cyclingFolderPath),
-    Dam_Strain == "CBA",
-    Cohort == 4 | Cohort == 6
+    damStrain == "CBA",
+    cohort == 4 | cohort == 6
   )
 
 samplingDF_ALPS <- samplingDF_ALPS %>%
@@ -88,8 +87,8 @@ samplingDF_ALPS <- AcuteStress_off %>%
   filter(
     sex == "F",
     !is.na(cyclingFolderPath),
-    Dam_Strain == "CBA"
-    # Cohort == 4 | Cohort == 5 | Cohort == 6
+    damStrain == "CBA"
+    # cohort == 4 | cohort == 5 | cohort == 6
   ) 
 samplingDF_ALPS
 
@@ -125,7 +124,7 @@ print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0
 remainingDF_today <- LBN_data %>%
   filter(
     sex == "F",
-    Litter_num == 2,
+    litterNum == 2,
     is.na(Sac_date),
     is.na(Sac_stop_off)
   ) %>%
@@ -165,8 +164,8 @@ Cohort 1 CBAs
 cohort1ALPSDF <- AcuteStress_off %>%
   filter(
     sex == "F",
-    Cohort == 1,
-    Dam_Strain == "CBA"
+    cohort == 1,
+    damStrain == "CBA"
   )
 
 cohort1ALPSDF <- cohort1ALPSDF %>%

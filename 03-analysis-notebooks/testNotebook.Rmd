@@ -238,7 +238,7 @@ cyclePPT <- addImgsToCyclePPT(
 ```{r}
 cohort4Folders <- Cycles_off %>%
   filter(
-    Cohort == 4,
+    cohort == 4,
     damID == "D033-02"
   ) %>%
   arrange(
@@ -345,13 +345,13 @@ dir_ls(
 stressFilesDF <- AcuteStress_off %>%
   filter(
     sex == "F",
-    Litter_num == 2
+    litterNum == 2
   ) %>%
   select(
     mouseID,
     num_ID,
     Sac_date,
-    Cohort,
+    cohort,
     ReproTract_mass,
     maxLH
   ) %>%
@@ -369,7 +369,7 @@ stressFilesDF <- stressFilesDF %>%
   mutate(
     AMPath = dir_ls(
       path = ifelse(
-        Cohort == 4,
+        cohort == 4,
         LBN_0004_CyclingFolder,
         LBN_0006_CyclingFolder
       ),
@@ -382,7 +382,7 @@ stressFilesDF <- stressFilesDF %>%
     ),
     ayerPath = dir_ls(
       path = ifelse(
-        Cohort == 4,
+        cohort == 4,
         LBN_0004_CyclingFolder,
         LBN_0006_CyclingFolder
       ),
@@ -395,7 +395,7 @@ stressFilesDF <- stressFilesDF %>%
     ),
     anteAyerPath = dir_ls(
       path = ifelse(
-        Cohort == 4,
+        cohort == 4,
         LBN_0004_CyclingFolder,
         LBN_0006_CyclingFolder
       ),
@@ -730,7 +730,7 @@ Reorganizing LH Code
 ```{r}
 LH_code_2ndLitters <- LH_code %>%
   filter(
-    Litter_num == 2#,
+    litterNum == 2#,
     # Sac_cycle == "proestrus"
     # Sac_cycle == "diestrus"
   ) %>%
@@ -836,12 +836,12 @@ LH_code_all
 ```{r}
 LBN_data %>%
   filter(
-    Litter_num == 2
+    litterNum == 2
   )
 
 summaryDF <- Demo_dam %>%
   filter(
-    Litter_num == 2,
+    litterNum == 2,
     !is.na(DOB)
   ) %>%
   mutate(
@@ -849,19 +849,19 @@ summaryDF <- Demo_dam %>%
     P90 = DOB + 90
   ) %>%
   relocate(
-    Breed_date,
+    breedDate,
     DOB,
     P70,
     P90,
     .after = Dam
   ) %>%
   calcAgeInDays(
-    DOBVar = Breed_date,
+    DOBVar = breedDate,
     ageAtDateVar = P70,
     ageColName = waitDaysP70
   ) %>%
   calcAgeInDays(
-    DOBVar = Breed_date,
+    DOBVar = breedDate,
     ageAtDateVar = P90,
     ageColName = waitDaysP90
   ) %>%

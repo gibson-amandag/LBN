@@ -313,7 +313,7 @@ acuteStressServer <- function(
         df <- AcuteStress_off_react() %>%
           filter(
             sex == "F",
-            Dam_Strain == "CBA",
+            damStrain == "CBA",
             !is.na(ReproTract_mass)
           ) %>%
           filterByCycleStage()
@@ -384,7 +384,7 @@ acuteStressServer <- function(
         df <- AcuteStress_off_react() %>%
           filter(
             sex == "F",
-            Dam_Strain == "CBA",
+            damStrain == "CBA",
             !is.na(!! input$uterineMass_yVar),
             earlyLifeTrt %in% as.character(input$earlyLifeTrt),
             adultTrt %in% as.character(input$adultTrt)
@@ -500,7 +500,7 @@ acuteStressServer <- function(
         df <- Cort_off_react() %>%
           filter(
             sex == "M",
-            Dam_Strain == "CBA",
+            damStrain == "CBA",
             !is.na(cort)
           )
       })
@@ -575,7 +575,7 @@ acuteStressServer <- function(
         df <- Cort_off_react() %>%
           filter(
             sex == "F",
-            Dam_Strain == "CBA",
+            damStrain == "CBA",
             !is.na(cort)
           ) %>%
           filterByCycleStage()
@@ -651,7 +651,7 @@ acuteStressServer <- function(
         df <- AcuteStress_off_react() %>%
           filter(
             sex == "M",
-            Dam_Strain == "CBA",
+            damStrain == "CBA",
             !is.na(!! input$massVar)
           )
         return(df)
@@ -741,7 +741,7 @@ acuteStressServer <- function(
         df <- AcuteStress_off_react() %>%
           filter(
             sex == "F",
-            Dam_Strain == "CBA",
+            damStrain == "CBA",
             !is.na(!! input$massVar)
           ) %>%
           filterByCycleStage()
@@ -833,7 +833,7 @@ acuteStressServer <- function(
         df <- AcuteStress_off_react() %>%
           filter(
             sex == "M",
-            Dam_Strain == "CBA",
+            damStrain == "CBA",
             if_any(c(!!! input$summaryVars), ~ !is.na(.x))
           )
         return(df)
@@ -843,7 +843,7 @@ acuteStressServer <- function(
         df <- AcuteStress_off_react() %>%
           filter(
             sex == "F",
-            Dam_Strain == "CBA",
+            damStrain == "CBA",
             if_any(c(!!! input$summaryVars), ~ !is.na(.x))
           ) %>%
           filterByCycleStage()

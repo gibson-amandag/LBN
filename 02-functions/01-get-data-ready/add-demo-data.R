@@ -19,8 +19,8 @@ addDamDemoData <- function(
   df <- offDF %>%
     left_join(damDemo_forOff, by = damIDName) %>%
     relocate(
-      Dam,
-      Cohort,
+      dam,
+      cohort,
       DOB,
       earlyLifeTrt:ParaType,
       .after = damID

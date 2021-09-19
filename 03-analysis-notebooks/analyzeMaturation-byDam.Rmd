@@ -36,13 +36,13 @@ The paradigm was run with dams' second litters
 ```{r}
 Maturation_byDam_litter2_females <- Maturation_off %>%
   filter(
-    Litter_num == 2,
+    litterNum == 2,
     sex == "F"
   ) %>%
   getAvgByDam()
 Maturation_byDam_litter2_males <- Maturation_off %>%
   filter(
-    Litter_num == 2,
+    litterNum == 2,
     sex == "M"
   ) %>%
   getAvgByDam()

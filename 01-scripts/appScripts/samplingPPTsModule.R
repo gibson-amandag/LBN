@@ -161,7 +161,7 @@ samplingPPTsServer <- function(
           filter(
             sex == "F",
             !is.na(cyclingFolderPath),
-            Dam_Strain == "CBA"
+            damStrain == "CBA"
           )%>%
           filterByCycleStage() %>%
           addRegExForSamplingDF() %>%
@@ -197,7 +197,7 @@ samplingPPTsServer <- function(
         df <- LBN_data %>%
         filter(
           sex == "F",
-          Litter_num == 2,
+          litterNum == 2,
           is.na(Sac_date),
           is.na(Sac_stop_off)
         ) %>%

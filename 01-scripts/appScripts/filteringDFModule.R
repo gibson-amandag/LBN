@@ -7,7 +7,7 @@
 
 filteringDFUI <- function(
   id,
-  off_data = tibble(Litter_num = c(1:2, 1:2, 1:2), Cohort = 1:6)
+  off_data = tibble(litterNum = c(1:2, 1:2, 1:2), cohort = 1:6)
   ){
   ns <- NS(id)
   tagList(
@@ -26,9 +26,9 @@ filteringDFUI <- function(
         selectInput(
           ns("LitterNum"),
           "Which litter number?",
-          choices = unique(off_data$Litter_num), # Changed from levels to unique
+          choices = unique(off_data$litterNum), # Changed from levels to unique
           multiple = TRUE,
-          selected = unique(off_data$Litter_num)
+          selected = unique(off_data$litterNum)
         )
       ),
       column(
@@ -36,9 +36,9 @@ filteringDFUI <- function(
         selectInput(
           ns("cohort"),
           "Which cohorts?",
-          choices = unique(off_data$Cohort),
+          choices = unique(off_data$cohort),
           multiple = TRUE,
-          selected = unique(off_data$Cohort),
+          selected = unique(off_data$cohort),
         )
       )
     )
@@ -63,13 +63,13 @@ filteringDFServer <- function(
         # Filter for litter number
         df <- df %>%
           filter(
-            Litter_num %in% as.character(input$LitterNum)
+            litterNum %in% as.character(input$LitterNum)
           )
         
         # Filter for cohort
         df <- df %>%
           filter(
-            Cohort %in% as.character(input$cohort)
+            cohort %in% as.character(input$cohort)
           )
         
         return(df)

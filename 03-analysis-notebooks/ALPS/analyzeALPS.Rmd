@@ -35,9 +35,9 @@ The blue line is 140 mg
 AcuteStress_off %>%
   filter(
     sex == "F",
-    Cohort != 1,
+    cohort != 1,
     adultTrt == "CON",
-    Dam_Strain == "CBA"
+    damStrain == "CBA"
   ) %>%
   plotByUterineMass(yVar = maxLH, yLab = "max evening LH (ng/mL)") +
   geom_vline(xintercept = proUterineCutoff, color = "blue") +
@@ -47,9 +47,9 @@ AcuteStress_off %>%
 AcuteStress_off %>%
   filter(
     sex == "F",
-    Cohort != 1,
+    cohort != 1,
     adultTrt == "CON",
-    Dam_Strain == "CBA",
+    damStrain == "CBA",
     !is.na(maxLH)
   )%>%
   select(
@@ -61,11 +61,11 @@ AcuteStress_off %>%
 
 
 ```{r eval=FALSE, include=FALSE}
-# Cohort 5 Females - Detecting Proestrus
+# cohort 5 Females - Detecting Proestrus
 # These were first litter offspring of dams with no treatment used to try to correlate vaginal smear, uterine mass, and LH surge 
 females_LH_0005 <- AcuteStress_off %>%
   filter(
-    Cohort == 5,
+    cohort == 5,
     sex == "F"
   )
 
@@ -73,7 +73,7 @@ females_LH_0005 %>%
   plotByUterineMass(yVar = maxLH, "max evening LH (ng/mL)")
 ```
 
-# Cohort 1 Females
+# cohort 1 Females
 These were sampled regardless of stage. 
 P2-P9
 B6 and CBA dams
@@ -82,7 +82,7 @@ B6 and CBA dams
 ```{r}
 LH_off %>%
   filter(
-    Cohort == 1
+    cohort == 1
   ) %>%
   LHPlot() +
   facet_wrap(
@@ -94,8 +94,8 @@ LH_off %>%
 ```{r}
 femalesAcuteStress_0001 <- AcuteStress_off %>%
   filter(
-    Cohort == 1,
-    Dam_Strain == "CBA",
+    cohort == 1,
+    damStrain == "CBA",
     sex == "F"
   )
 ```
@@ -120,8 +120,8 @@ femalesAcuteStress_0001 %>%
 ```{r}
 femalesCort_0001 <- Cort_off %>%
   filter(
-    Cohort == 1,
-    Dam_Strain == "CBA",
+    cohort == 1,
+    damStrain == "CBA",
     sex == "F"
   )
 ```
@@ -144,12 +144,12 @@ femalesCort_0001 %>%
   cortAnova()
 ```
 
-# Cohort 1 Males
+# cohort 1 Males
 ```{r}
 malesCort_0001 <- Cort_off %>%
   filter(
-    Cohort == 1,
-    Dam_Strain == "CBA",
+    cohort == 1,
+    damStrain == "CBA",
     sex == "M"
   )
 ```
@@ -170,12 +170,12 @@ malesCort_0001 %>%
   cortAnova()
 ```
 
-# Females Cohort 2
+# Females cohort 2
 ```{r}
 femalesCort_0002 <- Cort_off %>%
   filter(
     sex == "F",
-    Cohort == 2
+    cohort == 2
   )
 
 femalesCort_0002_base <- baseCortPlot(femalesCort_0002)
@@ -189,7 +189,7 @@ femalesCort_0002_plot
 femalesAcuteStress_0002 <- AcuteStress_off %>%
   filter(
     sex == "F",
-    Cohort == 2
+    cohort == 2
   )
 
 femalesCort_0002 %>%
@@ -198,7 +198,7 @@ femalesCort_0002 %>%
 AcuteStress_off %>%
   filter(
     sex == "F",
-    Cohort == 2
+    cohort == 2
   ) %>%
   getStressTrtNumbers()
 ```
@@ -209,12 +209,12 @@ femalesAcuteStress_0002 %>%
   plotUterineMassByGroup(hLineVal = proUterineCutoff)
 ```
 
-# Males Cohort 2
+# Males cohort 2
 ```{r}
 malesCort_0002 <- Cort_off %>%
   filter(
     sex == "M",
-    Cohort == 2
+    cohort == 2
   )
 
 malesCort_0002_base <- baseCortPlot(malesCort_0002)
@@ -236,7 +236,7 @@ malesCort_0002 %>%
 malesAcuteStress_2ndLitter <- AcuteStress_off %>%
   filter(
     sex == "M",
-    Litter_num == 2
+    litterNum == 2
   ) 
 ```
 
@@ -252,7 +252,7 @@ malesAcuteStress_2ndLitter%>%
 malesCort_2ndLitter <- Cort_off %>%
   filter(
     sex == "M",
-    Litter_num == 2
+    litterNum == 2
   )
 ```
 
@@ -270,7 +270,7 @@ malesAcuteStress_2ndLitter %>%
 ```{r}
 LBN_data %>%
   filter(
-    Cohort == 6,
+    cohort == 6,
     sex == "M",
     is.na(Sac_date)
   ) %>%
@@ -487,7 +487,7 @@ ggsave(
 femalesAcuteStress_2ndLitter <- AcuteStress_off %>%
   filter(
     sex == "F",
-    Litter_num == 2
+    litterNum == 2
   )
 femalesAcuteStress_2ndLitter %>%
   arrange(
@@ -530,7 +530,7 @@ femalesAcuteStress_2ndLitter %>%
 
 # LH_code %>%
 #   filter(
-#     Litter_num == 2,
+#     litterNum == 2,
 #     Sac_cycle == "proestrus",
 #     comboTrt == "STD-ALPS"
 #   ) %>%
@@ -560,13 +560,13 @@ Remaining second litter females
 LBN_data %>%
   filter(
     sex == "F",
-    Litter_num == 2,
+    litterNum == 2,
     is.na(Sac_date),
     is.na(Sac_stop_off)
   ) %>%
   group_by(
     earlyLifeTrt,
-    Cohort
+    cohort
   ) %>%
   summarise(
     n = n(),
@@ -594,7 +594,7 @@ This is only for the animals that were greater than the proestrus uterine cutoff
 femalesCort_2ndLitter <- Cort_off %>%
   filter(
     sex == "F",
-    Litter_num == 2,
+    litterNum == 2,
     ReproTract_mass > proUterineCutoff
   )
 femalesCort_2ndLitter_base <- baseCortPlot(femalesCort_2ndLitter)
@@ -622,39 +622,39 @@ femalesAcuteStress_2ndLitter %>%
 
 
 # All CBA Females
-This includes the P2-P9 CBA female first litter offspring (Cohort 1) and P4-11 first litter offspring (Cohort 2)
+This includes the P2-P9 CBA female first litter offspring (cohort 1) and P4-11 first litter offspring (cohort 2)
 
 ```{r}
 Cort_off %>%
   filter(
     sex == "F",
-    Dam_Strain == "CBA"
+    damStrain == "CBA"
   ) %>%
   cortPlot()
 
 Cort_off %>%
   filter(
     sex == "F",
-    Dam_Strain == "CBA"
+    damStrain == "CBA"
   ) %>%
   cortAnova()
 ```
 
 # All CBA males
-This includes the P2-P9 CBA male first litter offspring (Cohort 1), P4-P11 first litter offspring (Cohort 2), and P4-P11 second litter offspring (Cohort 4)
+This includes the P2-P9 CBA male first litter offspring (cohort 1), P4-P11 first litter offspring (cohort 2), and P4-P11 second litter offspring (cohort 4)
 
 ```{r}
 Cort_off %>%
   filter(
     sex == "M",
-    Dam_Strain == "CBA"
+    damStrain == "CBA"
   ) %>%
   cortPlot()
 
 Cort_off %>%
   filter(
     sex == "M",
-    Dam_Strain == "CBA"
+    damStrain == "CBA"
   ) %>%
   cortAnova() 
 ```

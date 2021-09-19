@@ -10,10 +10,10 @@
 #' Demo_dam %>%
 #' makeFactors(c(
 #'  damID,
-#'  Dam,
+#'  dam,
 #'  ParaType,
-#'  Litter_num,
-#'  Cohort
+#'  litterNum,
+#'  cohort
 #' ))
 #' 
 #' makeFactors(Off_ID, c(mouseID))

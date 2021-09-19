@@ -16,7 +16,7 @@ source(file.path(scriptsFolder, "02-get-datasets.R"))
 ```{r}
 dam_behavior_litter2 <- dam_behavior %>%
   filter(
-    Litter_num == 2
+    litterNum == 2
   )
 ```
 
@@ -136,7 +136,7 @@ dam_behavior_litter2 %>%
 ```{r}
 dam_behavior_cohort2 <- dam_behavior %>%
   filter(
-    Cohort == 2
+    cohort == 2
   )
 dam_behavior_cohort2
 ```

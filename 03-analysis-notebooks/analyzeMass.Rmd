@@ -16,7 +16,7 @@ source(file.path(scriptsFolder, "02-get-datasets.R"))
 ```{r}
 Dam_demo_2ndLitters <- Demo_dam %>%
   filter(
-    Litter_num == 2,
+    litterNum == 2,
     ParaType == 4,
     is.na(Pups_through_wean) | Pups_through_wean == TRUE,
     !is.na(Dam_Mass_P21)
@@ -32,7 +32,7 @@ Dam_demo_2ndLitters %>%
 ```{r}
 Mass_2ndLitters <- Mass_off %>%
   filter(
-    Litter_num == 2,
+    litterNum == 2,
     ParaType == 4
   )
 

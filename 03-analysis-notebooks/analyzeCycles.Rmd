@@ -30,7 +30,7 @@ Cohorts 4 + 6
 ```{r}
 cycles_2ndLitter <- Cycles_off %>%
   filter(
-    Litter_num == 2
+    litterNum == 2
   )
 cyclesLong_2ndLitter <- makeCyclesLong(cycles_2ndLitter)
 
@@ -138,11 +138,11 @@ t_test(Proestrus_days ~ earlyLifeTrt)
 
 ## Cohort 4
 ```{r}
-LBN_0004_CyclingFolder <- CohortCyclingFolder$cyclingFolderPath[CohortCyclingFolder$Cohort == 4]
+LBN_0004_CyclingFolder <- cohortCyclingFolder$cyclingFolderPath[cohortCyclingFolder$cohort == 4]
 
 LBN_0004_Folders <- Cycles_off %>%
   filter(
-    Cohort == 4
+    cohort == 4
   ) %>%
   arrange(
     earlyLifeTrt,
@@ -175,11 +175,11 @@ print(LBN_0004_cyclePPT, file.path(reportOutputFolder, "cyclePPTS", "LBN_0004_cy
 
 ## Cohort 5
 ```{r}
-LBN_0005_CyclingFolder <- CohortCyclingFolder$cyclingFolderPath[CohortCyclingFolder$Cohort == 5]
+LBN_0005_CyclingFolder <- cohortCyclingFolder$cyclingFolderPath[cohortCyclingFolder$cohort == 5]
 
 LBN_0005_Folders <- Cycles_off %>%
   filter(
-    Cohort == 5
+    cohort == 5
   ) %>%
   arrange(
     earlyLifeTrt,

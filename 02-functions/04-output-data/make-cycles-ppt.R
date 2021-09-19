@@ -57,7 +57,7 @@ addRegExForSamplingDF <- function(
       mouseID,
       num_ID,
       Sac_date,
-      Cohort,
+      cohort,
       comboTrt,
       Sac_cycle,
       cyclingFolderPath,

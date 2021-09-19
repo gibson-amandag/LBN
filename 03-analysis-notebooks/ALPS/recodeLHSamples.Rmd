@@ -20,7 +20,7 @@ source(file.path(scriptsFolder, "02-get-datasets.R"))
 ```{r}
 LH_code_2ndLitters <- LH_code %>%
   filter(
-    Litter_num == 2#,
+    litterNum == 2#,
     # Sac_cycle == "proestrus"
     # Sac_cycle == "diestrus"
   ) %>%
@@ -168,7 +168,7 @@ LH_reordered <- LH_code_2ndLitters %>%
   )
 mice_originalOrder <- AcuteStress_off %>%
   filter(
-    Litter_num == 2,
+    litterNum == 2,
     sex == "F"
   ) %>%
   left_join(
