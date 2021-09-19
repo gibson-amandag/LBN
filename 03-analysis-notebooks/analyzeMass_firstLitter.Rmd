@@ -62,7 +62,7 @@ Mass_1stLitters_long %>%
   ) %>%
   anova_test(
     dv = mass,
-    wid = Mouse_ID,
+    wid = mouseID,
     within = day,
     between = earlyLifeTrt,
     type = 3
@@ -77,7 +77,7 @@ Mass_1stLitters_long %>%
   ) %>%
   anova_test(
     dv = mass,
-    wid = Mouse_ID,
+    wid = mouseID,
     between = earlyLifeTrt,
     type = 3
   )%>%
@@ -94,7 +94,7 @@ Mass_1stLitters_long %>%
   ) %>%
   anova_test(
     dv = mass,
-    wid = Mouse_ID,
+    wid = mouseID,
     within = day,
     between = c(earlyLifeTrt, sex),
     type = 3
@@ -109,7 +109,7 @@ Mass_1stLitters_long %>%
   ) %>%
   anova_test(
     dv = mass,
-    wid = Mouse_ID,
+    wid = mouseID,
     between = c(earlyLifeTrt, sex),
     type = 3
   )%>%

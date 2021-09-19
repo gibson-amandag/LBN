@@ -17,8 +17,8 @@ source(file.path(scriptsFolder, "02-get-datasets.R"))
 ```{r}
 samplingDF_today <- AcuteStress_off %>%
   filter(
-    Sac_date == dateToday
-    # Cohort == 5
+    # Sac_date == dateToday
+    Cohort == 5
   )
 samplingDF_today <- samplingDF_today %>%
   addRegExForSamplingDF() %>%
@@ -37,29 +37,13 @@ addSamplingSlidesFromDF(
   samplingPPT = samplingPPT, 
   cyclingDF = Cycles_off_all %>%
     filter(
-      Mouse_ID %in% samplingDF_today$Mouse_ID
+      mouseID %in% samplingDF_today$mouseID
     )
 )
-# file.access(
-file.info(
-  file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", 
-                                                       # "2021-09-02",
-                                                       dateToday,
-                                                       ".pptx"))
-  # ,
-  # mode = 4
-)
-file.info(
-  file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", 
-                                                       "2021-09-02",
-                                                       # dateToday,
-                                                       ".pptx"))
-  # ,
-  # mode = 4
-)
-reportOutputFolder
-# print(samplingPPT, target = "./testCyclingOutput.pptx")
-print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", dateToday, ".pptx")))
+print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", 
+                                                                                 # dateToday, 
+                                                                                 "test",
+                                                                                 ".pptx")))
 ```
 
 Cohorts 4 + 6
@@ -88,7 +72,7 @@ addSamplingSlidesFromDF(
   samplingPPT = samplingPPT, 
   cyclingDF = Cycles_off_all %>%
     filter(
-      Mouse_ID %in% samplingDF_ALPS$Mouse_ID
+      mouseID %in% samplingDF_ALPS$mouseID
     )
 )
 print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0(
@@ -125,7 +109,7 @@ addSamplingSlidesFromDF(
   samplingPPT = samplingPPT, 
   cyclingDF = Cycles_off_all %>%
     filter(
-      Mouse_ID %in% samplingDF_ALPS$Mouse_ID
+      mouseID %in% samplingDF_ALPS$mouseID
     )
 )
 print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0(
@@ -167,7 +151,7 @@ addSamplingSlidesFromDF(
   samplingPPT = samplingPPT, 
   cyclingDF = Cycles_off_all %>%
     filter(
-      Mouse_ID %in% remainingDF_today$Mouse_ID
+      mouseID %in% remainingDF_today$mouseID
     )
 )
 
@@ -201,7 +185,7 @@ addSamplingSlidesFromDF(
   samplingPPT = samplingPPT, 
   cyclingDF = Cycles_off_all %>%
     filter(
-      Mouse_ID %in% cohort1ALPSDF$Mouse_ID
+      mouseID %in% cohort1ALPSDF$mouseID
     )
 )
 

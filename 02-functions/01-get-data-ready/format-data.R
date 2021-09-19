@@ -16,8 +16,8 @@
 #'  Cohort
 #' ))
 #' 
-#' makeFactors(Off_ID, c(Mouse_ID))
-#' makeFactors(EndPara_off, Mouse_ID)
+#' makeFactors(Off_ID, c(mouseID))
+#' makeFactors(EndPara_off, mouseID)
 makeFactors <- function(df, cols){
   df <- df %>%
     mutate(

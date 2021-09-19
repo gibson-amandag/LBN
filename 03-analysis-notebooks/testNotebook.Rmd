@@ -348,7 +348,7 @@ stressFilesDF <- AcuteStress_off %>%
     Litter_num == 2
   ) %>%
   select(
-    Mouse_ID,
+    mouseID,
     num_ID,
     Sac_date,
     Cohort,
@@ -526,7 +526,7 @@ df
 
 pwalk(
   list(
-    mouseID = df$Mouse_ID,
+    mouseID = df$mouseID,
     cycleID = df$num_ID,
     maxLH = df$maxLH,
     uterineMass = df$ReproTract_mass,
@@ -539,7 +539,7 @@ pwalk(
 )
 
 samplingPPT <- createSamplingSlide(
-  mouseID = df$Mouse_ID[1],
+  mouseID = df$mouseID[1],
   cycleID = df$num_ID[1],
   maxLH = df$maxLH[1],
   uterineMass = df$ReproTract_mass[1],
@@ -598,7 +598,7 @@ cyclingDF_long <- Cycles_off_all %>%
   makeCyclesLong()
 cyclingPlot <- cyclingDF_long %>%
   filter(
-    Mouse_ID %in% samplingDF_today$Mouse_ID,
+    mouseID %in% samplingDF_today$mouseID,
     day <= 32 & day >= 12
   ) %>%
   plotCycleTraces()
@@ -624,7 +624,7 @@ layout_properties(samplingPPT, layout = "samplingSlide")
 ```{r}
 samplingDF_today
 createSamplingSlide(
-  mouseID = samplingDF_today$Mouse_ID[1],
+  mouseID = samplingDF_today$mouseID[1],
   cycleID = samplingDF_today$num_ID[1],
   maxLH = NULL,
   uterineMass = samplingDF_today$ReproTract_mass[1],
@@ -646,7 +646,7 @@ test_long <- Cycles_off_all%>%
 
 test_long %>%
   filter(
-    Mouse_ID == "D044-02_44"
+    mouseID == "D044-02_44"
   ) %>%
   plotCycleTraces_single()
 
@@ -657,7 +657,7 @@ testFunc <- function(
 ){
   plot <- test_long %>%
     filter(
-      Mouse_ID == mouseID
+      mouseID == mouseID
     ) %>%
     plotCycleTraces()
   testPPT <- add_slide(testPPT)
@@ -673,7 +673,7 @@ testPPT <- read_pptx()
 
 pwalk(
   list(
-    mouseID = Cycles_off_all$Mouse_ID
+    mouseID = Cycles_off_all$mouseID
   ),
   testFunc,
   testPPT,
@@ -687,7 +687,7 @@ testPPT <- ph_with(
   testPPT,
   value = test_long %>%
   filter(
-    Mouse_ID == "D044-02_44"
+    mouseID == "D044-02_44"
   ) %>%
   plotCycleTraces(),
   location = ph_location_type(
@@ -755,7 +755,7 @@ LH_code_2ndLitters
 ```{r}
 LH_code_2ndLitters_IDs <- LH_code_2ndLitters %>%
   group_by(
-    Mouse_ID
+    mouseID
   ) %>%
   summarize(
     num_ID = mean(num_ID, na.rm = TRUE)
@@ -777,7 +777,7 @@ LH_code_2ndLitters_IDs
 LH_code_2ndLitters_ordered <- LH_code_2ndLitters %>%
   left_join(
     LH_code_2ndLitters_IDs,
-    by = "Mouse_ID"
+    by = "mouseID"
   ) %>%
   arrange(
     plateOrder,
@@ -797,7 +797,7 @@ LH_code_morning <- LH_code_2ndLitters %>%
   ) %>%
   left_join(
     LH_code_2ndLitters_IDs,
-    by = "Mouse_ID"
+    by = "mouseID"
   ) %>%
   arrange(
     plateOrder
@@ -817,7 +817,7 @@ LH_code_afternoon <- LH_code_2ndLitters %>%
   ) %>%
   left_join(
     LH_code_2ndLitters_IDs,
-    by = "Mouse_ID"
+    by = "mouseID"
   ) %>%
   arrange(
     plateOrder

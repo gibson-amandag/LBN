@@ -357,7 +357,7 @@ acuteStressServer <- function(
               near(ReproTract_mass, input$uterineMassByTrt_click$y, tol = 2)
             ) %>%
             select(
-              Mouse_ID,
+              mouseID,
               num_ID,
               earlyLifeTrt,
               adultTrt,
@@ -371,7 +371,7 @@ acuteStressServer <- function(
       output$uterineMassByTrt_table <- renderDT({
         AcuteStress_femaleCBA_mass_react() %>%
           select(
-            Mouse_ID,
+            mouseID,
             num_ID,
             earlyLifeTrt,
             adultTrt,
@@ -432,7 +432,7 @@ acuteStressServer <- function(
                 ! (row_number() %in% input$plotByUterineMass_table_rows_selected)
               ) %>%
               select(
-                Mouse_ID,
+                mouseID,
                 num_ID,
                 earlyLifeTrt,
                 adultTrt,
@@ -447,7 +447,7 @@ acuteStressServer <- function(
       output$plotByUterineMass_table <- renderDT({
         AcuteStress_femaleCBA_react() %>%
           select(
-            Mouse_ID,
+            mouseID,
             num_ID,
             earlyLifeTrt,
             adultTrt,
@@ -482,7 +482,7 @@ acuteStressServer <- function(
           nearPoints(
             LH_off_react() %>%
               select(
-                Mouse_ID,
+                mouseID,
                 num_ID,
                 earlyLifeTrt,
                 adultTrt,
@@ -544,7 +544,7 @@ acuteStressServer <- function(
                 ! (row_number() %in% input$cortPlot_males_table_rows_selected)
               ) %>%
               select(
-                Mouse_ID,
+                mouseID,
                 num_ID,
                 earlyLifeTrt,
                 adultTrt,
@@ -560,7 +560,7 @@ acuteStressServer <- function(
       output$cortPlot_males_table <- renderDT({
         Cort_off_males() %>%
           select(
-            Mouse_ID,
+            mouseID,
             num_ID,
             earlyLifeTrt,
             adultTrt,
@@ -620,7 +620,7 @@ acuteStressServer <- function(
                 ! (row_number() %in% input$cortPlot_females_table_rows_selected)
               ) %>%
               select(
-                Mouse_ID,
+                mouseID,
                 num_ID,
                 earlyLifeTrt,
                 adultTrt,
@@ -636,7 +636,7 @@ acuteStressServer <- function(
       output$cortPlot_females_table <- renderDT({
         Cort_off_females() %>%
           select(
-            Mouse_ID,
+            mouseID,
             num_ID,
             earlyLifeTrt,
             adultTrt,
@@ -703,7 +703,7 @@ acuteStressServer <- function(
               near(!! input$massVar, input$massPlot_males_click$y, tol = max(!! input$massVar, na.rm = TRUE)/40)
             ) %>%
             select(
-              Mouse_ID,
+              mouseID,
               num_ID,
               earlyLifeTrt,
               adultTrt,
@@ -715,7 +715,7 @@ acuteStressServer <- function(
       output$mass_males_table <- renderDT({
         AcuteStress_males_masses() %>%
           select(
-            Mouse_ID,
+            mouseID,
             num_ID,
             earlyLifeTrt,
             adultTrt,
@@ -794,7 +794,7 @@ acuteStressServer <- function(
               near(!! input$massVar, input$massPlot_females_click$y, tol = max(!! input$massVar, na.rm = TRUE)/40)
             ) %>%
             select(
-              Mouse_ID,
+              mouseID,
               num_ID,
               earlyLifeTrt,
               adultTrt,
@@ -806,7 +806,7 @@ acuteStressServer <- function(
       output$mass_females_table <- renderDT({
         AcuteStress_females_masses() %>%
           select(
-            Mouse_ID,
+            mouseID,
             num_ID,
             earlyLifeTrt,
             adultTrt,
@@ -851,14 +851,14 @@ acuteStressServer <- function(
       })
       
       output$summaryTable_males <- shiny::renderDataTable({
-        if(length(input$summaryVars)>0 & length(AcuteStress_males_summary()$Mouse_ID) > 0){
+        if(length(input$summaryVars)>0 & length(AcuteStress_males_summary()$mouseID) > 0){
           AcuteStress_males_summary() %>%
             group_by(earlyLifeTrt, adultTrt) %>%
             meanSummary(c(!!! input$summaryVars))
         }
       })
       output$summaryTable_females <- shiny::renderDataTable({
-        if(length(input$summaryVars)>0 & length(AcuteStress_females_summary()$Mouse_ID) > 0){
+        if(length(input$summaryVars)>0 & length(AcuteStress_females_summary()$mouseID) > 0){
           AcuteStress_females_summary() %>%
             group_by(earlyLifeTrt, adultTrt) %>%
             meanSummary(c(!!! input$summaryVars))

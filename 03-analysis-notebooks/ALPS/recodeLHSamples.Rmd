@@ -47,7 +47,7 @@ LH_code_2ndLitters
 ```{r}
 LH_code_2ndLitters_IDs <- LH_code_2ndLitters %>%
   group_by(
-    Mouse_ID
+    mouseID
   ) %>%
   summarize(
     num_ID = mean(num_ID, na.rm = TRUE)
@@ -70,7 +70,7 @@ LH_code_2ndLitters_IDs
 LH_code_2ndLitters_ordered <- LH_code_2ndLitters %>%
   left_join(
     LH_code_2ndLitters_IDs,
-    by = "Mouse_ID"
+    by = "mouseID"
   ) %>%
   arrange(
     plateOrder,
@@ -93,7 +93,7 @@ LH_code_morning <- LH_code_2ndLitters %>%
   ) %>%
   left_join(
     LH_code_2ndLitters_IDs,
-    by = "Mouse_ID"
+    by = "mouseID"
   ) %>%
   arrange(
     plateOrder
@@ -117,7 +117,7 @@ LH_code_afternoon <- LH_code_2ndLitters %>%
   ) %>%
   left_join(
     LH_code_2ndLitters_IDs,
-    by = "Mouse_ID"
+    by = "mouseID"
   ) %>%
   arrange(
     plateOrder
@@ -194,8 +194,8 @@ mice_originalOrder <- AcuteStress_off %>%
 mice_originalOrder
 LH_reordered <- LH_reordered %>%
   left_join(
-    mice_originalOrder %>% select(Mouse_ID, origMouseOrder, boxNumber),
-    by = "Mouse_ID"
+    mice_originalOrder %>% select(mouseID, origMouseOrder, boxNumber),
+    by = "mouseID"
   ) %>%
   relocate(
     origMouseOrder,

@@ -17,13 +17,13 @@ getStressTrtNumbers <- function(df){
 #'
 #' Runs the two-way anova with rstatix::anova_test(). 
 #' The dependent variable is cort
-#' Within animal id is Mouse_ID
+#' Within animal id is mouseID
 #' Between animal variables are early-life and adult treatment (earlyLifeTrt, adultTrt)
 #' The within animal variable is time
 #' 
 #' Formats the output as a flextable using formatAnova()
 #' 
-#' @param df a long-form data frame with the columns cort, Mouse_ID, earlyLifeTrt, adultTrt, and time
+#' @param df a long-form data frame with the columns cort, mouseID, earlyLifeTrt, adultTrt, and time
 #'
 #' @return a flextable with the formatted anova results
 #' @export
@@ -33,7 +33,7 @@ cortAnova <- function(df){
   anovaRes <- df %>%
     anova_test(
       dv = cort,
-      wid = Mouse_ID,
+      wid = mouseID,
       between = c(earlyLifeTrt, adultTrt),
       within = time
     )

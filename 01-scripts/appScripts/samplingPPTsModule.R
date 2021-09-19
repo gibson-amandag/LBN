@@ -133,7 +133,7 @@ samplingPPTsServer <- function(
       
       output$download_date <- downloadHandler(
         filename = function() {  
-          paste0("sampling_", dateToday, ".pptx")
+          paste0("sampling_", input$presDate, ".pptx")
         },
         content = function(file) {
           samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
@@ -148,7 +148,7 @@ samplingPPTsServer <- function(
             samplingPPT = samplingPPT, 
             cyclingDF = Cycles_off_all %>%
               filter(
-                Mouse_ID %in% samplingDF_selDate()$Mouse_ID
+                mouseID %in% samplingDF_selDate()$mouseID
               )
           )
           
@@ -186,7 +186,7 @@ samplingPPTsServer <- function(
             samplingPPT = samplingPPT, 
             cyclingDF = Cycles_off_all %>%
               filter(
-                Mouse_ID %in% samplingDF_ALPS()$Mouse_ID
+                mouseID %in% samplingDF_ALPS()$mouseID
               )
           )
           print(samplingPPT, target = file)
@@ -228,7 +228,7 @@ samplingPPTsServer <- function(
             samplingPPT = samplingPPT, 
             cyclingDF = Cycles_off_all %>%
               filter(
-                Mouse_ID %in% remainingDF_today()$Mouse_ID
+                mouseID %in% remainingDF_today()$mouseID
               )
           )
           

@@ -56,7 +56,7 @@ plotCycleTraces <- function(
   df,
   day = day,
   stage = stage,
-  mouseID = Mouse_ID,
+  MouseID = mouseID,
   ncol = NULL,
   nrow = NULL,
   lineColorVar = earlyLifeTrt,
@@ -67,7 +67,7 @@ plotCycleTraces <- function(
   viz <- ggplot(df, aes(x = {{ day }}, y = {{ stage }}, color = {{ lineColorVar }})) +
     geom_line() +
     facet_wrap(
-      vars( {{ mouseID }} ),
+      vars( {{ MouseID }} ),
       ncol = ncol,
       nrow = nrow
     ) +
@@ -109,7 +109,7 @@ plotCycleTraces_single <- function(
   df,
   day = day,
   stage = stage,
-  mouseID = Mouse_ID,
+  MouseID = mouseID,
   ncol = NULL,
   nrow = NULL,
   lineColorVar = earlyLifeTrt,
@@ -118,9 +118,9 @@ plotCycleTraces_single <- function(
   removeLegend = TRUE
 ){
   viz <- ggplot(df, aes(x = {{ day }}, y = {{ stage }}, color = {{ lineColorVar }})) +
-    geom_line(aes(group = {{ mouseID }})) +
+    geom_line(aes(group = {{ MouseID }})) +
     # facet_wrap(
-    #   vars( {{ mouseID }} ),
+    #   vars( {{ MouseID }} ),
     #   ncol = ncol,
     #   nrow = nrow
     # ) +

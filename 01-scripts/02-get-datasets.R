@@ -27,7 +27,7 @@ niceNames <- loadExcelSheet(dataFolder, LBN_DataName, "plotLabels")
 #Make factor variables
 # Dam_ID
 # Dam
-# Mouse_ID
+# mouseID
 # Paradigm
 # Litter number
 # Cohort
@@ -42,30 +42,30 @@ Demo_dam <- Demo_dam %>%
   )) %>%
   orderEarlyLifeTrt()
 
-Demo_off <- makeFactors(Demo_off, c(Dam_ID, Mouse_ID, sex))
-Off_ID <- makeFactors(Off_ID, c(Mouse_ID))
+Demo_off <- makeFactors(Demo_off, c(Dam_ID, mouseID, sex))
+Off_ID <- makeFactors(Off_ID, c(mouseID))
 
 Demo_off <- Demo_off %>%
-  left_join(Off_ID, by = "Mouse_ID")
+  left_join(Off_ID, by = "mouseID")
 
-Mass_off <- makeFactors(Mass_off, Mouse_ID)
-Maturation_off <- makeFactors(Maturation_off, Mouse_ID)
-EndPara_off <- makeFactors(EndPara_off, Mouse_ID)
-Cycles_off <- makeFactors(Cycles_off, Mouse_ID)
-Cycles_off_extra <- makeFactors(Cycles_off_extra, Mouse_ID)
+Mass_off <- makeFactors(Mass_off, mouseID)
+Maturation_off <- makeFactors(Maturation_off, mouseID)
+EndPara_off <- makeFactors(EndPara_off, mouseID)
+Cycles_off <- makeFactors(Cycles_off, mouseID)
+Cycles_off_extra <- makeFactors(Cycles_off_extra, mouseID)
 CohortCyclingFolder <- makeFactors(CohortCyclingFolder, Cohort)
 Sacrifice_off <- Sacrifice_off %>%
   orderAdultTrt() %>%
-  makeFactors(c(Mouse_ID, adultTrt)) %>%
+  makeFactors(c(mouseID, adultTrt)) %>%
   calcOrganMassByBodyMass(ReproTract_mass) %>%
   calcOrganMassByBodyMass(Gonad_mass) %>%
   calcOrganMassByBodyMass(Adrenal_mass)
-ChronicStress_off <- makeFactors(ChronicStress_off, Mouse_ID)
+ChronicStress_off <- makeFactors(ChronicStress_off, mouseID)
 CRH_dam <- makeFactors(CRH_dam, c(Dam_ID,Dam))
 behavior_ZT0 <- makeFactors(behavior_ZT0, Dam_ID)
 behavior_ZT14 <- makeFactors(behavior_ZT14, Dam_ID)
-Cort_off <- makeFactors(Cort_off, Mouse_ID)
-LH_code <- makeFactors(LH_code, c(sampleID, Mouse_ID))
+Cort_off <- makeFactors(Cort_off, mouseID)
+LH_code <- makeFactors(LH_code, c(sampleID, mouseID))
 LH_off <- makeFactors(LH_off, c(sampleID))
 
 behaviorDFs <- list(
@@ -116,7 +116,7 @@ Demo_dam <- Demo_dam %>%
 
 Cort_off_wide <- Cort_off %>%
   pivot_wider(
-    id_cols = Mouse_ID,
+    id_cols = mouseID,
     names_from = time,
     values_from = cort,
     names_prefix = "cort_hr",
@@ -126,14 +126,14 @@ Cort_off_wide <- Cort_off %>%
 AcuteStress_off <- Sacrifice_off %>%
   left_join(
     Cort_off_wide,
-    by = "Mouse_ID"
+    by = "mouseID"
   )
 
 # Add stress day demo to long cort df
 Cort_off <- Cort_off %>%
   left_join(
     Sacrifice_off,
-    by = "Mouse_ID"
+    by = "mouseID"
   )
 
 # Add mouse and time info to LH values
@@ -148,47 +148,47 @@ LH_max <- LH_off %>%
   getMaxFromRepMeasures(
     col = LH,
     maxColName = maxLH,
-    groupingVar = Mouse_ID
+    groupingVar = mouseID
   )
 
 # Make wide version of LH
 LH_off_wide <- LH_off %>%
   pivot_wider(
-    id_cols = Mouse_ID,
+    id_cols = mouseID,
     names_from = time,
     values_from = LH,
     names_prefix = "LH_hr",
   ) %>%
   left_join( # Add max column
     LH_max,
-    by = "Mouse_ID"
+    by = "mouseID"
   )
 
 # Add LH data to AcuteStress_off
 AcuteStress_off <- AcuteStress_off %>%
   left_join(
     LH_off_wide,
-    by = "Mouse_ID"
+    by = "mouseID"
   )
 
 # Add stress day demo to long cort df
 LH_off <- LH_off %>%
   left_join(
     Sacrifice_off,
-    by = "Mouse_ID"
+    by = "mouseID"
   )
 
 # COMBINE ALL DFS INTO ONE ------------------------------------------------
 
 LBN_all <- Demo_off %>%
   left_join(Demo_dam, by = "Dam_ID") %>%
-  full_join(select(Mass_off, -ParaType), by = "Mouse_ID") %>%
-  # full_join(Maturation_off, by = "Mouse_ID") %>%
-  full_join(EndPara_off, by = "Mouse_ID") %>%
-  full_join(Cycles_off, by = "Mouse_ID") %>%
-  full_join(Cycles_off_extra, by = "Mouse_ID")%>%
-  full_join(AcuteStress_off, by = "Mouse_ID") %>%
-  full_join(ChronicStress_off, by = "Mouse_ID")
+  full_join(select(Mass_off, -ParaType), by = "mouseID") %>%
+  # full_join(Maturation_off, by = "mouseID") %>%
+  full_join(EndPara_off, by = "mouseID") %>%
+  full_join(Cycles_off, by = "mouseID") %>%
+  full_join(Cycles_off_extra, by = "mouseID")%>%
+  full_join(AcuteStress_off, by = "mouseID") %>%
+  full_join(ChronicStress_off, by = "mouseID")
 
 # DAM DEMO FOR OFFSPRING --------------------------------------------------
 
@@ -225,13 +225,13 @@ Demo_off <- addDamDemoData(
 
 # COMBINE OFFSPRING DATA INTO ONE -----------------------------------------
 LBN_data <- Demo_off %>%
-  left_join(select(Mass_off, -ParaType), by = "Mouse_ID") %>%
-  # left_join(Maturation_off, by = "Mouse_ID") %>%
-  left_join(EndPara_off, by = "Mouse_ID") %>%
-  left_join(Cycles_off, by = "Mouse_ID") %>%
-  left_join(Cycles_off_extra, by = "Mouse_ID") %>%
-  left_join(AcuteStress_off, by = "Mouse_ID") %>%
-  left_join(ChronicStress_off, by = "Mouse_ID")
+  left_join(select(Mass_off, -ParaType), by = "mouseID") %>%
+  # left_join(Maturation_off, by = "mouseID") %>%
+  left_join(EndPara_off, by = "mouseID") %>%
+  left_join(Cycles_off, by = "mouseID") %>%
+  left_join(Cycles_off_extra, by = "mouseID") %>%
+  left_join(AcuteStress_off, by = "mouseID") %>%
+  left_join(ChronicStress_off, by = "mouseID")
 
 
 # ADD OFFSPRING DEMO DATA -------------------------------------------------
@@ -246,7 +246,7 @@ Mass_off <- Mass_off %>%
 Maturation_off <- Maturation_off %>%
   addOffspringDemoData() %>%
   left_join(Mass_off %>% select(
-    Mouse_ID,
+    mouseID,
     Mass_P22,
     Mass_P23,
     Mass_P24,
@@ -254,7 +254,7 @@ Maturation_off <- Maturation_off %>%
     Mass_P71,
     Mass_P72
     ),
-    by = "Mouse_ID"
+    by = "mouseID"
   ) %>%
   setUpMaturation() 
 
@@ -266,7 +266,7 @@ Cycles_off <- Cycles_off %>%
   countEstrousStageDays()
 
 Cycles_off_all <- Cycles_off %>%
-  left_join(Cycles_off_extra, by = "Mouse_ID")
+  left_join(Cycles_off_extra, by = "mouseID")
 
 AcuteStress_off <- AcuteStress_off %>%
   addOffspringDemoData() %>%
@@ -287,7 +287,7 @@ LH_off <- LH_off %>%
 LH_code <- LH_code %>%
   left_join(
     Sacrifice_off,
-    by = "Mouse_ID"
+    by = "mouseID"
   )%>%
   addOffspringDemoData() %>%
   combineStress()
@@ -297,19 +297,19 @@ LBN_all <- LBN_all %>%
   left_join(
     Maturation_off %>% 
       select(
-        Mouse_ID,
+        mouseID,
         AGD_wean:AGD_P72
       ), 
-    by = "Mouse_ID"
+    by = "mouseID"
   )
 
 LBN_data <- LBN_data %>%
   left_join(
     Maturation_off %>%
       select(
-        Mouse_ID,
+        mouseID,
         AGD_wean:AGD_P72
       ), 
-    by = "Mouse_ID"
+    by = "mouseID"
   )
 

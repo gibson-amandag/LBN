@@ -40,9 +40,9 @@ regExCycleFileName <- function(
   return(regEx)
 }
 regExUterinePicFileName <- function(
-  mouseID
+  MouseID
 ){
-  regEx <- paste0("^.*uterus-", mouseID, ".*\\.jpg$")
+  regEx <- paste0("^.*uterus-", MouseID, ".*\\.jpg$")
   return(regEx)
 }
 
@@ -54,7 +54,7 @@ addRegExForSamplingDF <- function(
 ){
   df <- samplingDF %>%
     select(
-      Mouse_ID,
+      mouseID,
       num_ID,
       Sac_date,
       Cohort,
@@ -75,7 +75,7 @@ addRegExForSamplingDF <- function(
       amRegEx = regExCycleFileName(Sac_date, num_ID),
       ayerRegEx = regExCycleFileName(Sac_date - 1, num_ID),
       anteAyerRegEx = regExCycleFileName(Sac_date - 2, num_ID),
-      uterinePicRegEx = regExUterinePicFileName(Mouse_ID)
+      uterinePicRegEx = regExUterinePicFileName(mouseID)
     )
   return(df)
 }
@@ -95,7 +95,7 @@ addRegExForSamplingDF <- function(
 findMatchingFile <- function(
   folderPath,
   regEx,
-  mouseID = NULL,
+  MouseID = NULL,
   type = NULL,
   searchSubFolders = TRUE
 ){
@@ -110,9 +110,9 @@ findMatchingFile <- function(
     perl = T
   )
   if(length(foundPaths) == 0){
-    print(paste0("no file found ", mouseID, " ", type))
+    print(paste0("no file found ", MouseID, " ", type))
   } else if(length(foundPaths) > 1){
-    print(paste0("multiple files found ", mouseID, " ", type))
+    print(paste0("multiple files found ", MouseID, " ", type))
     print(foundPaths)
   }
   path <- ifelse(length(foundPaths) > 0, foundPaths[1], NA)
@@ -126,10 +126,10 @@ addSamplingImgFilePaths <- function(
   df <- samplingDF_withRegEx %>%
     rowwise() %>%
     mutate(
-      AMPath = findMatchingFile(cyclingFolderPath, amRegEx, Mouse_ID, "AM pic"),
-      ayerPath = findMatchingFile(cyclingFolderPath, ayerRegEx, Mouse_ID, "yesterday pic"),
-      anteAyerPath = findMatchingFile(cyclingFolderPath, anteAyerRegEx, Mouse_ID, "2 days before pic"),
-      uterinePicPath = findMatchingFile(uterinePicFolder, uterinePicRegEx, Mouse_ID, "uterus pic")
+      AMPath = findMatchingFile(cyclingFolderPath, amRegEx, mouseID, "AM pic"),
+      ayerPath = findMatchingFile(cyclingFolderPath, ayerRegEx, mouseID, "yesterday pic"),
+      anteAyerPath = findMatchingFile(cyclingFolderPath, anteAyerRegEx, mouseID, "2 days before pic"),
+      uterinePicPath = findMatchingFile(uterinePicFolder, uterinePicRegEx, mouseID, "uterus pic")
     )
   return(df)
 }
@@ -230,7 +230,7 @@ addMouseFolderImgsTocyclePPT <- function(
 # Sampling Slide ----------------------------------------------------------
 
 createSamplingSlide <- function(
-  mouseID,
+  MouseID,
   cycleID,
   maxLH = NULL,
   uterineMass,
@@ -248,14 +248,14 @@ createSamplingSlide <- function(
   samplingPPT <- add_slide(samplingPPT, layout = paste0("samplingSlide", slideVersion))
   # print(amImgPath)
   
-  mouseLabel <- paste0(mouseID, " - ", cycleID)
+  mouseLabel <- paste0(MouseID, " - ", cycleID)
   maxLHLabel <- ifelse(!is.na(maxLH), paste0(maxLH, " ng/mL - ", trt), "")
   uterineMassLabel <- ifelse(!is.na(uterineMass), paste0(uterineMass, " mg"), "")
   
-  # print(paste("Mouse:", mouseID, "Start Day:", startCycleDay, "End Day:", endCycleDay))
+  # print(paste("Mouse:", MouseID, "Start Day:", startCycleDay, "End Day:", endCycleDay))
   cyclingPlot <- cyclingDF_long %>%
     filter(
-      Mouse_ID == mouseID,
+      mouseID == MouseID,
       day <= endCycleDay & day >= startCycleDay
     ) %>%
     plotCycleTraces_single()
@@ -353,7 +353,7 @@ addSamplingSlidesFromDF <- function(
     makeCyclesLong()
   pwalk(
     list(
-      mouseID = samplingDF$Mouse_ID,
+      MouseID = samplingDF$mouseID,
       cycleID = samplingDF$num_ID,
       maxLH = samplingDF$maxLH,
       trt = samplingDF$comboTrt,

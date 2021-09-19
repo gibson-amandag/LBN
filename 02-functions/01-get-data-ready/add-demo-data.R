@@ -31,7 +31,7 @@ addDamDemoData <- function(
 #' addOffspringDemoData
 #' 
 #' Add demographic data to an exisiting dataframe
-#' Relocates Mouse_ID, num_ID, sex,and earlyLifeTrt to the beginning of the df
+#' Relocates mouseID, num_ID, sex,and earlyLifeTrt to the beginning of the df
 #'
 #' @param df a dataframe to which you want to add demographic data
 #' @param offDemo_toAdd a dataframe that contains the demographic data that you wish to add
@@ -45,9 +45,9 @@ addOffspringDemoData <- function(
   offDemo_toAdd = Demo_off
 ){
   df <- df %>%
-    left_join(offDemo_toAdd, by = "Mouse_ID") %>%
+    left_join(offDemo_toAdd, by = "mouseID") %>%
     relocate( # move to start
-      Mouse_ID,
+      mouseID,
       num_ID,
       sex,
       earlyLifeTrt

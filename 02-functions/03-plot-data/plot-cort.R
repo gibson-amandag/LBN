@@ -14,13 +14,13 @@ cortPlot <- function(
     geom_line(
       alpha = 0.4,
       # color = "black",
-      aes(group = Mouse_ID, linetype = comboTrt, color = comboTrt),
+      aes(group = mouseID, linetype = comboTrt, color = comboTrt),
       position = position_dodge(1.2)
     ) +
     geom_point(
       # shape = 21, 
       alpha = 1, 
-      aes(fill=comboTrt,group=Mouse_ID, shape=comboTrt, color=comboTrt), 
+      aes(fill=comboTrt,group=mouseID, shape=comboTrt, color=comboTrt), 
       position = position_dodge(1.2), 
       size = pointSize
     ) +
@@ -62,12 +62,12 @@ baseCortPlot <- function(
     geom_line(
       alpha = 0.4,
       color = "black",
-      aes(group = Mouse_ID),
+      aes(group = mouseID),
       position = position_dodge(0.4)
     ) +
     geom_point(
       alpha = 1, 
-      aes(fill=comboTrt,group=Mouse_ID, shape=comboTrt, color=comboTrt), 
+      aes(fill=comboTrt,group=mouseID, shape=comboTrt, color=comboTrt), 
       position = position_dodge(0.4), 
       size = dotSize
       ) +
@@ -159,7 +159,7 @@ plotUterineMassByGroup <- function(
     geom_point(
       # shape = 21, 
       alpha = 1, 
-      aes(fill=comboTrt,group=Mouse_ID, shape=comboTrt), 
+      aes(fill=comboTrt,group=mouseID, shape=comboTrt), 
       position = position_dodge(0.4), 
       size = dotSize
     ) +
@@ -195,13 +195,13 @@ LHPlot <- function(
     geom_line(
       alpha = 0.4,
       color = "black",
-      aes(group = Mouse_ID),
+      aes(group = mouseID),
       position = position_dodge(0.4)
     ) +
     geom_point(
       # shape = 21, 
       alpha = 1, 
-      aes(fill=comboTrt,group=Mouse_ID, shape=comboTrt), 
+      aes(fill=comboTrt,group=mouseID, shape=comboTrt), 
       position = position_dodge(0.4), 
       size = dotSize
     ) +
