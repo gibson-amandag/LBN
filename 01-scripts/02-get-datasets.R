@@ -12,6 +12,7 @@ CohortCyclingFolder <- loadExcelSheet(dataFolder, LBN_DataName, "CohortCyclingFo
 Sacrifice_off <- loadExcelSheet(dataFolder, LBN_DataName, "Sacrifice_off")
 Cort_off <- loadExcelSheet(dataFolder, LBN_DataName, "Cort_off")
 LH_code <- loadExcelSheet(dataFolder, LBN_DataName, "LH_code")
+LH_random <- loadExcelSheet(dataFolder, LBN_DataName, "LH_random")
 LH_off <- loadExcelSheet(dataFolder, LBN_DataName, "LH_off")
 ChronicStress_off <- loadExcelSheet(dataFolder, LBN_DataName, "ChronicStress_off")
 CRH_dam <- loadExcelSheet(dataFolder, LBN_DataName, "CRH_dam")

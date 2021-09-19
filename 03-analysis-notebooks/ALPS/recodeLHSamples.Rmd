@@ -136,3 +136,79 @@ LH_code_all <- rbind(LH_code_morning, LH_code_afternoon) %>%
   arrange(sampleID)
 LH_code_all
 ```
+
+
+I used the order generated here to identify the number ID that corresponded with the group order to each treatment/cycle group. I added this to my LH_random table that I created in Excel, using a random sequence generator to put 10 proestrus samples and 6 diestrus samples on a plate
+
+```{r}
+LH_code_2ndLitters_ordered %>%
+  arrange(
+    comboTrt,
+    Sac_cycle,
+    plateOrder
+  )
+```
+
+```{r}
+LH_reordered <- LH_code_2ndLitters %>%
+  left_join(
+    LH_random %>% select(-comboTrt, Sac_cycle),
+    by = "num_ID"
+  ) %>%
+  relocate(
+    Order_total:Order_group,
+    .before = earlyLifeTrt
+  ) %>%
+  arrange(
+    Order_total,
+    time
+  ) %>%
+  mutate(
+    sampleID = row_number()
+  )
+mice_originalOrder <- AcuteStress_off %>%
+  filter(
+    Litter_num == 2,
+    sex == "F"
+  ) %>%
+  left_join(
+    LH_random %>% select(-comboTrt, Sac_cycle),
+    by = "num_ID"
+  ) %>%
+  relocate(
+    Order_total:Order_group,
+    .before = earlyLifeTrt
+  ) %>%
+  arrange(
+    Sac_date,
+    num_ID
+  ) %>%
+  mutate(
+    origMouseOrder = row_number(),
+    boxNumber = floor((origMouseOrder -1) / 9) + 5,
+    .after = num_ID
+  ) %>%
+  mutate(
+    boxNumber = ifelse(boxNumber < 9, boxNumber, boxNumber + 1)
+  )
+mice_originalOrder
+LH_reordered <- LH_reordered %>%
+  left_join(
+    mice_originalOrder %>% select(Mouse_ID, origMouseOrder, boxNumber),
+    by = "Mouse_ID"
+  ) %>%
+  relocate(
+    origMouseOrder,
+    boxNumber,
+    .after = sampleID
+  )
+saveDFsToExcel(
+  fileBaseName = "LH_reordered",
+  prefix = filePrefix,
+  addDate = dateToday,
+  saveFolder = dataOutputFolder,
+  LH_IDs = LH_reordered, # use sheetName = df, sheetName2 = df2, sheetName3 = df3 for each df you want to add to a new sheet
+  mice = mice_originalOrder
+  )
+```
+

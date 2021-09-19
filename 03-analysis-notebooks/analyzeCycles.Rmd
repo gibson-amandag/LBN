@@ -40,9 +40,10 @@ cycles_2ndLitter_LBN_plot <- plotCycleTraces(cyclesLong_2ndLitter %>% filter(ear
 flexSave(
   "cycles_2ndLitter_STD",
   plot = cycles_2ndLitter_STD_plot,
-  width = 10,
-  height = 7,
-  units = "in"
+  width = 11,
+  height = 8.5,
+  units = "in",
+  fileType = "png"
 )
 # ggsave(
 #   filename = paste0(filePrefix, "cycles_2ndLitter_STD.pdf"),
@@ -57,9 +58,10 @@ flexSave(
 flexSave(
   "cycles_2ndLitter_LBN",
   plot = cycles_2ndLitter_LBN_plot,
-  width = 10,
-  height = 7,
-  units = "in"
+  width = 11,
+  height = 8.5,
+  units = "in",
+  fileType = "png"
 )
 # ggsave(
 #   filename = paste0(filePrefix, "cycles_2ndLitter_LBN.pdf"),
@@ -86,14 +88,22 @@ cycles_2ndLitter_LBN_plot
 # Percent days in stage
 ```{r}
 cyclesPerc_long_2ndLitter <- makeCyclesPercLong(cycles_2ndLitter)
-cyclesPercPlot_2ndLitter <- plotCyclesPercent(cyclesPerc_long_2ndLitter)
+cyclesPercPlot_2ndLitter <- plotCyclesPercent(cyclesPerc_long_2ndLitter, fontSize = 16, dotSize = 2)
 cyclesPercPlot_2ndLitter
 flexSave(
-  "cycles_2ndLitter_percDaysStag",
+  "cycles_2ndLitter_percDaysStage",
   plot = cyclesPercPlot_2ndLitter,
   width = 5,
   height = 5,
   units = "in"
+)
+flexSave(
+  "cycles_2ndLitter_percDaysStage",
+  plot = cyclesPercPlot_2ndLitter,
+  width = 11,
+  height = 6,
+  units = "in",
+  fileType = "png"
 )
 # ggsave(
 #   filename = paste0(filePrefix, "cycles_2ndLitter_percDaysStage.pdf"),

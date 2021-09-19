@@ -527,6 +527,16 @@ femalesAcuteStress_2ndLitter %>%
     #Sac_cycle == "proestrus"
   ) %>%
   getStressTrtNumbers()
+
+# LH_code %>%
+#   filter(
+#     Litter_num == 2,
+#     Sac_cycle == "proestrus",
+#     comboTrt == "STD-ALPS"
+#   ) %>%
+#   arrange(
+#     Mouse_ID
+#   )
 ```
 
 ```{r}

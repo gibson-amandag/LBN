@@ -169,7 +169,8 @@ plotCyclesPercent <- function(
   addMedian = FALSE,
   medianColor = "red",
   medianAlpha = 0.7,
-  strip.position = "bottom"
+  strip.position = "bottom",
+  fontSize = 11
 ){
   viz <- df %>%
     ggplot(
@@ -189,7 +190,7 @@ plotCyclesPercent <- function(
     rremove(
       "legend"
     ) +
-    textTheme()+
+    textTheme(size = fontSize)+
     boxTheme()+
     rremove("xlab")
   
