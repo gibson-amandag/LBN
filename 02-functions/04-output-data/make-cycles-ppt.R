@@ -70,8 +70,8 @@ addRegExForSamplingDF <- function(
       ReproTract_mass
     ) %>%
     mutate(
-      endCycleDay = AgeInDays,
-      startCycleDay = ifelse(endCycleDay - 20 > 69, endCycleDay - 20, 70),
+      endCycleDay_pres = AgeInDays,
+      startCycleDay_pres = ifelse(endCycleDay_pres - 20 > 69, endCycleDay_pres - 20, 70),
       amRegEx = regExCycleFileName(Sac_date, num_ID),
       ayerRegEx = regExCycleFileName(Sac_date - 1, num_ID),
       anteAyerRegEx = regExCycleFileName(Sac_date - 2, num_ID),
@@ -239,8 +239,8 @@ createSamplingSlide <- function(
   prevDayImgPath,
   twoDayPrevImgPath,
   uterinePicPath,
-  startCycleDay,
-  endCycleDay,
+  startCycleDay_pres,
+  endCycleDay_pres,
   samplingPPT,
   cyclingDF_long,
   slideVersion = 2
@@ -252,13 +252,15 @@ createSamplingSlide <- function(
   maxLHLabel <- ifelse(!is.na(maxLH), paste0(maxLH, " ng/mL - ", trt), "")
   uterineMassLabel <- ifelse(!is.na(uterineMass), paste0(uterineMass, " mg"), "")
   
-  # print(paste("Mouse:", MouseID, "Start Day:", startCycleDay, "End Day:", endCycleDay))
+  # print(paste("Mouse:", MouseID, "Start Day:", startCycleDay_pres, "End Day:", endCycleDay_pres))
   cyclingPlot <- cyclingDF_long %>%
     filter(
       mouseID == MouseID,
-      day <= endCycleDay & day >= startCycleDay
+      pnd <= endCycleDay_pres & pnd >= startCycleDay_pres
     ) %>%
-    plotCycleTraces_single()
+    plotCycleTraces_single(
+      day = pnd
+    )
   
   samplingPPT <- ph_with(
     x = samplingPPT,
@@ -350,7 +352,9 @@ addSamplingSlidesFromDF <- function(
   slideVersion = 2
 ){
   cyclingDF_long <- cyclingDF %>%
-    makeCyclesLong()
+    makeCyclesLong() %>%
+    addPNDForCyles()
+  
   pwalk(
     list(
       MouseID = samplingDF$mouseID,
@@ -362,8 +366,8 @@ addSamplingSlidesFromDF <- function(
       prevDayImgPath = samplingDF$ayerPath,
       twoDayPrevImgPath = samplingDF$anteAyerPath,
       uterinePicPath = samplingDF$uterinePicPath,
-      startCycleDay = samplingDF$startCycleDay,
-      endCycleDay = samplingDF$endCycleDay
+      startCycleDay_pres = samplingDF$startCycleDay_pres,
+      endCycleDay_pres = samplingDF$endCycleDay_pres
     ),
     createSamplingSlide,
     samplingPPT = samplingPPT,

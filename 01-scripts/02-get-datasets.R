@@ -76,7 +76,11 @@ behaviorDFs <- list(
 
 CohortCyclingFolder <- CohortCyclingFolder %>%
   mutate(
-    cyclingFolderPath = ifelse(!is.na(CyclesFolder), file.path(LBN_ServerFolder, paste0("LBN_", sprintf("%04d", cohort)), CyclesFolder), NA)
+    cyclingFolderPath = ifelse(
+      is.na(CyclesFolder), 
+      NA,
+      file.path(LBN_ServerFolder, paste0("LBN_", sprintf("%04d", cohort)), CyclesFolder)
+    )
   )
 ## Format Dam Demo ------------------------------------------------------
 Demo_dam <- Demo_dam %>%
@@ -263,7 +267,10 @@ EndPara_off <- EndPara_off %>%
 
 Cycles_off <- Cycles_off %>%
   addOffspringDemoData() %>%
-  countEstrousStageDays()
+  countEstrousStageDays() %>%
+  mutate(
+    cycleStartDate = DOB + 70
+  )
 
 Cycles_off_all <- Cycles_off %>%
   left_join(Cycles_off_extra, by = "mouseID")

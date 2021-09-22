@@ -89,27 +89,27 @@ currentCompType <- Sys.getenv("COMP_TYPE")
 LBN_DataName <- "LBN_AGG_data.xlsx"
 
 #Where data files are saved
-dataFolder <- Sys.getenv("DATA_FOLDER")
+dataFolder <- normalizePath(Sys.getenv("DATA_FOLDER"))
 
-LBN_0004_CyclingFolder <- Sys.getenv("LBN_0004_CYCLING_FOLDER")
-LBN_0006_CyclingFolder <- Sys.getenv("LBN_0006_CYCLING_FOLDER")
+LBN_0004_CyclingFolder <- normalizePath(Sys.getenv("LBN_0004_CYCLING_FOLDER"))
+LBN_0006_CyclingFolder <- normalizePath(Sys.getenv("LBN_0006_CYCLING_FOLDER"))
 
-LBN_ServerFolder <- Sys.getenv("LBN_SERVER_FOLDER")
-LBN_uterinePicsFolder <- file.path(LBN_ServerFolder, "uterinePics")
+LBN_ServerFolder <- normalizePath(Sys.getenv("LBN_SERVER_FOLDER"))
+LBN_uterinePicsFolder <- normalizePath(file.path(LBN_ServerFolder, "uterinePics"))
 
 #Where output should be saved
-outputFolder <- Sys.getenv("OUTPUT_FOLDER")
+outputFolder <- normalizePath(Sys.getenv("OUTPUT_FOLDER"))
 
-dataOutputFolder <- file.path(outputFolder, "data")
-plotOutputFolder <- file.path(outputFolder, "plots")
-reportOutputFolder <- file.path(outputFolder, "reports")
+dataOutputFolder <- normalizePath(file.path(outputFolder, "data"))
+plotOutputFolder <- normalizePath(file.path(outputFolder, "plots"))
+reportOutputFolder <- normalizePath(file.path(outputFolder, "reports"))
 
 #Where R script files are saved
-scriptsFolder <- file.path("01-scripts")
-appScriptsFolder <- file.path(scriptsFolder, "appScripts")
+scriptsFolder <- normalizePath(file.path("01-scripts"))
+appScriptsFolder <- normalizePath(file.path(scriptsFolder, "appScripts"))
 
 #Where Function files are saved
-functionsFolder <- file.path("02-functions")
+functionsFolder <- normalizePath(file.path("02-functions"))
 
 functionFiles <- list.files(
   functionsFolder, 

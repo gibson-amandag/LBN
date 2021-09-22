@@ -15,6 +15,7 @@ source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
 ```
 
+
 ```{r}
 varName = "ReproTract_mass"
 AcuteStress_off %>%
@@ -979,5 +980,21 @@ meanSummary(
 )
 
 max(LBN_data %>% select(Mass_P15), na.rm = TRUE)
+```
+```{r}
+path <- CohortCyclingFolder$cyclingFolderPath[which(CohortCyclingFolder$cohort == 4)]
+path
+```
+```{r}
+files <- dir_ls(
+          normalizePath(path),
+          all = TRUE,
+          recurse = TRUE,
+          type = "any",
+          glob = "*0001.jpg"
+        ) 
+sortOrder <- files %>% path_file() %>% order()
+
+files[sortOrder]
 ```
 
