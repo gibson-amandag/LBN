@@ -18,6 +18,8 @@ if(!require(remotes)) install.packages('remotes')
 if(!require(fs)) install.packages('fs') # with tidyverse?
 if(!require(DT)) install.packages('DT')
 if(!require(Cairo)) install.packages('Cairo')
+if(!require(colourpicker)) install.packages('colourpicker')
+if(!require(shinyFiles)) install.packages('shinyFiles')
 
 
 #### Load Libraries ##############################
@@ -40,6 +42,7 @@ library(flextable)
 library(fs)
 library(DT)
 library(Cairo)
+library(colourpicker)
   # Save a PDF - in ggsave, device = cairo_pdf on Windows
   # https://r-graphics.org/recipe-output-fonts-pdf - even when following these
   # steps (downloaded Ghostscript, added to environment, embedded fonts), the

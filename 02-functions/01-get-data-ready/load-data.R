@@ -26,3 +26,16 @@ loadExcelSheet = function(folderPath, fileName, sheetName){
     na.strings = "NA"
   )
 }
+
+loadExcelSheet_fromFile = function(filePath, sheetName){
+  read.xlsx(
+    filePath,
+    sheet = sheetName,
+    colNames = TRUE,
+    rowNames = FALSE,
+    detectDates = TRUE,
+    skipEmptyRows = TRUE,
+    skipEmptyCols = TRUE,
+    na.strings = "NA"
+  )
+}

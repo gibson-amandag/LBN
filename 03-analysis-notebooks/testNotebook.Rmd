@@ -909,4 +909,75 @@ flexSave("myPlot", fileType = "pdf", filePath = ".")
 # loadfonts(device = "pdf")
 ```
 
+```{r}
+lineColorStr = "earlyLifeTrt"
+lineColor = expr(!! sym("earlyLifeTrt"))
+lineColor = NULL
+Cycles_off %>%
+  filter(
+    cohort == 4
+  ) %>%
+  makeCyclesLong() %>%
+  plotCycleTraces(
+    day = day,
+    # lineColorVar = !! sym(lineColorStr),
+    lineColorVar = !! lineColor,
+    colorLimits = unique(Cycles_off[["earlyLifeTrt"]]),
+    colorValues = viridis_pal()(length(unique(Cycles_off[["earlyLifeTrt"]])))
+    # colorKey = list(limits = c("STD", "LBN"), values = rainbow(2))
+  )
+
+unique(Cycles_off[["damID"]])
+
+Cycles_off %>%
+  select(where(~ is.character(.x) | is.factor(.x)))
+
+
+cycles_long() %>%
+          plotCycleTraces(
+            day = .data[[input$xVar]],
+            lineColorVar = .data[[input$lineColorVar]],
+            colorKey = c(limits = c("negative", "hetero"),
+                              # unique(.data[[input$lineColorVar]]), 
+                            values = rainbow(2)
+                              # rainbow(length(unique(.data[[input$lineColorVar]])))
+                            ),
+            removeFacets = FALSE,
+            removeLegend = TRUE,
+            scales = "free_x"
+          )
+
+testggPlot <- function(
+  df,
+  yVar,
+  yLab
+){
+  viz <- df %>%
+    ggplot(
+      aes(
+        x = earlyLifeTrt,
+        y = {{ yVar }}
+      )
+    ) +
+    geom_jitter()
+  return(viz)
+}
+
+LBN_data %>%
+  filter(
+    cohort == 4
+  ) %>%
+  testggPlot(
+    # yVar = !! sym("Mass_P15"),
+    yVar = ,
+    yLab = "mass (g)"
+  )
+
+meanSummary(
+  LBN_data %>%filter(cohort == 4),
+  "Mass_P15"
+)
+
+max(LBN_data %>% select(Mass_P15), na.rm = TRUE)
+```
 

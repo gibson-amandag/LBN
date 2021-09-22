@@ -1,4 +1,4 @@
-makeCyclesLong <- function(df){
+makeCyclesLong <- function(df, afterVar = earlyLifeTrt){
   df_long <- df %>%
     pivot_longer(
       cols = starts_with("Day"),
@@ -12,7 +12,7 @@ makeCyclesLong <- function(df){
     relocate(
       day,
       stage,
-      .after = earlyLifeTrt
+      .after = {{ afterVar }}
     ) %>%
     mutate(
       stageName = case_when(
@@ -60,23 +60,31 @@ plotCycleTraces <- function(
   ncol = NULL,
   nrow = NULL,
   lineColorVar = earlyLifeTrt,
-  colorKey = c("STD" = "grey", "LBN" = "black"),
+  # colorKey = c("STD" = "grey", "LBN" = "black"),
+  colorLimits = c("STD", "LBN"),
+  colorValues = c("grey", "black"),
   removeFacets = FALSE,
-  removeLegend = TRUE
+  removeLegend = TRUE,
+  scales = "fixed"
 ){
   viz <- ggplot(df, aes(x = {{ day }}, y = {{ stage }}, color = {{ lineColorVar }})) +
     geom_line() +
     facet_wrap(
       vars( {{ MouseID }} ),
       ncol = ncol,
-      nrow = nrow
+      nrow = nrow,
+      scales = scales
     ) +
     scale_y_continuous(
       breaks = c(1, 2, 3), #axis ticks only at 1, 2, 3
       labels = c("E", "D", "P") #replace with E, D, and P
     ) +
     scale_x_continuous(
-      breaks = seq(70, 150, 3) #labels every third integer
+      breaks = seq(
+        1,
+        400,
+        3
+      ) #labels every third integer
     ) +
     expand_limits(
       y = 0
@@ -88,7 +96,8 @@ plotCycleTraces <- function(
     boxTheme()
   
   if(!is.null(enquo(lineColorVar))){
-    viz <- viz + scale_color_manual(values = colorKey)
+    viz <- viz + scale_color_manual(limits = colorLimits, values = colorValues)
+      # values = colorKey)
   }
   
   if(removeLegend == TRUE) {
@@ -113,7 +122,9 @@ plotCycleTraces_single <- function(
   ncol = NULL,
   nrow = NULL,
   lineColorVar = earlyLifeTrt,
-  colorKey = c("STD" = "grey", "LBN" = "black"),
+  # colorKey = c("STD" = "grey", "LBN" = "black"),
+  colorLimits = c("STD", "LBN"),
+  colorValues = c("grey", "black"),
   removeFacets = FALSE,
   removeLegend = TRUE
 ){
@@ -141,7 +152,7 @@ plotCycleTraces_single <- function(
     boxTheme()
   
   if(!is.null(enquo(lineColorVar))){
-    viz <- viz + scale_color_manual(values = colorKey)
+    viz <- viz + scale_color_manual(limits = colorLimits, values = colorValues)
   }
   
   if(removeLegend == TRUE) {
