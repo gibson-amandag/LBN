@@ -138,7 +138,7 @@ t_test(Proestrus_days ~ earlyLifeTrt)
 
 ## Cohort 4
 ```{r}
-LBN_0004_CyclingFolder <- cohortCyclingFolder$cyclingFolderPath[cohortCyclingFolder$cohort == 4]
+LBN_0004_CyclingFolder <- CohortCyclingFolder$cyclingFolderPath[CohortCyclingFolder$cohort == 4]
 
 LBN_0004_Folders <- Cycles_off %>%
   filter(
@@ -175,7 +175,7 @@ print(LBN_0004_cyclePPT, file.path(reportOutputFolder, "cyclePPTS", "LBN_0004_cy
 
 ## Cohort 5
 ```{r}
-LBN_0005_CyclingFolder <- cohortCyclingFolder$cyclingFolderPath[cohortCyclingFolder$cohort == 5]
+LBN_0005_CyclingFolder <- CohortCyclingFolder$cyclingFolderPath[CohortCyclingFolder$cohort == 5]
 
 LBN_0005_Folders <- Cycles_off %>%
   filter(

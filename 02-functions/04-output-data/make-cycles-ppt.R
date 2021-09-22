@@ -137,11 +137,11 @@ addSamplingImgFilePaths <- function(
 # Search Directory ---------------------------------------------------------------
 
 getMouseCycleImgPaths <- function(
-  cohortCyclingFolderPath,
+  CohortCyclingFolderPath,
   mouseFolderName
 ){
   cycleImgPaths <- dir_ls(
-    path = file.path(cohortCyclingFolderPath, mouseFolderName),
+    path = file.path(CohortCyclingFolderPath, mouseFolderName),
     all = FALSE,
     recurse = FALSE,
     type = "file",
@@ -209,12 +209,12 @@ addImgsToCyclePPT <- function(
 
 addMouseFolderImgsTocyclePPT <- function(
   mouseFolder,
-  cohortCyclingFolderPath,
+  CohortCyclingFolderPath,
   cyclePPT,
   numPerSlide = 12
 ){
   cyclingImgPaths <- getMouseCycleImgPaths(
-    cohortCyclingFolderPath = cohortCyclingFolderPath, 
+    CohortCyclingFolderPath = CohortCyclingFolderPath, 
     mouseFolderName = mouseFolder
   )
   cyclePPT <- addImgsToCyclePPT(

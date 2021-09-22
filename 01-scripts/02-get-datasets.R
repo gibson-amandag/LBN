@@ -8,7 +8,7 @@ Maturation_off <- loadExcelSheet(dataFolder, LBN_DataName, "Maturation_off")
 EndPara_off <- loadExcelSheet(dataFolder, LBN_DataName, "EndParadigm_off")
 Cycles_off <- loadExcelSheet(dataFolder, LBN_DataName, "Cycles_off")
 Cycles_off_extra <- loadExcelSheet(dataFolder, LBN_DataName, "Cycles_off_extra")
-cohortCyclingFolder <- loadExcelSheet(dataFolder, LBN_DataName, "cohortCyclingFolder")
+CohortCyclingFolder <- loadExcelSheet(dataFolder, LBN_DataName, "CohortCyclingFolder")
 Sacrifice_off <- loadExcelSheet(dataFolder, LBN_DataName, "Sacrifice_off")
 Cort_off <- loadExcelSheet(dataFolder, LBN_DataName, "Cort_off")
 LH_code <- loadExcelSheet(dataFolder, LBN_DataName, "LH_code")
@@ -53,7 +53,7 @@ Maturation_off <- makeFactors(Maturation_off, mouseID)
 EndPara_off <- makeFactors(EndPara_off, mouseID)
 Cycles_off <- makeFactors(Cycles_off, mouseID)
 Cycles_off_extra <- makeFactors(Cycles_off_extra, mouseID)
-cohortCyclingFolder <- makeFactors(cohortCyclingFolder, cohort)
+CohortCyclingFolder <- makeFactors(CohortCyclingFolder, cohort)
 Sacrifice_off <- Sacrifice_off %>%
   orderAdultTrt() %>%
   makeFactors(c(mouseID, adultTrt)) %>%
@@ -74,7 +74,7 @@ behaviorDFs <- list(
   behavior_ZT19
 )
 
-cohortCyclingFolder <- cohortCyclingFolder %>%
+CohortCyclingFolder <- CohortCyclingFolder %>%
   mutate(
     cyclingFolderPath = ifelse(!is.na(CyclesFolder), file.path(LBN_ServerFolder, paste0("LBN_", sprintf("%04d", cohort)), CyclesFolder), NA)
   )
@@ -82,7 +82,7 @@ cohortCyclingFolder <- cohortCyclingFolder %>%
 Demo_dam <- Demo_dam %>%
   mutate(pupLoss = Litter_size_startPara - Litter_size_endPara) %>%
   convertStartPara() %>%
-  left_join(cohortCyclingFolder, by = "cohort")
+  left_join(CohortCyclingFolder, by = "cohort")
 
 # DAM BEHAVIOR ------------------------------------------------------------
 
@@ -207,7 +207,7 @@ Demo_dam_for_offspring <- Demo_dam %>%
     Mass_P2,
     Mass_P4,
     dam,
-    Dam_cage, 
+    damCage, 
     damStrain,
     strain,
     sire, 

@@ -153,11 +153,11 @@ for(path in cycleImgPaths){
 
 ```{r}
 getMouseCycleImgPaths <- function(
-  cohortCyclingFolderPath,
+  CohortCyclingFolderPath,
   mouseFolderName
 ){
   cycleImgPaths <- dir_ls(
-    path = file.path(cohortCyclingFolderPath, mouseFolderName),
+    path = file.path(CohortCyclingFolderPath, mouseFolderName),
     all = FALSE,
     recurse = FALSE,
     type = "file",
@@ -253,12 +253,12 @@ cohort4Folders
 ```{r}
 addMouseFolderImgsTocyclePPT <- function(
   mouseFolder,
-  cohortCyclingFolderPath,
+  CohortCyclingFolderPath,
   cyclePPT,
   numPerSlide = 12
 ){
   cyclingImgPaths <- getMouseCycleImgPaths(
-    cohortCyclingFolderPath = cohortCyclingFolderPath, 
+    CohortCyclingFolderPath = CohortCyclingFolderPath, 
     mouseFolderName = mouseFolder
   )
   cyclePPT <- addImgsToCyclePPT(
