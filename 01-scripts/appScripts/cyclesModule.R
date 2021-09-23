@@ -58,6 +58,17 @@ cyclesUI <- function(id){
         fluidRow(
           column(
             4,
+            sliderInput(
+              ns("cycleDays"),
+              "Select Days",
+              min = 1,
+              max = 100,
+              step = 1,
+              value = c(1, 100)
+            )
+          ),
+          column(
+            4,
             downloadButton(
               ns("downloadCyclePlot"),
               "Download current plot"
@@ -140,12 +151,36 @@ cyclesServer <- function(
         return(df)
       })
       
-      cycles_long <- reactive({
+      observeEvent(cycles_react(), {
+        req(cycles_react())
+        df <- cycles_react()
+      })
+      
+      observe({
         req(Cycles_off, input$groupingVar)
-        df <- cycles_react() %>%
+        df <- Cycles_off %>%
           makeCyclesLong(afterVar = cycleStartDate) %>%
           addPNDForCyles()
-        
+        minDay <- min(df$day, na.rm = TRUE)
+        maxDay <- max(df$day, na.rm = TRUE)
+        updateSliderInput(
+          session = session,
+          "cycleDays",
+          min = minDay,
+          max = maxDay,
+          value = c(minDay, maxDay)
+        )
+      })
+      
+      cycles_long <- reactive({
+        req(Cycles_off, input$groupingVar)
+        # print(input$cycleDays[1])
+        df <- cycles_react() %>%
+          makeCyclesLong(afterVar = cycleStartDate) %>%
+          addPNDForCyles()%>%
+          filter(
+            day >= input$cycleDays[1] & day <= input$cycleDays[2]
+          )
         return(df)
       })
       
