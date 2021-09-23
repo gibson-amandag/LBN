@@ -21,7 +21,7 @@ LBNCyclesUI <- function(id, off_data){
         )
       )
     ),
-    dataTableOutput(ns("testTable")),
+    # dataTableOutput(ns("testTable")),
     cyclesUI(ns("cycles"))
   )
 }
@@ -32,7 +32,8 @@ LBNCyclesServer <- function(
   damInfo,
   offspringInfo,
   Cycles_off,
-  CohortCyclingFolder
+  CohortCyclingFolder,
+  compType
 ){
   moduleServer(
     id,
@@ -70,7 +71,8 @@ LBNCyclesServer <- function(
           cycleDir(),
           damInfo,
           offspringInfo,
-          cycles_react()
+          cycles_react(),
+          compType
         )
       })
       

@@ -166,9 +166,10 @@ server <- function(input, output) {
                     damInfo = Demo_dam,
                     offspringInfo = Demo_off,
                     Cycles_off = Cycles_off_all,
-                    CohortCyclingFolder = CohortCyclingFolder)
+                    CohortCyclingFolder = CohortCyclingFolder,
+                    compType = currentCompType)
     samplingPPTsServer("samplingPPTs", dateToday, AcuteStress_off, LBN_data, Cycles_off_all)
-    uploadCyclesServer("uploadCycles")
+    uploadCyclesServer("uploadCycles", compType = currentCompType)
 
 }
 

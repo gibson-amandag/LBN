@@ -38,7 +38,8 @@ uploadCyclesUI <- function(id){
 
 
 uploadCyclesServer <- function(
-  id
+  id,
+  compType
 ){
   moduleServer(
     id,
@@ -88,7 +89,8 @@ uploadCyclesServer <- function(
           cycleDir(),
           damInfo(),
           offspringInfo(),
-          cycles_react()
+          cycles_react(),
+          compType
         )
       })
       
