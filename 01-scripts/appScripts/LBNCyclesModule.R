@@ -10,8 +10,8 @@ LBNCyclesUI <- function(id, off_data){
   ns <- NS(id)
   tagList(
     fluidRow(
-      column(
-        4,
+      div(
+        class = "col-xs-3 col-sm-4",
         selectInput(
           ns("cohort"),
           "Which cohorts?",

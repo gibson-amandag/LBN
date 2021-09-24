@@ -11,7 +11,7 @@ library(shiny)
 
 source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
-library(shinyFiles)
+# library(shinyFiles)
 
 moduleFiles <- list.files(
     appScriptsFolder, 
@@ -29,6 +29,34 @@ ui <- navbarPage(
     
     tabPanel(
         "Analysis",
+        tags$body(
+            # Note the wrapping of the string in HTML()
+            tags$style( # This keeps the nav bar as a single line instead of wasting space with each panel as a line on small screen
+                HTML("
+                    .navbar-header, .navbar-nav, .navbar-nav>li {
+                        float: left;
+                    }
+                    
+                    .navbar-nav{
+                        margin: 0px
+                    }
+                    
+                    .navbar-nav>li>a {
+                        padding-top: 15px;
+                        padding-bottom: 15px;
+                    }
+                    
+                    .container-fluid>.navbar-collapse, .container-fluid>.navbar-header, .container>.navbar-collapse, .container>.navbar-header{
+                        margin-right: 0;
+                        margin-left: 0;
+                    }
+                    
+                     .navbar>.container .navbar-brand, .navbar>.container-fluid .navbar-brand {
+                        margin-left: -15px;
+                    }
+                     ")
+               )
+        ),
         titlePanel("LBN Analysis"),
         tabsetPanel(
             ### Dams --------

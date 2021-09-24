@@ -63,7 +63,8 @@ addRegExForSamplingDF <- function(
       cyclingFolderPath,
       ReproTract_mass,
       maxLH,
-      AgeInDays
+      AgeInDays,
+      cycleStartDate
     ) %>%
     arrange(
       if(arrangeByCycle) Sac_cycle,
@@ -245,6 +246,7 @@ createSamplingSlide <- function(
   cyclingDF_long,
   slideVersion = 2
 ){
+  print(paste0(MouseID))
   samplingPPT <- add_slide(samplingPPT, layout = paste0("samplingSlide", slideVersion))
   # print(amImgPath)
   
@@ -256,10 +258,10 @@ createSamplingSlide <- function(
   cyclingPlot <- cyclingDF_long %>%
     filter(
       mouseID == MouseID,
-      pnd <= endCycleDay_pres & pnd >= startCycleDay_pres
+      PND <= endCycleDay_pres & PND >= startCycleDay_pres
     ) %>%
     plotCycleTraces_single(
-      day = pnd
+      day = PND
     )
   
   samplingPPT <- ph_with(
@@ -351,6 +353,7 @@ addSamplingSlidesFromDF <- function(
   samplingPPT,
   slideVersion = 2
 ){
+  print("addSamplingSlidesFromDF")
   cyclingDF_long <- cyclingDF %>%
     makeCyclesLong() %>%
     addPNDForCyles()

@@ -19,7 +19,7 @@ if(!require(fs)) install.packages('fs') # with tidyverse?
 if(!require(DT)) install.packages('DT')
 if(!require(Cairo)) install.packages('Cairo')
 if(!require(colourpicker)) install.packages('colourpicker')
-if(!require(shinyFiles)) install.packages('shinyFiles')
+# if(!require(shinyFiles)) install.packages('shinyFiles')
 
 
 #### Load Libraries ##############################

@@ -117,7 +117,13 @@ plotByUterineMass <- function(
   yVar,
   yLab,
   fontSize = 11,
-  dotSize = 1.2
+  dotSize = 1.2,
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL
 ){
   plot <- df %>%
     ggplot(
@@ -131,6 +137,7 @@ plotByUterineMass <- function(
     ) +
     geom_jitter(size = dotSize) +
     expand_limits(x = 0, y = 0) +
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
     labs(x = "uterine mass (mg)", y = yLab)+
     comboTrtFillShape()+
     theme_pubr()+
@@ -182,7 +189,13 @@ plotUterineMassByGroup <- function(
 LHPlot <- function(
   df_long,
   fontSize = 11,
-  dotSize = 1.2
+  dotSize = 1.2,
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL
 ){
   ggplot(
     df_long,
@@ -214,5 +227,27 @@ LHPlot <- function(
     ) +
     textTheme(size = fontSize)+
     boxTheme()+
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) + #this just zooms in on the graph, versus scale_[]_continuous actually eliminates data not in the range
     guides(linetype = "none")
+}
+
+propSurgedPlot <- function(
+  df,
+  xVar = comboTrt,
+  fontSize = 11
+){
+  viz <- ggplot(df, aes(x = {{ xVar }}, fill = surged))+
+    geom_bar(position = "fill", color = "black") +
+    geom_text(aes(label = ..count..), stat = "count", vjust = 1.3, colour = "darkgrey", position = "fill")+
+    labs(y = "proportion with LH surge") + 
+    scale_fill_manual(values = c("white", "black")) +
+    # facet_wrap("comboTrt",
+    #            strip.position = "bottom"
+    # ) +
+    theme_pubr() +
+    textTheme(size = fontSize)+
+    boxTheme()+
+    rremove("legend") +
+    rremove("xlab")
+  return(viz)
 }

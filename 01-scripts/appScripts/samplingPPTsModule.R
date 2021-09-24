@@ -174,6 +174,7 @@ samplingPPTsServer <- function(
           "samplingPPT.pptx"
         },
         content = function(file) {
+          print("Starting to download")
          samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
           samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
           samplingPPT <- ph_with(

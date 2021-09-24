@@ -13,12 +13,12 @@ acuteStressUI <- function(id,
     filteringDFUI(ns("ALPS_filter"), AcuteStress_off),
 
     fluidRow(
-      column(
-        4,
+      div(
+        class = "col-xs-4",
         numericInput(
           ns("proUterineCutoff"),
           "Uterine mass (mg) min for proestrus:",
-          value = 135
+          value = 125
         ),
         numericInput(
           ns("diUterineCutoff"),
@@ -26,8 +26,8 @@ acuteStressUI <- function(id,
           value = 100
         )
       ),
-      column(
-        4,
+      div(
+        class = "col-xs-4",
         radioButtons(
           ns("cycleStage"),
           "Which stages?",
@@ -40,14 +40,13 @@ acuteStressUI <- function(id,
           value = TRUE
         ),
       ),
-      column(
-        4,
+      div(
+        class = "col-xs-4",
         numericInput(
           ns("dotSize"),
           "Dot size",
           value = 2
         )
-        # p("Currently have it set so that intended stage and mass have to match for selected stage")
       )
     ),
     
@@ -57,76 +56,26 @@ acuteStressUI <- function(id,
       ## Uterine Mass ---------------------------------------------------
       tabPanel(
         "Uterine Mass By Trt",
-        plotOutput(
-          ns("uterineMassByTrt"),
-          click = ns("uterineMassByTrt_click")
-        ),
-        verbatimTextOutput(
-          ns("uterineMassByTrt_infoText")
-        ),
-        shiny::dataTableOutput(ns("uterineMassByTrt_info")),
-        p("Click on a row in the table to exclude from plot"),
-        DTOutput(ns("uterineMassByTrt_table"))
+        uterineMassByTrtUI(ns("uterineMassByTrt"), AcuteStress_off)
       ),
       tabPanel(
         "By Uterine Mass",
-        fluidRow(
-          column(
-            4,
-            varSelectInput(
-              ns("uterineMass_yVar"),
-              "Select y-variable",
-              AcuteStress_off %>%
-                select(
-                  maxLH,
-                  starts_with("cort_hr"),
-                  starts_with("LH_hr")
-                )
-            )
-          ),
-          column(
-            4,
-            selectInput(
-              ns("earlyLifeTrt"),
-              "Which early-life treatment groups?",
-              choices = unique(AcuteStress_off$earlyLifeTrt), # Changed from levels to unique
-              multiple = TRUE,
-              selected = unique(AcuteStress_off$earlyLifeTrt)
-            )
-          ),
-          column(
-            4,
-            selectInput(
-              ns("adultTrt"),
-              "Which adult treatment groups?",
-              choices = unique(AcuteStress_off$adultTrt),
-              multiple = TRUE,
-              selected = unique(AcuteStress_off$adultTrt),
-            )
-          )
-        ),
-        plotOutput(
-          ns("plotByUterineMass"),
-          click = ns("plotByUterineMass_click")
-        ),
-        verbatimTextOutput(
-          ns("plotByUterineMass_info")
-        ),
-        p("Click on a row in the table to exclude from plot"),
-        DTOutput(ns("plotByUterineMass_table"))
+        byUterineMassUI(ns("byUterineMass"), AcuteStress_off)
       ),
 
       ## LH Profile --------------------------------------------------------------
 
       tabPanel(
         "LH Profile",
-        plotOutput(
-          ns("LHprofile"),
-          click = ns("LHprofile_click")
-        ),
-        verbatimTextOutput(
-          ns("LHprofile_info")
-        )
+        LHprofileUI(ns("LHprofile"))
+        # zoomAxisUI(ns("LHprofile_zoom_y"), "y"),
+        # plotOutput(
+        #   ns("LHprofile"),
+        #   click = ns("LHprofile_click")
+        # ),
+        # verbatimTextOutput(
+        #   ns("LHprofile_info")
+        # )
       ),
       
       ## Corticosterone ----------------------------------------------------------
@@ -134,8 +83,8 @@ acuteStressUI <- function(id,
       tabPanel(
         "Corticosterone",
         fluidRow(
-          column(
-            4,
+          div(
+            class = "col-xs-4",
             checkboxInput(
               ns("cortPlotLong"),
               "Use long cort plot style",
@@ -184,8 +133,8 @@ acuteStressUI <- function(id,
       tabPanel(
         "masses",
         fluidRow(
-          column(
-            4,
+          div(
+            class = "col-xs-4",
             varSelectInput(
               ns("massVar"),
               "Select variables to summarize",
@@ -197,7 +146,8 @@ acuteStressUI <- function(id,
                   Gonad_mass,
                   Gonad_mass_perBody_g,
                   Adrenal_mass,
-                  Adrenal_mass_perBody_g
+                  Adrenal_mass_perBody_g,
+                  maxLH
                 )
             )
           )
@@ -234,8 +184,8 @@ acuteStressUI <- function(id,
       tabPanel(
         "summary tables",
         fluidRow(
-          column(
-            4,
+          div(
+            class = "col-xs-4",
             varSelectInput(
               ns("summaryVars"),
               "Select variables to summarize",
@@ -307,193 +257,128 @@ acuteStressServer <- function(
         }
         return(df)
       }
-
-      ## Uterine Mass By Trt---------------------------------------------
-      AcuteStress_femaleCBA_mass_react <- reactive({
-        df <- AcuteStress_off_react() %>%
-          filter(
-            sex == "F",
-            damStrain == "CBA",
-            !is.na(ReproTract_mass)
-          ) %>%
-          filterByCycleStage()
-        return(df)
-      })
-
-      output$uterineMassByTrt <- renderPlot({
-        AcuteStress_femaleCBA_mass_react() %>%
-          filter(
-            ! (row_number() %in% input$uterineMassByTrt_table_rows_selected)
-          ) %>%
-          plotUterineMassByGroup(
-            hLineVal = input$proUterineCutoff,
-            fontSize = 16,
-            dotSize = input$dotSize
-          ) +
-          geom_hline(
-            yintercept = input$diUterineCutoff,
-            color = "blue"
-          )
-      })
-
-      output$uterineMassByTrt_infoText <- renderPrint({
-        if(is.null(input$uterineMassByTrt_click$y)){
-          "Click on a point to display values"
-        }else(
-          paste0(
-            "Looking for values between ", #one binwidth +/- click y value
-            round(input$uterineMassByTrt_click$y - 2, 3),
-            " and ",
-            round(input$uterineMassByTrt_click$y + 2, 3)
-          )
-        )
-      })
       
-      output$uterineMassByTrt_info <- shiny::renderDataTable({
-        if(!is.null(input$uterineMassByTrt_click$y)){
-          AcuteStress_femaleCBA_mass_react() %>%
-            filter(
-              ! (row_number() %in% input$uterineMassByTrt_table_rows_selected),
-              near(ReproTract_mass, input$uterineMassByTrt_click$y, tol = 2)
-            ) %>%
-            select(
-              mouseID,
-              num_ID,
-              earlyLifeTrt,
-              adultTrt,
-              Sac_cycle,
-              ReproTract_mass,
-              maxLH
-            )
-        }
-      })
-
-      output$uterineMassByTrt_table <- renderDT({
-        AcuteStress_femaleCBA_mass_react() %>%
-          select(
-            mouseID,
-            num_ID,
-            earlyLifeTrt,
-            adultTrt,
-            Sac_cycle,
-            ReproTract_mass
-          )
-      })
-      ## By Uterine Mass ---------------------------------------------
       AcuteStress_femaleCBA_react <- reactive({
         df <- AcuteStress_off_react() %>%
           filter(
             sex == "F",
-            damStrain == "CBA",
-            !is.na(!! input$uterineMass_yVar),
-            earlyLifeTrt %in% as.character(input$earlyLifeTrt),
-            adultTrt %in% as.character(input$adultTrt)
+            damStrain == "CBA"
+          ) %>%
+          filterByCycleStage()
+        return(df)
+      })
+      
+      LH_femalesCBA_react <- reactive({
+        df <- LH_off_react() %>%
+          filter(
+            sex == "F",
+            damStrain == "CBA"
           ) %>%
           filterByCycleStage()
         return(df)
       })
 
-      output$plotByUterineMass <- renderPlot({
-        if(input$uterineMass_yVar == "maxLH"){
-          yLabText <- "max evening LH (ng/mL)"
-        }else if(grepl("^cort_", input$uterineMass_yVar)){
-          yLabText <- "corticosterone (ng/mL)"
-        }else if(grepl("^LH_", input$uterineMass_yVar)){
-          yLabText <- "LH (ng/mL)"
-        }
-        print(yLabText)
-        AcuteStress_femaleCBA_react() %>%
+      ## Uterine Mass By Trt---------------------------------------------
+      AcuteStress_femaleCBA_mass_react <- reactive({
+        df <- AcuteStress_femaleCBA_react() %>%
           filter(
-            ! (row_number() %in% input$plotByUterineMass_table_rows_selected)
-          ) %>%
-          plotByUterineMass(
-            yVar = !! input$uterineMass_yVar,
-            yLab = yLabText,
-            fontSize = 16,
-            dotSize = input$dotSize
-          ) +
-          geom_vline(
-            xintercept = input$proUterineCutoff,
-            color = "red"
-          ) +
-          geom_vline(
-            xintercept = input$diUterineCutoff,
-            color = "blue"
+            !is.na(ReproTract_mass)
           )
+        return(df)
       })
-
-      output$plotByUterineMass_info <- renderPrint({
-        if(is.null(input$plotByUterineMass_click)){
-          "Click on a point to display values"
-        }else(
-          nearPoints(
-            AcuteStress_femaleCBA_react() %>%
-              filter(
-                ! (row_number() %in% input$plotByUterineMass_table_rows_selected)
-              ) %>%
-              select(
-                mouseID,
-                num_ID,
-                earlyLifeTrt,
-                adultTrt,
-                ReproTract_mass,
-                !! input$uterineMass_yVar
-              ),
-            input$plotByUterineMass_click
-          )
+      
+      observeEvent(
+        c(AcuteStress_femaleCBA_mass_react(),
+          input$proUterineCutoff,
+          input$diUterineCutoff,
+          input$dotSize),
+        {
+        uterineMassByTrtServer(
+          "uterineMassByTrt",
+          df = AcuteStress_femaleCBA_mass_react(),
+          input$proUterineCutoff,
+          input$diUterineCutoff,
+          input$dotSize
         )
       })
 
-      output$plotByUterineMass_table <- renderDT({
-        AcuteStress_femaleCBA_react() %>%
-          select(
-            mouseID,
-            num_ID,
-            earlyLifeTrt,
-            adultTrt,
-            ReproTract_mass,
-            !! input$uterineMass_yVar
+      
+      ## By Uterine Mass ---------------------------------------------
+      observeEvent(
+        c(AcuteStress_femaleCBA_react(),
+          input$proUterineCutoff,
+          input$diUterineCutoff,
+          input$dotSize),
+        {
+          byUterineMassServer(
+            "byUterineMass",
+            df = AcuteStress_femaleCBA_react(),
+            input$proUterineCutoff,
+            input$diUterineCutoff,
+            input$dotSize
           )
-      })
+        })
 
       ## LH Profile -----------------------------------------------------------
-      output$LHprofile <- renderPlot({
-        df <- LH_off_react() %>%
-          filter(
-            sex == "F"
-          ) %>%
-          filterByCycleStage()
-        
-        plot <- df%>%
-          LHPlot(
-            fontSize = 16,
-            dotSize = input$dotSize
-          )+
-          facet_wrap(
-            ~adultTrt
+      observeEvent(
+        c(LH_femalesCBA_react(),
+          AcuteStress_femaleCBA_react(),
+          input$proUterineCutoff,
+          input$diUterineCutoff,
+          input$dotSize),
+        {
+          LHprofileServer(
+            "LHprofile",
+            LH_long = LH_femalesCBA_react(),
+            AcuteStressDF = AcuteStress_femaleCBA_react(),
+            input$proUterineCutoff,
+            input$diUterineCutoff,
+            input$dotSize
           )
-        return(plot)
-      })
-
-      output$LHprofile_info <- renderPrint({
-        if(is.null(input$LHprofile_click)){
-          "Click on a point to display values - click in the middle of the horizontal scatter"
-        }else(
-          nearPoints(
-            LH_off_react() %>%
-              select(
-                mouseID,
-                num_ID,
-                earlyLifeTrt,
-                adultTrt,
-                time,
-                LH,
-                ReproTract_mass
-              ),
-            input$LHprofile_click
-          )
-        )
-      })
+        })
+      # LHprofile_zoom_y <- zoomAxisServer("LHprofile_zoom_y", "y", minVal = 0, maxVal = 45)
+      # 
+      # output$LHprofile <- renderPlot({
+      #   df <- LH_off_react() %>%
+      #     filter(
+      #       sex == "F"
+      #     ) %>%
+      #     filterByCycleStage()
+      #   
+      #   plot <- df%>%
+      #     LHPlot(
+      #       fontSize = 16,
+      #       dotSize = input$dotSize,
+      #       zoom_y = LHprofile_zoom_y$zoom(),
+      #       ymin = LHprofile_zoom_y$min(),
+      #       ymax = LHprofile_zoom_y$max()
+      #     )+
+      #     facet_wrap(
+      #       # ~adultTrt
+      #       ~comboTrt
+      #     )
+      #   return(plot)
+      # })
+      # 
+      # output$LHprofile_info <- renderPrint({
+      #   if(is.null(input$LHprofile_click)){
+      #     "Click on a point to display values - click in the middle of the horizontal scatter"
+      #   }else(
+      #     nearPoints(
+      #       LH_off_react() %>%
+      #         select(
+      #           mouseID,
+      #           num_ID,
+      #           earlyLifeTrt,
+      #           adultTrt,
+      #           time,
+      #           LH,
+      #           ReproTract_mass
+      #         ),
+      #       input$LHprofile_click
+      #     )
+      #   )
+      # })
       
       ## Corticosterone ----------------------------------------------------------
       Cort_off_males <- reactive({
@@ -667,6 +552,7 @@ acuteStressServer <- function(
           yVar == "Adrenal_mass" ~ "adrenal mass (mg)",
           yVar == "Adrenal_mass_perBody_g" ~ "adrenal mass / body mass (mg/g)",
           yVar == "Body_mass_sac" ~ "body mass (g)",
+          yVar == "maxLH" ~ "max evening LH (ng/mL)",
           TRUE ~ as.character(yVar)
         )
         AcuteStress_males_masses() %>%

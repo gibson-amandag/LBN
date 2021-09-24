@@ -15,16 +15,16 @@ cyclesUI <- function(id){
   ns <- NS(id)
   tagList(
     fluidRow(
-      column(
-        4,
+      div(
+        class = "col-xs-4",
         radioButtons(
           ns("xVar"),
           "Plot by:",
           c("Cycle Day" = "day", "PND" = "PND")
         )
       ),
-      column(
-        4,
+      div(
+        class = "col-xs-4",
         varSelectInput(
           ns("groupingVar"),
           "Grouping Variable",
@@ -37,8 +37,8 @@ cyclesUI <- function(id){
           choices = c()
         )
       ),
-      column(
-        4,
+      div(
+        class = "col-xs-4",
         checkboxInput(
           ns("useLineColor"),
           "Use line color",
@@ -56,8 +56,8 @@ cyclesUI <- function(id){
       tabPanel(
         "Cycle Plots",
         fluidRow(
-          column(
-            4,
+          div(
+            class = "col-xs-4",
             sliderInput(
               ns("cycleDays"),
               "Select Days",
@@ -67,15 +67,15 @@ cyclesUI <- function(id){
               value = c(1, 100)
             )
           ),
-          column(
-            4,
+          div(
+            class = "col-xs-4",
             downloadButton(
               ns("downloadCyclePlot"),
               "Download current plot"
             )
           ),
-          column(
-            4,
+          div(
+            class = "col-xs-4",
             radioButtons(
               ns("imgType"),
               "Select File Type",
@@ -85,19 +85,26 @@ cyclesUI <- function(id){
         ),
         plotOutput(ns("cyclesPlot"))
       ),
+      
+      # by mouse -------------
       tabPanel(
         "by mouse",
         fluidRow(
-          column(
-            4,
+          div(
+            class = "col-xs-4",
             selectInput(
               ns("selectedMouse"),
               label = "Select Mouse:",
               choices = character()
+            ),
+            actionButton(
+              ns("makeImgDiv"),
+              label = "Show Images",
+              icon = icon("redo")
             )
           ),
-          column(
-            4,
+          div(
+            class = "col-xs-4",
             radioButtons(
               ns("imgsPerSlide"),
               label = "# imgs per slide",
@@ -105,8 +112,8 @@ cyclesUI <- function(id){
               selected = 12
             )
           ),
-          column(
-            4,
+          div(
+            class = "col-xs-4",
             downloadButton(
               ns("downloadMousePPT"),
               label = "Download Mouse's PPT"
@@ -117,9 +124,10 @@ cyclesUI <- function(id){
           ns("selCyclePlot"),
           height = "200px"
         ),
-        uiOutput(
-          ns("selImages")
-        )
+        tags$div(id = "placeholder"),
+        # uiOutput(
+        #   ns("selImages")
+        # )
       )
     )
   )
@@ -137,7 +145,7 @@ cyclesServer <- function(
   moduleServer(
     id,
     function(input, output, session) {
-      print(cycleDir)
+      # print(cycleDir)
       
       cycles_react <- reactive({
         req(Cycles_off, input$groupingVar, input$includeLevels)
@@ -151,10 +159,12 @@ cyclesServer <- function(
         return(df)
       })
       
-      observeEvent(cycles_react(), {
-        req(cycles_react())
-        df <- cycles_react()
-      })
+      # observeEvent(cycles_react(), {
+      #   print("cycles react changed")
+      # })
+      # observeEvent(Cycles_off, {
+      #   print("cycles off changed")
+      # })
       
       observe({
         req(Cycles_off, input$groupingVar)
@@ -325,12 +335,15 @@ cyclesServer <- function(
         )
       })
       
-      selectedMouseFiles <- eventReactive(input$selectedMouse, {
+      selectedMouseFiles <- eventReactive(
+        # c(input$selectedMouse, Cycles_off), 
+        input$selectedMouse,
+        {
         req(Cycles_off, input$selectedMouse)
+        print("Updating selected files")
         
         
         cycleID <- cycles_react()$cycleID[which(cycles_react()$mouseID == input$selectedMouse)]
-        # print(cycleID)
         
         if(! length(cycleID) == 0){
           idText <- sprintf("%04d", as.integer(cycleID))
@@ -346,7 +359,7 @@ cyclesServer <- function(
           ) 
           sortOrder <- files %>% path_file() %>% order()
           files <- files[sortOrder]
-          print(files)
+          # print(files)
           return(
             files
           )
@@ -357,6 +370,7 @@ cyclesServer <- function(
         }
       })
       
+      ## Individual Mouse Plot -------------------
       output$selCyclePlot <- renderPlot({
         req(Cycles_off, input$groupingVar)
         
@@ -391,99 +405,224 @@ cyclesServer <- function(
           )
       })
       
-      output$selImages <- renderUI({
-        req(Cycles_off, input$selectedMouse, selectedMouseFiles())
+      ## Images UI -------------------------------
+      
+      ### Build UI -------------------------------
+      observeEvent(
+        c(
+          # Cycles_off, 
+          input$selectedMouse
+        ),
+      {
+        # Remove the old one
+        # print("removing old UI")
+        removeUI("#cyclesDiv")
+      })
         
+      observeEvent(
+        input$makeImgDiv,
+      {
+        req(selectedMouseFiles())
         image_output_list <-
-          # lapply(1:nrow(selectedMouseFiles()),
           lapply(1:length(selectedMouseFiles()),
-                 function(i)
-                 {
-                   fileName <- paste0("name", i)
-                   stageName <- paste0("stage", i)
-                   imagename <- paste0("image", i)
-                   tags$div(
-                     class = "col-sm-3",
-                     textOutput(session$ns(fileName), container = h4),
-                     textOutput(session$ns(stageName), container = p),
-                     imageOutput(session$ns(imagename), height = "auto") # auto fixes the overlap
-                   )
-                 })
-        
-        
-        div(
+          function(i)
+          {
+          fileName <- paste0("name", i)
+          stageName <- paste0("stage", i)
+          imagename <- paste0("image", i)
+          tags$div(
+            class = "col-xs-6 col-sm-4 col-md-3", # "col-sm-3",
+            textOutput(session$ns(fileName), container = h4),
+            textOutput(session$ns(stageName), container = p),
+            imageOutput(session$ns(imagename), height = "auto") # auto fixes the overlap
+          )
+          })
+
+        # print(image_output_list)
+
+        thisUI <- div(
           class = "container-fluid",
+          id = "cyclesDiv",
+          div(
+            class = "row",
+            p(class = "col", "The file names and stage may take a few seconds to update. Be patient")
+          ),
           div(
             class = "row",
             do.call(tagList, image_output_list)
           )
         )
+        
+        # print("making new UI")
+        insertUI(
+          selector = '#placeholder',
+          ui = thisUI
+        )
+        
+        # Number of images within directory
+        numImgs <- length(selectedMouseFiles())
+        
+        withProgress(message = 'Updating images', value = 0, {
+          
+          # Pause for 0.1 seconds to simulate a long computation.
+          Sys.sleep(0.1)
+          
+          for (i in 1:numImgs)
+          {
+            # Increment the progress bar, and update the detail text.
+            incProgress(1/numImgs, detail = paste("Doing image", i))
+            
+            local({
+              my_i <- i
+              imagename <- paste0("image", my_i)
+              stageName <- paste0("stage", my_i)
+              fileName <- paste0("name", my_i)
+              outputWidth <- paste0("output_", imagename, "_width")
+              outputHeight <- paste0("output_", imagename, "_height")
+              # print(imagename)
+              
+              thisFileName <- selectedMouseFiles()[my_i] %>%
+                path_file() %>%
+                path_ext_remove()
+              
+              fileDate <- str_extract(thisFileName, "^20[0-2][0-9]-((0[1-9])|(1[0-2]))-(0[1-9]|[1-2][0-9]|3[0-1])")
+              
+              df <- cycles_long() %>%
+                filter(
+                  mouseID == input$selectedMouse,
+                  cycleDate == as_date(fileDate)
+                )
+              
+              thisStage <- df$stage[1]
+              
+              thisStageName <- case_when(
+                thisStage == 1 ~ "estrus",
+                thisStage == 2 ~ "diestrus",
+                thisStage == 3 ~ "proestrus",
+                TRUE ~ "no stage scored"
+              )
+              
+              output[[fileName]] <- renderText({
+                thisFileName
+              })
+              
+              output[[stageName]] <- renderText({
+                return(thisStageName)
+              })
+              
+              output[[imagename]] <-
+                renderImage({
+                  list(src = selectedMouseFiles()[my_i],
+                       width = "100%",
+                       height = "auto",
+                       alt = "Image failed to render")
+                }, deleteFile = FALSE)
+            })
+          }
+        })
       })
       
+      # output$selImages <- renderUI({
+      #   req(Cycles_off, input$selectedMouse, selectedMouseFiles())
+      #   
+      #   print("Updating cycle images space. Please be patient")
+      #   
+      #   image_output_list <-
+      #     # lapply(1:nrow(selectedMouseFiles()),
+      #     lapply(1:length(selectedMouseFiles()),
+      #            function(i)
+      #            {
+      #              fileName <- paste0("name", i)
+      #              stageName <- paste0("stage", i)
+      #              imagename <- paste0("image", i)
+      #              tags$div(
+      #                class = "col-sm-3",
+      #                textOutput(session$ns(fileName), container = h4),
+      #                textOutput(session$ns(stageName), container = p),
+      #                imageOutput(session$ns(imagename), height = "auto") # auto fixes the overlap
+      #              )
+      #            })
+      #   
+      #   thisUI <- div(
+      #     class = "container-fluid",
+      #     div(
+      #       class = "row",
+      #       do.call(tagList, image_output_list)
+      #     )
+      #   )
+      #   print("Finished UI space")
+      #   return(thisUI)
+      # })
+      
+      
+      ### Fill UI -------------
+      observeEvent(
+        input$selectedMouse,
+        {
+        req(Cycles_off, input$selectedMouse, selectedMouseFiles())
+        
+        # # Number of images within directory
+        # numImgs <- length(selectedMouseFiles())
+        # 
+        # for (i in 1:numImgs)
+        # {
+        #   
+        #   local({
+        #     my_i <- i
+        #     imagename <- paste0("image", my_i)
+        #     stageName <- paste0("stage", my_i)
+        #     fileName <- paste0("name", my_i)
+        #     outputWidth <- paste0("output_", imagename, "_width")
+        #     outputHeight <- paste0("output_", imagename, "_height")
+        #     # print(imagename)
+        #     
+        #     thisFileName <- selectedMouseFiles()[my_i] %>%
+        #       path_file() %>%
+        #       path_ext_remove()
+        #     
+        #     fileDate <- str_extract(thisFileName, "^20[0-2][0-9]-((0[1-9])|(1[0-2]))-(0[1-9]|[1-2][0-9]|3[0-1])")
+        #     
+        #     df <- cycles_long() %>%
+        #       filter(
+        #         mouseID == input$selectedMouse,
+        #         cycleDate == as_date(fileDate)
+        #       )
+        #     
+        #     thisStage <- df$stage[1]
+        #     
+        #     thisStageName <- case_when(
+        #       thisStage == 1 ~ "estrus",
+        #       thisStage == 2 ~ "diestrus",
+        #       thisStage == 3 ~ "proestrus",
+        #       TRUE ~ "no stage scored"
+        #     )
+        #     
+        #     output[[fileName]] <- renderText({
+        #       thisFileName
+        #     })
+        #     
+        #     output[[stageName]] <- renderText({
+        #       return(thisStageName)
+        #     })
+        #     
+        #     output[[imagename]] <-
+        #       renderImage({
+        #         list(src = selectedMouseFiles()[my_i],
+        #              width = "100%",
+        #              height = "auto",
+        #              alt = "Image failed to render")
+        #       }, deleteFile = FALSE)
+        #   })
+        # }
+        # print("Finished filling cycle imaging space")
+      })
+      
+      ## Powerpoint Output --------------------
       individualPPT <- reactive({
         req(input$imgsPerSlide) # To get to reset when this changes
         ppt <- read_pptx("estrousCycleTemplate.pptx")
         ppt <- add_slide(ppt, layout = "Title Slide")
         ppt <- ph_with(x = ppt, value = input$selectedMouse, location = ph_location_label("Title 1"))
-      })
-      
-      observe({
-        req(Cycles_off, input$selectedMouse, selectedMouseFiles())
-        # if(is.null(selectedMouseFiles())) return(NULL)
-        
-        # Number of images within directory
-        numImgs <- length(selectedMouseFiles())
-        
-        for (i in 1:numImgs)
-        {
-          
-          local({
-            my_i <- i
-            imagename <- paste0("image", my_i)
-            stageName <- paste0("stage", my_i)
-            fileName <- paste0("name", my_i)
-            outputWidth <- paste0("output_", imagename, "_width")
-            outputHeight <- paste0("output_", imagename, "_height")
-            # print(imagename)
-            
-            thisFileName <- selectedMouseFiles()[my_i] %>%
-              path_file() %>%
-              path_ext_remove()
-            
-            fileDate <- str_extract(thisFileName, "^20[0-2][0-9]-((0[1-9])|(1[0-2]))-(0[1-9]|[1-2][0-9]|3[0-1])")
-            
-            df <- cycles_long() %>%
-              filter(
-                mouseID == input$selectedMouse,
-                cycleDate == as_date(fileDate)
-              )
-            
-            thisStage <- df$stage[1]
-            
-            thisStageName <- case_when(
-              thisStage == 1 ~ "estrus",
-              thisStage == 2 ~ "diestrus",
-              thisStage == 3 ~ "proestrus",
-              TRUE ~ "no stage scored"
-            )
-            
-            output[[fileName]] <- renderText({
-              thisFileName
-            })
-            
-            output[[stageName]] <- renderText({
-              return(thisStageName)
-            })
-            
-            output[[imagename]] <-
-              renderImage({
-                list(src = selectedMouseFiles()[my_i],
-                     width = "100%",
-                     height = "auto",
-                     alt = "Image failed to render")
-              }, deleteFile = FALSE)
-          })
-        }
       })
       
       output$downloadMousePPT <- downloadHandler(

@@ -15,19 +15,19 @@ zoomAxisUI <- function(
   ns <- NS(id)
   tagList(
     fluidRow(
-      column(
-        4,
+      div(
+        class = "col-xs-4",
         checkboxInput(ns("zoom"),
                       paste0("Zoom ", whichAxis, " axis?"),
                       value = startOn
         )
       ),
-      column(
-        4,
+      div(
+        class = "col-xs-4",
         uiOutput(ns("min"))
       ),
-      column(
-        4,
+      div(
+        class = "col-xs-4",
         uiOutput(ns("max"))
         
       )

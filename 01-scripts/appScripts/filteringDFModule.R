@@ -21,18 +21,18 @@ filteringDFUI <- function(
       #     end = Sys.Date()
       #   )
       # ),
-      column(
-        4,
+      div(
+        class = "col-xs-4",
         selectInput(
           ns("LitterNum"),
           "Which litter number?",
           choices = unique(off_data$litterNum), # Changed from levels to unique
           multiple = TRUE,
-          selected = unique(off_data$litterNum)
+          selected = c(2)
         )
       ),
-      column(
-        4,
+      div(
+        class = "col-xs-4",
         selectInput(
           ns("cohort"),
           "Which cohorts?",

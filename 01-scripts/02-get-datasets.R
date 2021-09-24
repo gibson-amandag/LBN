@@ -155,6 +155,12 @@ LH_max <- LH_off %>%
     groupingVar = mouseID
   )
 
+LH_off <- LH_off %>%
+  left_join(
+    LH_max,
+    by = "mouseID"
+  )
+
 # Make wide version of LH
 LH_off_wide <- LH_off %>%
   pivot_wider(

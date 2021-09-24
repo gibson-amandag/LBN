@@ -34,9 +34,9 @@ earlyLifeFill <- function(
 
 comboTrtFillShape <- function(){
   layers <- list(
-    scale_color_manual("treatment", values = c("black", "darkcyan", "black", "darkcyan")),
-    scale_fill_manual("treatment", values = c("white", "lightblue1", "black", "darkcyan")),
-    scale_shape_manual("treatment", values = c(21, 23, 21, 23))
+    scale_color_manual("treatment", values = c("STD-CON"="black", "STD-ALPS"="darkcyan", "LBN-CON"="black", "LBN-ALPS"="darkcyan")),
+    scale_fill_manual("treatment", values = c("STD-CON"="white", "STD-ALPS"="lightblue1", "LBN-CON"="black", "LBN-ALPS"="darkcyan")),
+    scale_shape_manual("treatment", values = c("STD-CON"=21, "STD-ALPS"=23, "LBN-CON"=21, "LBN-ALPS"=23))
   )
   return(layers)
 }
