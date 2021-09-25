@@ -9,20 +9,17 @@
 LBNCyclesUI <- function(id, off_data){
   ns <- NS(id)
   tagList(
-    fluidRow(
-      div(
-        class = "col-xs-3 col-sm-4",
-        selectInput(
-          ns("cohort"),
-          "Which cohorts?",
-          choices = unique(off_data$cohort),
-          multiple = FALSE,
-          selected = unique(off_data$cohort),
+    do.call(
+      tabsetPanel,
+      c(id = "tab",
+        lapply(sort(unique(off_data$cohort)), function(thisCohort){
+          tabPanel(
+            title = paste("Cohort ", thisCohort),
+            cyclesUI(ns(paste0("cohort", thisCohort)))
+          )
+        })
         )
-      )
-    ),
-    # dataTableOutput(ns("testTable")),
-    cyclesUI(ns("cycles"))
+    )
   )
 }
 
@@ -38,44 +35,127 @@ LBNCyclesServer <- function(
   moduleServer(
     id,
     function(input, output, session) {
-      folderImgsServer("folderImgs")
+      cohorts <- sort(unique(Cycles_off$cohort))
       
-      # Prepare Dataframes ------------------------------------------------------
-      cycleDir <- reactive({
-        req(input$cohort)
-        cycleDir <- CohortCyclingFolder$cyclingFolderPath[which(CohortCyclingFolder$cohort == input$cohort)]
-        return(cycleDir)
-      })
+      # observe({
+      # for(thisCohort in cohorts){
+      #   test <- thisCohort
+      #   cycleDir <- CohortCyclingFolder$cyclingFolderPath[which(CohortCyclingFolder$cohort == thisCohort)]
+      # 
+      #   thisCyclesDF <- Cycles_off %>%
+      #     filter(
+      #       cohort == thisCohort
+      #     ) %>%
+      #     mutate(
+      #       cycleID = num_ID
+      #     )
+      #   
+      #   cyclesServer(
+      #     paste0("cohort", thisCohort),
+      #     cycleDir,
+      #     damInfo,
+      #     offspringInfo,
+      #     thisCyclesDF,
+      #     compType
+      #   )
+      # }
+      # })
       
-      cycles_react <- reactive({
-        req(input$cohort)
-        df <- Cycles_off %>%
-          filter(
-            cohort %in% input$cohort
-          ) %>%
-          mutate(
-            cycleStartDate = DOB + 70,
-            cycleID = num_ID
-          )
-        return(df)
-      })
+      # I can't get the for loop above to work consistently. It only pulls the last cohort values, for some occassions
+      # It seems to depend on how things are referenced in the module. But it works if I hard code. So just add for each new cohort
       
-      output$testTable <- renderDataTable({
-        cycles_react()
-      })
-      
-      observe({
-        req(input$cohort)
-        cyclesServer(
-          "cycles",
-          cycleDir(),
-          damInfo,
-          offspringInfo,
-          cycles_react(),
-          compType
+      cycleDir1 <- CohortCyclingFolder$cyclingFolderPath[which(CohortCyclingFolder$cohort == 1)]
+
+      thisCyclesDF1 <- Cycles_off %>%
+        filter(
+          cohort == 1
+        ) %>%
+        mutate(
+          cycleID = num_ID
         )
-      })
-      
+
+      cyclesServer(
+        paste0("cohort", 1),
+        cycleDir1,
+        damInfo,
+        offspringInfo,
+        thisCyclesDF1,
+        compType
+      )
+      cycleDir2 <- CohortCyclingFolder$cyclingFolderPath[which(CohortCyclingFolder$cohort == 2)]
+
+      thisCyclesDF2 <- Cycles_off %>%
+        filter(
+          cohort == 2
+        ) %>%
+        mutate(
+          cycleID = num_ID
+        )
+
+      cyclesServer(
+        paste0("cohort", 2),
+        cycleDir2,
+        damInfo,
+        offspringInfo,
+        thisCyclesDF2,
+        compType
+      )
+      cycleDir4 <- CohortCyclingFolder$cyclingFolderPath[which(CohortCyclingFolder$cohort == 4)]
+
+      thisCyclesDF4 <- Cycles_off %>%
+        filter(
+          cohort == 4
+        ) %>%
+        mutate(
+          cycleID = num_ID
+        )
+
+      cyclesServer(
+        paste0("cohort", 4),
+        cycleDir4,
+        damInfo,
+        offspringInfo,
+        thisCyclesDF4,
+        compType
+      )
+
+
+      cycleDir5 <- CohortCyclingFolder$cyclingFolderPath[which(CohortCyclingFolder$cohort == 5)]
+      thisCyclesDF5 <- Cycles_off %>%
+        filter(
+          cohort == 5
+        ) %>%
+        mutate(
+          cycleID = num_ID
+        )
+
+      cyclesServer(
+        paste0("cohort", 5),
+        cycleDir5,
+        damInfo,
+        offspringInfo,
+        thisCyclesDF5,
+        compType
+      )
+
+
+      cycleDir6 <- CohortCyclingFolder$cyclingFolderPath[which(CohortCyclingFolder$cohort == 6)]
+      thisCyclesDF6 <- Cycles_off %>%
+        filter(
+          cohort == 6
+        ) %>%
+        mutate(
+          cycleID = num_ID
+        )
+
+      cyclesServer(
+        paste0("cohort", 6),
+        cycleDir6,
+        damInfo,
+        offspringInfo,
+        thisCyclesDF6,
+        compType
+      )
     }
   )
 }
