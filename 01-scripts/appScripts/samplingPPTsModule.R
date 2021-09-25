@@ -53,8 +53,32 @@ samplingPPTsUI <- function(id){
         h4("All Mice"),
         
         fluidRow(
-          column(
-            4,
+          div(
+            class = "col-xs-4",
+            selectInput(
+              ns("earlyLifeTrt"),
+              "Which early-life treatment groups?",
+              choices = unique(AcuteStress_off$earlyLifeTrt), # Changed from levels to unique
+              multiple = TRUE,
+              selected = unique(AcuteStress_off$earlyLifeTrt)
+            )
+          ),
+          div(
+            class = "col-xs-4",
+            selectInput(
+              ns("adultTrt"),
+              "Which adult treatment groups?",
+              choices = unique(AcuteStress_off$adultTrt),
+              multiple = TRUE,
+              selected = unique(AcuteStress_off$adultTrt),
+            )
+          )
+        ),
+        
+        fluidRow(
+          div(
+            class = "col-xs-4",
+            
             numericInput(
               ns("proUterineCutoff"),
               "Uterine mass (mg) min for proestrus:",
@@ -66,8 +90,8 @@ samplingPPTsUI <- function(id){
               value = 100
             )
           ),
-          column(
-            4,
+          div(
+            class = "col-xs-4",
             radioButtons(
               ns("cycleStage"),
               "Which stages?",
@@ -80,8 +104,8 @@ samplingPPTsUI <- function(id){
               value = TRUE
             ),
           ),
-          column(
-            4,
+          div(
+            class = "col-xs-4",
             downloadButton(ns("download_all"), "Download PowerPoint")
           )
         )
@@ -161,10 +185,12 @@ samplingPPTsServer <- function(
           filter(
             sex == "F",
             !is.na(cyclingFolderPath),
-            damStrain == "CBA"
+            damStrain == "CBA",
+            earlyLifeTrt %in% as.character(input$earlyLifeTrt),
+            adultTrt %in% as.character(input$adultTrt)
           )%>%
           filterByCycleStage() %>%
-          addRegExForSamplingDF() %>%
+          addRegExForSamplingDF(arrangeByLH = TRUE) %>%
           addSamplingImgFilePaths()
         return(df)
       })

@@ -149,6 +149,7 @@ LH_off <- LH_off %>%
 
 # Get max LH value after baseline for each mouse
 LH_max <- LH_off %>%
+  filter(time !=0) %>% # missing initially -> max could have been AM
   getMaxFromRepMeasures(
     col = LH,
     maxColName = maxLH,

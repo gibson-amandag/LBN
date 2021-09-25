@@ -50,23 +50,25 @@ regExUterinePicFileName <- function(
 
 addRegExForSamplingDF <- function(
   samplingDF,
-  arrangeByCycle = FALSE
+  arrangeByCycle = FALSE,
+  arrangeByLH = FALSE
 ){
   df <- samplingDF %>%
-    select(
-      mouseID,
-      num_ID,
-      Sac_date,
-      cohort,
-      comboTrt,
-      Sac_cycle,
-      cyclingFolderPath,
-      ReproTract_mass,
-      maxLH,
-      AgeInDays,
-      cycleStartDate
-    ) %>%
+    # select(
+    #   mouseID,
+    #   num_ID,
+    #   Sac_date,
+    #   cohort,
+    #   comboTrt,
+    #   Sac_cycle,
+    #   cyclingFolderPath,
+    #   ReproTract_mass,
+    #   maxLH,
+    #   AgeInDays,
+    #   cycleStartDate
+    # ) %>%
     arrange(
+      if(arrangeByLH) maxLH,
       if(arrangeByCycle) Sac_cycle,
       ReproTract_mass
     ) %>%

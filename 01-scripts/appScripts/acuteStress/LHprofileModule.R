@@ -56,8 +56,9 @@ LHprofileServer <- function(
       ## LH Profile -----------------------------------------------------------
       LHprofile_zoom_y <- zoomAxisServer("LHprofile_zoom_y", "y", minVal = 0, maxVal = 45)
       
+      # The warnings about removing rows seem to be related to error bars when there is only one in a group at a time point
       plot <- reactive({
-        plot <- LH_long_react()%>%
+        plot <- LH_long_react()%>% 
           LHPlot(
             fontSize = 16,
             dotSize = dotSize,
@@ -87,7 +88,7 @@ LHprofileServer <- function(
                 num_ID,
                 earlyLifeTrt,
                 adultTrt,
-                comboTrt,
+                comboTrt, # has to be included for nearPoints to work
                 time,
                 LH,
                 ReproTract_mass
