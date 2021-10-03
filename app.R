@@ -196,7 +196,7 @@ server <- function(input, output) {
                     Cycles_off = Cycles_off_all,
                     CohortCyclingFolder = CohortCyclingFolder,
                     compType = currentCompType)
-    samplingPPTsServer("samplingPPTs", dateToday, AcuteStress_off, LBN_data, Cycles_off_all)
+    samplingPPTsServer("samplingPPTs", dateToday, AcuteStress_off, LBN_data, Cycles_off_all, LBN_uterinePicsFolder)
     uploadCyclesServer("uploadCycles", compType = currentCompType)
 
 }

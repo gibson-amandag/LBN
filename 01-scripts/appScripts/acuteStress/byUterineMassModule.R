@@ -82,7 +82,8 @@ byUterineMassServer <- function(
           filter(
             !is.na(!! input$uterineMass_yVar),
             earlyLifeTrt %in% as.character(input$earlyLifeTrt),
-            adultTrt %in% as.character(input$adultTrt)
+            adultTrt %in% as.character(input$adultTrt),
+            !exclude_cort_hr5
           )
         
         filterLH <- LHfilter()$useFilter()

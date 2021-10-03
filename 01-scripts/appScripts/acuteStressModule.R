@@ -95,6 +95,11 @@ acuteStressUI <- function(id,
         tabsetPanel(
           tabPanel(
             "males",
+            checkboxInput(
+              ns("removeExtraMales"),
+              label = "Remove Extra Males",
+              value = FALSE
+            ),
             uiOutput(
               ns("cortANOVA_males")
             ),
@@ -386,8 +391,17 @@ acuteStressServer <- function(
           filter(
             sex == "M",
             damStrain == "CBA",
-            !is.na(cort)
+            !is.na(cort),
+            !exclude
           )
+        
+        if(input$removeExtraMales){
+          df <- df %>%
+            filter(
+              includeMaleCort
+            )
+        }
+        return(df)
       })
       
       output$cortANOVA_males <- renderUI({
@@ -461,7 +475,8 @@ acuteStressServer <- function(
           filter(
             sex == "F",
             damStrain == "CBA",
-            !is.na(cort)
+            !is.na(cort),
+            !exclude
           ) %>%
           filterByCycleStage()
         return(df)
@@ -509,6 +524,7 @@ acuteStressServer <- function(
                 num_ID,
                 earlyLifeTrt,
                 adultTrt,
+                comboTrt,
                 ReproTract_mass,
                 time,
                 cort
@@ -539,6 +555,12 @@ acuteStressServer <- function(
             damStrain == "CBA",
             !is.na(!! input$massVar)
           )
+        if(input$removeExtraMales){
+          df <- df %>%
+            filter(
+              includeMaleCort
+            )
+        }
         return(df)
       })
       
@@ -720,8 +742,15 @@ acuteStressServer <- function(
           filter(
             sex == "M",
             damStrain == "CBA",
-            if_any(c(!!! input$summaryVars), ~ !is.na(.x))
+            if_any(c(!!! input$summaryVars), ~ !is.na(.x)),
+            !(exclude_cort_hr0 | exclude_cort_hr5)
           )
+        if(input$removeExtraMales){
+          df <- df %>%
+            filter(
+              includeMaleCort
+            )
+        }
         return(df)
       })
       
