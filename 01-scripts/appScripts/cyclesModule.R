@@ -107,14 +107,20 @@ cyclesUI <- function(id){
           div(
             class = "col-xs-4",
             radioButtons(
-              ns("imgsPerSlide"),
-              label = "# imgs per slide",
-              choices = c(4, 9, 12),
-              selected = 12
+              ns("imgsPerRow"),
+              label = "# imgs per row",
+              choices = c(1, 2, 3, 4, 6),
+              selected = 3
             )
           ),
           div(
             class = "col-xs-4",
+            radioButtons(
+              ns("imgsPerSlide"),
+              label = "# imgs per slide",
+              choices = c(4, 9, 12),
+              selected = 12
+            ),
             downloadButton(
               ns("downloadMousePPT"),
               label = "Download Mouse's PPT"
@@ -445,7 +451,16 @@ cyclesServer <- function(
         input$makeImgDiv,
       {
        output$selImages <- renderUI({
-          req(cycles_long(), input$selectedMouse, selectedMouseFiles())
+         req(cycles_long(), input$selectedMouse, selectedMouseFiles())
+         
+         imgsPerRow <- input$imgsPerRow
+         divCols <- case_when(
+           imgsPerRow == 1 ~ "12",
+           imgsPerRow == 2 ~ "6",
+           imgsPerRow == 3 ~ "4",
+           imgsPerRow == 4 ~ "3",
+           imgsPerRow == 6 ~ "2"
+         )
 
           if(!is.null(input$selectedMouse)){
             image_output_list <-
@@ -481,11 +496,11 @@ cyclesServer <- function(
                    }
 
                    tags$div(
-                     class = "col-xs-6 col-sm-4 col-md-3", # "col-sm-3",
+                     class = paste0("col-xs-", divCols),# "col-xs-6 col-sm-4 col-md-3", # "col-sm-3",
                      h4(thisFileName),
                      p(thisStageName),
                      imageOutput(session$ns(imagename), height = "auto") %>% # auto fixes the overlap
-                       tagAppendAttributes(class = 'myImages')
+                     tagAppendAttributes(class = 'myImages')
                    )
                   })
 
@@ -541,8 +556,30 @@ cyclesServer <- function(
           paste0("cycleImgs_", input$selectedMouse, "-", Sys.Date(), ".pptx")
         },
         content = function(file) {
+          
+          # Redo selected files here, because not updating appropriately
+          cycleID <- cyclesDF$cycleID[which(cyclesDF$mouseID == input$selectedMouse)]
+          
+          if(! length(cycleID) == 0){
+            idText <- sprintf("%04d", as.integer(cycleID))
+            
+            fileEnding <- paste0("*", idText, ".jpg")
+            
+            files <- dir_ls(
+              normalizePath(cycleDir),
+              all = TRUE,
+              recurse = TRUE,
+              type = "any",
+              glob = fileEnding
+            )
+            sortOrder <- files %>% path_file() %>% order()
+            files <- files[sortOrder]
+          } else{
+            files <- NULL
+          }
+          
           # Number of images within directory
-          numImgs <- length(selectedMouseFiles())
+          numImgs <- length(files)
 
           # First index
           iImg <- 1
@@ -552,7 +589,7 @@ cyclesServer <- function(
 
           for (i in 1:numImgs)
           {
-            thisFileName <- selectedMouseFiles()[i] %>%
+            thisFileName <- files[i] %>%
               path_file() %>%
               path_ext_remove()
 
@@ -564,9 +601,9 @@ cyclesServer <- function(
                   mouseID == input$selectedMouse,
                   cycleDate == as_date(fileDate)
                 )
-              
+
               thisStage <- df$stage[1]
-              
+
               thisStageName <- case_when(
                 thisStage == 1 ~ "estrus",
                 thisStage == 2 ~ "diestrus",
@@ -577,7 +614,7 @@ cyclesServer <- function(
               thisStageName <- "no date found in title"
             }
 
-            img <- external_img(selectedMouseFiles()[i], width = 2.68, heigh = 2.14) # get the image
+            img <- external_img(files[i], width = 2.68, heigh = 2.14) # get the image
             textID <- paste0("text", iImg)
             stageID <- paste0("stage", iImg)
             imgID <- paste0("img", iImg)
