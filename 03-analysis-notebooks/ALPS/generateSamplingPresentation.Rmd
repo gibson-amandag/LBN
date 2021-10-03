@@ -21,7 +21,7 @@ samplingDF_today <- AcuteStress_off %>%
     # cohort == 5
   )
 samplingDF_today <- samplingDF_today %>%
-  addRegExForSamplingDF() %>%
+  addRegExForSamplingDF(arrangeByLH = TRUE) %>%
   addSamplingImgFilePaths()
 samplingDF_today
 
@@ -190,5 +190,5 @@ addSamplingSlidesFromDF(
 
 cohort1ALPSDF
 
-print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("LBN_0001-sampling", ".pptx")))
+# print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("LBN_0001-sampling", ".pptx")))
 ```

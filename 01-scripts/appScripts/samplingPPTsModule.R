@@ -108,6 +108,9 @@ samplingPPTsUI <- function(id){
             class = "col-xs-4",
             downloadButton(ns("download_all"), "Download PowerPoint")
           )
+        ),
+        dataTableOutput(
+          ns("test")
         )
       )
     )
@@ -120,7 +123,8 @@ samplingPPTsServer <- function(
   dateToday,
   AcuteStress_off,
   LBN_data,
-  Cycles_off_all
+  Cycles_off_all,
+  LBN_uterinePicsFolder
   
 ){
   moduleServer(
@@ -129,6 +133,7 @@ samplingPPTsServer <- function(
       AcuteStress_react <- filteringDFServer("sampling_filter", AcuteStress_off)
       
       filterByCycleStage <- function(df){
+        df <- df
         if(input$cycleStage == "Proestrus"){
           df <- df %>%
             filter(
@@ -181,6 +186,7 @@ samplingPPTsServer <- function(
       )
       
       samplingDF_ALPS <- reactive({
+        print("Finding files - this will take awhile")
         df <- AcuteStress_react() %>%
           filter(
             sex == "F",
@@ -189,11 +195,26 @@ samplingPPTsServer <- function(
             earlyLifeTrt %in% as.character(input$earlyLifeTrt),
             adultTrt %in% as.character(input$adultTrt)
           )%>%
-          filterByCycleStage() %>%
+          filterByCycleStage()
+        
+        # df <- AcuteStress_off %>%
+        #   filter(
+        #     sex == "F",
+        #     Sac_cycle == "proestrus",
+        #     adultTrt == "CON",
+        #     litterNum == 2
+        #   )
+        df <- df %>%
           addRegExForSamplingDF(arrangeByLH = TRUE) %>%
           addSamplingImgFilePaths()
+        
+        print("Files found - moving on to make the presentation")
         return(df)
       })
+      
+      # output$test <- renderDataTable(
+      #   samplingDF_ALPS()
+      # )
       
       output$download_all <- downloadHandler(
         filename = function() {  
@@ -208,15 +229,21 @@ samplingPPTsServer <- function(
             value = "LBN Cycling Images, Uterine Mass, and LH Values",
             location = ph_location_label("Title 1")
           )
-          addSamplingSlidesFromDF(
-            samplingDF_ALPS(), 
-            samplingPPT = samplingPPT, 
-            cyclingDF = Cycles_off_all %>%
-              filter(
-                mouseID %in% samplingDF_ALPS()$mouseID
-              )
-          )
-          print(samplingPPT, target = file)
+          
+          if(nrow(samplingDF_ALPS()) > 0){
+            addSamplingSlidesFromDF(
+              samplingDF_ALPS(),
+              samplingPPT = samplingPPT,
+              cyclingDF = Cycles_off_all %>%
+                filter(
+                  mouseID %in% samplingDF_ALPS()$mouseID
+                )
+            )
+            print(samplingPPT, target = file)
+          }else {
+            print("No selected mice")
+            return(NULL)
+          }
         }
       )
       
@@ -250,14 +277,20 @@ samplingPPTsServer <- function(
             value = paste("Mice remaining on", dateToday),
             location = ph_location_label("Title 1")
           )
-          addSamplingSlidesFromDF(
-            remainingDF_today(), 
-            samplingPPT = samplingPPT, 
-            cyclingDF = Cycles_off_all %>%
-              filter(
-                mouseID %in% remainingDF_today()$mouseID
-              )
-          )
+          
+          if(nrow(remainingDF_today()) > 0){
+            addSamplingSlidesFromDF(
+              remainingDF_today(), 
+              samplingPPT = samplingPPT, 
+              cyclingDF = Cycles_off_all %>%
+                filter(
+                  mouseID %in% remainingDF_today()$mouseID
+                )
+            )
+          }else {
+            print("No mice today")
+            return(NULL)
+          }
           
           print(samplingPPT, target = file)
         }
