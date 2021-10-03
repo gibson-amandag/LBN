@@ -53,6 +53,42 @@ scatterPlotTwoVars_byLBN <- function(
   return(viz)
 }
 
+scatterPlotTwoVars_byComboTrt <- function(
+  df,
+  yVar,
+  yLab,
+  xVar,
+  xLab,
+  fontSize = 11,
+  dotSize = 1.2,
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL
+){
+  viz <- df %>%
+    ggplot(
+      aes(
+        x = {{ xVar }},
+        y = {{ yVar }},
+        fill = comboTrt,
+        shape = comboTrt
+      )
+    ) +
+    jitterGeom() +
+    labs(y = yLab, x = xLab)+
+    expand_limits(x = 0, y = 0)+
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
+    comboTrtFillShape()+
+    theme_pubr()+
+    textTheme(size = fontSize)+
+    boxTheme()
+  
+  return(viz)
+}
+
 scatterPlotComboTrt <- function(
   df,
   yVar,
