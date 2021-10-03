@@ -19,6 +19,20 @@ byUterineMassUI <- function(id,
               starts_with("cort_hr"),
               starts_with("LH_hr")
             )
+        )
+        ),
+      div(
+        class = "col-xs-4",
+        varSelectInput(
+          ns("uterineMass_xVar"),
+          "Select x-variable",
+          AcuteStress_off %>%
+            select(
+              ReproTract_mass,
+              maxLH,
+              starts_with("cort_hr"),
+              starts_with("LH_hr")
+            )
         ),
         filterLHUI(ns("filterLH")),
       ),
@@ -118,13 +132,25 @@ byUterineMassServer <- function(
           yLabText <- "LH (ng/mL)"
         }
         
+        if(input$uterineMass_xVar == "ReproTract_mass"){
+          xLabText <- "Uterine Mass (mg)"
+        } else if(input$uterineMass_xVar == "maxLH"){
+          xLabText <- "max evening LH (ng/mL)"
+        }else if(grepl("^cort_", input$uterineMass_xVar)){
+          xLabText <- "corticosterone (ng/mL)"
+        }else if(grepl("^LH_", input$uterineMass_xVar)){
+          xLabText <- "LH (ng/mL)"
+        }
+        
         plot <- df_react() %>%
           filter(
             ! (row_number() %in% input$plotByUterineMass_table_rows_selected),
           ) %>%
-          plotByUterineMass(
+          scatterPlotTwoVars_byComboTrt(
             yVar = !! input$uterineMass_yVar,
             yLab = yLabText,
+            xVar = !! input$uterineMass_xVar,
+            xLab = xLabText,
             fontSize = 16,
             dotSize = dotSize,
             zoom_x = zoom_x$zoom(),
@@ -133,7 +159,22 @@ byUterineMassServer <- function(
             zoom_y = zoom_y$zoom(),
             ymin = zoom_y$min(),
             ymax = zoom_y$max()
-          ) +
+          )
+          # plotByUterineMass(
+          #   yVar = !! input$uterineMass_yVar,
+          #   yLab = yLabText,
+          #   fontSize = 16,
+          #   dotSize = dotSize,
+          #   zoom_x = zoom_x$zoom(),
+          #   xmin = zoom_x$min(),
+          #   xmax = zoom_x$max(),
+          #   zoom_y = zoom_y$zoom(),
+          #   ymin = zoom_y$min(),
+          #   ymax = zoom_y$max()
+          # ) +
+        
+        if(input$uterineMass_xVar == "ReproTract_mass"){
+          plot <- plot +
           geom_vline(
             xintercept = proUterineCutoff,
             color = "red"
@@ -142,6 +183,7 @@ byUterineMassServer <- function(
             xintercept = diUterineCutoff,
             color = "blue"
           )
+        }
           
         return(plot)
       })
@@ -165,7 +207,8 @@ byUterineMassServer <- function(
                 earlyLifeTrt,
                 adultTrt,
                 ReproTract_mass,
-                !! input$uterineMass_yVar
+                !! input$uterineMass_yVar,
+                !! input$uterineMass_xVar
               ),
             input$plotByUterineMass_click
           )
@@ -180,7 +223,8 @@ byUterineMassServer <- function(
             earlyLifeTrt,
             adultTrt,
             ReproTract_mass,
-            !! input$uterineMass_yVar
+            !! input$uterineMass_yVar,
+            !! input$uterineMass_xVar
           )
       })
     }
