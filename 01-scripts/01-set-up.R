@@ -44,9 +44,9 @@ library(flextable)
 library(fs)
 library(DT)
 library(Cairo)
-library(colourpicker)
-library(plater)
 library(shinyjs)
+library(colourpicker) # After shinyjs
+library(plater)
 select <- dplyr::select
   # Save a PDF - in ggsave, device = cairo_pdf on Windows
   # https://r-graphics.org/recipe-output-fonts-pdf - even when following these
