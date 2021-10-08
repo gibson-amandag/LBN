@@ -16,10 +16,10 @@ cortEIAUI <- function(id){
             .plateTable {border-collapse: collapse}
             
             .plateWell.NSB{color:purple}
-            .plateWell.Std{color:blue}
+            .plateWell.STD{color:blue}
             .plateWell.QC{color:green}
-            .plateWell.BufferCtrl{color:red}
-            .plateWell.Sample{color:black}
+            .plateWell.bufferCtrl{color:red}
+            .plateWell.sample{color:black}
             
             .plateTable tr:nth-child(4n + 3) td,
             .plateTable tr:nth-child(4n + 4) td {
@@ -32,96 +32,143 @@ cortEIAUI <- function(id){
     
     useShinyjs(),
     
+    fluidRow(
+      div(
+        class = "col-sm-4",
+        downloadButton(ns("downloadResults"), "Download Results in Excel"),
+      ),
+      div(
+        class = "col-xs-6 col-sm-2",
+        radioButtons(
+          ns("imgType"),
+          "Select File Type",
+          choices = c("png", "pdf")
+        )
+      ),
+      div(
+        class = "col-xs-6",
+        downloadButton(ns("downloadStdCurve"), "Download Std Curve Plot"),
+        downloadButton(ns("downloadSamplesOnCurve"), "Download Std Curve with Samples Plot"),
+      )
+    ),
+    
     tabsetPanel(
+
+      # Calculation -------------------------------------------------------------
+
+      
       tabPanel(
         "Calculation",
-        h3("Buffer Control"),
-        shiny::tableOutput(ns("bufferCtrlTable")),
-        uiOutput(ns("bufferCtrlText")),
         
-        h3("Percent Binding"),
-        p("We will use the buffer control value to calculate",
-          "the percentage of maximal binding displayed by each well, %B/B", tags$sub("0")),
-        
-        actionButton(ns("togglePercBindingDisplay"), "Toggle Plate Display"),
-        
-        uiOutput(ns("percBindingDisplay")),
-        
-        h3("Standard Curve"),
-        p("Now, we'll use the standards to calculate the relationship between percent binding and corticosterone per well"),
-        plotOutput(ns("standardCurvePlot"), click = ns("standardCurvePlot_click")),
-        tableOutput(ns("standardCurvePlotInfo")),
-        verbatimTextOutput(ns("stdCurveModel")),
-        p("%B/B", tags$sub("0"), " = c + (d - c) / (1 + exp(b(log(ng/well) - log(e)"),
-        
-        h3("Samples Estimates"),
-        p("Using the curve we calculated above, we can now estimate the amount of corticosterone that was in each well"),
-        p("From the pg/well, we can calculate the concentration (in pg/mL) of the sample + assay buffer dilution if we know the volume added to the well", em("pg/well * volPerWell")),
-        p("From the pg/mL concentration, we can convert to ng/mL", em("pg/mL / 1000")),
-        p("Finally, using the dilution factor of the original serum sample in the assay buffer, we can calculate the corticosterone concentration of the origianl serum sample", 
-          em("ng/mL * dilutionFactor")),
         tabsetPanel(
+          ## Buffer Control ----------------------------------------------------------
           tabPanel(
-            "plate",
-            fluidRow(
-              div(
-                class = "col-xs-3",
-                checkboxInput(
-                  ns("viewCalcPgPerWell"),
-                  "View pg/well",
-                  value = TRUE
-                )
-              ),
-              div(
-                class = "col-xs-3",
-                checkboxInput(
-                  ns("viewCalcPgPer_mL"),
-                  "View pg/mL",
-                  value = TRUE
+            "Buffer Control",
+            h3("Buffer Control"),
+            shiny::tableOutput(ns("bufferCtrlTable")),
+            uiOutput(ns("bufferCtrlText"))
+          ),
+          ## Percent Binding -------------------------------------------------------
+          tabPanel(
+            "Percent Binding",
+            h3("Percent Binding"),
+            p("We will use the buffer control value to calculate",
+              "the percentage of maximal binding displayed by each well, %B/B", tags$sub("0")),
+            
+            actionButton(ns("togglePercBindingDisplay"), "Toggle Plate Display"),
+            
+            uiOutput(ns("percBindingDisplay"))
+          ),
+          ## Standard Curve -------------------------------------------------------
+          tabPanel(
+            "Standard Curve",
+            h3("Standard Curve"),
+            p("Now, we'll use the standards to calculate the relationship between percent binding and corticosterone per well"),
+            p("Click on a row in the table to exclude the standard from the curve generation"),
+            DTOutput(ns("standardsTable")),
+            plotOutput(ns("standardCurvePlot"), click = ns("standardCurvePlot_click")),
+            tableOutput(ns("standardCurvePlotInfo")),
+            verbatimTextOutput(ns("stdCurveModel")),
+            p("%B/B", tags$sub("0"), " = c + (d - c) / (1 + exp(b(log(ng/well) - log(e))))")
+          ),
+
+          ## Samples Estimates -------------------------------------------------------
+          tabPanel(
+            "Samples Estimates",
+            h3("Samples Estimates"),
+            p("Using the curve we calculated above, we can now estimate the amount of corticosterone that was in each well"),
+            p("From the pg/well, we can calculate the concentration (in pg/mL) of the sample + assay buffer dilution if we know the volume added to the well", em("pg/well * volPerWell")),
+            p("From the pg/mL concentration, we can convert to ng/mL", em("pg/mL / 1000")),
+            p("Finally, using the dilution factor of the original serum sample in the assay buffer, we can calculate the corticosterone concentration of the origianl serum sample", 
+              em("ng/mL * dilutionFactor")),
+            tabsetPanel(
+              ### Plate ----------
+              tabPanel(
+                "plate",
+                fluidRow(
+                  div(
+                    class = "col-xs-3",
+                    checkboxInput(
+                      ns("viewCalcPgPerWell"),
+                      "View pg/well",
+                      value = TRUE
+                    )
+                  ),
+                  div(
+                    class = "col-xs-3",
+                    checkboxInput(
+                      ns("viewCalcPgPer_mL"),
+                      "View pg/mL",
+                      value = TRUE
+                    ),
+                  ),
+                  div(
+                    class = "col-xs-3",
+                    checkboxInput(
+                      ns("viewCalcNgPer_mL"),
+                      "View ng/mL",
+                      value = TRUE
+                    )
+                  ),
+                  div(
+                    class = "col-xs-3",
+                    checkboxInput(
+                      ns("viewCalcSampleConc"),
+                      "View sample conc",
+                      value = TRUE
+                    )
+                  ),
                 ),
+                uiOutput(ns("calcPlate"))
               ),
-              div(
-                class = "col-xs-3",
-                checkboxInput(
-                  ns("viewCalcNgPer_mL"),
-                  "View ng/mL",
-                  value = TRUE
-                )
+              ### All on Curve -------------
+              tabPanel(
+                "All on STD Curve",
+                plotOutput(ns("samplesOnStdCurvePlot"), click = ns("samplesOnStdCurvePlot_click")),
+                tableOutput(ns("samplesPgInfo"))
               ),
-              div(
-                class = "col-xs-3",
-                checkboxInput(
-                  ns("viewCalcSampleConc"),
-                  "View sample conc",
-                  value = TRUE
-                )
+              ### Mouse on Curve -----------
+              tabPanel(
+                "By Mouse on STD Curve",
+                selectInput(
+                  ns("selectedMouse"),
+                  label = "Select Mouse:",
+                  choices = character()
+                ),
+                plotOutput(ns("mouseOnStdCurvePlot")),
+                tableOutput(ns("mouseOnStdCurvePlotInfo"))
               ),
-            ),
-            uiOutput(ns("calcPlate"))
-          ),
-          tabPanel(
-            "All on STD Curve",
-            plotOutput(ns("samplesOnStdCurvePlot"), click = ns("samplesOnStdCurvePlot_click")),
-            tableOutput(ns("samplesPgInfo"))
-          ),
-          tabPanel(
-            "By Mouse on STD Curve",
-            selectInput(
-              ns("selectedMouse"),
-              label = "Select Mouse:",
-              choices = character()
-            ),
-            plotOutput(ns("mouseOnStdCurvePlot")),
-            tableOutput(ns("mouseOnStdCurvePlotInfo"))
-          ),
-          tabPanel(
-            "Quality Control",
-            plotOutput(ns("QConStdCurvePlot")),
-            tableOutput(ns("QConStdCurvePlotInfo"))
+              ### Quality Control ----------
+              tabPanel(
+                "Quality Control",
+                plotOutput(ns("QConStdCurvePlot")),
+                tableOutput(ns("QConStdCurvePlotInfo"))
+              )
+            )
           )
-        )
-        
+        ),
       ),
+      # Plate View ------------------------------
       tabPanel(
         "Plate View",
         fluidRow(
@@ -167,10 +214,15 @@ cortEIAUI <- function(id){
         
         uiOutput(ns("comboPlate")),
       ),
+      # Table View -----------
       tabPanel(
-        "Results",
-        downloadButton(ns("downloadResults"), "Download Results"),
-        dataTableOutput(ns("assayResults")),
+        "Table View",
+        dataTableOutput(ns("calculationTable"))
+      ),
+      # Results ----------------
+      tabPanel(
+        "Sample Concentrations",
+        dataTableOutput(ns("assayResults"))
       )
     )
   )
@@ -180,6 +232,7 @@ cortEIAUI <- function(id){
 cortEIAServer <- function(
   id,
   filePath,
+  fileName,
   compType
 ){
   moduleServer(
@@ -200,7 +253,10 @@ cortEIAServer <- function(
       
       assayPlate <- reactive({
         assayPlate <- read_plate(filePath, "wells") %>%
-          arrange(plateID)
+          mutate(
+            type = factor(type, c("NSB", "bufferCtrl", "STD", "QC", "sample"))
+          )%>%
+          arrange(type, plateID)
         return(assayPlate)
       })
       
@@ -221,7 +277,7 @@ cortEIAServer <- function(
       bufferCtrlOD <- reactive({
         df <- assayPlate_netOD_meanCV() %>%
           filter(
-            plateID == "BufferCtrl"
+            plateID == "bufferCtrl"
           )
         return(df$meannetOD[1])
       })
@@ -239,14 +295,28 @@ cortEIAServer <- function(
       standards <- reactive({
         stds <- assayPlate_percBinding() %>%
           filter(
-            type == "Std"
+            type == "STD"
           )
         return(stds)
       })
       
+      ## Standards table - select to exclude
+      output$standardsTable <- renderDT({
+        standards()
+      })
+      
+      standards_included <- reactive({
+        standards() %>%
+          filter(! (row_number() %in% input$standardsTable_rows_selected))
+      })
+      
       # Standard Curve Model
       stdCurve <- reactive({
-        stdCurve <- drm(percBinding ~ stdPgPerWell, data = standards(), fct = LL.4())
+        stdCurve <- drm(
+          percBinding ~ stdPgPerWell, 
+          data = standards_included(), 
+          fct = LL.4()
+        )
         return(stdCurve)
       })
       
@@ -256,17 +326,13 @@ cortEIAServer <- function(
           rowwise()%>%
           mutate(
             pgPerWell = ifelse(
-              type == "Std",
+              type == "STD",
               stdPgPerWell,
               ifelse(
-                type == "QC" | type == "Sample",
+                type == "QC" | type == "sample",
                 ED(stdCurve(), percBinding, type="absolute", display=F)[1,1],
                 NA
               )
-              # case_when(
-              # type == "STD" ~ stdPgPerWell,
-              # type == "QC" | type == "Sample" ~ ED(stdCurve(), percBinding, type="absolute", display=F)[1,1],
-              # TRUE ~ NA
             ),
             pgPer_mL = ifelse(is.na(pgPerWell), NA, pgPerWell / volPerWell),
             ngPer_mL = ifelse(is.na(pgPer_mL), NA, pgPer_mL / 1000),
@@ -275,16 +341,51 @@ cortEIAServer <- function(
         return(df)
       })
       
+      assayPlate_concEstimates_meanCV <- reactive({
+        df <- assayPlate_concEstimates()
+        
+        df_mean <- df %>%
+          group_by(plateID) %>%
+          summarise(
+            cortMean = mean(sampleConc_ngPer_mL, na.rm = TRUE),
+            cortCV = sd(sampleConc_ngPer_mL, na.rm = TRUE) / cortMean * 100 
+          )
+        
+        df_addMean <- df %>%
+          left_join(
+            df_mean,
+            by = "plateID"
+          )
+        return(df_addMean)
+      })
+      
       samplesEst <- reactive({
         assayPlate_concEstimates() %>%
           filter(
-            type == "QC" | type == "Sample"
+            type == "QC" | type == "sample"
           ) %>%
           arrange(
             type,
             mouseID,
             time
           )
+      })
+      
+      # Mean estimates for samples
+      meanSampleResults <- reactive({
+        df <- assayPlate_concEstimates() %>%
+          filter(
+            type == "sample"
+          ) %>%
+          group_by(
+            mouseID, time
+          ) %>%
+          summarize(
+            cort = mean(sampleConc_ngPer_mL, na.rm = TRUE),
+            cortCV = sd(sampleConc_ngPer_mL, na.rm = TRUE)/cort * 100,
+            .groups = "drop"
+          )
+        return(df)
       })
       
 
@@ -398,27 +499,27 @@ cortEIAServer <- function(
             thisID,
             class = "plateWell NSB"
           )
-        } else if (type == "Std"){
+        } else if (type == "STD"){
           thisDiv <- tags$div(
             thisNetOD,
             thisID,
             thisSampleConc,
-            class = "plateWell Std",
+            class = "plateWell STD",
           )
-        } else if (type == "BufferCtrl"){
+        } else if (type == "bufferCtrl"){
           thisDiv <- tags$div(
             thisNetOD,
             thisID,
-            class = "plateWell BufferCtrl",
+            class = "plateWell bufferCtrl",
           )
-        } else if(type == "Sample"){
+        } else if(type == "sample"){
           thisDiv <- tags$div(
             thisNetOD,
             thisID,
             thisMouse,
             thisTime,
             thisSampleConc,
-            class = "plateWell Sample",
+            class = "plateWell sample",
           )
         } else if (type == "QC"){
           thisDiv <- tags$div(
@@ -671,7 +772,7 @@ cortEIAServer <- function(
       output$bufferCtrlTable <- shiny::renderTable({
         assayPlate() %>%
           filter(
-            type == "BufferCtrl"
+            type == "bufferCtrl"
           ) %>%
           select(
             wells, plateID, netOD
@@ -728,7 +829,7 @@ cortEIAServer <- function(
       # Standard Curve ----------------------------------------------------------
 
       stdsNoZero <- reactive({
-        noZero <- standards() %>% 
+        noZero <- standards_included() %>% 
           mutate(pgPerWell = 
                    ifelse(stdPgPerWell == 0, 
                           yes = (sort(stds$stdPgPerWell[which.min(sort(stds$stdPgPerWell)) + 1]/100)),
@@ -760,7 +861,7 @@ cortEIAServer <- function(
       output$stdCurveModel <- renderPrint(stdCurve()$coefficients)
       
       output$standardCurvePlot <- renderPlot(stdCurvePlot())
-      output$standardCurveInfo <- renderTable(
+      output$standardCurvePlotInfo <- renderTable(
         nearPoints(
           stdsNoZero() %>%
             select(
@@ -809,11 +910,15 @@ cortEIAServer <- function(
       })
       
       ## Plots ------------------
-      output$samplesOnStdCurvePlot <- renderPlot({
+      samplesOnStdCurvePlot <- reactive({
         viz <- stdCurvePlot() +
           geom_point(data = samplesEst())
-          # stat_summary(fun = mean, na.rm = TRUE, data = samplesEst(), color = "purple", size = 0.4)
+        # stat_summary(fun = mean, na.rm = TRUE, data = samplesEst(), color = "purple", size = 0.4)
         return(viz)
+      })
+      
+      output$samplesOnStdCurvePlot <- renderPlot({
+        samplesOnStdCurvePlot()
       })
       
       output$samplesPgInfo <- renderTable({
@@ -873,40 +978,90 @@ cortEIAServer <- function(
           )
       })
       
-      meanSampleResults <- reactive({
-        df <- assayPlate_concEstimates() %>%
-          filter(
-            type == "Sample"
+      output$calculationTable <- renderDataTable({
+        assayPlate_concEstimates_meanCV() %>%
+          relocate(
+            netOD,
+            .after = time
           ) %>%
-          group_by(
-            mouseID, time
+          datatable(
+            extensions = "FixedColumns",
+            options = list(
+              paging = FALSE, searching = TRUE, info = FALSE,
+              fixedHeader = list(header= TRUE, footer = TRUE), scrollY = "400px",
+              sort = TRUE, scrollX = TRUE, fixedColumns = list(leftColumns = 3)
+            )
           ) %>%
-          summarize(
-            cort = mean(sampleConc_ngPer_mL, na.rm = TRUE),
-            cortCV = sd(sampleConc_ngPer_mL, na.rm = TRUE)/cort * 100,
-            .groups = "drop"
+          formatRound(
+            columns = c(
+              "cortMean", 
+              "cortCV",
+              "percBinding",
+              "pgPerWell",
+              "pgPer_mL",
+              "ngPer_mL",
+              "sampleConc_ngPer_mL"
+              ), 
+            digits = 3
           )
-        return(df)
       })
       
       output$assayResults <- renderDataTable({
          meanSampleResults()%>%
           datatable() %>%
           formatRound(
-            columns = c("cort", "cortCV"), digits = 3
+            columns = c("cort", "cortCV"), 
+            digits = 3
           )
       })
       
-      # Download the group cycles plot
+      # Download the results
       output$downloadResults <- downloadHandler(
         filename = function() {
-          paste0("cortResults", Sys.Date(), ".xlsx")
+          paste0(fileName %>% path_ext_remove(), "_results_", Sys.Date(), ".xlsx")
         },
         content = function(file) {
           saveDFsToExcel_shiny(
             file,
             cortResults = meanSampleResults(),
-            calcs = assayPlate_concEstimates()
+            calcs = assayPlate_concEstimates_meanCV()
+          )
+        }
+      )
+      
+      # Download the standard curve
+      output$downloadStdCurve <- downloadHandler(
+        filename = function() {
+          paste0(fileName %>% path_ext_remove(), "_stdCurve_", Sys.Date(), ".", input$imgType)
+        },
+        content = function(file) {
+          flexSave(
+            baseName = file,
+            thisFilePrefix = NULL,
+            plot = stdCurvePlot(),
+            fileType = input$imgType,
+            filePath = NULL,
+            units = "in",
+            compType = currentCompType,
+            shinySettings = TRUE
+          )
+        }
+      )
+      # Download the standard curve with samples
+      output$downloadSamplesOnCurve <- downloadHandler(
+        filename = function() {
+          paste0(fileName %>% path_ext_remove(), "_samplesOnStdCurve_", Sys.Date(), ".", input$imgType)
+        },
+        content = function(file) {
+          flexSave(
+            baseName = file,
+            thisFilePrefix = NULL,
+            plot = samplesOnStdCurvePlot(),
+            fileType = input$imgType,
+            filePath = NULL,
+            units = "in",
+            compType = currentCompType,
+            shinySettings = TRUE
           )
         }
       )

@@ -17,7 +17,9 @@ uploadCortEIAUI <- function(id){
       ),
       div(
         class = "col-xs-6",
-        a("Example CSV File", href = "cortEIAFileExample.xlsx")
+        a("Example CSV File", href = "exampleCortEIAPlate.csv"),
+        br(),
+        a("Template CSV File", href = "templateCortEIAPlate.csv")
       )
     ),
     cortEIAUI(ns("cortEIA"))
@@ -37,6 +39,7 @@ uploadCortEIAServer <- function(
         cortEIAServer(
           "cortEIA",
           input$dataFile$datapath,
+          input$dataFile$name,
           compType
         )
       })
