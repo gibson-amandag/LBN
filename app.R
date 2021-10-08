@@ -144,6 +144,12 @@ ui <- navbarPage(
         uploadCyclesUI(
             "uploadCycles"
         )
+    ),
+    tabPanel(
+        "Cort EIA",
+        uploadCortEIAUI(
+            "cortEIA"
+        )
     )
 
 ############
@@ -198,6 +204,7 @@ server <- function(input, output) {
                     compType = currentCompType)
     samplingPPTsServer("samplingPPTs", dateToday, AcuteStress_off, LBN_data, Cycles_off_all, LBN_uterinePicsFolder)
     uploadCyclesServer("uploadCycles", compType = currentCompType)
+    uploadCortEIAServer("cortEIA", compType = currentCompType)
 
 }
 
