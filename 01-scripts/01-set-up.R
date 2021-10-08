@@ -23,6 +23,8 @@ if(!require(colourpicker)) install.packages('colourpicker')
 
 
 #### Load Libraries ##############################
+library(MASS)
+library(drc)
 library(tidyverse)
 library(rlang)
 library(scales)
@@ -43,6 +45,9 @@ library(fs)
 library(DT)
 library(Cairo)
 library(colourpicker)
+library(plater)
+library(shinyjs)
+select <- dplyr::select
   # Save a PDF - in ggsave, device = cairo_pdf on Windows
   # https://r-graphics.org/recipe-output-fonts-pdf - even when following these
   # steps (downloaded Ghostscript, added to environment, embedded fonts), the

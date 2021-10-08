@@ -1,0 +1,172 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+# If can't find it, be sure that the directory is the project directory
+# Arrow between notebook and settings gear -> Knit directory
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+Read the plate
+
+```{r}
+assayPlate <- read_plate(file.path(dataFolder, "LBN_0006-males-cortPlate.csv"), "wells") %>%
+  arrange(plateID)
+assayPlate
+```
+
+Function to summarize
+
+```{r}
+getMeanCVfromReplicates <- function(assayPlate, colToSum = netOD) {
+  summarizedPlate <- assayPlate %>%
+    group_by(plateID) %>%
+    summarise(
+      "mean{{ colToSum }}" := mean({{ colToSum }}, na.rm = TRUE),
+      "CV{{ colToSum }}" := sd({{ colToSum }}, na.rm = TRUE)/mean({{ colToSum }}, na.rm = TRUE) * 100
+    )
+  return(summarizedPlate)
+}
+```
+
+Get mean net OD and CV for all values
+```{r}
+assayPlate_meanCV <- assayPlate %>%
+  getMeanCVfromReplicates()
+```
+
+Get the buffer control mean OD
+```{r}
+# assayPlate <- assayPlate %>%
+#   left_join(
+#     assayPlate_meanCV,
+#     by = "plateID"
+#   )
+# 
+# assayPlate %>%
+#   filter(
+#     plateID == "Buffer Ctrl"
+#   )
+
+test <- view_plate(assayPlate, well_ids_column = "wells", columns_to_display = "type")
+test[[1]][1,1]
+
+bufferCtrlOD <- assayPlate_meanCV$meannetOD[assayPlate_meanCV$plateID == "BufferCtrl"][1]
+bufferCtrlOD
+```
+
+Get the standards
+```{r}
+stds <- assayPlate %>%
+  filter(
+    str_detect(plateID, "Std")
+  ) %>%
+  arrange(plateID)%>%
+  mutate(
+    percBuffer = netOD / bufferCtrlOD * 100
+  )
+
+stds
+```
+
+Get the samples
+```{r}
+samples <- assayPlate %>%
+  filter(
+    ! plateID == "NSB",
+    ! str_detect(plateID, "Std"),
+    ! plateID == "BufferCtrl"
+  ) %>%
+  mutate(
+    percBuffer = netOD / bufferCtrlOD * 100
+  )
+samples
+```
+
+```{r}
+stds
+stdCurve <- drm(percBuffer ~ pgPerTube, data = stds, fct = LL.4())
+
+stdsNoZero <- stds %>% 
+      mutate(pgPerTube = 
+       ifelse(pgPerTube == 0, 
+              yes = (sort(stds$pgPerTube[which.min(sort(stds$pgPerTube)) + 1]/100)),
+              no = pgPerTube
+              )
+            )
+stdsNoZero
+
+stdCurvePlot <- ggplot(
+  data = stdsNoZero,
+     aes(x = pgPerTube, y = percBuffer) #, col = variable)
+    ) + 
+  geom_point() + 
+  stat_summary(fun = mean, na.rm = TRUE, color = "red") +
+  geom_smooth(method = drm, formula = y ~ x, method.args = list(fct = L.4()), se = FALSE, color = "darkgrey") +
+  scale_x_log10() +
+  labs(
+    x = "cort (pg/well)",
+    y = "% B/B0"
+  ) +
+  textTheme() +
+  boxTheme()
+stdCurvePlot
+```
+
+Calculate the samples from the standard curve
+```{r}
+volPerWell <- 0.05
+dilutionFactor <- 100
+samplesEst <- samples %>%
+  rowwise()%>%
+  mutate(
+    pgPerTube = ED(stdCurve, percBuffer, type="absolute", display=F)[1,1],
+    pgPer_mL = pgPerTube / volPerWell,
+    ngPer_mL = pgPer_mL / 1000,
+    sampleConc_ngPer_mL = ngPer_mL * 100
+  )
+```
+
+Get the mean for each sample
+```{r}
+meanSamplesEst <- samplesEst %>%
+  group_by(
+    mouseID, time
+  ) %>%
+  summarise(
+    meanConc_ngPer_mL = mean(sampleConc_ngPer_mL, na.rm = TRUE),
+    CV = sd(sampleConc_ngPer_mL, na.rm = TRUE) / meanConc_ngPer_mL * 100
+  )
+meanSamplesEst
+```
+
+```{r}
+stdCurvePlot +
+  stat_summary(fun = mean, na.rm = TRUE, data = samplesEst, color = "purple", size = 0.4)
+```
+
+
+```{r}
+meanSamplesEst
+```
+
+```{r}
+meanSamplesEst %>%
+  left_join(
+    Cort_off,
+    by = c("mouseID", "time")
+  ) %>%
+  select(
+    mouseID, time, cort, meanConc_ngPer_mL
+  )
+```
+
+
