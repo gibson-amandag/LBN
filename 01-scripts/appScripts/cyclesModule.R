@@ -257,7 +257,7 @@ cyclesServer <- function(
           lapply(seq_along(lev), function(i) {
             div(
               class = "col-xs-4",
-              colourInput(inputId = session$ns(paste0("col", i)),
+              colourpicker::colourInput(inputId = session$ns(paste0("col", i)),
                           label = paste0("Choose color for ", lev[i]),
                           value = cols[i]
               )
@@ -275,7 +275,7 @@ cyclesServer <- function(
           do.call(what = "updateColourInput",
                   args = list(
                     session = session,
-                    inputId = paste0("col", lev[i]),
+                    inputId = paste0("col", i),
                     value = cols[i]
                   )
           )
@@ -500,7 +500,7 @@ cyclesServer <- function(
                      h4(thisFileName),
                      p(thisStageName),
                      imageOutput(session$ns(imagename), height = "auto") %>% # auto fixes the overlap
-                     tagAppendAttributes(class = 'myImages')
+                      tagAppendAttributes(class = 'myImages')
                    )
                   })
 
