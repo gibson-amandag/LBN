@@ -18,9 +18,13 @@ if(!require(remotes)) install.packages('remotes')
 if(!require(fs)) install.packages('fs') # with tidyverse?
 if(!require(DT)) install.packages('DT')
 if(!require(Cairo)) install.packages('Cairo')
+if (!require(MASS)) install.packages('MASS')
+if (!require(drc)) install.packages('drc')
+if(!require(shinyjs)) install.packages('shinyjs')
 if(!require(colourpicker)) install.packages('colourpicker')
+if(!require(plater)) install.packages('plater')
 # if(!require(shinyFiles)) install.packages('shinyFiles')
-
+if(!require(tinytex))install.packages('tinytex')
 
 #### Load Libraries ##############################
 library(MASS)
@@ -47,11 +51,12 @@ library(Cairo)
 library(shinyjs)
 library(colourpicker) # After shinyjs
 library(plater)
+library(tinytex)
 select <- dplyr::select
-  # Save a PDF - in ggsave, device = cairo_pdf on Windows
-  # https://r-graphics.org/recipe-output-fonts-pdf - even when following these
-  # steps (downloaded Ghostscript, added to environment, embedded fonts), the
-  # pdf text is still overlapping on windows
+# Save a PDF - in ggsave, device = cairo_pdf on Windows
+# https://r-graphics.org/recipe-output-fonts-pdf - even when following these
+# steps (downloaded Ghostscript, added to environment, embedded fonts), the
+# pdf text is still overlapping on windows
 
 
 ## 2021-08-17 - had to install older version of Rttf2pt1 for the font_import from extrafont to work appropriately
@@ -59,8 +64,8 @@ select <- dplyr::select
 ## Download Rtools for Windows: https://cran.r-project.org/bin/windows/Rtools/
 
 ## Run these lines once on the computer
-  # remotes::install_version("Rttf2pt1", version = "1.3.8")
-  # font_import()
+# remotes::install_version("Rttf2pt1", version = "1.3.8")
+# font_import()
 
 if(! length(fonts()) > 0){
   # have to add fonts to be able to load them into pdfs
