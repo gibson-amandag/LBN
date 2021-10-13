@@ -34,28 +34,35 @@ cortEIAUI <- function(id){
     
     fluidRow(
       div(
-        class = "col-sm-4",
-        downloadButton(ns("downloadResults"), "Download Results in Excel"),
-      ),
-      div(
-        class = "col-xs-6 col-sm-2",
+        class = "col-xs-4",
         radioButtons(
-          ns("imgType"),
-          "Select File Type",
-          choices = c("png", "pdf")
+          ns("modelType"),
+          "Model Type",
+          choices = c(
+            "4 parameter logarithmic" = "4PLC",
+            "linear" = "linear"
+          )
         )
+      )
+    ),
+    
+    fluidRow(
+      div(
+        class = "col-xs-6",
+        downloadButton(ns("downloadResults"), "Download Results in Excel")
       ),
       div(
         class = "col-xs-6",
-        downloadButton(ns("downloadStdCurve"), "Download Std Curve Plot"),
-        downloadButton(ns("downloadSamplesOnCurve"), "Download Std Curve with Samples Plot"),
+        radioButtons(ns('format'), 'Document format', c('PDF', 'HTML', 'Word'),
+                     inline = TRUE),
+        downloadButton(ns("downloadReport"), "Download Report"),
       )
     ),
     
     tabsetPanel(
-
+      
       # Calculation -------------------------------------------------------------
-
+      
       
       tabPanel(
         "Calculation",
@@ -91,7 +98,7 @@ cortEIAUI <- function(id){
             verbatimTextOutput(ns("stdCurveModel")),
             p("%B/B", tags$sub("0"), " = c + (d - c) / (1 + exp(b(log(ng/well) - log(e))))")
           ),
-
+          
           ## Samples Estimates -------------------------------------------------------
           tabPanel(
             "Samples Estimates",
@@ -241,63 +248,19 @@ cortEIAServer <- function(
       library(plater)
       library(shinyjs)
       
-      getMeanCVfromReplicates <- function(assayPlate, colToSum = netOD) {
-        summarizedPlate <- assayPlate %>%
-          group_by(plateID) %>%
-          summarise(
-            "mean{{ colToSum }}" := mean({{ colToSum }}, na.rm = TRUE),
-            "CV{{ colToSum }}" := sd({{ colToSum }}, na.rm = TRUE)/mean({{ colToSum }}, na.rm = TRUE) * 100
-          )
-        return(summarizedPlate)
-      }
+      modelType <- input$modelType
       
-      assayPlate <- reactive({
-        assayPlate <- read_plate(filePath, "wells") %>%
-          mutate(
-            type = factor(type, c("NSB", "bufferCtrl", "STD", "QC", "sample"))
-          )%>%
-          arrange(type, plateID)
-        return(assayPlate)
-      })
+      initialProcessing <- reactive({processCortEIAtoPercBinding(filePath)})
       
-      assayPlate_netOD_meanCV <- reactive({
-        sumPlate <- assayPlate() %>%
-          getMeanCVfromReplicates()
-        return(sumPlate)
-      })
-      
-      assayPlate_indPlusMean <- reactive({
-        comboPlate <- assayPlate() %>%
-          left_join(
-            assayPlate_netOD_meanCV(),
-            by = "plateID"
-          )
-      })
-      
-      bufferCtrlOD <- reactive({
-        df <- assayPlate_netOD_meanCV() %>%
-          filter(
-            plateID == "bufferCtrl"
-          )
-        return(df$meannetOD[1])
-      })
-      
-      # Percent binding relative to buffer control
-      assayPlate_percBinding <- reactive({
-        df <- assayPlate() %>%
-          mutate(
-            percBinding = netOD / bufferCtrlOD() * 100
-          )
-        return(df)
-      })
+      assayPlate  <-  reactive({initialProcessing()$assayPlate})
+      assayPlate_netOD_meanCV <-  reactive({initialProcessing()$assayPlate_netOD_meanCV})
+      assayPlate_indPlusMean_netOD <-  reactive({initialProcessing()$assayPlate_indPlusMean_netOD})
+      bufferCtrlOD <-  reactive({initialProcessing()$bufferCtrlOD})
+      assayPlate_percBinding <-  reactive({initialProcessing()$assayPlate_percBinding})
       
       # Standard Values
       standards <- reactive({
-        stds <- assayPlate_percBinding() %>%
-          filter(
-            type == "STD"
-          )
-        return(stds)
+        getCortEIAStandards(assayPlate_percBinding())
       })
       
       ## Standards table - select to exclude
@@ -310,85 +273,20 @@ cortEIAServer <- function(
           filter(! (row_number() %in% input$standardsTable_rows_selected))
       })
       
-      # Standard Curve Model
-      stdCurve <- reactive({
-        stdCurve <- drm(
-          percBinding ~ stdPgPerWell, 
-          data = standards_included(), 
-          fct = LL.4()
+      finalResults <- reactive({
+        processCortEIAtoSamplesEstimates(
+          assayPlate_percBinding(), 
+          standards_included(), 
+          modelType
         )
-        return(stdCurve)
       })
       
-      # Sample Estimates
-      assayPlate_concEstimates <- reactive({
-        df <- assayPlate_percBinding() %>%
-          rowwise()%>%
-          mutate(
-            pgPerWell = ifelse(
-              type == "STD",
-              stdPgPerWell,
-              ifelse(
-                type == "QC" | type == "sample",
-                ED(stdCurve(), percBinding, type="absolute", display=F)[1,1],
-                NA
-              )
-            ),
-            pgPer_mL = ifelse(is.na(pgPerWell), NA, pgPerWell / volPerWell),
-            ngPer_mL = ifelse(is.na(pgPer_mL), NA, pgPer_mL / 1000),
-            sampleConc_ngPer_mL = ifelse(is.na(ngPer_mL), NA, ngPer_mL * dilutionFactor)
-          )
-        return(df)
-      })
+      stdCurve <- reactive({finalResults()$stdCurve})
+      assayPlate_concEstimates <- reactive({finalResults()$assayPlate_concEstimates})
+      assayPlate_concEstimates_meanCV <- reactive({finalResults()$assayPlate_concEstimates_meanCV})
+      samplesEst <- reactive({finalResults()$samplesEst})
+      meanSampleResults <- reactive({finalResults()$meanSampleResults})
       
-      assayPlate_concEstimates_meanCV <- reactive({
-        df <- assayPlate_concEstimates()
-        
-        df_mean <- df %>%
-          group_by(plateID) %>%
-          summarise(
-            cortMean = mean(sampleConc_ngPer_mL, na.rm = TRUE),
-            cortCV = sd(sampleConc_ngPer_mL, na.rm = TRUE) / cortMean * 100 
-          )
-        
-        df_addMean <- df %>%
-          left_join(
-            df_mean,
-            by = "plateID"
-          )
-        return(df_addMean)
-      })
-      
-      samplesEst <- reactive({
-        assayPlate_concEstimates() %>%
-          filter(
-            type == "QC" | type == "sample"
-          ) %>%
-          arrange(
-            type,
-            mouseID,
-            time
-          )
-      })
-      
-      # Mean estimates for samples
-      meanSampleResults <- reactive({
-        df <- assayPlate_concEstimates() %>%
-          filter(
-            type == "sample"
-          ) %>%
-          group_by(
-            mouseID, time
-          ) %>%
-          summarize(
-            cort = mean(sampleConc_ngPer_mL, na.rm = TRUE),
-            cortCV = sd(sampleConc_ngPer_mL, na.rm = TRUE)/cort * 100,
-            .groups = "drop"
-          )
-        return(df)
-      })
-      
-
       # Table Elements ----------------------------------------------------------
       
       makeWellDivConcCalcs <- function(
@@ -403,7 +301,7 @@ cortEIAServer <- function(
           is.na(percBinding),
           "",
           paste0(round(percBinding, 2), "%")
-          )
+        )
         ) %>% tagAppendAttributes(class = "calcPercB")
         
         thisPgPerWell <- p(ifelse(
@@ -459,7 +357,7 @@ cortEIAServer <- function(
           is.na(percBinding),
           "",
           paste0(round(percBinding, 2), "%")
-          )
+        )
         ) %>% tagAppendAttributes(class = "inProgPercB")
         
         thisClass <- paste0("plateWell ", type)
@@ -471,7 +369,7 @@ cortEIAServer <- function(
         )
         return(thisDiv)
       }
-
+      
       makeWellDiv <- function(
         plateID,
         mouseID,
@@ -675,7 +573,7 @@ cortEIAServer <- function(
         return(rows)
       }
       
-
+      
       # Show or Hide components of plate ----------------------------------------
       showIfChecked <- function(inputEl, selector){
         if(inputEl == TRUE){
@@ -690,61 +588,51 @@ cortEIAServer <- function(
       }
       
       observeEvent(input$viewMouseID, {
-          showIfChecked(input$viewMouseID, ".mouseID")
-        }
+        showIfChecked(input$viewMouseID, ".mouseID")
+      }
       )
       
       observeEvent(input$viewPlateID, {
-          showIfChecked(input$viewPlateID, ".plateID")
-        }
+        showIfChecked(input$viewPlateID, ".plateID")
+      }
       )
       
       observeEvent(input$viewTime, {
-          showIfChecked(input$viewTime, ".time")
-        }
+        showIfChecked(input$viewTime, ".time")
+      }
       )
       
       observeEvent(input$viewNetOD, {
-          showIfChecked(input$viewNetOD, ".netOD")
-        }
+        showIfChecked(input$viewNetOD, ".netOD")
+      }
       )
       observeEvent(input$viewConc, {
-          showIfChecked(input$viewConc, ".conc")
-        }
+        showIfChecked(input$viewConc, ".conc")
+      }
       )
       
       observeEvent(input$viewCalcPgPerWell, {
-          showIfChecked(input$viewCalcPgPerWell, ".calcPgPerWell")
-        }
+        showIfChecked(input$viewCalcPgPerWell, ".calcPgPerWell")
+      }
       )
       observeEvent(input$viewCalcPgPer_mL, {
-          showIfChecked(input$viewCalcPgPer_mL, ".calcPgPer_mL")
-        }
+        showIfChecked(input$viewCalcPgPer_mL, ".calcPgPer_mL")
+      }
       )
       observeEvent(input$viewCalcNgPer_mL, {
-          showIfChecked(input$viewCalcNgPer_mL, ".calcNgPer_mL")
-        }
+        showIfChecked(input$viewCalcNgPer_mL, ".calcNgPer_mL")
+      }
       )
       observeEvent(input$viewCalcSampleConc, {
-          showIfChecked(input$viewCalcSampleConc, ".calcSampleConc")
-        }
+        showIfChecked(input$viewCalcSampleConc, ".calcSampleConc")
+      }
       )
       
       
       
-
-      # Plate Output ------------------------------------------------------------
-
       
-      output$comboPlate <- renderUI({
-        headerRow <- lapply(
-          1:12, function (i){
-            tags$th(
-              i
-            )
-          }
-        )
-        
+      # Plate Output ------------------------------------------------------------
+      comboPlate <- reactive({
         tableDiv <- tagList(
           tags$div(
             class = "container",
@@ -765,10 +653,14 @@ cortEIAServer <- function(
         
         return(tableDiv)
       })
-
-
+      
+      output$comboPlate <- renderUI({
+        comboPlate()
+      })
+      
+      
       # Buffer Control ----------------------------------------------------------
-
+      
       output$bufferCtrlTable <- shiny::renderTable({
         assayPlate() %>%
           filter(
@@ -783,20 +675,20 @@ cortEIAServer <- function(
         tagList(
           h4("Mean buffer control OD: ", 
              span(bufferCtrlOD()) %>%
-              tagAppendAttributes(style = 'color:red')
+               tagAppendAttributes(style = 'color:red')
           )
         )
       })
       
-      output$percBindingDisplay <- renderUI({
-        headerRow <- lapply(
-          1:12, function (i){
-            tags$th(
-              i
-            )
-          }
-        )
-        
+      headerRow <- lapply(
+        1:12, function (i){
+          tags$th(
+            i
+          )
+        }
+      )
+      
+      percBindingTableDiv <- reactive({
         tableDiv <- tagList(
           tags$div(
             class = "container percBindingDisplay",
@@ -818,6 +710,10 @@ cortEIAServer <- function(
         return(tableDiv)
       })
       
+      output$percBindingDisplay <- renderUI({
+        percBindingTableDiv()
+      })
+      
       observeEvent(
         input$togglePercBindingDisplay,
         {
@@ -825,9 +721,9 @@ cortEIAServer <- function(
         }
       )
       
-
+      
       # Standard Curve ----------------------------------------------------------
-
+      
       stdsNoZero <- reactive({
         noZero <- standards_included() %>% 
           mutate(pgPerWell = 
@@ -841,19 +737,31 @@ cortEIAServer <- function(
       
       stdCurvePlot <- reactive({
         viz <- ggplot(
-            data = stdsNoZero(),
-            aes(x = pgPerWell, y = percBinding)
-          ) + 
+          data = stdsNoZero(),
+          aes(x = pgPerWell, y = percBinding)
+        ) + 
           geom_point(color = "blue") + 
           stat_summary(fun = mean, na.rm = TRUE, color = "red") +
-          geom_smooth(method = drm, formula = y ~ x, method.args = list(fct = L.4()), se = FALSE, color = "darkgrey") +
-          scale_x_log10() +
           labs(
             x = "cort (pg/well)",
             y = "% B/B0"
           ) +
           textTheme(size = 16) +
-          boxTheme()
+          boxTheme() +
+          scale_x_log10()
+        
+        if(modelType == "4PLC"){
+          viz <- viz + 
+            geom_smooth(method = drm, formula = y ~ x, method.args = list(fct = L.4()), se = FALSE, color = "darkgrey")
+        } else {
+          viz <- viz +
+            geom_smooth(
+              method = lm,
+              # formula = y ~ log10(x),
+              formula = y ~ x,
+              se = FALSE, color = "darkgrey")
+        }
+        
         
         return(viz)
       })
@@ -875,19 +783,11 @@ cortEIAServer <- function(
         )
       )
       
-
+      
       # Samples -----------------------------------------------------------------
       
       ## Plate Display ---------------------------
-      output$calcPlate <- renderUI({
-        headerRow <- lapply(
-          1:12, function (i){
-            tags$th(
-              i
-            )
-          }
-        )
-        
+      calcPlateDiv <- reactive({
         tableDiv <- tagList(
           tags$div(
             class = "container percBindingDisplay",
@@ -907,6 +807,10 @@ cortEIAServer <- function(
         )
         
         return(tableDiv)
+      })
+      
+      output$calcPlate <- renderUI({
+        calcPlateDiv
       })
       
       ## Plots ------------------
@@ -978,7 +882,7 @@ cortEIAServer <- function(
           )
       })
       
-      output$calculationTable <- renderDataTable({
+      calculationTable <- reactive({
         assayPlate_concEstimates_meanCV() %>%
           relocate(
             netOD,
@@ -1001,18 +905,26 @@ cortEIAServer <- function(
               "pgPer_mL",
               "ngPer_mL",
               "sampleConc_ngPer_mL"
-              ), 
+            ), 
             digits = 3
           )
       })
       
-      output$assayResults <- renderDataTable({
-         meanSampleResults()%>%
+      output$calculationTable <- renderDataTable({
+        calculationTable()
+      })
+      
+      assayResults <- reactive({
+        meanSampleResults()%>%
           datatable() %>%
           formatRound(
             columns = c("cort", "cortCV"), 
             digits = 3
           )
+      })
+      
+      output$assayResults <- renderDataTable({
+        assayResults()
       })
       
       # Download the results
@@ -1065,8 +977,50 @@ cortEIAServer <- function(
           )
         }
       )
-
       
+      # Download the report
+      output$downloadReport <- downloadHandler(
+        filename = function() {
+          paste0(fileName %>% path_ext_remove(), "_report_", Sys.Date(), '.', switch(
+            input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
+          ))
+        },
+        
+        content = function(file) {
+          src <- normalizePath('./03-analysis-notebooks/cortEIAreport.Rmd')
+          
+          # temporarily switch to the temp dir, in case you do not have write
+          # permission to the current working directory
+          owd <- setwd(tempdir())
+          on.exit(setwd(owd))
+          file.copy(src, 'cortEIAreport.Rmd', overwrite = TRUE)
+          
+          library(rmarkdown)
+          # Can call the items that have created here in Shiny within the RMD file. Makes it easy to report
+          out <- render(
+            'cortEIAreport.Rmd', 
+            switch(
+              input$format,
+              PDF = pdf_document(
+                toc = TRUE,
+                df_print = "kable",
+                dev = "cairo_pdf",
+                pandoc_args = c(paste0('--metadata=title:', fileName %>% path_ext_remove()))
+              ), 
+              HTML = html_document(
+                toc = TRUE,
+                df_print = "paged",
+                pandoc_args = c(paste0('--metadata=title:', fileName %>% path_ext_remove()))
+              ), 
+              Word = word_document(
+                df_print = "kable",
+                pandoc_args = c(paste0('--metadata=title:', fileName %>% path_ext_remove()))
+              )
+            )
+          )
+          file.rename(out, file)
+        }
+      )
       
     }
   )
