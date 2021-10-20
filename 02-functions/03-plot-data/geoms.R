@@ -92,3 +92,126 @@ addMedianHorizontalBar <- function(
     alpha = alpha
   )
 }
+
+
+
+# Lines -------------------------------------------------------------------
+
+my_geom_line <- function(
+  useLineType = TRUE,
+  lineTypeVar,
+  lineGroupVar,
+  indivLineAlpha = 0.5,
+  indivLineSize = 0.8
+){
+  # aesList <- list(
+  #   if(useLineType) linetype = {{ lineTypeVar }},
+  #   group = {{ lineGroupVar }}
+  # )
+  list(
+    geom_line(
+      alpha = indivLineAlpha, # semi-transparent
+      if(useLineType){
+        aes(linetype = {{ lineTypeVar }},
+            group = {{ lineGroupVar }})
+      } else{
+        aes(group = {{ lineGroupVar }})
+      },
+      # aes(
+      #   if(useLineType){linetype = {{ lineTypeVar }}},
+      #   group = {{ lineGroupVar }}
+      #   # aesList
+      # ),
+      size = indivLineSize
+    )
+  )
+}
+
+mean_geom_line <- function(
+  useLineType, #TRUE/FALSE
+  lineTypeVar,
+  errorBarWidth = 1,
+  meanLineSize = 1.4,
+  meanAlpha = 1,
+  errorBarSize = 1,
+  # errorBarColor = "grey10",
+  errorBarAlpha = 0.6
+){
+  list(
+    stat_summary(
+      fun = mean, 
+      geom = "line", 
+      if(useLineType){aes(linetype = {{ lineTypeVar }})}, 
+      size = meanLineSize, 
+      alpha = meanAlpha
+    ),
+    stat_summary(
+      geom = "errorbar", 
+      fun.data = mean_se, 
+      if(useLineType){aes(group = {{ lineTypeVar }})}, 
+      size = errorBarSize, 
+      width = errorBarWidth, 
+      # color = errorBarColor, 
+      alpha = errorBarAlpha
+    )
+  )
+}
+
+plot_line_geom_layers <- function(
+  useLineType, # TRUE/FALSE
+  lineTypeVar,
+  lineGroupVar,
+  xtitle, #x axis label
+  ytitle, #y axis label
+  title = NULL, # plot title
+  individualLines = TRUE, # plot individual lines
+  meanLines = TRUE, # plot mean lines with SE
+  zoom_x = FALSE, # Zoom to part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, # Zoom to part of y axis
+  ymin = NULL,
+  ymax = NULL,
+  indivLineAlpha = 0.5,
+  indivLineSize = 0.8,
+  errorBarWidth = 1,
+  meanLineSize = 1.4,
+  meanAlpha = 1,
+  errorBarSize = 1,
+  # errorBarColor = "grey10",
+  errorBarAlpha = 0.6,
+  textSize = 11,
+  axisSize = 0.5
+){
+  list(
+    labs(
+      x = xtitle,
+      y = ytitle,
+      title = title
+    ),
+    if(individualLines)
+      my_geom_line(
+        # Will always plot based on lineTypeVar
+        useLineType = useLineType,
+        lineTypeVar = {{ lineTypeVar }},
+        lineGroupVar = {{ lineGroupVar }},
+        indivLineAlpha = indivLineAlpha,
+        indivLineSize = indivLineSize
+      ),
+    if(meanLines)
+      mean_geom_line(
+        useLineType = useLineType,
+        lineTypeVar = {{ lineTypeVar }},
+        errorBarWidth = errorBarWidth,
+        meanLineSize = meanLineSize,
+        meanAlpha = meanAlpha,
+        errorBarSize = errorBarSize,
+        # errorBarColor = errorBarColor,
+        errorBarAlpha = errorBarAlpha
+      ),
+    expand_limits(y = 0),
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}),
+    textTheme(size = textSize),
+    boxTheme(axisSize = axisSize)
+  )
+}

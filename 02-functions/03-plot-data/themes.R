@@ -26,17 +26,69 @@ boxTheme <- function(axisSize = 0.5){
 
 earlyLifeFill <- function(
   STD = "STD",
-  LBN = "LBN"
+  LBN = "LBN",
+  STDColor = "white",
+  LBNColor = "cyan4"
 ){
-  fill <- scale_fill_manual("early life trt", values = c(STD="white", LBN="black"))
+  fill <- scale_fill_manual(
+    "early life trt", 
+    values = c(STD=STDColor, LBN=LBNColor)
+  )
   return(fill)
 }
 
-comboTrtFillShape <- function(){
+earlyLifeColor <- function(
+  STD = "STD",
+  LBN = "LBN",
+  STDColor = "grey30",
+  LBNColor = "cyan4"
+){
+  color <- scale_color_manual(
+    "early life trt", 
+    values = c(STD = STDColor, LBN = LBNColor)
+  )
+  return(color)
+}
+
+earlyLifeLineType <- function(
+  STD = "STD",
+  LBN = "LBN"
+){
+  lineType <- scale_linetype_manual(
+    "early life trt", 
+    values = c(STD = "dashed", LBN = "solid")
+  )
+}
+
+comboTrtFillShape <- function(
+  STD_CON_color = "black",
+  STD_ALPS_color = "black",
+  LBN_CON_color = "darkcyan",
+  LBN_ALPS_color = "darkcyan",
+  STD_CON_fill = "white",
+  STD_ALPS_fill = "black",
+  LBN_CON_fill = "lightblue1",
+  LBN_ALPS_fill = "darkcyan"
+){
   layers <- list(
-    scale_color_manual("treatment", values = c("STD-CON"="black", "STD-ALPS"="darkcyan", "LBN-CON"="black", "LBN-ALPS"="darkcyan")),
-    scale_fill_manual("treatment", values = c("STD-CON"="white", "STD-ALPS"="lightblue1", "LBN-CON"="black", "LBN-ALPS"="darkcyan")),
-    scale_shape_manual("treatment", values = c("STD-CON"=21, "STD-ALPS"=23, "LBN-CON"=21, "LBN-ALPS"=23))
+    scale_color_manual(
+      "treatment", 
+      values = c("STD-CON"=STD_CON_color, 
+                 "STD-ALPS"=STD_ALPS_color, 
+                 "LBN-CON"=LBN_CON_color, 
+                 "LBN-ALPS"=LBN_ALPS_color)),
+    scale_fill_manual(
+      "treatment", 
+      values = c("STD-CON"=STD_CON_fill, 
+                 "STD-ALPS"=STD_ALPS_fill, 
+                 "LBN-CON"=LBN_CON_fill, 
+                 "LBN-ALPS"=LBN_ALPS_fill)),
+    scale_shape_manual(
+      "treatment", 
+      values = c("STD-CON"=21, 
+                 "STD-ALPS"=23,
+                 "LBN-CON"=21, 
+                 "LBN-ALPS"=23))
   )
   return(layers)
 }
