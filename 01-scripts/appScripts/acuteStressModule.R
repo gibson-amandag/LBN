@@ -103,10 +103,13 @@ acuteStressUI <- function(id,
             uiOutput(
               ns("cortANOVA_males")
             ),
-            plotOutput(
-              ns("cortPlot_males"),
-              click = ns("cortPlot_males_click")
+            plotUI(
+              ns("cortPlot_males")
             ),
+            # plotOutput(
+            #   ns("cortPlot_males"),
+            #   click = ns("cortPlot_males_click")
+            # ),
             verbatimTextOutput(
               ns("cortPlot_males_info")
             ),
@@ -233,7 +236,8 @@ acuteStressServer <- function(
   LH_off,
   Cort_off,
   Demo_dam,
-  niceNames
+  niceNames,
+  compType
 ){
   moduleServer(
     id,
@@ -413,7 +417,7 @@ acuteStressServer <- function(
           htmltools_value()
       })
       
-      output$cortPlot_males <- renderPlot({
+      cortPlot_males <- reactive({
         if(input$cortPlotLong){
           basePlot <- Cort_off_males() %>%
             filter(
@@ -433,8 +437,13 @@ acuteStressServer <- function(
         return(plot)
       })
       
+      # output$cortPlot_males <- renderPlot({
+      # })
+      
+      cortPlot_males_info <- plotServer("cortPlot_males", cortPlot_males, "cortPlot_males", compType)
+      
       output$cortPlot_males_info <- renderPrint({
-        if(is.null(input$cortPlot_males_click)){
+        if(is.null(cortPlot_males_info$click())){
           "Click on a point to display values - click in the center of the horizontal spread"
         }else(
           nearPoints(
@@ -447,12 +456,15 @@ acuteStressServer <- function(
                 num_ID,
                 earlyLifeTrt,
                 adultTrt,
+                comboTrt,
                 ReproTract_mass,
                 time,
                 cort
               ),
-            input$cortPlot_males_click
+            # input$cortPlot_males_click
+            cortPlot_males_info$click()
           )
+          # cortPlot_males_info$click()$y
         )
       })
       
