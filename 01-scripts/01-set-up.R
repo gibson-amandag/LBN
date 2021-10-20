@@ -95,8 +95,8 @@ savePlots <- Sys.getenv("SAVE_PLOTS")
 currentCompType <- Sys.getenv("COMP_TYPE")
 
 #Data File name
-# LBN_DataName <- Sys.getenv("EXCEL_FILE_NAME")
-LBN_DataName <- "LBN_AGG_data.xlsx"
+LBN_DataName <- Sys.getenv("EXCEL_FILE_NAME")
+# LBN_DataName <- "LBN_AGG_data.xlsx"
 
 #Where data files are saved
 dataFolder <- normalizePath(Sys.getenv("DATA_FOLDER"))
