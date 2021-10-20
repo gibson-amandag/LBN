@@ -1143,3 +1143,616 @@ AcuteStress_off %>%
   )
 ```
 
+
+```{r}
+install.packages("drc")
+library(drc)
+```
+
+```{r}
+
+pgPerTube <- c(250, 125, 62.5, 31.25, 15.625, 7.8125, 3.90625)
+percBinding <- c(0.171504234, 0.262055436, 0.38377985, 0.531662558, 0.664160498, 0.797705879, 0.900776984
+)
+df <- as_tibble(cbind(pgPerTube, percBinding))
+df
+model <- drm(percBinding ~ pgPerTube, data = df, fct = LL.4())
+summary(model)
+
+plot(model, xlab = "pgPerTube", ylab = "B/B0")
+```
+```{r}
+DOSEx <- ED(model, c(.5), type = "absolute", display = T)
+DOSEx
+DOSEx[1,1]
+```
+
+```{r}
+stdNames <- c(
+  "std1",
+  "std2",
+  "std3",
+  "std4",
+  "std5",
+  "std6",
+  "std7"
+)
+stdVals <- c(0.0845, 0.1216, .2146, 0.321353, .46617, .5846, .7738)
+
+# stds <- cbind(stdNames, stdVals)
+stds <- data.frame(stdNames, stdVals)
+stds
+estPgPerTube <- ED(model, stds$stdVals, type = "absolute")
+estDF <- data.frame(stdNames, as_tibble(estPgPerTube))
+estDF <- estDF %>%
+  mutate(
+    pgPerTube = Estimate,
+    pgPerML = Estimate / 0.05
+  )
+estDF
+```
+
+```{r}
+volPerWell <- 0.05
+stds %>%
+  rowwise()%>%
+  mutate(
+    pgPerTube = ED(model, stdVals, type="absolute", display=F)[1,1],
+    pgPer_mL = pgPerTube / volPerWell
+  )
+```
+
+
+```{r}
+install.packages("ELISAtools")
+library(ELISAtools)
+```
+
+```{r}
+install.packages("plater")
+library(plater)
+```
+
+```{r}
+assayPlate <- read_plate(file.path(dataFolder, "testPlate.csv"), "wells") 
+
+getMeanCVfromReplicates <- function(assayPlate, colToSum = netOD) {
+  summarizedPlate <- assayPlate %>%
+    group_by(plateID) %>%
+    summarise(
+      "mean{{ colToSum }}" := mean({{ colToSum }}, na.rm = TRUE),
+      "CV{{ colToSum }}" := sd({{ colToSum }}, na.rm = TRUE)/mean({{ colToSum }}, na.rm = TRUE) * 100
+    )
+  return(summarizedPlate)
+}
+
+assayPlate_meanCV <- assayPlate %>%
+  getMeanCVfromReplicates()
+
+bufferCtrlOD <- assayPlate_meanCV$meannetOD[assayPlate_meanCV$plateID == "Buffer Ctrl"]
+bufferCtrlOD
+
+stds <- assayPlate %>%
+  filter(
+    str_detect(plateID, "Std")
+  ) %>%
+  arrange(plateID)%>%
+  mutate(
+    percBuffer = netOD / bufferCtrlOD * 100
+  )
+
+stds
+
+samples <- assayPlate %>%
+  filter(
+    ! plateID == "NSB",
+    ! str_detect(plateID, "Std"),
+    ! plateID == "Buffer Ctrl"
+  ) %>%
+  mutate(
+    percBuffer = netOD / bufferCtrlOD * 100
+  )
+samples
+```
+
+```{r}
+stdVals <- loadExcelSheet_fromFile(
+  filePath = file.path(dataFolder, "testCortAssayAnalysis.xlsx"),
+  sheetName = "stdVals"
+)
+
+# samplesKey <- loadExcelSheet_fromFile(
+#   filePath = file.path(dataFolder, "testCortAssayAnalysis.xlsx"),
+#   sheetName = "samples"
+# )
+stdVals
+# samplesKey
+```
+
+```{r}
+stds <- stds %>%
+  left_join(
+    stdVals,
+    by = c("plateID" = "Std")
+  )
+stds
+```
+
+```{r}
+# samples <- samples %>%
+#   left_join(
+#     samplesKey,
+#     by = c("wells", "plateID")
+#   )
+```
+```{r}
+stds
+stdCurve <- drm(percBuffer ~ pgPerTube, data = stds, fct = LL.4())
+plot(stdCurve)
+ggplot(stdCurve)
+
+
+stdCurveNoZero <- stds %>% 
+      mutate(pgPerTube = 
+       ifelse(pgPerTube == 0, 
+              yes = (sort(stds$pgPerTube[which.min(sort(stds$pgPerTube)) + 1]/100)),
+              no = pgPerTube
+              )
+            )
+stdCurveNoZero
+
+stdCurvePlot <- ggplot(
+  data = stdCurveNoZero,
+     aes(x = pgPerTube, y = percBuffer) #, col = variable)
+    ) + 
+  geom_point() + 
+  stat_summary(fun = mean, na.rm = TRUE, color = "red") +
+  geom_smooth(method = drm, method.args = list(fct = L.4()), se = FALSE, color = "darkgrey") +
+  scale_x_log10() +
+  labs(
+    x = "cort (pg/well)",
+    y = "% B/B0"
+  ) +
+  textTheme() +
+  boxTheme()
+```
+
+```{r}
+volPerWell <- 0.05
+dilutionFactor <- 100
+samplesEst <- samples %>%
+  rowwise()%>%
+  mutate(
+    pgPerTube = ED(stdCurve, percBuffer, type="absolute", display=F)[1,1],
+    pgPer_mL = pgPerTube / volPerWell,
+    ngPer_mL = pgPer_mL / 1000,
+    sampleConc_ngPer_mL = ngPer_mL * 100
+  )
+samplesEst
+
+meanSamplesEst <- samplesEst %>%
+  getMeanCVfromReplicates(colToSum = sampleConc_ngPer_mL)
+meanSamplesEst
+```
+
+```{r}
+stdCurvePlot +
+  stat_summary(fun = mean, na.rm = TRUE, data = samplesEst, color = "purple", size = 0.4)
+```
+
+```{r}
+initialProgress <- processCortEIAtoPercBinding(file.path(dataFolder, "cortPlates", "LBN_0006-males-cortPlate.csv"))
+
+assayPlate <- initialProgress$assayPlate
+assayPlate_netOD_meanCV <- initialProgress$assayPlate_netOD_meanCV
+assayPlate_indPlusMean_netOD <- initialProgress$assayPlate_indPlusMean_netOD
+bufferCtrlOD <- initialProgress$bufferCtrlOD
+assayPlate_percBinding <- initialProgress$assayPlate_percBinding
+
+standards <- getCortEIAStandards(assayPlate_percBinding)
+
+modelType <- "4PLC"
+
+finalResults <- processCortEIAtoSamplesEstimates(assayPlate_percBinding, standards, "4PLC")
+
+stdCurve <- finalResults$stdCurve
+assayPlate_concEstimates <- finalResults$assayPlate_concEstimates
+assayPlate_concEstimates_meanCV <- finalResults$assayPlate_concEstimates_meanCV
+samplesEst <- finalResults$samplesEst
+meanSampleResults <- finalResults$meanSampleResults
+```
+
+```{r}
+calcMeanCV_concEstimates(
+  assayPlate_concEstimates %>% group_by(mouseID, time)
+)
+```
+
+
+
+2021-10-13 - Improved Mass Plots
+
+```{r}
+my_geom_line <- function(
+  lineTypeVar,
+  lineGroupVar,
+  indivLineAlpha = 0.5,
+  indivLineSize = 0.8
+){
+  geom_line(
+    alpha = indivLineAlpha, # semi-transparent
+    aes(
+      linetype = {{ lineTypeVar }},
+      group = {{ lineGroupVar }}
+    ),
+    size = indivLineSize
+  )
+}
+
+mean_geom_line <- function(
+  useLineType, #TRUE/FALSE
+  lineTypeVar,
+  errorBarWidth = 1,
+  meanLineSize = 1.4,
+  meanAlpha = 1,
+  errorBarSize = 1,
+  errorBarColor = "grey10",
+  errorBarAlpha = 0.6
+){
+  list(
+    stat_summary(
+      fun = mean, 
+      geom = "line", 
+      if(useLineType){aes(linetype = {{ lineTypeVar }})}, 
+      size = meanLineSize, 
+      alpha = meanAlpha
+    ),
+    stat_summary(
+      geom = "errorbar", 
+      fun.data = mean_se, 
+      if(useLineType){aes(group = {{ lineTypeVar }})}, 
+      size = errorBarSize, 
+      width = errorBarWidth, 
+      color = errorBarColor, 
+      alpha = errorBarAlpha
+    )
+  )
+}
+
+plot_line_geom_layers <- function(
+  useLineType, # TRUE/FALSE
+  lineTypeVar,
+  lineGroupVar,
+  xtitle, #x axis label
+  ytitle, #y axis label
+  title = NULL, # plot title
+  individualLines = TRUE, # plot individual lines
+  meanLines = TRUE, # plot mean lines with SE
+  zoom_x = FALSE, # Zoom to part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, # Zoom to part of y axis
+  ymin = NULL,
+  ymax = NULL,
+  indivLineAlpha = 0.5,
+  indivLineSize = 0.8,
+  errorBarWidth = 1,
+  meanLineSize = 1.4,
+  meanAlpha = 1,
+  errorBarSize = 1,
+  errorBarColor = "grey10",
+  errorBarAlpha = 0.6,
+  textSize = 11,
+  axisSize = 0.5
+){
+  list(
+    labs(
+      x = xtitle,
+      y = ytitle,
+      title = title
+    ),
+    if(individualLines)
+      my_geom_line(
+        # Will always plot based on lineTypeVar
+        lineTypeVar = {{ lineTypeVar }},
+        lineGroupVar = {{ lineGroupVar }},
+        indivLineAlpha = indivLineAlpha,
+        indivLineSize = indivLineSize
+      ),
+    if(meanLines)
+      mean_geom_line(
+        useLineType = useLineType,
+        lineTypeVar = {{ lineTypeVar }},
+        errorBarWidth = errorBarWidth,
+        meanLineSize = meanLineSize,
+        meanAlpha = meanAlpha,
+        errorBarSize = errorBarSize,
+        errorBarColor = errorBarColor,
+        errorBarAlpha = errorBarAlpha
+      ),
+    expand_limits(y = 0),
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}),
+    textTheme(size = textSize),
+    boxTheme(axisSize = axisSize)
+  )
+}
+
+plot_mass_lines <- function(
+  df, #wide form mass df
+  groupByDam = FALSE,
+  # groupInteraction = FALSE,
+  # interactionGroupVar = litterNum,
+  useLineType = TRUE, # TRUE/FALSE
+  lineTypeVar = earlyLifeTrt,
+  lineGroupVar = mouseID,
+  xtitle = "PND", #x axis label
+  ytitle = "mass (g)", #y axis label
+  title = NULL, # plot title
+  individualLines = TRUE, # plot individual lines
+  meanLines = TRUE, # plot mean lines with SE
+  zoom_x = FALSE, # Zoom to part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, # Zoom to part of y axis
+  ymin = NULL,
+  ymax = NULL,
+  indivLineAlpha = 0.5,
+  indivLineSize = 0.8,
+  errorBarWidth = 1,
+  meanLineSize = 1.4,
+  meanAlpha = 1,
+  errorBarSize = 1,
+  # errorBarColor = "grey10",
+  errorBarAlpha = 0.6,
+  textSize = 11,
+  axisSize = 0.5,
+  legendPosition = "top"
+){
+  if(groupByDam == TRUE){
+    df <- df %>%
+      getAvgByDam()
+  }
+  
+  df_long <- df %>%
+    makeOffMassLong()
+  
+df_long %>%
+  ggplot(
+    aes(
+      x = day,
+      y = mass,
+      color = earlyLifeTrt,
+      group = earlyLifeTrt
+      # group = if(groupInteraction == TRUE){
+      #   interaction({{ interactionGroupVar }}, earlyLifeTrt)
+      # } else {earlyLifeTrt}
+    )
+  ) +
+  plot_line_geom_layers (
+    useLineType = useLineType, # TRUE/FALSE
+    lineTypeVar = {{ lineTypeVar }},
+    lineGroupVar = {{ lineGroupVar }},
+    xtitle = xtitle, #x axis label
+    ytitle = ytitle, #y axis label
+    title = title, # plot title
+    individualLines = individualLines, # plot individual lines
+    meanLines = meanLines, # plot mean lines with SE
+    zoom_x = zoom_x, # Zoom to part of x axis
+    xmin = xmin,
+    xmax = xmax,
+    zoom_y = zoom_y, # Zoom to part of y axis
+    ymin = ymin,
+    ymax = ymax,
+    indivLineAlpha = indivLineAlpha,
+    indivLineSize = indivLineSize,
+    errorBarWidth = errorBarWidth,
+    meanLineSize = meanLineSize,
+    meanAlpha = meanAlpha,
+    errorBarSize = errorBarSize,
+    # errorBarColor = errorBarColor,
+    errorBarAlpha = errorBarAlpha,
+    textSize = textSize,
+    axisSize = axisSize
+  )+
+  earlyLifeColor() +
+  earlyLifeLineType() +
+  theme(
+    legend.position = legendPosition
+  )
+}
+
+earlyLifeColor <- function(
+  STD = "STD",
+  LBN = "LBN",
+  STDColor = "magenta",
+  LBNColor = "black"
+){
+  color <- scale_color_manual("early life trt", values = c(STD = STDColor, LBN = LBNColor))
+  return(color)
+}
+
+earlyLifeLineType <- function(
+  STD = "STD",
+  LBN = "LBN"
+){
+  lineType <- scale_linetype_manual("early life trt", values = c(STD = "dashed", LBN = "solid"))
+}
+```
+
+```{r}
+
+Mass_2ndLitters_long %>%
+  ggplot(
+    aes(
+      x = day,
+      y = mass,
+      color = earlyLifeTrt
+    )
+  ) +
+  # my_geom_line(
+  #   lineTypeVar = earlyLifeTrt,
+  #   lineGroupVar = mouseID
+  # ) +
+  # mean_geom_line(
+  #   useLineType = TRUE,
+  #   lineTypeVar = earlyLifeTrt
+  # ) +
+  plot_line_geom_layers(
+    useLineType = TRUE,
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = mouseID,
+    xtitle = "PND",
+    ytitle = "mass (g)",
+    individualLines = FALSE,
+    meanLines = TRUE
+  ) +
+  earlyLifeColor() +
+  earlyLifeLineType()
+
+Mass_2ndLitters_long %>%
+  filter(
+    sex == "F"
+  ) %>%
+  plot_mass_lines(
+    individualLines = TRUE,
+    meanLines = FALSE
+  )
+
+Mass_2ndLitters_long %>%
+  filter(
+    mass > 25,
+    day > 63,
+    earlyLifeTrt == "LBN"
+  )
+
+Mass_off %>%
+  filter(
+    Mass_P70 > 25,
+    earlyLifeTrt == "LBN",
+    sex == "F"
+  )
+
+Mass_2ndLitters_long %>%
+  filter(
+    sex == "F"
+  ) %>%
+  arrange(
+    desc(mass)
+  )
+```
+
+
+```{r}
+Mass_2ndLitters_long %>%
+  filter(
+    sex == "F"
+  ) %>%
+  plot_mass_lines(
+    groupByDam = FALSE,
+    indivLineAlpha = 0.2,
+    meanAlpha = 0.8,
+    zoom_x = TRUE,
+    xmin = 0,
+    xmax = 21,
+    zoom_y = TRUE,
+    ymin = 0,
+    ymax = 20
+  )
+Mass_2ndLitters %>%
+  filter(
+    sex == "F"
+  ) %>%
+  plot_mass_lines(
+    groupByDam = TRUE,
+    lineGroupVar = damID,
+    indivLineAlpha = 0.2,
+    meanAlpha = 0.8,
+    zoom_x = TRUE,
+    xmin = 0,
+    xmax = 21,
+    zoom_y = TRUE,
+    ymin = 0,
+    ymax = 20
+  )
+```
+
+
+```{r}
+Cort_off %>% filter(
+  cohort == 2
+)
+
+AcuteStress_off %>%
+  select(
+    cort_hr0
+  )
+
+Cort_off
+loadExcelSheet(dataFolder, "LBN_AGG_data-2021-10-13.xlsx", "Cort_off")
+excel
+```
+
+# 2021-10-19
+
+Adding linetype option to individual lines
+
+```{r}
+Mass_2ndLitters_long %>%
+  ggplot(
+    aes(
+      x = day,
+      y = mass,
+      color = earlyLifeTrt
+    )
+  ) +
+  my_geom_line(
+    useLineType = FALSE,
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = mouseID
+  )
+
+geom_params = list(
+  useLineType = FALSE
+)
+
+Mass_2ndLitters_long %>%
+  ggplot(
+    aes(
+      x = day,
+      y = mass,
+      color = earlyLifeTrt
+    )
+  ) +
+  do.call(my_geom_line, c( # if need to create a list with some parameters and then specify the rest. Kind of clunky though
+    geom_params,
+    lineTypeVar = expr(earlyLifeTrt),
+    lineGroupVar = expr(mouseID)
+  ))
+```
+
+```{r}
+scatterPlotLBN(
+  Maturation_off,
+  VO_age,
+  "age (days)",
+  zoom_y = TRUE,
+  ymin = 0,
+  ymax = 30
+)
+```
+
+
+```{r}
+ageScatterParams <- 
+  list(
+    textSize = 200,
+    yLab = "ages (days)"
+  )
+
+Maturation_off %>%
+  scatterPlotLBN(
+    yVar = VO_age,
+    ageScatterParams # bummer, only seems to call first value from list
+  )
+```
+
