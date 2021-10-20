@@ -87,12 +87,13 @@ ui <- navbarPage(
             ### Offspring Mass -----------
             tabPanel(
                 "Offspring Mass",
-                # massOffUI("massOff", Mass_off_P4)
+                massOffUI("massOff", Mass_off %>% filter(ParaType == 4))
             ),
             ### Offspring Maturation ----
             tabPanel(
                 "Offspring Maturation",
-                # maturationOffUI("maturationOff", Maturation_off_P4, LBN_data %>% filter(ParaType == 4))
+                maturationUI("maturation", Maturation_off %>% filter(ParaType == 4), 
+                             LBN_data %>% filter(ParaType == 4))
             ),
             
             ### Offspring Corticosterone ----
@@ -193,9 +194,24 @@ server <- function(input, output) {
     # massDamServer("massDam", Demo_dam_P4)
     # pupLossServer("pupLoss", Demo_dam_P4)
     # damCortServer("damCort", Demo_dam_P4)
-    # massOffServer("massOff", Mass_off_P4, Demo_dam_P4)
+    massOffServer("massOff", 
+                  Mass_off %>% filter(ParaType == 4), 
+                  Demo_dam %>% filter(ParaType == 4),
+                  Demo_dam_for_offspring %>% filter(ParaType == 4),
+                  compType = currentCompType)
+    maturationServer("maturation", 
+                  Maturation_off %>% filter(ParaType == 4), 
+                  Demo_dam %>% filter(ParaType == 4),
+                  Demo_dam_for_offspring %>% filter(ParaType == 4),
+                  compType = currentCompType)
     # maturationOffServer("maturationOff", Maturation_off_P4, LBN_data %>% filter(ParaType == 4))
-    acuteStressServer("acuteStress", AcuteStress_off, LH_off, Cort_off, Demo_dam, niceNames)
+    acuteStressServer("acuteStress", 
+                      AcuteStress_off, 
+                      LH_off, 
+                      Cort_off, 
+                      Demo_dam, 
+                      niceNames,
+                      currentCompType)
     LBNCyclesServer("cycles",
                     damInfo = Demo_dam,
                     offspringInfo = Demo_off,
