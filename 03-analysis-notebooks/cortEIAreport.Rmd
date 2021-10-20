@@ -17,6 +17,11 @@
 }
 ```
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
 
 ```{r include=FALSE}
 if(tinytex::is_tinytex() == FALSE){
@@ -93,6 +98,14 @@ The included standards were:
 ```{r}
 standards_included()
 ```
+
+The net OD values with means and CVs for standards were:
+
+```{r}
+assayPlate_indPlusMean_netOD() %>%
+  filter(type == "STD")
+```
+
 
 ```{r}
 stdCurvePlot()

@@ -83,3 +83,27 @@ formatAnova <- function(anovaDF){
     )
   return(flxTbl)
 }
+
+formatAdjAnova <- function(anovaDF){
+  flxTbl <- anovaDF %>%
+    as_tibble() %>% # replaced as_data_frame()
+    mutate(
+      p = case_when(
+        p < 0.001 ~ as.character("<0.001"),
+        TRUE ~ as.character(p)
+      ),
+      p.adj = case_when(
+        p.adj < 0.001 ~ as.character("<0.001"),
+        p.adj > 0.999 ~ as.character(">0.999"),
+        TRUE ~ as.character(round(p.adj, 3))
+      )
+    ) %>%
+    flextable() %>%
+    bold(
+      i = ~ `p<.05` == "*"
+    ) %>%
+    fontsize(
+      size = 11
+    )
+  return(flxTbl)
+}

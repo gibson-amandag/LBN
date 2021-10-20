@@ -810,7 +810,7 @@ cortEIAServer <- function(
       })
       
       output$calcPlate <- renderUI({
-        calcPlateDiv
+        calcPlateDiv()
       })
       
       ## Plots ------------------
@@ -930,13 +930,14 @@ cortEIAServer <- function(
       # Download the results
       output$downloadResults <- downloadHandler(
         filename = function() {
-          paste0(fileName %>% path_ext_remove(), "_results_", Sys.Date(), ".xlsx")
+          paste0(fileName %>% path_ext_remove(), "_", modelType, "_", Sys.Date(), ".xlsx")
         },
         content = function(file) {
           saveDFsToExcel_shiny(
             file,
             cortResults = meanSampleResults(),
-            calcs = assayPlate_concEstimates_meanCV()
+            calcs = assayPlate_concEstimates_meanCV(),
+            stdCVs = assayPlate_indPlusMean_netOD() %>% filter(type == "STD")
           )
         }
       )
@@ -981,7 +982,7 @@ cortEIAServer <- function(
       # Download the report
       output$downloadReport <- downloadHandler(
         filename = function() {
-          paste0(fileName %>% path_ext_remove(), "_report_", Sys.Date(), '.', switch(
+          paste0(fileName %>% path_ext_remove(), "_", modelType, "_", Sys.Date(), '.', switch(
             input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
           ))
         },
