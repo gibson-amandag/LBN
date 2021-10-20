@@ -1,6 +1,8 @@
 ---
 title: "mass"
-output: html_notebook
+output:
+  pdf_document: default
+  html_notebook: default
 ---
 
 ```{r setup, include=FALSE}
@@ -81,10 +83,6 @@ Mass_2ndLitters_long %>%
   )%>%
   adjust_pvalue(method = "bonferroni")
 ```
-```
-
-
-## Repeated measured ANOVA, with sex
 ```{r}
 Mass_2ndLitters_long %>%
   filter(
@@ -112,5 +110,102 @@ Mass_2ndLitters_long %>%
     type = 3
   )%>%
   adjust_pvalue(method = "bonferroni")
+testMulti <- Mass_2ndLitters_long %>%
+  filter(
+    day != 4 # don't include day 4, start of paradigm
+  ) %>%
+  group_by(
+    sex
+  ) %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    within = day,
+    between = earlyLifeTrt,
+    type = 3
+  # )%>%
+  # adjust_pvalue(method = "bonferroni"
+                )
+
+testMulti$anova
+```
+
+Group by dam and sex - no sig diffs with early-life treatment
+
+```{r}
+Mass_2ndLitters %>%
+  filter(
+    damID != "D020-02"
+  ) %>%
+  getAvgByDam(bySex = TRUE) %>% makeOffMassLong() %>%
+  relocate(sex, day, mass, .after = damID) %>%
+  filter(
+    day != 4
+  ) %>%
+  anova_test(
+    dv = mass,
+    wid = damID,
+    within = c(day, sex), # now there are multiple sexes for each dam
+    between = earlyLifeTrt
+  ) %>%
+  formatAnova()
+
+Mass_2ndLitters %>%
+  filter(
+    damID != "D020-02"
+  ) %>%
+  getAvgByDam(bySex = TRUE) %>% makeOffMassLong() %>%
+  filter(
+    day != 4
+  ) %>%
+  group_by(day) %>%
+  anova_test(
+    dv = mass,
+    wid = damID,
+    within = c(sex),
+    between = earlyLifeTrt
+  ) %>%
+  formatAnova()
+```
+
+Group by dam - interaction between day and early-life treatment, but no sig differences on any given day
+
+```{r}
+Mass_2ndLitters %>%
+  filter(
+    damID != "D020-02"
+  ) %>%
+  getAvgByDam() %>%
+  makeOffMassLong() %>%
+  anova_test(
+    dv = mass,
+    wid = damID, 
+    within = day,
+    between = earlyLifeTrt
+  ) %>%
+  formatAnova()
+
+Mass_2ndLitters %>%
+  filter(
+    damID != "D020-02"
+  ) %>%
+  getAvgByDam() %>%
+  makeOffMassLong() %>%
+  group_by(
+    day
+  ) %>%
+  anova_test(
+    dv = mass,
+    wid = damID,
+    between = earlyLifeTrt
+  ) %>%
+  formatAnova()
+```
+
+
+
+## Repeated measured ANOVA, with sex
+```{r}
+
 ```
 

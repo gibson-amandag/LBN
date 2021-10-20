@@ -1,7 +1,21 @@
 scatterPlotLBN <- function(
   df,
   yVar,
-  yLab
+  yLab,
+  STDColor = "white",
+  LBNColor = "cyan4",
+  textSize = 12,
+  zoom_x = FALSE, # Zoom to part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, # Zoom to part of y axis
+  ymin = NULL,
+  ymax = NULL,
+  dotSize = 1.5,
+  fillAlpha = 1,
+  jitterWidth = 0.35,
+  jitterHeight = 0,
+  title = NULL
 ){
   viz <- df %>%
     ggplot(
@@ -11,18 +25,24 @@ scatterPlotLBN <- function(
         fill = earlyLifeTrt
       )
     ) +
-    jitterGeom() +
+    jitterGeom(
+      size = dotSize,
+      alpha = fillAlpha,
+      width = jitterWidth,
+      height = jitterHeight
+    ) +
     addMeanHorizontalBar() +
     addMeanSE_vertBar()+
-    labs(y = yLab)+
-    earlyLifeFill() +
+    labs(y = yLab, title = title)+
+    earlyLifeFill(STDColor = STDColor, LBNColor = LBNColor) +
     theme_pubr()+
     expand_limits(y=0)+
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
     theme(
       axis.title.x = element_blank(),
       legend.position = "none"
     )+
-    textTheme()+
+    textTheme(size = textSize)+
     boxTheme()
   
   return(viz)

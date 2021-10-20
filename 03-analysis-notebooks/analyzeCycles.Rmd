@@ -88,7 +88,7 @@ cycles_2ndLitter_LBN_plot
 # Percent days in stage
 ```{r}
 cyclesPerc_long_2ndLitter <- makeCyclesPercLong(cycles_2ndLitter)
-cyclesPercPlot_2ndLitter <- plotCyclesPercent(cyclesPerc_long_2ndLitter, fontSize = 16, dotSize = 2)
+cyclesPercPlot_2ndLitter <- plotCyclesPercent(cyclesPerc_long_2ndLitter, fontSize = 16, dotSize = 2.5)
 cyclesPercPlot_2ndLitter
 flexSave(
   "cycles_2ndLitter_percDaysStage",
@@ -100,8 +100,8 @@ flexSave(
 flexSave(
   "cycles_2ndLitter_percDaysStage",
   plot = cyclesPercPlot_2ndLitter,
-  width = 11,
-  height = 6,
+  width = 4.65,
+  height = 4.62,
   units = "in",
   fileType = "png"
 )
@@ -210,3 +210,57 @@ for(mouse in LBN_0005_Folders$FolderName){
 ```{r}
 print(LBN_0005_cyclePPT, file.path(reportOutputFolder, "cyclePPTS", "LBN_0005_cycleImgs.pptx"))
 ```
+
+
+# 2021-10-19 - For SFN Poster
+```{r}
+cycles_2ndLitter <- Cycles_off %>%
+  filter(
+    litterNum == 2
+  )
+
+STDMice <- cycles_2ndLitter %>%
+  filter(
+    earlyLifeTrt == "STD"
+  )
+STDtoUse <- STDMice[sample(nrow(STDMice))[1:12], ] %>% makeCyclesLong()
+
+LBNMice <- cycles_2ndLitter %>%
+  filter(
+    earlyLifeTrt == "LBN"
+  )
+LBNtoUse <- LBNMice[sample(nrow(LBNMice))[1:12], ] %>% makeCyclesLong()
+
+cycles_2ndLitter_STD_plot <- plotCycleTraces(cyclesLong_2ndLitter %>% filter(earlyLifeTrt == "STD"))
+cycles_2ndLitter_LBN_plot <- plotCycleTraces(cyclesLong_2ndLitter %>% filter(earlyLifeTrt == "LBN"))
+
+cycles_2ndLitter_STD_plot <- plotCycleTraces(STDtoUse, 
+                                             colorValues = c("grey30", "cyan4"),
+                                             fontSize = 10
+                                             )
+cycles_2ndLitter_LBN_plot <- plotCycleTraces(LBNtoUse,
+                                             colorValues = c("grey30", "cyan4"),
+                                             fontSize = 10
+                                             )
+
+flexSave(
+  "cycles_2ndLitter_STD",
+  plot = cycles_2ndLitter_STD_plot,
+  filePath = file.path(plotOutputFolder, "SFN"),
+  width = 4,
+  height = 5,
+  units = "in",
+  fileType = "png"
+)
+
+flexSave(
+  "cycles_2ndLitter_LBN",
+  plot = cycles_2ndLitter_LBN_plot,
+  filePath = file.path(plotOutputFolder, "SFN"),
+  width = 4,
+  height = 5,
+  units = "in",
+  fileType = "png"
+)
+```
+

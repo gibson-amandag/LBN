@@ -77,7 +77,8 @@ plotCycleTraces <- function(
   colorValues = c("grey", "black"),
   removeFacets = FALSE,
   removeLegend = TRUE,
-  scales = "fixed"
+  scales = "fixed",
+  fontSize = 12
 ){
   viz <- ggplot(df, aes(x = {{ day }}, y = {{ stage }}, color = {{ lineColorVar }})) +
     geom_line() +
@@ -95,7 +96,7 @@ plotCycleTraces <- function(
       breaks = seq(
         1,
         400,
-        3
+        5
       ) #labels every third integer
     ) +
     expand_limits(
@@ -104,7 +105,7 @@ plotCycleTraces <- function(
   
   viz <- viz + 
     theme_pubr() +
-    textTheme() + 
+    textTheme(size = fontSize) + 
     boxTheme()
   
   if(!is.null(enquo(lineColorVar))){
@@ -193,7 +194,8 @@ plotCyclesPercent <- function(
   medianColor = "red",
   medianAlpha = 0.7,
   strip.position = "bottom",
-  fontSize = 11
+  fontSize = 11,
+  fillScale = earlyLifeFill()
 ){
   viz <- df %>%
     ggplot(
@@ -204,10 +206,11 @@ plotCyclesPercent <- function(
       strip.position = strip.position
     ) +
     labs(y = ylabel)+
-    scale_fill_manual(values = c("white", "black"))+
+    fillScale +
+    # scale_fill_manual(values = c("white", "black"))+
     addMeanHorizontalBar(width = 0.85, size = 0.4) +
     addMeanSE_vertBar(size = 0.4)+
-    jitterGeom()+
+    jitterGeom(size = dotSize)+
     expand_limits(y = 0) +
     theme_pubr()+
     rremove(

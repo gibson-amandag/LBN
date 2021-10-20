@@ -1,13 +1,13 @@
 ---
 title: "Effect of LBN on offspring maturation"
 output:
+  html_notebook:
+    toc: yes
+    toc_depth: 4
   html_document:
     df_print: paged
     toc: yes
     toc_depth: '4'
-  html_notebook:
-    toc: yes
-    toc_depth: 4
   word_document:
     toc: yes
     toc_depth: '4'
