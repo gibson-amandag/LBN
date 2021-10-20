@@ -179,6 +179,12 @@ getSamplesConcEstimates <- function(assayPlate_concEstimates){
 }
 
 calcMeanSampleCortEstimates <- function(assayPlate_concEstimates){
+  plateQC <- assayPlate_concEstimates %>%
+    filter(
+      type == "QC"
+    )
+  plateQCmean <- mean(plateQC$sampleConc_ngPer_mL, na.rm = TRUE)
+  
   sampleMeans <- assayPlate_concEstimates %>%
     filter(
       type == "sample"
@@ -187,6 +193,9 @@ calcMeanSampleCortEstimates <- function(assayPlate_concEstimates){
     calcMeanCV_concEstimates(
       cort,
       cortCV
+    ) %>%
+    mutate(
+      plateQC = plateQCmean
     )
   return(sampleMeans)
 }
