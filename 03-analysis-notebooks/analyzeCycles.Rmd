@@ -223,32 +223,43 @@ STDMice <- cycles_2ndLitter %>%
   filter(
     earlyLifeTrt == "STD"
   )
-STDtoUse <- STDMice[sample(nrow(STDMice))[1:12], ] %>% makeCyclesLong()
+STDtoUse <- STDMice[sample(nrow(STDMice))[1:16], ] %>% makeCyclesLong()
 
 LBNMice <- cycles_2ndLitter %>%
   filter(
     earlyLifeTrt == "LBN"
   )
-LBNtoUse <- LBNMice[sample(nrow(LBNMice))[1:12], ] %>% makeCyclesLong()
+LBNtoUse <- LBNMice[sample(nrow(LBNMice))[1:16], ] %>% makeCyclesLong()
 
-cycles_2ndLitter_STD_plot <- plotCycleTraces(cyclesLong_2ndLitter %>% filter(earlyLifeTrt == "STD"))
-cycles_2ndLitter_LBN_plot <- plotCycleTraces(cyclesLong_2ndLitter %>% filter(earlyLifeTrt == "LBN"))
+# cycles_2ndLitter_STD_plot <- plotCycleTraces(cyclesLong_2ndLitter %>% filter(earlyLifeTrt == "STD"), 
+#                                              removeFacets = TRUE)
+# cycles_2ndLitter_LBN_plot <- plotCycleTraces(cyclesLong_2ndLitter %>% filter(earlyLifeTrt == "LBN"),
+#                                              removeFacets = TRUE)
 
 cycles_2ndLitter_STD_plot <- plotCycleTraces(STDtoUse, 
                                              colorValues = c("grey30", "cyan4"),
-                                             fontSize = 10
+                                             fontSize = 16,
+                                             removeFacets = TRUE
+                                             ) + theme(
+                                               axis.text.x = element_text(size = 10)
                                              )
 cycles_2ndLitter_LBN_plot <- plotCycleTraces(LBNtoUse,
                                              colorValues = c("grey30", "cyan4"),
-                                             fontSize = 10
+                                             fontSize = 16,
+                                             removeFacets = TRUE
+                                             )+ theme(
+                                               axis.text.x = element_text(size = 10)
                                              )
+
+cycles_2ndLitter_STD_plot
+cycles_2ndLitter_LBN_plot
 
 flexSave(
   "cycles_2ndLitter_STD",
   plot = cycles_2ndLitter_STD_plot,
   filePath = file.path(plotOutputFolder, "SFN"),
   width = 4,
-  height = 5,
+  height = 5.5,
   units = "in",
   fileType = "png"
 )
@@ -258,7 +269,7 @@ flexSave(
   plot = cycles_2ndLitter_LBN_plot,
   filePath = file.path(plotOutputFolder, "SFN"),
   width = 4,
-  height = 5,
+  height = 5.5,
   units = "in",
   fileType = "png"
 )
