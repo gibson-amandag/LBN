@@ -40,6 +40,16 @@ filteringDFUI <- function(
           multiple = TRUE,
           selected = unique(off_data$cohort),
         )
+      ),
+      div(
+        class = "col-xs-4",
+        numericInput(
+          ns("minLitterSize"),
+          "Minimum Litter Size",
+          min = 0,
+          max = 8,
+          value = 3
+        )
       )
     )
     
@@ -70,6 +80,11 @@ filteringDFServer <- function(
         df <- df %>%
           filter(
             cohort %in% as.character(input$cohort)
+          )
+        
+        df <- df %>%
+          filter(
+            Litter_size_endPara >= input$minLitterSize
           )
         
         return(df)
