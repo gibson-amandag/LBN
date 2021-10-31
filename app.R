@@ -92,7 +92,8 @@ ui <- navbarPage(
             ### Offspring Maturation ----
             tabPanel(
                 "Offspring Maturation",
-                maturationUI("maturation", Maturation_off %>% filter(ParaType == 4), 
+                maturationUI("maturation", 
+                             Maturation_off %>% filter(ParaType == 4), 
                              LBN_data %>% filter(ParaType == 4))
             ),
             
@@ -201,6 +202,7 @@ server <- function(input, output) {
                   compType = currentCompType)
     maturationServer("maturation", 
                   Maturation_off %>% filter(ParaType == 4), 
+                  LBN_data %>% filter(ParaType == 4),
                   Demo_dam %>% filter(ParaType == 4),
                   Demo_dam_for_offspring %>% filter(ParaType == 4),
                   compType = currentCompType)
