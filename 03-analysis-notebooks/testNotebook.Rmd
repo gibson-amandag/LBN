@@ -1756,3 +1756,774 @@ Maturation_off %>%
   )
 ```
 
+```{r}
+Maturation_litter2 <- Maturation_off %>%
+  filter(
+    litterNum == 2
+  )
+
+TTEST <- Maturation_litter2 %>%
+  t_test(VO_age ~ earlyLifeTrt)
+
+TTEST$statistic[[1]]
+ttest <- t.test(VO_age ~ earlyLifeTrt, Maturation_litter2)
+
+ttest$statistic
+
+print(paste("test",ttest$statistic))
+print(paste("test",TTEST$statistic))
+
+TTEST
+ttest
+
+names(ttest)
+
+printTtestText(ttest)
+
+ttest$parameter
+
+ttest$p.value
+ttest$estimate
+ttest$stderr
+ttest$method
+ttest$alternative
+```
+
+```{r}
+demo(plotmath)
+```
+
+
+```{r}
+Maturation_off
+```
+
+```{r}
+Mass_off %>%
+  filter(
+    litterNum == 2,
+    Litter_size_endPara >=3
+  ) %>%
+  select(
+    mouseID, sex, earlyLifeTrt, Mass_P11
+  ) %>%
+  group_by(
+    earlyLifeTrt, sex
+  ) %>%
+  meanSummary(Mass_P11)
+```
+```{r}
+malesCort_2ndLitter %>%
+  filter(
+    !exclude == TRUE
+  ) %>%
+  cortAnova()
+
+anovaByTime <- malesCort_2ndLitter %>%
+  filter(
+    !exclude == TRUE
+  ) %>%
+  group_by(
+    time
+  ) %>%
+  anova_test(
+    dv = cort,
+    wid = mouseID,
+    between = c(earlyLifeTrt, adultTrt)#,
+    # within = time
+  )
+
+groups <- malesCort_2ndLitter %>% group_by(time) %>% group_keys()
+
+groupVar <- expr(time)
+
+numGroups <- length(groups[[ groupVar ]])
+numGroups
+
+length(groups[[1]])
+
+groupForAnovaPostHoc <- function(df, groupVar){
+  groupedDF <- df %>%
+    group_by({{ groupVar }})
+  
+  groups <- groupedDF %>% group_keys()
+  numGroups <- length(groups[[1]])
+  return(list(
+    df = groupedDF,
+    groups = groups,
+    num = numGroups
+  ))
+}
+
+groupedByTime <- malesCort_2ndLitter %>%
+  groupForAnovaPostHoc(time)
+
+anovaByTime <- groupedByTime$df %>%
+  anova_test(
+    dv = cort,
+    wid = mouseID,
+    between = c(earlyLifeTrt, adultTrt)
+  )
+
+anovaByTime %>%
+  get_anova_table() %>%
+  as_tibble()%>%
+  mutate(
+    p.adj = ifelse(p*groupedByTime$num < 1, p*groupedByTime$num, 1)
+  ) %>%
+  formatAdjAnova()
+  
+for(group in groupedByTime$groups$time){
+  print(anovaByTime %>%
+    get_anova_table() %>%
+    as_tibble()%>%
+    filter(time == group) %>%
+    mutate(
+      p.adj = ifelse(p*groupedByTime$num < 1, p*groupedByTime$num, 1)
+    )
+  )
+}
+```
+
+```{r}
+Mass_off %>%
+  filter(
+    litterNum == 2,
+    Litter_size_endPara >=3
+  ) %>%
+  getAvgByDam(
+    
+  )%>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  summarize(
+    n()
+  )
+```
+
+```{r}
+Mass_long_for_reg <- Mass_off %>%
+  filter(
+    litterNum == 2,
+    Litter_size_endPara >= 3
+  ) %>%
+  makeOffMassLong() %>%
+  select(mouseID, sex, earlyLifeTrt, mass, day) %>%
+  filter(
+    day >= 11 & day <= 21
+  )
+
+model <- lm(mass ~ day + earlyLifeTrt + day * earlyLifeTrt, Mass_long_for_reg)
+
+summary(model)
+
+Mass_long_for_reg %>%
+  ggplot(
+    aes(
+      x = day, y = mass,
+      color = earlyLifeTrt, fill = earlyLifeTrt, group = earlyLifeTrt
+    )
+  ) +
+  # my_geom_line(
+  #   useLineType = FALSE,
+  #   lineGroupVar = mouseID,
+  #   indivLineAlpha = .2,
+  #   indivLineSize = 1
+  # ) +
+  coord_cartesian(ylim = c(0, NA)) +
+  geom_smooth(method='lm', se = FALSE, formula = y ~x) +
+  boxTheme()+
+  textTheme(size = 16)+
+  earlyLifeFill()+
+  earlyLifeColor() + 
+  # my_theme +
+  theme(legend.position="bottom",
+        legend.box="vertical",
+        legend.margin=margin()
+  )
+```
+```{r}
+Mass_off_long_preWean <- Mass_off %>%
+  filter(
+    litterNum == 2,
+    Litter_size_endPara >= 3
+  ) %>%
+  makeOffMassLong() %>%
+  filter(
+    day >= 11 & day <= 21
+  )
+
+Mass_off_long_postWean <- Mass_off %>%
+  filter(
+    litterNum == 2,
+    Litter_size_endPara >= 3
+  ) %>%
+  makeOffMassLong() %>%
+  filter(
+    day > 21
+  )
+
+Mass_off_long_P11_21_70 <- Mass_off %>%
+  filter(
+    litterNum == 2,
+    Litter_size_endPara >= 3
+  ) %>%
+  makeOffMassLong() %>%
+  filter(
+    day == 11 | day == 21 | day == 70
+  )
+```
+
+
+```{r}
+preWeanANOVA <- Mass_off_long_preWean %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    between = c(earlyLifeTrt, sex),
+    within = day
+  )
+
+P11_21_70ANOVA <- Mass_off_long_P11_21_70 %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    between = c(earlyLifeTrt, sex),
+    within = day
+  )
+
+preWeanANOVA$ANOVA%>%
+  formatAnova()
+postWeanANOVA$ANOVA%>%
+  formatAnova()
+P11_21_70ANOVA$ANOVA%>%
+  formatAnova()
+```
+
+```{r}
+preWeanANOVA_byDay <- Mass_off_long_preWean %>%
+  group_by(day) %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    # between = c(earlyLifeTrt, sex)
+    between = c(sex)
+    # between = c(earlyLifeTrt, sex)
+  )
+
+postWeanANOVA_byDay <- Mass_off_long_postWean %>%
+  group_by(day) %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    between = c(sex)
+    # between = c(earlyLifeTrt, sex)
+  )
+
+P11_21_70ANOVA_byDay <- Mass_off_long_P11_21_70 %>%
+  group_by(day) %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    between = c(sex)
+    # between = c(earlyLifeTrt, sex)
+  )
+
+preWeanANOVA_byDay%>%
+  formatAnova()
+postWeanANOVA_byDay%>%
+  formatAnova()
+P11_21_70ANOVA_byDay%>%
+  formatAnova()
+```
+```{r}
+preWeanANOVA_bySex <- Mass_off_long_preWean %>%
+  group_by(sex) %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    # between = c(earlyLifeTrt),
+    within = day
+  )
+
+postWeanANOVA_bySex <- Mass_off_long_postWean %>%
+  group_by(sex) %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    # between = c(earlyLifeTrt),
+    within = day
+  )
+
+P11_21_70ANOVA_bySex <- Mass_off_long_P11_21_70 %>%
+  group_by(sex) %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    # between = c(earlyLifeTrt),
+    within = day
+  )
+
+get_anova_table(preWeanANOVA_bySex) %>%
+  formatAnova()
+get_anova_table(postWeanANOVA_bySex) %>%
+  formatAnova()
+get_anova_table(P11_21_70ANOVA_bySex) %>%
+  formatAnova()
+```
+
+```{r}
+preWeanANOVA <- Mass_off_long_preWean %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    between = c(earlyLifeTrt, sex),
+    within = day
+  )
+
+preWeanANOVA_design <- Mass_off_long_preWean %>%
+  factorial_design(
+    dv = mass,
+    wid = mouseID,
+    between = c(earlyLifeTrt, sex),
+    within = day
+  )
+
+preWeanANOVA_design$model
+
+library(car)
+
+res.anova <- Anova(
+  preWeanANOVA_design$model, 
+  idata = preWeanANOVA_design$idata,
+  idesign = preWeanANOVA_design$idesign,
+  type = 3)
+
+summary(res.anova, multivariate = FALSE)
+preWeanANOVA
+```
+
+```{r}
+preWeanANOVA_byDay_modelError <- Mass_off_long_preWean %>%
+  group_by(day) %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    # error = preWeanANOVA,
+    # error = res.anova,
+    error = preWeanANOVA_design$model,
+    between = c(earlyLifeTrt, sex),
+    detailed = TRUE
+  )
+
+preWeanANOVA_byDay <- Mass_off_long_preWean %>%
+  group_by(day) %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    between = c(earlyLifeTrt, sex),
+    detailed = TRUE
+  )
+get_anova_table(preWeanANOVA_byDay)
+get_anova_table(preWeanANOVA_byDay_modelError)
+```
+```{r}
+# Second litters, only three pups or more in a litter
+Mass2ndLitter3pups <- Mass_off %>%
+  filter(
+    litterNum == 2,
+    Litter_size_endPara >= 3
+  )
+
+# Get the litter averages for each sex in a litter
+Mass2ndLitter3pups_byDamAndSex <- Mass2ndLitter3pups %>%
+  getAvgByDam(bySex = TRUE)
+
+# Make dataframes long
+Mass2ndLitter3pups_long <- Mass2ndLitter3pups %>%
+  makeOffMassLong()
+
+Mass2ndLitter3pups_byDamAndSex_long <- Mass2ndLitter3pups_byDamAndSex %>%
+  makeOffMassLong()
+```
+
+```{r}
+# Mass for after P11 (P4 is average of litter, don't know values for individual)
+massIndiv <- Mass2ndLitter3pups_long %>%
+  filter(
+    day >= 11
+  )
+
+massDamSex <- Mass2ndLitter3pups_byDamAndSex_long %>%
+  filter(
+    day >= 11
+  )
+
+# Mass for pre-weaning
+massPreWeanIndiv <- Mass2ndLitter3pups_long %>%
+  filter(
+    day >= 11, day <= 21
+  )
+
+massPreWeanByDamSex <- Mass2ndLitter3pups_byDamAndSex_long %>%
+  filter(
+    day >= 11, day <= 21
+  )
+
+# Mass for post-weaning
+massPostWeanIndiv <- Mass2ndLitter3pups_long %>%
+  filter(
+    day > 21
+  )
+
+massPostWeanByDamSex <- Mass2ndLitter3pups_byDamAndSex_long %>%
+  filter(
+    day > 21
+  )
+```
+
+```{r}
+massDesignIndiv <- function(df) {
+  df %>%
+    factorial_design(
+      dv = mass,
+      wid = mouseID,
+      between = c(earlyLifeTrt, sex),
+      within = day
+    )
+}
+massDesignByDamSex <- function(df) {
+  df %>%
+    factorial_design(
+      dv = mass,
+      wid = damID,
+      between = c(earlyLifeTrt),
+      within = c(day, sex)
+    )
+}
+```
+
+```{r}
+massIndivDesign <- massIndiv %>%
+  massDesignIndiv()
+
+massDamSexDesign <- massDamSex %>%
+  massDesignByDamSex()
+
+massPreWeanIndivDesign <- massPreWeanIndiv %>%
+  massDesignIndiv()
+
+massPreWeanByDamSexDesign <- massPreWeanByDamSex %>%
+  massDesignByDamSex()
+
+massPostWeanIndivDesign <- massPostWeanIndiv %>%
+  massDesignIndiv()
+
+massPostWeanByDamSexDesign <- massPostWeanByDamSex %>%
+  massDesignByDamSex()
+```
+
+```{r}
+massIndiv3WayRMAnova <- function(df){
+  df %>%
+    anova_test(
+      dv = mass, 
+      wid = mouseID,
+      between = c(earlyLifeTrt, sex),
+      within = day
+    )
+}
+
+massDamSex3wayRMANOVA <- function(df){
+  df %>%
+    anova_test(
+      dv = mass,
+      wid = damID,
+      between = c(earlyLifeTrt),
+      within = c(day, sex)
+    )
+}
+```
+
+
+```{r}
+massIndiv3wayRM <- massIndiv %>%
+  mass3WayRMAnova()
+
+massDamSex3wayRM <- massDamSex %>%
+  massDamSex3wayRMANOVA()
+
+massPreWeanIndiv3wayRM <- massPreWeanIndiv %>%
+  mass3WayRMAnova()
+
+massPreWeanByDamSex3wayRM <- massPreWeanByDamSex %>%
+  massDamSex3wayRMANOVA()
+
+massPostWeanIndiv3wayRM <- massPostWeanIndiv %>%
+  mass3WayRMAnova()
+
+massPostWeanByDamSex3wayRM <- massPostWeanByDamSex %>%
+  massDamSex3wayRMANOVA()
+```
+
+```{r}
+massPreWeanIndiv %>% 
+  group_by(day) %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    between = c(earlyLifeTrt, sex)
+  ) %>%
+  adjust_pvalue(method = "bonferroni")
+```
+
+
+```{r}
+# massPreWeanIndiv %>%
+#   group_by(day) %>%
+#   anova_test(
+#     dv = mass,
+#     wid = mouseID,
+#     between = c(sex), # doesn't work
+#     error = massPreWeanIndivDesign$model
+#   )
+massPreWeanIndiv %>%
+  group_by(day) %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    between = c(earlyLifeTrt, sex),
+    error = massPreWeanIndivDesign$model
+  )
+```
+
+```{r}
+install.packages("phia")
+library(phia)
+```
+
+```{r}
+testInteractions(massPreWeanIndivDesign$model, fixed = "day", across = "sex")
+testInteractions(massPreWeanIndivDesign$model, fixed = "sex", pairwise = "day")
+massPreWeanIndiv %>%
+  group_by(day) %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    between = c(sex)#,
+    # error = massPreWeanIndivDesign$model
+  )
+
+massPreWeanIndivDesign
+
+
+```
+
+```{r}
+massIndiv %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    within = c(day),
+    between = c(sex)
+  )
+
+massIndiv2wayDesign <- massIndiv %>%
+  factorial_design(
+    dv = mass,
+    wid = mouseID,
+    within = c(day),
+    between = c(sex)
+  )
+
+massIndiv %>%
+  group_by(day) %>%
+  anova_test(
+    dv = mass,
+    between = c(sex),
+    error = massIndiv2wayDesign$model
+  )
+```
+
+```{r}
+install.packages("lme4")
+library(lme4)
+```
+
+```{r}
+Anova(lmer(mass ~ earlyLifeTrt*sex*day + (1|mouseID), data = massIndiv), 
+      type = 3,
+      contrasts=c('contr.sum','contr.poly'))
+```
+
+```{r}
+install.packages("emmeans")
+library(emmeans)
+```
+
+```{r}
+massPreWeanIndivByDay <- massPreWeanIndiv %>%
+  group_by(day) %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    between = c(sex)
+  )
+  
+massPreWeanIndivByDay
+massPreWeanIndivByDay %>%
+  adjust_pvalue(method = "fdr")
+massPreWeanIndivByDay %>%
+  adjust_pvalue(method = "holm")
+massPreWeanIndivByDay %>%
+  adjust_pvalue(method = "bonferroni")
+```
+
+```{r}
+massPreWeanIndivByDay <- massPreWeanIndiv %>%
+  group_by(day) %>%
+  t_test(
+    mass ~ sex
+  )
+  # anova_test(
+  #   dv = mass,
+  #   wid = mouseID,
+  #   between = c(sex)
+  # )
+  
+massPreWeanIndivByDay
+massPreWeanIndivByDay %>%
+  adjust_pvalue(method = "fdr")
+massPreWeanIndivByDay %>%
+  adjust_pvalue(method = "holm")
+massPreWeanIndivByDay %>%
+  adjust_pvalue(method = "bonferroni")
+```
+```{r}
+massPreWeanIndivBySex <- massPreWeanIndiv %>%
+  group_by(sex) %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    within = c(day)
+  )
+  
+massPreWeanIndivBySex %>%
+  get_anova_table()
+massPreWeanIndivBySex %>%
+  adjust_pvalue(method = "fdr") %>%
+  get_anova_table()
+massPreWeanIndivBySex %>%
+  adjust_pvalue(method = "holm") %>%
+  get_anova_table()
+massPreWeanIndivBySex %>%
+  adjust_pvalue(method = "bonferroni") %>%
+  get_anova_table()
+```
+
+}
+
+
+```{r}
+Cort_off %>%
+  filter(
+    sex == "M", 
+    litterNum == 2,
+    Litter_size_endPara >= 3,
+    !exclude == TRUE
+  ) %>%
+  anova_test(
+    wid = mouseID,
+    dv = cort,
+    between = c(earlyLifeTrt, adultTrt),
+    within = time
+  ) %>%
+  formatAnova()
+
+Cort_off %>%
+  filter(
+    sex == "M", 
+    litterNum == 2,
+    Litter_size_endPara >= 3,
+    !exclude == TRUE
+  ) %>%
+  group_by(adultTrt) %>%
+  anova_test(
+    wid = mouseID,
+    dv = cort,
+    between = c(earlyLifeTrt)
+  ) %>%
+  adjust_pvalue(method = "holm") %>%
+  formatAdjAnova()
+
+Cort_off %>%
+  filter(
+    sex == "M", 
+    litterNum == 2,
+    Litter_size_endPara >= 3,
+    !exclude == TRUE
+  ) %>%
+  group_by(time) %>%
+  anova_test(
+    wid = mouseID,
+    dv = cort,
+    between = c(adultTrt)
+  ) %>%
+  adjust_pvalue(method = "holm") %>%
+  formatAdjAnova()
+
+
+```
+
+```{r}
+sumDF <- Maturation_off %>% 
+  filter(
+    !is.na(VO_age)
+  ) %>%
+  group_by(earlyLifeTrt)%>%
+  summarize(n = n())
+
+sumDF$n[sumDF$earlyLifeTrt=="STD"]
+```
+
+```{r}
+malesAcuteStress_2ndLitter <- malesAcuteStress_2ndLitter %>%
+  mutate(
+    postCortChange = ifelse(!exclude_cort_hr5, cort_hr5 / cort_hr0, NA),
+    .after = earlyLifeTrt
+  )
+
+malesAcuteStress_2ndLitter %>%
+  scatterPlotComboTrt(yVar = postCortChange, "corticosterone/n(fold change)")
+```
+
+```{r}
+malesCort_2ndLitter %>%
+  filter(
+    !exclude
+  ) %>%
+  cortAnova()
+
+malesCort_2ndLitter %>%
+  filter(!exclude) %>%
+  cortAnova_3wayPost()
+
+malesCort_2ndLitter %>%
+  filter(!exclude) %>%
+  cortAnova_2wayPost_timeAdult()
+
+malesCort_2ndLitter %>%
+  filter(!exclude) %>%
+  cortAnova_2wayPost_earlyLifeAdult()
+```
+
+```{r}
+malesAcuteStress_2ndLitter %>%
+  select(AgeInDays) %>%
+  summarise(
+    min = min(AgeInDays, na.rm = TRUE),
+    max = max(AgeInDays, na.rm = TRUE)
+  )
+```
+
