@@ -330,7 +330,8 @@ LBN_all <- LBN_all %>%
     Maturation_off %>% 
       select(
         mouseID,
-        AGD_wean:AGD_P72
+        # AGD_wean:AGD_P72
+        VO_day:AGD_P72
       ), 
     by = "mouseID"
   )
@@ -340,7 +341,8 @@ LBN_data <- LBN_data %>%
     Maturation_off %>%
       select(
         mouseID,
-        AGD_wean:AGD_P72
+        # AGD_wean:AGD_P72
+        VO_day:AGD_P72
       ), 
     by = "mouseID"
   )
