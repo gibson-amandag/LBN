@@ -103,6 +103,15 @@ acuteStressUI <- function(id,
             uiOutput(
               ns("cortANOVA_males")
             ),
+            uiOutput(
+              ns("cortANOVA_males_3wayPost")
+            ),
+            uiOutput(
+              ns("cortANOVA_males_2wayPost_earlyLifeAdult")
+            ),
+            uiOutput(
+              ns("cortANOVA_males_2wayPost_timeAdult")
+            ),
             plotUI(
               ns("cortPlot_males")
             ),
@@ -414,6 +423,40 @@ acuteStressServer <- function(
             ! (row_number() %in% input$cortPlot_males_table_rows_selected)
           ) %>%
           cortAnova() %>%
+          htmltools_value()
+      })
+      
+      output$cortANOVA_males_2wayPost_earlyLifeAdult <- renderUI({
+        Cort_off_males() %>%
+          filter(
+            ! (row_number() %in% input$cortPlot_males_table_rows_selected)
+          ) %>%
+          cortAnova_2wayPost_earlyLifeAdult() %>%
+          htmltools_value()
+      })
+      output$cortANOVA_males_2wayPost_timeAdult <- renderUI({
+        Cort_off_males() %>%
+          filter(
+            ! (row_number() %in% input$cortPlot_males_table_rows_selected)
+          ) %>%
+          cortAnova_2wayPost_timeAdult() %>%
+          htmltools_value()
+      })
+      output$cortANOVA_males_2wayPost_earlyLifeAdult <- renderUI({
+        Cort_off_males() %>%
+          filter(
+            ! (row_number() %in% input$cortPlot_males_table_rows_selected)
+          ) %>%
+          cortAnova_2wayPost_earlyLifeAdult() %>%
+          htmltools_value()
+      })
+      
+      output$cortANOVA_males_3wayPost <- renderUI({
+        Cort_off_males() %>%
+          filter(
+            ! (row_number() %in% input$cortPlot_males_table_rows_selected)
+          ) %>%
+          cortAnova_3wayPost() %>%
           htmltools_value()
       })
       
