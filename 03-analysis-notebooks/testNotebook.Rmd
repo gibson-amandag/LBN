@@ -2527,3 +2527,12 @@ malesAcuteStress_2ndLitter %>%
   )
 ```
 
+
+```{r}
+testLLM_df <- loadExcelSheet(dataFolder, "testLMM.xlsx", "Sheet1")
+
+testLLM_df
+
+lmmFunc(testLLM_df)
+```
+
