@@ -58,6 +58,7 @@ cortAnova <- function(df){
 #' @examples
 formatAnova <- function(anovaDF){
   flxTbl <- anovaDF %>%
+    get_anova_table() %>% # added 2021-10-23
     as_tibble() %>% # replaced as_data_frame()
     mutate(
       p = case_when(
@@ -86,11 +87,16 @@ formatAnova <- function(anovaDF){
 
 formatAdjAnova <- function(anovaDF){
   flxTbl <- anovaDF %>%
+    get_anova_table() %>%
     as_tibble() %>% # replaced as_data_frame()
     mutate(
       p = case_when(
         p < 0.001 ~ as.character("<0.001"),
         TRUE ~ as.character(p)
+      ),
+      'p.adj<.05' = case_when(
+        p.adj < 0.05 ~ "*",
+        TRUE ~ ""
       ),
       p.adj = case_when(
         p.adj < 0.001 ~ as.character("<0.001"),
@@ -98,12 +104,93 @@ formatAdjAnova <- function(anovaDF){
         TRUE ~ as.character(round(p.adj, 3))
       )
     ) %>%
+    select(-`p<.05`) %>%
     flextable() %>%
     bold(
-      i = ~ `p<.05` == "*"
+      i = ~ `p.adj<.05` == "*"
     ) %>%
     fontsize(
       size = 11
     )
   return(flxTbl)
 }
+
+
+# Post-hoc ANOVA functions ---------------------------------------------------------
+
+groupForAnovaPostHoc <- function(df, groupVar){
+  groupedDF <- df %>%
+    group_by({{ groupVar }})
+  
+  groups <- groupedDF %>% group_keys()
+  numGroups <- length(groups[[1]])
+  return(list(
+    df = groupedDF,
+    groups = groups,
+    num = numGroups
+  ))
+}
+
+cortAnova_2wayPost_timeAdult <- function(df){
+  groupedByTime <- df %>%
+    groupForAnovaPostHoc(time)
+  
+  anovaByTime <- groupedByTime$df %>%
+    anova_test(
+      dv = cort,
+      wid = mouseID,
+      between = c(adultTrt)
+    )
+  
+  anovaByTime %>%
+    get_anova_table() %>%
+    as_tibble()%>%
+    mutate(
+      p.adj = ifelse(p*groupedByTime$num < 1, p*groupedByTime$num, 1)
+    ) %>%
+    formatAdjAnova()
+}
+
+cortAnova_2wayPost_earlyLifeAdult <- function(df){
+  groupedByAdult <- df %>%
+    groupForAnovaPostHoc(adultTrt)
+
+  anovaByAdult <- groupedByAdult$df %>%
+    anova_test(
+      dv = cort,
+      wid = mouseID,
+      between = c(earlyLifeTrt)
+    )
+
+  anovaByAdult %>%
+    get_anova_table() %>%
+    as_tibble()%>%
+    mutate(
+      p.adj = ifelse(p*groupedByAdult$num < 1, p*groupedByAdult$num, 1)
+    ) %>%
+    formatAdjAnova()
+}
+
+cortAnova_3wayPost <- function(df){
+  groupedByTime <- df %>%
+    groupForAnovaPostHoc(time)
+  
+  anovaByTime <- groupedByTime$df %>%
+    anova_test(
+      dv = cort,
+      wid = mouseID,
+      between = c(earlyLifeTrt, adultTrt)
+    )
+  
+  anovaByTime %>%
+    get_anova_table() %>%
+    as_tibble()%>%
+    mutate(
+      p.adj = ifelse(p*groupedByTime$num < 1, p*groupedByTime$num, 1)
+    ) %>%
+    formatAdjAnova()
+}
+
+
+
+
