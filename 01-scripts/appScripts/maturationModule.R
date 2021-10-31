@@ -43,16 +43,26 @@ maturationUI <- function(id,
       div(
         class= "col-xs-4",
         colourpicker::colourInput(
-          ns("STDColor"),
-          "STD Color",
+          ns("STDFillColor"),
+          "STD Fill Color",
           "white"
+        ),
+        colourpicker::colourInput(
+          ns("STDLineColor"),
+          "STD Line Color",
+          "grey30"
         )
       ),
       div(
         class = "col-xs-4",
         colourpicker::colourInput(
-          ns("LBNColor"),
-          "LBN Color",
+          ns("LBNFillColor"),
+          "LBN Fill Color",
+          "cyan4"
+        ),
+        colourpicker::colourInput(
+          ns("LBNLineColor"),
+          "LBN Line Color",
           "cyan4"
         )
       )
@@ -79,6 +89,10 @@ maturationUI <- function(id,
         actionButton(
           ns("halfPPT"),
           "Size for half PPT slide"
+        ),
+        actionButton(
+          ns("thirdPPT"),
+          "Size for third PPT slide"
         )
       ),
       div(
@@ -154,15 +168,18 @@ maturationUI <- function(id,
         fluidRow(
           div(
             class = "col-xs-4",
-            plotUI2(ns("VO_dot"))
+            plotUI2(ns("VO_dot")),
+            textOutput(ns("VO_numbers"))
           ),
           div(
             class = "col-xs-4",
-            plotUI2(ns("FirstE_dot"))
+            plotUI2(ns("FirstE_dot")),
+            textOutput(ns("FirstE_numbers"))
           ),
           div(
             class = "col-xs-4",
-            plotUI2(ns("PPS_dot"))
+            plotUI2(ns("PPS_dot")),
+            textOutput(ns("PPS_numbers"))
           )
         ),
         
@@ -191,8 +208,8 @@ maturationUI <- function(id,
             plotUI2(ns("PPS_dot_mass"))
           )
         )
-      )
-      # ), #end plots panel # change when adding
+      # )
+      ), #end plots panel # change when adding
       
       ## Summary Tables --------
       # tabPanel(
@@ -314,10 +331,10 @@ maturationUI <- function(id,
       #   plotUI2(ns("PND_MassPPS"))
       # ),
       # 
-      # tabPanel(
-      #   "Regression",
-      #   maturationRegUI(ns("matReg"), Maturation_off, LBN_data)
-      # )
+      tabPanel(
+        "Regression",
+        maturationRegUI(ns("matReg"), Maturation_off, LBN_data)
+      )
     ), #end tabsetPanel
     
     ## From massOff -----
@@ -419,6 +436,7 @@ maturationUI <- function(id,
 maturationServer <- function(
   id,
   Maturation_off,
+  LBN_data,
   Demo_dam,
   Demo_dam_for_offspring,
   niceNames,
@@ -475,6 +493,23 @@ maturationServer <- function(
           )
         }
       )
+      observeEvent(
+        input$thirdPPT,
+        {
+          height <- convertUnits(5.5, "in", input$units)
+          width <- convertUnits(4.33, "in", input$units)
+          updateNumericInput(
+            session,
+            "height",
+            value = height
+          )
+          updateNumericInput(
+            session,
+            "width",
+            value = width
+          )
+        }
+      )
       
       observeEvent(
         input$units,
@@ -497,8 +532,35 @@ maturationServer <- function(
       
       # Filtering information --------
       
-      # maturationRegServer("matReg", Maturation_off, LBN_data)
-      MaturationOff_react <- filteringDFServer("maturation_filter", Maturation_off)
+      maturationRegServer(
+        "matReg", 
+        Maturation_off, 
+        LBN_data,
+        STDFillColor = reactive(input$STDFillColor),
+        LBNFillColor = reactive(input$LBNFillColor),
+        STDLineColor = reactive(input$STDLineColor),
+        LBNLineColor = reactive(input$LBNLineColor),
+        fontSize = reactive(input$fontSize),
+        dotSize = reactive(input$dotSize),
+        compType = compType,
+        imgType = reactive(input$imgType),
+        units = reactive(input$units),
+        height = reactive(input$height),
+        width = reactive(input$width)
+        )
+      # 2021-10-24 - to make reactive grouped by dam
+      # MaturationOff_react <- filteringDFServer("maturation_filter", Maturation_off)
+      MaturationOff_filtered <- filteringDFServer("maturation_filter", Maturation_off)
+      
+      MaturationOff_react <- reactive({
+        df <- MaturationOff_filtered()
+        
+        if(input$groupByDam){
+          df <- df %>%
+            getAvgByDam(bySex = TRUE, damDemo_forOff = Demo_dam_for_offspring)
+        }
+        return(df)
+      })
       
       ### Cumulative Frequency Plots --------
       cumFreq_zoomX <- zoomAxisServer("cumFreq_zoomX", "x", minVal = 21, maxVal = 50)
@@ -527,14 +589,15 @@ maturationServer <- function(
       plotAgeScatter <- function(
         df,
         yVar,
-        title
+        title = NULL,
+        addSigLayer = TRUE
       ){
-        scatterPlotLBN(
+        plot <- scatterPlotLBN(
           df = df ,
           yVar = {{ yVar }},
           yLab = "age (days)",
-          STDColor = input$STDColor,
-          LBNColor = input$LBNColor,
+          STDColor = input$STDFillColor,
+          LBNColor = input$LBNFillColor,
           textSize = input$fontSize,
           zoom_y = dotDay_zoomY$zoom(), # Zoom to part of y axis
           ymin = dotDay_zoomY$min(),
@@ -545,19 +608,115 @@ maturationServer <- function(
           jitterHeight = 0,
           title = title
         )
+        if(addSigLayer){
+          plot <- plot +
+            stat_compare_means(
+              method = "t.test", 
+              hide.ns = TRUE,
+              ref.group = "STD",
+              label = "p.signif",
+              size = 12
+            )
+        }
+        return(plot)
       }
+      
+      plotMassScatter <- function(
+        df,
+        yVar,
+        title = NULL,
+        addSigLayer = TRUE
+      ){
+        plot <- scatterPlotLBN(
+          df = df ,
+          yVar = {{ yVar }},
+          yLab = "mass (g)",
+          STDColor = input$STDFillColor,
+          LBNColor = input$LBNFillColor,
+          textSize = input$fontSize,
+          zoom_y = dotMass_zoomY$zoom(), # Zoom to part of y axis
+          ymin = dotMass_zoomY$min(),
+          ymax = dotMass_zoomY$max(),
+          dotSize = input$dotSize,
+          fillAlpha = 1,
+          jitterWidth = 0.35,
+          jitterHeight = 0,
+          title = title
+        )
+        if(addSigLayer){
+          plot <- plot +
+            stat_compare_means(
+              method = "t.test", 
+              hide.ns = TRUE,
+              ref.group = "STD",
+              label = "p.signif",
+              size = 12
+            )
+        }
+        return(plot)
+      }
+      
+      countTrtNumbers <- function(
+        df,
+        countVar
+      ){
+        sumDF <- df %>%
+          filter(
+            !is.na({{ countVar }})
+          ) %>%
+          group_by(earlyLifeTrt) %>%
+          summarise(n = n())
+        
+        STD <- sumDF$n[sumDF$earlyLifeTrt=="STD"]
+        LBN <- sumDF$n[sumDF$earlyLifeTrt=="LBN"]
+        return(
+          list(
+            STD = STD,
+            LBN = LBN
+          )
+        )
+      }
+      
+      VO_numbers <- reactive({
+        MaturationOff_react() %>%
+          countTrtNumbers(VO_age)
+      })
+      
+      FirstE_numbers <- reactive({
+        MaturationOff_react() %>%
+          countTrtNumbers(Estrus_age)
+      })
+      
+      PPS_numbers <- reactive({
+        MaturationOff_react() %>%
+          countTrtNumbers(PreputialSep_age)
+      })
+      
+      VO_age_t_test <- reactive({
+        t.test(VO_age ~ earlyLifeTrt, MaturationOff_react() %>% filter(!is.na(VO_age)))
+      })
+      Estrus_age_t_test <- reactive({
+        t.test(Estrus_age ~ earlyLifeTrt, MaturationOff_react() %>% filter(!is.na(Estrus_age)))
+      })
+      PreputialSep_age_t_test <- reactive({
+        t.test(PreputialSep_age ~ earlyLifeTrt, MaturationOff_react() %>% filter(!is.na(PreputialSep_age)))
+      })
+      
+      VO_mass_t_test <- reactive({
+        t.test(VO_mass ~ earlyLifeTrt, MaturationOff_react() %>% filter(!is.na(VO_mass)))
+      })
+      Estrus_mass_t_test <- reactive({
+        t.test(Estrus_mass ~ earlyLifeTrt, MaturationOff_react() %>% filter(!is.na(Estrus_mass)))
+      })
+      PreputialSep_mass_t_test <- reactive({
+        t.test(PreputialSep_mass ~ earlyLifeTrt, MaturationOff_react() %>% filter(!is.na(PreputialSep_mass)))
+      })
       
       VO_dot_plot <- reactive({
         MaturationOff_react() %>%
           filter(!is.na(VO_age)) %>%
           plotAgeScatter(yVar = VO_age, title = "Vaginal Opening")+
-          stat_compare_means(
-            method = "t.test",
-            label.y = max(MaturationOff_react()$VO_age, na.rm = TRUE) + 2,
-            size = 9, 
-            family = "Arial", 
-            color = "black"
-          )
+          addTtestLayer(VO_age_t_test(), fontSize = 7, xPos = 0.60, yPos = 5)
       })
       
       VO_dot_info <- plotServer2(
@@ -571,17 +730,18 @@ maturationServer <- function(
         width = reactive(input$width)
         )
       
+      output$VO_numbers <- renderPrint(
+        paste0(
+          "STD: ", VO_numbers()$STD,
+          ", LBN: ", VO_numbers()$LBN
+        )
+      )
+      
       FirstE_dot_plot <- reactive({
         MaturationOff_react() %>%
           filter(!is.na(Estrus_age)) %>%
           plotAgeScatter(yVar = Estrus_age, title = "First Estrus")+
-          stat_compare_means(
-            method = "t.test",
-            label.y = max(MaturationOff_react()$Estrus_age, na.rm = TRUE) + 2,
-            size = 9, 
-            family = "Arial", 
-            color = "black"
-          )
+          addTtestLayer(Estrus_age_t_test(), fontSize = 7, xPos = 0.60, yPos = 5)
       })
       
       FirstE_dot_info <- plotServer2(
@@ -595,17 +755,18 @@ maturationServer <- function(
         width = reactive(input$width)
         )
       
+      output$FirstE_numbers <- renderPrint(
+        paste0(
+          "STD: ", FirstE_numbers()$STD,
+          ", LBN: ", FirstE_numbers()$LBN
+        )
+      )
+      
       PPS_dot_plot <- reactive({
         MaturationOff_react() %>%
           filter(!is.na(PreputialSep_age)) %>%
           plotAgeScatter(yVar = PreputialSep_age, title = "Preputial Separation")+
-          stat_compare_means(
-            method = "t.test",
-            label.y = max(MaturationOff_react()$PreputialSep_age, na.rm = TRUE) + 2,
-            size = 9, 
-            family = "Arial", 
-            color = "black"
-          )
+          addTtestLayer(PreputialSep_age_t_test(), fontSize = 7, xPos = 0.60, yPos = 5)
       })
       
       PPS_dot_info <- plotServer2(
@@ -619,88 +780,74 @@ maturationServer <- function(
         width = reactive(input$width)
         )
       
-      # output$FirstE_dot <- renderPlot({
-      #   my_puberty_dot_plot(
-      #     df = MaturationOff_react(),
-      #     expr(Estrus_age), #expr()
-      #     phenotype_name = "First Estrus",
-      #     shape = expr(earlyLifeTrt),
-      #     colour = expr(earlyLifeTrt),
-      #     width = 0.3,
-      #     change_ymax = dotDay_zoomY$zoom(),
-      #     ymin = dotDay_zoomY$min(),
-      #     ymax = dotDay_zoomY$max(),
-      #     DaysOrMass = "Days"
-      #   ) + 
-      #     stat_compare_means(method = "t.test", label.y = max(MaturationOff_react()$Estrus_age, na.rm = TRUE) + 2)
-      # })
-      # 
-      # output$PPS_dot <- renderPlot({
-      #   my_puberty_dot_plot(
-      #     df = MaturationOff_react(),
-      #     expr(PreputialSep_age), #expr()
-      #     phenotype_name = "PPS",
-      #     shape = expr(earlyLifeTrt),
-      #     colour = expr(earlyLifeTrt),
-      #     width = 0.3,
-      #     change_ymax = dotDay_zoomY$zoom(),
-      #     ymin = dotDay_zoomY$min(),
-      #     ymax = dotDay_zoomY$max(),
-      #     DaysOrMass = "Days"
-      #   ) + 
-      #     stat_compare_means(method = "t.test", label.y = max(MaturationOff_react()$PreputialSep_age, na.rm = TRUE) + 2)
-      # })
+      output$PPS_numbers <- renderPrint(
+        paste0(
+          "STD: ", PPS_numbers()$STD,
+          ", LBN: ", PPS_numbers()$LBN
+        )
+      )
+      
+      ## Mass Plots --------------
       
       ### Dot Plots Mass --------
       dotMass_zoomY <- zoomAxisServer("dotMass_zoomY", "Y", minVal = 0, maxVal = 25)
       
-      # output$VO_dot_mass <- renderPlot({
-      #   my_puberty_dot_plot(
-      #     df = MaturationOff_react(),
-      #     expr(VO_mass), #expr()
-      #     phenotype_name = "VO",
-      #     shape = expr(earlyLifeTrt),
-      #     colour = expr(earlyLifeTrt),
-      #     width = 0.3,
-      #     change_ymax = dotMass_zoomY$zoom(),
-      #     ymin = dotMass_zoomY$min(),
-      #     ymax = dotMass_zoomY$max(),
-      #     DaysOrMass = "Mass"
-      #   ) + 
-      #     stat_compare_means(method = "t.test", label.y = max(MaturationOff_react()$VO_mass, na.rm = TRUE) + 2)
-      # })
-      # 
-      # output$FirstE_dot_mass <- renderPlot({
-      #   my_puberty_dot_plot(
-      #     df = MaturationOff_react(),
-      #     expr(Estrus_mass), #expr()
-      #     phenotype_name = "First Estrus",
-      #     shape = expr(earlyLifeTrt),
-      #     colour = expr(earlyLifeTrt),
-      #     width = 0.3,
-      #     change_ymax = dotMass_zoomY$zoom(),
-      #     ymin = dotMass_zoomY$min(),
-      #     ymax = dotMass_zoomY$max(),
-      #     DaysOrMass = "Mass"
-      #   ) + 
-      #     stat_compare_means(method = "t.test", label.y = max(MaturationOff_react()$Estrus_mass, na.rm = TRUE) + 2)
-      # })
-      # 
-      # output$PPS_dot_mass <- renderPlot({
-      #   my_puberty_dot_plot(
-      #     df = MaturationOff_react(),
-      #     expr(PreputialSep_mass), #expr()
-      #     phenotype_name = "PPS",
-      #     shape = expr(earlyLifeTrt),
-      #     colour = expr(earlyLifeTrt),
-      #     width = 0.3,
-      #     change_ymax = dotMass_zoomY$zoom(),
-      #     ymin = dotMass_zoomY$min(),
-      #     ymax = dotMass_zoomY$max(),
-      #     DaysOrMass = "Mass"
-      #   ) + 
-      #     stat_compare_means(method = "t.test", label.y = max(MaturationOff_react()$PreputialSep_mass, na.rm = TRUE) + 2)
-      # })
+      ### Plots ------------
+      VO_dot_mass_plot <- reactive({
+        MaturationOff_react() %>%
+          filter(!is.na(VO_mass)) %>%
+          plotMassScatter(yVar = VO_mass, title = "Vaginal Opening")+
+          addTtestLayer(VO_mass_t_test(), fontSize = 7, xPos = 0.60, yPos = 2)
+      })
+      
+      VO_dot_mass_info <- plotServer2(
+        "VO_dot_mass", 
+        VO_dot_mass_plot, 
+        "VO_mass", 
+        compType,
+        imgType = reactive(input$imgType),
+        units = reactive(input$units),
+        height = reactive(input$height),
+        width = reactive(input$width)
+        )
+      
+      FirstE_dot_mass_plot <- reactive({
+        MaturationOff_react() %>%
+          filter(!is.na(Estrus_mass)) %>%
+          plotMassScatter(yVar = Estrus_mass, title = "First Estrus")+
+          addTtestLayer(Estrus_mass_t_test(), fontSize = 7, xPos = 0.60, yPos = 2)
+      })
+      
+      FirstE_dot_mass_info <- plotServer2(
+        "FirstE_dot_mass", 
+        FirstE_dot_mass_plot, 
+        "FirstE_mass", 
+        compType,
+        imgType = reactive(input$imgType),
+        units = reactive(input$units),
+        height = reactive(input$height),
+        width = reactive(input$width)
+        )
+      
+      PPS_dot_mass_plot <- reactive({
+        MaturationOff_react() %>%
+          filter(!is.na(PreputialSep_mass)) %>%
+          plotMassScatter(yVar = PreputialSep_mass, title = "Preputial Separation")+
+          addTtestLayer(PreputialSep_mass_t_test(), fontSize = 7, xPos = 0.60, yPos = 2)
+      })
+      
+      PPS_dot_mass_info <- plotServer2(
+        "PPS_dot_mass", 
+        PPS_dot_mass_plot, 
+        "PPS_mass", 
+        compType,
+        imgType = reactive(input$imgType),
+        units = reactive(input$units),
+        height = reactive(input$height),
+        width = reactive(input$width)
+        )
+      
+     
       # 
       # output$LitterSizeVO <- renderPlot({
       #   MaturationOff_react() %>%
