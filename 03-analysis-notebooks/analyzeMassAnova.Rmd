@@ -1,0 +1,202 @@
+---
+title: "Mass ANOVAs"
+output:
+  word_document: default
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+options(digits=3)
+```
+
+```{r include=FALSE}
+# If can't find it, be sure that the directory is the project directory
+# Arrow between notebook and settings gear -> Knit directory
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+# Second litters, only three pups or more in a litter
+Mass2ndLitter3pups <- Mass_off %>%
+  filter(
+    litterNum == 2,
+    Litter_size_endPara >= 3
+  )
+
+# Get the litter averages for each sex in a litter
+Mass2ndLitter3pups_byDamAndSex <- Mass2ndLitter3pups %>%
+  getAvgByDam(bySex = TRUE)
+
+# Make dataframes long
+Mass2ndLitter3pups_long <- Mass2ndLitter3pups %>%
+  makeOffMassLong()
+
+Mass2ndLitter3pups_byDamAndSex_long <- Mass2ndLitter3pups_byDamAndSex %>%
+  makeOffMassLong()
+```
+
+```{r}
+# Mass for after P11 (P4 is average of litter, don't know values for individual)
+massIndiv <- Mass2ndLitter3pups_long %>%
+  filter(
+    day >= 11
+  )
+
+massDamSex <- Mass2ndLitter3pups_byDamAndSex_long %>%
+  filter(
+    day >= 11
+  )
+
+# Mass for pre-weaning
+massPreWeanIndiv <- Mass2ndLitter3pups_long %>%
+  filter(
+    day >= 11, day <= 21
+  )
+
+massPreWeanByDamSex <- Mass2ndLitter3pups_byDamAndSex_long %>%
+  filter(
+    day >= 11, day <= 21
+  )
+
+# Mass for post-weaning
+massPostWeanIndiv <- Mass2ndLitter3pups_long %>%
+  filter(
+    day > 21
+  )
+
+massPostWeanByDamSex <- Mass2ndLitter3pups_byDamAndSex_long %>%
+  filter(
+    day > 21
+  )
+```
+
+```{r}
+massDesignIndiv <- function(df) {
+  df %>%
+    factorial_design(
+      dv = mass,
+      wid = mouseID,
+      between = c(earlyLifeTrt, sex),
+      within = day
+    )
+}
+massDesignByDamSex <- function(df) {
+  df %>%
+    factorial_design(
+      dv = mass,
+      wid = damID,
+      between = c(earlyLifeTrt),
+      within = c(day, sex)
+    )
+}
+```
+
+```{r}
+massIndivDesign <- massIndiv %>%
+  massDesignIndiv()
+
+massDamSexDesign <- massDamSex %>%
+  massDesignByDamSex()
+
+massPreWeanIndivDesign <- massPreWeanIndiv %>%
+  massDesignIndiv()
+
+massPreWeanByDamSexDesign <- massPreWeanByDamSex %>%
+  massDesignByDamSex()
+
+massPostWeanIndivDesign <- massPostWeanIndiv %>%
+  massDesignIndiv()
+
+massPostWeanByDamSexDesign <- massPostWeanByDamSex %>%
+  massDesignByDamSex()
+```
+
+```{r}
+massIndiv3wayRMAnova <- function(df){
+  df %>%
+    anova_test(
+      dv = mass, 
+      wid = mouseID,
+      between = c(earlyLifeTrt, sex),
+      within = day
+    )
+}
+
+massDamSex3wayRMANOVA <- function(df){
+  df %>%
+    anova_test(
+      dv = mass,
+      wid = damID,
+      between = c(earlyLifeTrt),
+      within = c(day, sex)
+    )
+}
+```
+
+
+```{r}
+massIndiv3wayRM <- massIndiv %>%
+  massIndiv3wayRMAnova()
+
+massDamSex3wayRM <- massDamSex %>%
+  massDamSex3wayRMANOVA()
+
+massPreWeanIndiv3wayRM <- massPreWeanIndiv %>%
+  massIndiv3wayRMAnova()
+
+massPreWeanByDamSex3wayRM <- massPreWeanByDamSex %>%
+  massDamSex3wayRMANOVA()
+
+massPostWeanIndiv3wayRM <- massPostWeanIndiv %>%
+  massIndiv3wayRMAnova()
+
+massPostWeanByDamSex3wayRM <- massPostWeanByDamSex %>%
+  massDamSex3wayRMANOVA()
+```
+
+# 3-way repeated measures ANOVA
+
+## All days after paradigm
+
+### Individual
+```{r}
+massIndiv3wayRM %>% formatAnova()
+```
+
+### By Litter
+```{r}
+massDamSex3wayRM %>% formatAnova()
+```
+
+## Pre-weaning
+
+### Individual
+```{r}
+massPreWeanIndiv3wayRM %>% formatAnova()
+```
+
+### By Litter
+```{r}
+massPreWeanByDamSex3wayRM %>% formatAnova()
+```
+
+## Post-weaning
+
+### Individual
+```{r}
+massPostWeanIndiv3wayRM %>% formatAnova()
+```
+
+### By Litter
+```{r}
+massPostWeanByDamSex3wayRM %>% formatAnova()
+```
+
+
+```{r}
+
+```
+
