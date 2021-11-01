@@ -28,7 +28,7 @@ filteringDFUI <- function(
           "Which litter number?",
           choices = unique(off_data$litterNum), # Changed from levels to unique
           multiple = TRUE,
-          selected = c(2)
+          selected = c(1,2)
         )
       ),
       div(
