@@ -28,6 +28,11 @@ massOffUI <- function(id,
           ns("groupByDam"),
           "Group by dam",
           TRUE
+        ),
+        checkboxInput(
+          ns("facetBySex"),
+          "Facet by sex",
+          TRUE
         )
       )
     ),
@@ -179,6 +184,11 @@ massOffServer <- function(
       zoom_x <- zoomAxisServer("zoom_x", "x", minVal = 0, maxVal = 21)
       zoom_y <- zoomAxisServer("zoom_y", "y", minVal = 0, maxVal = 18)
       
+      sex_names <- c(
+        "F"="female",
+        "M"="male"
+      )
+      
       massPlot <- reactive({
         groupVar <- ifelse(input$groupByDam, expr(damID), expr(mouseID))
         
@@ -191,9 +201,10 @@ massOffServer <- function(
             filter(sex == "F")
         }
         
-        df %>%
+        plot <- df %>%
           plot_mass_lines(
             groupByDam = input$groupByDam,
+            facetBySex = input$facetBySex,
             useLineType = input$useLineType, # TRUE/FALSE
             lineTypeVar = earlyLifeTrt,
             lineGroupVar = {{ groupVar }},
@@ -222,6 +233,7 @@ massOffServer <- function(
             STDColor = input$STDColor,
             LBNColor = input$LBNColor
           )
+        return(plot)
       })
       
       plotInfo <- plotServer("plot", massPlot, "massPlot", compType)
@@ -241,7 +253,7 @@ massOffServer <- function(
         
         if(input$groupByDam){
           df <- df %>%
-            getAvgByDam()
+            getAvgByDam(bySex = input$facetBySex)
         }
         
         df_long <- df %>%
@@ -250,6 +262,7 @@ massOffServer <- function(
         nearPoints(
           df_long %>% select(
             !! ifelse(input$groupByDam, expr(damID), expr(mouseID)),
+            !! ifelse(input$facetBySex, expr(sex), NULL),
             earlyLifeTrt,
             day,
             mass

@@ -27,6 +27,7 @@ makeOffMassLong <- function(df){
 plot_mass_lines <- function(
   df, #wide form mass df
   groupByDam = FALSE,
+  facetBySex = FALSE,
   # groupInteraction = FALSE,
   # interactionGroupVar = litterNum,
   useLineType = TRUE, # TRUE/FALSE
@@ -54,18 +55,18 @@ plot_mass_lines <- function(
   textSize = 11,
   axisSize = 0.5,
   legendPosition = "top",
-  STDColor = STDColor,
-  LBNColor = LBNColor
+  STDColor = "grey30",
+  LBNColor = "cyan4"
 ){
   if(groupByDam == TRUE){
     df <- df %>%
-      getAvgByDam()
+      getAvgByDam(bySex = facetBySex)
   }
   
   df_long <- df %>%
     makeOffMassLong()
   
-  df_long %>%
+  plot <- df_long %>%
     ggplot(
       aes(
         x = day,
@@ -111,4 +112,10 @@ plot_mass_lines <- function(
     theme(
       legend.position = legendPosition
     )
+  
+  if(facetBySex){
+    plot <- plot +
+      facet_wrap(vars(sex), labeller = labeller(sex = c("F"="female", "M"="male")))
+  }
+  return(plot)
 }
