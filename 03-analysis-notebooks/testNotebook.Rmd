@@ -2536,3 +2536,26 @@ testLLM_df
 lmmFunc(testLLM_df)
 ```
 
+
+```{r}
+
+sex_names <- c(
+  "F"="female",
+  "M"="male"
+)
+sex_labeller <- function(variable, value){
+  return(sex_names[value])
+}
+
+Mass_off %>%
+  plot_mass_lines() +
+  facet_wrap(vars(sex), labeller = sex_labeller)
+
+Mass_off %>%
+  plot_mass_lines()+
+  facet_wrap(vars(sex), 
+             # labeller = labeller(sex = c(F = "female", M = "male"))
+             labeller = labeller(sex = sex_names)
+             )
+```
+
