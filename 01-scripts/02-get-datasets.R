@@ -3,7 +3,8 @@
 Demo_dam <- loadExcelSheet(dataFolder, LBN_DataName, "Demo_dam")
 Demo_off <- loadExcelSheet(dataFolder, LBN_DataName, "Demo_off")
 Off_ID <- loadExcelSheet(dataFolder, LBN_DataName, "Off_ID")
-Mass_off <- loadExcelSheet(dataFolder, LBN_DataName, "Mass_off")
+Mass_litter_off <- loadExcelSheet(dataFolder, LBN_DataName, "Mass_litter_off")
+Mass_postWean_off <- loadExcelSheet(dataFolder, LBN_DataName, "Mass_postWean_off")
 Maturation_off <- loadExcelSheet(dataFolder, LBN_DataName, "Maturation_off")
 EndPara_off <- loadExcelSheet(dataFolder, LBN_DataName, "EndParadigm_off")
 Cycles_off <- loadExcelSheet(dataFolder, LBN_DataName, "Cycles_off")
@@ -48,6 +49,13 @@ Off_ID <- makeFactors(Off_ID, c(mouseID))
 
 Demo_off <- Demo_off %>%
   left_join(Off_ID, by = "mouseID")
+
+#Combine pre-wean and post-wean mass dataframes
+Mass_off <- Mass_litter_off %>%
+  full_join(
+    Mass_postWean_off,
+    by = "mouseID"
+  )
 
 Mass_off <- makeFactors(Mass_off, mouseID)
 Maturation_off <- makeFactors(Maturation_off, mouseID)
