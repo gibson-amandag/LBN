@@ -50,6 +50,32 @@ earlyLifeColor <- function(
   return(color)
 }
 
+adultTrtFill <- function(
+  CON = "CON",
+  ALPS = "ALPS",
+  CONColor = "white",
+  ALPSColor = "black"
+){
+  fill <- scale_fill_manual(
+    "early life trt", 
+    values = c(CON=CONColor, ALPS=ALPSColor)
+  )
+  return(fill)
+}
+
+adultTrtColor <- function(
+  CON = "CON",
+  ALPS = "ALPS",
+  CONColor = "black",
+  ALPSColor = "black"
+){
+  color <- scale_color_manual(
+    "early life trt", 
+    values = c(CON = CONColor, ALPS = ALPSColor)
+  )
+  return(color)
+}
+
 earlyLifeLineType <- function(
   STD = "STD",
   LBN = "LBN"

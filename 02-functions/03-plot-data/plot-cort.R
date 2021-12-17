@@ -231,6 +231,79 @@ LHPlot <- function(
     guides(linetype = "none")
 }
 
+LHPlot_adultTrt <- function(
+  df_long,
+  fontSize = 11,
+  dotSize = 1.2,
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL
+){
+  ggplot(
+    df_long,
+    aes(
+      x = time,
+      y = LH,
+      group = adultTrt
+    )
+  ) +
+    geom_line(
+      alpha = 0.4,
+      color = "black",
+      aes(group = mouseID),
+      position = position_dodge(0.4)
+    ) +
+    geom_point(
+      shape = 21,
+      alpha = 1, 
+      aes(fill=adultTrt
+          ,group=mouseID
+          # ,shape=adultTrt
+          ), 
+      position = position_dodge(0.4), 
+      size = dotSize
+    ) +
+    addMeanHorizontalBar(
+      width = 0.85, 
+      addLineType = TRUE,
+      lineTypeName = "adult trt",
+      lineTypeGuide = c("CON" = "dotted", "ALPS" = "solid"),
+      typeVar = adultTrt
+    )+
+    addMeanSE_vertBar()+
+    adultTrtFill()+
+    adultTrtColor()+
+    # scale_color_manual(
+    #     "treatment", 
+    #     values = c("CON" = "black"
+    #                # ,"ALPS" = "darkcyan"
+    #                ,"ALPS" = "black"
+    #                )
+    #     )+
+    # scale_fill_manual(
+    #   "treatment", 
+    #   values = c("CON" = "white"
+    #              # ,"ALPS" = "darkcyan"
+    #              ,"ALPS" = "black"
+    #              )
+    #   )+
+    # scale_shape_manual(
+    #   "treatment", 
+    #   values = c("CON" = 21,
+    #              "ALPS" = 23))+
+    theme_pubr() +
+    labs(
+      y = "LH (ng/mL)"
+    ) +
+    textTheme(size = fontSize)+
+    boxTheme()+
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) + #this just zooms in on the graph, versus scale_[]_continuous actually eliminates data not in the range
+    guides(linetype = "none")
+}
+
 propSurgedPlot <- function(
   df,
   xVar = comboTrt,
@@ -250,4 +323,56 @@ propSurgedPlot <- function(
     rremove("legend") +
     rremove("xlab")
   return(viz)
+}
+
+plotLHAmp <- function(df, surgeMin, textSize = 11, dotSize = 2){
+  plot <- df %>%
+    mutate(
+      surgeStatus = 
+        case_when(
+          adultTrt == "CON" ~ "control",
+          adultTrt == "ALPS" & maxLH > surgeMin ~ "stress surge",
+          TRUE ~ "stress no surge"
+        )
+    ) %>%
+    mutate(
+      surgeStatus = factor(surgeStatus, levels = c("control", "stress surge", "stress no surge"))
+    ) %>%
+    ggplot(
+      aes(
+        x = surgeStatus,
+        y = maxLH,
+        fill = surgeStatus
+      )
+    ) +
+    geom_point(
+      alpha = 1,
+      position = position_dodge2(0.4),
+      size = dotSize,
+      shape = 21,
+      color = "black"
+    )+
+    addMeanHorizontalBar(
+      width = 0.85, 
+      addLineType = FALSE
+    ) +
+    addMeanSE_vertBar()+
+    scale_fill_manual(
+      values = c("control" = "white", 
+                 "stress surge" = "black", 
+                 "stress no surge" = "grey60"
+      )
+    )+
+    boxTheme()+
+    textTheme(textSize) +
+    ylab("LH (ng/mL)")+
+    scale_x_discrete(
+      labels = c("Control", "Stress\nsurge", "Stress  \nno surge")
+    )+
+    theme(
+      legend.position = "none",
+      axis.title.x = element_blank(),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)
+    )
+  return(plot)
 }

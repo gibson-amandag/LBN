@@ -1,3 +1,81 @@
+scatterPlot_general <- function(
+  df,
+  xVar,
+  xLab,
+  yVar,
+  yLab,
+  fillVar = NULL,
+  fillLimits = NULL,
+  fillValues = NULL,
+  lineColorVar = NULL,
+  lineColorLimits = NULL,
+  lineColorValues = NULL,
+  textSize = 12,
+  zoom_x = FALSE, # Zoom to part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, # Zoom to part of y axis
+  ymin = NULL,
+  ymax = NULL,
+  dotSize = 1.5,
+  fillAlpha = 1,
+  jitterWidth = 0.35,
+  jitterHeight = 0,
+  title = NULL,
+  addMean = TRUE,
+  addSE = TRUE
+){
+  viz <- df %>%
+    ggplot(
+      aes(
+        x = {{ xVar }},
+        y = {{ yVar }},
+        fill = {{ fillVar }},
+        color = {{ lineColorVar }}
+      )
+    ) +
+    jitterGeom(
+      size = dotSize,
+      alpha = fillAlpha,
+      width = jitterWidth,
+      height = jitterHeight
+    ) +
+    labs(title = title)+
+    theme_pubr()+
+    expand_limits(y=0)+
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
+    theme(
+      axis.title.x = element_blank(),
+      legend.position = "none"
+    )+
+    textTheme(size = textSize)+
+    boxTheme()
+
+  if(addMean){
+    viz <- viz + addMeanHorizontalBar()
+  }
+  if(addSE){
+    viz <- viz + addMeanSE_vertBar()
+  }
+
+  if(!is.null(enquo(lineColorVar))){
+    viz <- viz + scale_color_manual(limits = lineColorLimits, values = lineColorValues)
+  }
+  if(!is.null(enquo(fillVar))){
+    viz <- viz + scale_fill_manual(limits = fillLimits, values = fillValues)
+  }
+
+  if(!is.null(xLab)){
+    viz <- viz + labs(x = xLab)
+  }
+
+  if(!is.null(yLab)){
+    viz <- viz + labs(y = yLab)
+  }
+  
+  return(viz)
+}
+
 scatterPlotLBN <- function(
   df,
   yVar,
