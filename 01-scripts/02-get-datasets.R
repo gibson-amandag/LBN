@@ -1,6 +1,9 @@
 # LOAD EXCEL SHEETS -------------------------------------------------------
 
-Demo_dam <- loadExcelSheet(dataFolder, LBN_DataName, "Demo_dam")
+Breeding <- loadExcelSheet(dataFolder, LBN_DataName, "Breeding")
+Litters <- loadExcelSheet(dataFolder, LBN_DataName, "Litters")
+Dam_cort <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_cort")
+
 Demo_off <- loadExcelSheet(dataFolder, LBN_DataName, "Demo_off")
 Off_ID <- loadExcelSheet(dataFolder, LBN_DataName, "Off_ID")
 Mass_litter_off <- loadExcelSheet(dataFolder, LBN_DataName, "Mass_litter_off")
@@ -34,15 +37,33 @@ niceNames <- loadExcelSheet(dataFolder, LBN_DataName, "plotLabels")
 # Litter number
 # cohort
 
-Demo_dam <- Demo_dam %>%
+Breeding <- Breeding %>%
   makeFactors(c(
     damID,
     dam,
-    ParaType,
-    litterNum,
-    cohort
+    litterNum
+  )) 
+
+Litters <- Litters %>%
+  makeFactors(c(
+    damID,
+    cohort,
+    ParaType
   )) %>%
   orderEarlyLifeTrt()
+
+Dam_cort <- Dam_cort %>%
+  makeFactors(damID)
+
+Demo_dam <- Breeding %>%
+  left_join(
+    Litters,
+    by = "damID"
+  ) %>%
+  left_join(
+    Dam_cort,
+    by = "damID"
+  )
 
 Demo_off <- makeFactors(Demo_off, c(damID, mouseID, sex))
 Off_ID <- makeFactors(Off_ID, c(mouseID))
