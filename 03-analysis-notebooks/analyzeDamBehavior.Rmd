@@ -117,14 +117,20 @@ behaviorOverTime <- dam_behavior %>%
     yVar = Num_exits,
     yLab = "# of exits"
   )
-behaviorOverTime
+behaviorOverTime +
+  facet_wrap(
+    ~earlyLifeTrt
+  )+
+  theme(
+    legend.position = "none"
+  )
 ```
 
 ```{r}
 dam_behavior_litter2 %>%
   anova_test(
     dv = Num_exits,
-    wid = Dam_ID,
+    wid = damID,
     between = earlyLifeTrt,
     within = time,
     type = 3
