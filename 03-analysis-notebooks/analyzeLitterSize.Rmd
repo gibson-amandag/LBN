@@ -1,0 +1,201 @@
+---
+title: "Litter Size"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+
+```{r}
+
+thisCohort <- "2"
+
+fileBaseName = "litterSize_LBN_0002"
+imgType = "png"
+thisWidth = 11.5
+thisHeight = 5
+thisUnits = "in"
+
+df <- Demo_dam %>%
+  filter(
+    !is.na(Litter_size_endPara),
+    cohort == thisCohort
+  )
+
+plot <- df %>%
+  ggplot(
+    aes(
+      x = Litter_size_endPara,
+      fill = earlyLifeTrt
+    )
+  )+
+  geom_bar(
+    position = position_dodge2(preserve = "single"),
+    width = 0.9,
+    color = "white"
+  ) +
+  boxTheme()+
+  textTheme(
+    size = 16
+  )+
+  earlyLifeFill(STDColor = "#4D4D4D") +
+  scale_x_continuous(
+    breaks = seq(1, 8, by = 1)
+  ) +
+  scale_y_continuous(
+    breaks = seq(1, 4, by = 1)
+  ) +
+  theme(
+      legend.position = "top"
+    )+
+  labs(x = "Litter Size", y = "# of Litters")
+  
+plot
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# thisCohort <- "4"
+
+fileBaseName = "litterSize_LBN_0004or6"
+imgType = "png"
+thisWidth = 11.5
+thisHeight = 5
+thisUnits = "in"
+
+df <- Demo_dam %>%
+  filter(
+    !is.na(Litter_size_endPara),
+    cohort == "4" | cohort == "6",
+    !is.na(earlyLifeTrt)
+  )
+df %>%
+  select(
+    damID, 
+    earlyLifeTrt,
+    Litter_size_endPara
+  )
+
+plot <- df %>%
+  ggplot(
+    aes(
+      x = Litter_size_endPara,
+      fill = earlyLifeTrt
+    )
+  )+
+  geom_bar(
+    position = position_dodge2(preserve = "single"),
+    width = 0.9,
+    color = "white"
+  ) +
+  boxTheme()+
+  textTheme(
+    size = 16
+  )+
+  earlyLifeFill(STDColor = "#4D4D4D") +
+  scale_x_continuous(
+    breaks = seq(1, 8, by = 1)
+  ) +
+  scale_y_continuous(
+    breaks = seq(1, 5, by = 1)
+  ) +
+  theme(
+      legend.position = "top"
+    )+
+  labs(x = "Litter Size", y = "# of Litters")
+  
+plot
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+thisCohort <- "7"
+
+fileBaseName = "litterSize_LBN_0007"
+imgType = "png"
+thisWidth = 11.5
+thisHeight = 5
+thisUnits = "in"
+
+df <- Demo_dam %>%
+  filter(
+    !is.na(Litter_size_endPara),
+    cohort == thisCohort
+  )
+
+plot <- df %>%
+  ggplot(
+    aes(
+      x = Litter_size_endPara,
+      fill = earlyLifeTrt
+    )
+  )+
+  geom_bar(
+    position = position_dodge2(preserve = "single"),
+    width = 0.9,
+    color = "white"
+  ) +
+  boxTheme()+
+  textTheme(
+    size = 16
+  )+
+  earlyLifeFill(STDColor = "#4D4D4D") +
+  scale_x_continuous(
+    breaks = seq(1, 8, by = 1)
+  ) +
+  scale_y_continuous(
+    breaks = seq(1, 4, by = 1)
+  ) +
+  theme(
+      legend.position = "top"
+    )+
+  labs(x = "Litter Size", y = "# of Litters")
+  
+plot
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
