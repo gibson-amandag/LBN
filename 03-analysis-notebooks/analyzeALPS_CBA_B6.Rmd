@@ -1,0 +1,107 @@
+---
+title: "BW_ALPS_CBA/B6F1"
+output: html_notebook
+---
+
+These are data from Beth's ovulation studies with the CBA/B6F1 mice
+There are 26 mice in total
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+# Load Beth's data
+source(file.path(scriptsFolder, "03-load-bw-lh-data.R"))
+```
+
+
+```{r}
+BW_data
+BW_data_wide
+```
+
+# Individual Mouse Plots
+```{r}
+plot <- BW_data %>%
+  LHPlot_adultTrt(
+    fontSize = 16
+  ) +
+  facet_wrap(
+    ~adultTrt
+  ) +
+  theme(
+    legend.position = "none"
+  )
+plot
+
+fileBaseName = "CBA_B6 LH indiv plot"
+imgType = "png"
+thisWidth = 11.5
+thisHeight = 5
+thisUnits = "in"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+```
+# Proportion Surging
+
+```{r}
+surgeMin = 3
+BW_data_wide %>%
+  mutate(
+    surged = maxLH > surgeMin
+  ) %>%
+  propSurgedPlot(
+    xVar = adultTrt,
+    fontSize = 16
+  )
+```
+
+```{r}
+plot <- BW_data_wide %>%
+  plotLHAmp(surgeMin = surgeMin, textSize = 16, dotSize = 2.2)
+
+plot
+
+fileBaseName = "CBA_B6 Surge Plot"
+imgType = "png"
+thisWidth = 3.33
+thisHeight = 3.77
+thisUnits = "in"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+
+```
+
