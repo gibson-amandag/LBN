@@ -5,18 +5,24 @@ Litters <- loadExcelSheet(dataFolder, LBN_DataName, "Litters")
 Dam_cort <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_cort")
 
 Demo_off <- loadExcelSheet(dataFolder, LBN_DataName, "Demo_off")
-Off_ID <- loadExcelSheet(dataFolder, LBN_DataName, "Off_ID")
 Mass_litter_off <- loadExcelSheet(dataFolder, LBN_DataName, "Mass_litter_off")
-Mass_postWean_off <- loadExcelSheet(dataFolder, LBN_DataName, "Mass_postWean_off")
-Maturation_off <- loadExcelSheet(dataFolder, LBN_DataName, "Maturation_off")
+Mass_postWean_off <- loadExcelSheet(dataFolder, LBN_DataName, "Mass_postWean_off") %>%
+  select(-mouseID_spec)
+Maturation_off <- loadExcelSheet(dataFolder, LBN_DataName, "Maturation_off")%>%
+  select(-mouseID_spec)
 EndPara_off <- loadExcelSheet(dataFolder, LBN_DataName, "EndParadigm_off")
-Cycles_off <- loadExcelSheet(dataFolder, LBN_DataName, "Cycles_off")
-Cycles_off_extra <- loadExcelSheet(dataFolder, LBN_DataName, "Cycles_off_extra")
+Cycles_off <- loadExcelSheet(dataFolder, LBN_DataName, "Cycles_off")%>%
+  select(-mouseID_spec)
+Cycles_off_extra <- loadExcelSheet(dataFolder, LBN_DataName, "Cycles_off_extra")%>%
+  select(-mouseID_spec)
 CohortCyclingFolder <- loadExcelSheet(dataFolder, LBN_DataName, "CohortCyclingFolder")
-Sacrifice_off <- loadExcelSheet(dataFolder, LBN_DataName, "Sacrifice_off")
-Cort_off <- loadExcelSheet(dataFolder, LBN_DataName, "Cort_off")
+Sacrifice_off <- loadExcelSheet(dataFolder, LBN_DataName, "Sacrifice_off")%>%
+  select(-mouseID_spec)
+Cort_off <- loadExcelSheet(dataFolder, LBN_DataName, "Cort_off")%>%
+  select(-mouseID_spec)
 Cort_random <- loadExcelSheet(dataFolder, LBN_DataName, "Cort_random")
-LH_code <- loadExcelSheet(dataFolder, LBN_DataName, "LH_code")
+LH_code <- loadExcelSheet(dataFolder, LBN_DataName, "LH_code")%>%
+  select(-mouseID_spec)
 LH_random <- loadExcelSheet(dataFolder, LBN_DataName, "LH_random")
 LH_off <- loadExcelSheet(dataFolder, LBN_DataName, "LH_off")
 ChronicStress_off <- loadExcelSheet(dataFolder, LBN_DataName, "ChronicStress_off")
@@ -65,17 +71,27 @@ Demo_dam <- Breeding %>%
     by = "damID"
   )
 
-Demo_off <- makeFactors(Demo_off, c(damID, mouseID, sex))
-Off_ID <- makeFactors(Off_ID, c(mouseID))
+Demo_off <- makeFactors(Demo_off, c(damID, mouseID, sex, mouseID_spec))
 
-Demo_off <- Demo_off %>%
-  left_join(Off_ID, by = "mouseID")
+# Add the numeric mouseID to the litter mass dataframe
+Mass_litter_off <- Mass_litter_off %>%
+  makeFactors(mouseID_spec) %>%
+  left_join(
+    Demo_off %>% select(mouseID, mouseID_spec),
+    by = "mouseID_spec"
+  )
+
+Mass_postWean_off <- makeFactors(Mass_postWean_off, mouseID)
 
 #Combine pre-wean and post-wean mass dataframes
 Mass_off <- Mass_litter_off %>%
   full_join(
     Mass_postWean_off,
     by = "mouseID"
+  ) %>%
+  relocate(
+    mouseID,
+    .after = "mouseID_spec"
   )
 
 Mass_off <- makeFactors(Mass_off, mouseID)
@@ -240,7 +256,7 @@ LH_off <- LH_off %>%
 
 LBN_all <- Demo_off %>%
   left_join(Demo_dam, by = "damID") %>%
-  full_join(select(Mass_off, -ParaType), by = "mouseID") %>%
+  full_join(select(Mass_off, -ParaType), by = c("mouseID", "mouseID_spec")) %>%
   # full_join(Maturation_off, by = "mouseID") %>%
   full_join(EndPara_off, by = "mouseID") %>%
   full_join(Cycles_off, by = "mouseID") %>%
@@ -283,7 +299,7 @@ Demo_off <- addDamDemoData(
 
 # COMBINE OFFSPRING DATA INTO ONE -----------------------------------------
 LBN_data <- Demo_off %>%
-  left_join(select(Mass_off, -ParaType), by = "mouseID") %>%
+  left_join(select(Mass_off, -ParaType), by = c("mouseID", "mouseID_spec")) %>%
   # left_join(Maturation_off, by = "mouseID") %>%
   left_join(EndPara_off, by = "mouseID") %>%
   left_join(Cycles_off, by = "mouseID") %>%
@@ -295,7 +311,7 @@ LBN_data <- Demo_off %>%
 # ADD OFFSPRING DEMO DATA -------------------------------------------------
 Mass_off <- Mass_off %>%
   select(-ParaType) %>%
-  addOffspringDemoData() %>%
+  addOffspringDemoData(addBy = c("mouseID", "mouseID_spec")) %>%
   relocate(
     Avg_litter_mass_startPara,
     .before = "Mass_P9"

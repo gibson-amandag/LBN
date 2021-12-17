@@ -42,11 +42,13 @@ addDamDemoData <- function(
 #' @examples
 addOffspringDemoData <- function(
   df,
-  offDemo_toAdd = Demo_off
+  offDemo_toAdd = Demo_off,
+  addBy = "mouseID"
 ){
   df <- df %>%
-    left_join(offDemo_toAdd, by = "mouseID") %>%
+    left_join(offDemo_toAdd, by = addBy) %>%
     relocate( # move to start
+      mouseID_spec,
       mouseID,
       num_ID,
       sex,

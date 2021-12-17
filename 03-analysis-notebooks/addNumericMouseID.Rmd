@@ -1,0 +1,174 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+# If can't find it, be sure that the directory is the project directory
+# Arrow between notebook and settings gear -> Knit directory
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+sheetNames <- list(
+  "demo" = "Demo_off",
+  "mass" = "Mass_postWean_off",
+  "maturation" = "Maturation_off",
+  "cycles" = "Cycles_off",
+  "cyclesExtra" = "Cycles_off_extra",
+  "sacrifice" = "Sacrifice_off",
+  "cort" = "Cort_off",
+  "LH" = "LH_code"
+)
+Off_ID_addNum <- loadExcelSheet(dataFolder, LBN_DataName, "Off_ID") 
+# %>% select(-num_ID)
+
+dfs <- lapply(
+  sheetNames, 
+  loadExcelSheet,
+  folderPath = dataFolder,
+  fileName = LBN_DataName
+)
+# dfs
+
+dfs_names <- lapply(
+  dfs,
+  left_join,
+  Off_ID_addNum,
+  by = "mouseID"
+)
+dfs_names <- lapply(
+  dfs_names,
+  relocate,
+  mouseID_num,
+  .after = mouseID
+)
+dfs_names
+```
+
+Copy the demographic dataframe with the existing mouseID_num
+Filled in remaining mice in excel file
+```{r}
+dfs_names$demo %>%
+  write.table("clipboard", sep="\t", row.names=FALSE)
+```
+
+
+Now, add mouseID_num column for each dataframe based on the new demo sheet
+```{r}
+sheetNames <- list(
+  "mass" = "Mass_postWean_off",
+  "maturation" = "Maturation_off",
+  "cycles" = "Cycles_off",
+  "cyclesExtra" = "Cycles_off_extra",
+  "sacrifice" = "Sacrifice_off",
+  "cort" = "Cort_off",
+  "LH" = "LH_code"
+)
+Off_ID_addNum <- loadExcelSheet(dataFolder, LBN_DataName, "Demo_off_num") %>% select(mouseID, mouseID_num)
+
+dfs <- lapply(
+  sheetNames, 
+  loadExcelSheet,
+  folderPath = dataFolder,
+  fileName = LBN_DataName
+)
+# dfs
+
+dfs_names <- lapply(
+  dfs,
+  left_join,
+  Off_ID_addNum,
+  by = "mouseID"
+)
+dfs_names <- lapply(
+  dfs_names,
+  relocate,
+  mouseID_num,
+  .after = mouseID
+)
+dfs_names
+```
+```{r}
+dfs_names$sacrifice %>%
+  select(
+    mouseID,
+    mouseID_num
+  ) %>%
+  write.table("clipboard", sep="\t", row.names=FALSE, col.names = FALSE)
+```
+
+```{r}
+dfs_names$LH %>%
+  select(
+    mouseID,
+    mouseID_num
+  ) %>%
+  write.table("clipboard", sep="\t", row.names=FALSE, col.names = FALSE)
+```
+
+```{r}
+Cort_off_new <- loadExcelSheet(dataFolder, LBN_DataName, "Cort_off_new") %>%
+  left_join(
+    Off_ID_addNum,
+    by = "mouseID"
+  ) %>%
+  relocate(
+    mouseID_num,
+    .after = "mouseID"
+  )
+
+Cort_off_new %>%
+  select(
+    mouseID,
+    mouseID_num
+  ) %>%
+  write.table("clipboard", sep="\t", row.names=FALSE, col.names = FALSE)
+```
+
+```{r}
+dfs_names$cort %>%
+  select(
+    mouseID,
+    mouseID_num
+  ) %>%
+  write.table("clipboard", sep="\t", row.names=FALSE, col.names = FALSE)
+```
+```{r}
+dfs_names$mass %>%
+  select(
+    mouseID,
+    mouseID_num
+  ) %>%
+  write.table("clipboard", sep="\t", row.names=FALSE, col.names = FALSE)
+```
+```{r}
+dfs_names$maturation %>%
+  select(
+    mouseID,
+    mouseID_num
+  ) %>%
+  write.table("clipboard", sep="\t", row.names=FALSE, col.names = FALSE)
+```
+```{r}
+dfs_names$cycles %>%
+  select(
+    mouseID,
+    mouseID_num
+  ) %>%
+  write.table("clipboard", sep="\t", row.names=FALSE, col.names = FALSE)
+```
+```{r}
+dfs_names$cyclesExtra %>%
+  select(
+    mouseID,
+    mouseID_num
+  ) %>%
+  write.table("clipboard", sep="\t", row.names=FALSE, col.names = FALSE)
+```
