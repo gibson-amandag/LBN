@@ -133,10 +133,13 @@ acuteStressUI <- function(id,
             uiOutput(
               ns("cortANOVA_females")
             ),
-            plotOutput(
-              ns("cortPlot_females"),
-              click = ns("cortPlot_females_click")
+            plotUI(
+              ns("cortPlot_females")
             ),
+            # plotOutput(
+            #   ns("cortPlot_females"),
+            #   click = ns("cortPlot_females_click")
+            # ),
             verbatimTextOutput(
               ns("cortPlot_females_info")
             ),
@@ -546,7 +549,7 @@ acuteStressServer <- function(
           htmltools_value()
       })
       
-      output$cortPlot_females <- renderPlot({
+      cortPlot_females <- reactive({
         if(input$cortPlotLong){
           basePlot <- Cort_off_females() %>%
             filter(
@@ -565,8 +568,10 @@ acuteStressServer <- function(
         return(plot)
       })
       
+      cortPlot_females_info <- plotServer("cortPlot_females", cortPlot_females, "cortPlot_females", compType)
+      
       output$cortPlot_females_info <- renderPrint({
-        if(is.null(input$cortPlot_females_click)){
+        if(is.null(cortPlot_females_info$click())){
           "Click on a point to display values - click in the center of the horizontal spread"
         }else(
           nearPoints(
@@ -584,9 +589,30 @@ acuteStressServer <- function(
                 time,
                 cort
               ),
-            input$cortPlot_females_click
+            cortPlot_females_info$click()
           )
         )
+        # if(is.null(input$cortPlot_females_click)){
+        #   "Click on a point to display values - click in the center of the horizontal spread"
+        # }else(
+        #   nearPoints(
+        #     Cort_off_females() %>%
+        #       filter(
+        #         ! (row_number() %in% input$cortPlot_females_table_rows_selected)
+        #       ) %>%
+        #       select(
+        #         mouseID,
+        #         num_ID,
+        #         earlyLifeTrt,
+        #         adultTrt,
+        #         comboTrt,
+        #         ReproTract_mass,
+        #         time,
+        #         cort
+        #       ),
+        #     input$cortPlot_females_click
+        #   )
+        # )
       })
       
       output$cortPlot_females_table <- renderDT({
@@ -596,6 +622,7 @@ acuteStressServer <- function(
             num_ID,
             earlyLifeTrt,
             adultTrt,
+            Sac_cycle,
             ReproTract_mass,
             time,
             cort

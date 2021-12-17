@@ -100,7 +100,8 @@ findMatchingFile <- function(
   regEx,
   MouseID = NULL,
   type = NULL,
-  searchSubFolders = TRUE
+  searchSubFolders = TRUE,
+  date = NULL
 ){
   foundPaths <- dir_ls(
     path = folderPath,
@@ -113,7 +114,7 @@ findMatchingFile <- function(
     perl = T
   )
   if(length(foundPaths) == 0){
-    print(paste0("no file found ", MouseID, " ", type))
+    print(paste0("no file found ", MouseID, " ", type, "date ", date))
   } else if(length(foundPaths) > 1){
     print(paste0("multiple files found ", MouseID, " ", type))
     print(foundPaths)
