@@ -261,7 +261,8 @@ massOffServer <- function(
         
         nearPoints(
           df_long %>% select(
-            !! ifelse(input$groupByDam, expr(damID), expr(mouseID)),
+            !! ifelse(input$groupByDam, expr(damID), expr(mouseID_spec)),
+            # !! ifelse(input$groupByDam, NULL, expr(mouseID_spec)),
             !! ifelse(input$facetBySex, expr(sex), NULL),
             earlyLifeTrt,
             day,
