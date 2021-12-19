@@ -2559,3 +2559,355 @@ Mass_off %>%
              )
 ```
 
+```{r}
+Demo_dam %>%
+  filter(
+    damID == "D040-02"
+  ) %>%
+  select(
+    Litter_size_endPara
+  )
+```
+
+```{r}
+xVar <- expr(earlyLifeTrt)
+yVar <- expr(Mass_P11)
+# fillVar <- expr(NULL)
+# fillVar <- ifelse(TRUE, expr(earlyLifeTrt), expr(NULL))
+# fillVar <- ifelse(FALSE, expr(earlyLifeTrt), expr(NULL))
+
+if(FALSE){
+  fillVar <- expr(earlyLifeTrt)
+} else {
+  fillVar <- expr(NULL)
+}
+scatterPlot_general(
+  LBN_data,
+  xVar = !! xVar,
+  yVar = !! yVar,
+  fillVar = !! fillVar
+)
+```
+
+
+```{r}
+library(lme4)
+library(lmerTest)
+mass_lme <- Mass_2ndLitters_long %>%
+  mutate(
+    day11 = day - 11,
+    .after = day
+  )
+
+mod_P11_21 <- lmer(
+  mass ~
+    earlyLifeTrt +
+    day11 +
+    earlyLifeTrt:day11 +
+    sex +
+    Litter_size_endPara +
+    (1 | damID) +
+    (1 + day11 | mouseID),
+  data = mass_lme,
+  subset = day <= 21
+)
+
+?isSingular
+
+summary(mod_P11_21)
+print(anova(mod_P11_21))
+anova(mod_P11_21)
+plot(mod_P11_21)
+
+mod_21_42 <- lmer(
+  mass ~
+    earlyLifeTrt +
+    day11 +
+    earlyLifeTrt:day11 +
+    sex +
+    Litter_size_endPara +
+    (1 | damID) +
+    (1 + day11 | mouseID),
+  data = mass_lme,
+  subset = day > 21 & day <= 42
+)
+
+
+summary(mod_21_42)
+print(anova(mod_21_42))
+anova(mod_21_42)
+plot(mod_21_42)
+```
+
+```{r}
+cort_lme <- AcuteStress_off %>%
+  filter(
+    litterNum == 2
+  )
+cort_mod <- lmer(
+  log10(cort_hr5) ~
+    earlyLifeTrt * adultTrt * sex +
+    log10(cort_hr0) +
+    (1 | damID),
+  data = cort_lme
+)
+
+summary(cort_mod)
+anova(cort_mod)
+```
+
+```{r}
+cort_mod <- lmer(
+  log10(cort_hr5) ~
+    earlyLifeTrt * adultTrt +
+    sex +
+    log10(cort_hr0) +
+    (1 | damID),
+  data = cort_lme
+)
+
+summary(cort_mod)
+anova(cort_mod)
+```
+
+```{r}
+cort_mod <- lmer(
+  cort_hr5 ~
+    earlyLifeTrt * adultTrt * sex +
+    cort_hr0 +
+    (1 | damID),
+  data = cort_lme
+)
+
+summary(cort_mod)
+anova(cort_mod)
+```
+
+```{r}
+cort_long_lme <- Cort_off %>%
+  filter(
+    litterNum == 2
+  )
+
+long_mod <- lmer(
+  cort ~
+    time * earlyLifeTrt * adultTrt * sex +
+    (1 | mouseID),
+  data = cort_long_lme
+)
+
+summary(long_mod)
+```
+
+```{r}
+long_mod <- lmer(
+  cort ~
+    time * earlyLifeTrt * adultTrt +
+    (1 | mouseID),
+  data = cort_long_lme,
+  subset = sex == "M"
+)
+
+summary(long_mod)
+```
+
+Copy cohort 6 cycling files for first 21 days to cycleDemo folder in moenter-lab-r repo
+```{r}
+cycleTable <- Cycles_off %>%
+  filter(
+    cohort == 6,
+    damID != "D041-02"
+    # , num_ID == 56
+  # )%>%
+  # select(
+  #   mouseID,
+  #   num_ID,
+  #   cycleStartDate
+  # ) %>%
+  # mutate(
+  #   endDate = cycleStartDate + 20
+  )
+
+copyFolderPath <- file.path(
+  "..", "moenter-lab-r", "www", "cycleDemo"
+)
+# row <- 1
+
+for(row in 1:length(cycleTable$mouseID)){
+  mouseID <- cycleTable$mouseID[row]
+  cycleID <- cycleTable$num_ID[row]
+  startDate <- cycleTable$cycleStartDate[row]
+  endDate <- startDate + 20
+  # print(paste0("mouse: ", mouseID,"; start: ", as_date(startDate), "; end: ", as_date(endDate)))
+  cycleFolder <- cycleTable$cyclingFolderPath[row]
+  for(date in startDate:endDate){
+    print(paste0("ID: ", cycleID, "; Date: ", as_date(date)))
+    
+    fileRegEx <- regExCycleFileName(
+      as_date(date),
+      # "2021-08-17",
+      cycleID
+    )
+    thisFilePath <- findMatchingFile(
+      cycleFolder,
+      fileRegEx,
+      MouseID = mouseID,
+      date = date
+    )
+    
+    if(!is.na(thisFilePath)){
+      thisFileName <- thisFilePath %>%
+        path_file() %>%
+        path_ext_remove()
+      thisFileName <- paste0(thisFileName, ".jpg")
+      
+      if(is.na(findMatchingFile(
+        copyFolderPath,
+        fileRegEx,
+        MouseID = mouseID
+      ))){
+        #copy
+        print(paste0("copying for ID: ", cycleID, "; Date: ", as_date(date)))
+        file_copy(
+          thisFilePath, 
+          file.path(copyFolderPath, thisFileName)
+        )
+      } else{
+        print(paste0("not copying for ID: ", cycleID, "; Date: ", as_date(date)))
+      }
+      
+    }else {
+      print(paste0("No file found for ID: ", cycleID, "; Date: ", as_date(date)))
+    }
+  }
+}
+```
+
+```{r}
+cycleTable <- Cycles_off %>%
+  filter(
+    cohort == 6,
+    damID != "D041-02"
+  ) %>%
+  mutate(
+    endDate = cycleStartDate + 20
+  )
+
+copyFolderPath <- file.path(
+  "..", "moenter-lab-r", "www", "cycleDemo2"
+)
+# row <- 1
+
+for(row in 1:length(cycleTable$mouseID)){
+  mouseID <- cycleTable$mouseID[row]
+  cycleID <- cycleTable$num_ID[row]
+  startDate <- cycleTable$cycleStartDate[row]
+  endDate <- cycleTable$endDate[row]
+  # print(paste0("mouse: ", mouseID,"; start: ", as_date(startDate), "; end: ", as_date(endDate)))
+  cycleFolder <- cycleTable$cyclingFolderPath[row]
+  for(date in startDate:endDate){
+    # print(paste0("ID: ", cycleID, "; Date: ", as_date(date)))
+    
+    fileRegEx <- regExCycleFileName(
+      as_date(date),
+      # "2021-08-17",
+      cycleID
+    )
+    thisFilePath <- findMatchingFile(
+      cycleFolder,
+      fileRegEx,
+      MouseID = mouseID,
+      date = date
+    )
+    
+    # if(!is.na(thisFilePath)){
+      thisFileName <- thisFilePath %>%
+        path_file() %>%
+        path_ext_remove()
+      thisFileName <- paste0(thisFileName, ".jpg")
+      
+      # if(is.na(findMatchingFile(
+      #   copyFolderPath,
+      #   fileRegEx,
+      #   MouseID = mouseID
+      # ))){
+        #copy
+        # print(paste0("copying for ID: ", cycleID, "; Date: ", as_date(date)))
+        file_copy(
+          thisFilePath, 
+          file.path(copyFolderPath, thisFileName),
+          overwrite = TRUE
+        )
+    #   } else{
+    #     print(paste0("not copying for ID: ", cycleID, "; Date: ", as_date(date)))
+    #   }
+    #   
+    # }else {
+    #   print(paste0("No file found for ID: ", cycleID, "; Date: ", as_date(date)))
+    # }
+  }
+}
+```
+
+```{r}
+Mass_off %>% filter(
+  is.na(sex)
+)
+```
+
+```{r}
+addAgeColumn <- function(
+  df, 
+  ageAtCol,
+  addAgeGroup = TRUE,
+  dobCol = dateOfBirth,
+  dobAsDay = 0
+){
+  df <- df %>%
+    mutate(
+      age = as.numeric(
+        difftime({{ ageAtCol }}, {{ dobCol }}, 
+                 units = c("days"))
+        ) + {{ dobAsDay }}
+    )
+  
+  if(addAgeGroup == TRUE){
+    df <- df %>%
+      mutate(
+        ageGroup = case_when(
+          (age >= 18 & age <= 22) ~ "3wk",
+          age >= 60 ~ "adult"
+        ) 
+      ) %>%
+      mutate(
+        across(ageGroup, as.factor)
+      )
+  }
+  return(df)
+}
+
+LBN_data %>%
+  select(
+    DOB,
+    Sac_date
+  ) %>%
+  mutate(
+    DOB_equal = round(runif(nrow(.)))
+  )%>%
+  addAgeColumn(
+    Sac_date
+    ,dobCol = DOB
+    ,dobAsDay = DOB_equal
+  )
+```
+
+```{r}
+Demo_dam
+```
+
+```{r}
+Mass_off
+
+LBN_data
+```
+
