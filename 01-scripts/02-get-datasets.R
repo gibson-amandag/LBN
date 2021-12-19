@@ -4,6 +4,8 @@ Breeding <- loadExcelSheet(dataFolder, LBN_DataName, "Breeding")
 Litters <- loadExcelSheet(dataFolder, LBN_DataName, "Litters")
 Dam_cort <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_cort")
 
+# Load data sheets, and remove and extraneous "specific" mouseIDs (DamID-litterNum_earTag)
+# Will add this info back in in R, but left in excel for historical ease of looking up data
 Demo_off <- loadExcelSheet(dataFolder, LBN_DataName, "Demo_off")
 Mass_litter_off <- loadExcelSheet(dataFolder, LBN_DataName, "Mass_litter_off")
 Mass_postWean_off <- loadExcelSheet(dataFolder, LBN_DataName, "Mass_postWean_off") %>%
@@ -12,9 +14,9 @@ Maturation_off <- loadExcelSheet(dataFolder, LBN_DataName, "Maturation_off")%>%
   select(-mouseID_spec)
 EndPara_off <- loadExcelSheet(dataFolder, LBN_DataName, "EndParadigm_off")
 Cycles_off <- loadExcelSheet(dataFolder, LBN_DataName, "Cycles_off")%>%
-  select(-mouseID_spec)
+  select(-c(mouseID_spec, num_ID, cycleStartDate)) # num_ID and startDate calculated in R
 Cycles_off_extra <- loadExcelSheet(dataFolder, LBN_DataName, "Cycles_off_extra")%>%
-  select(-mouseID_spec)
+  select(-c(mouseID_spec, num_ID, cycleStartDate)) # num_ID and startDate calculated in R
 CohortCyclingFolder <- loadExcelSheet(dataFolder, LBN_DataName, "CohortCyclingFolder")
 Sacrifice_off <- loadExcelSheet(dataFolder, LBN_DataName, "Sacrifice_off")%>%
   select(-mouseID_spec)
