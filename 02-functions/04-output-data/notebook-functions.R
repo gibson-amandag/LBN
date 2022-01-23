@@ -1,6 +1,6 @@
 myDisplay <- function(df, docType = doc.type){
   if(!is.null(docType) && docType == "docx"){
-    print(docType)
+    # print(docType)
     return(flextable(df))
   } else {
     # df_print <- df

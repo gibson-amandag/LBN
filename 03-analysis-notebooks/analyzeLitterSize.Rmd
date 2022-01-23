@@ -20,7 +20,7 @@ thisCohort <- "2"
 
 fileBaseName = "litterSize_LBN_0002"
 imgType = "png"
-thisWidth = 11.5
+thisWidth = 5.75
 thisHeight = 5
 thisUnits = "in"
 
@@ -29,6 +29,8 @@ df <- Demo_dam %>%
     !is.na(Litter_size_endPara),
     cohort == thisCohort
   )
+
+df
 
 plot <- df %>%
   ggplot(
@@ -51,12 +53,19 @@ plot <- df %>%
     breaks = seq(1, 8, by = 1)
   ) +
   scale_y_continuous(
-    breaks = seq(1, 4, by = 1)
+    breaks = seq(1, 5, by = 1)
   ) +
+  coord_cartesian(ylim = c(0,5), xlim = c(0, 8.5))+
   theme(
       legend.position = "top"
     )+
-  labs(x = "Litter Size", y = "# of Litters")
+  labs(x = "litter size", y = "# of litters")+
+  facet_wrap(
+    ~ litterNum,
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )
   
 plot
 
@@ -65,7 +74,8 @@ flexSave(
   thisFilePrefix = NULL,
   plot = plot,
   fileType = imgType,
-  filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
+  # filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
+  filePath = file.path(plotOutputFolder, "NGP"),
   width = thisWidth,
   height = thisHeight,
   units = thisUnits,
@@ -79,7 +89,8 @@ flexSave(
 
 fileBaseName = "litterSize_LBN_0004or6"
 imgType = "png"
-thisWidth = 11.5
+# thisWidth = 11.5
+thisWidth = 5.75
 thisHeight = 5
 thisUnits = "in"
 
@@ -122,7 +133,14 @@ plot <- df %>%
   theme(
       legend.position = "top"
     )+
-  labs(x = "Litter Size", y = "# of Litters")
+  labs(x = "litter size", y = "# of litters")+
+  coord_cartesian(ylim = c(0,5), xlim = c(0, 8.5))+
+  facet_wrap(
+    ~ litterNum,
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )
   
 plot
 
@@ -131,7 +149,81 @@ flexSave(
   thisFilePrefix = NULL,
   plot = plot,
   fileType = imgType,
-  filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
+  filePath = file.path(plotOutputFolder, "NGP"),
+  # filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+fileBaseName = "litterSize_LBN_firstVsecond"
+imgType = "png"
+thisWidth = 11.5
+thisHeight = 5
+thisUnits = "in"
+
+df <- Demo_dam %>%
+  filter(
+    !is.na(Litter_size_endPara),
+    cohort == "2" | cohort == "4" | cohort == "6" | cohort == "7",
+    Litter_size >= 5,
+    !is.na(earlyLifeTrt)
+  )
+
+df %>%
+  select(
+    damID, 
+    earlyLifeTrt,
+    Litter_size_endPara
+  )
+
+plot <- df %>%
+  ggplot(
+    aes(
+      x = Litter_size_endPara,
+      fill = earlyLifeTrt
+    )
+  )+
+  geom_bar(
+    position = position_dodge2(preserve = "single"),
+    width = 0.9,
+    color = "white"
+  ) +
+  boxTheme()+
+  textTheme(
+    size = 16
+  )+
+  earlyLifeFill(STDColor = "#4D4D4D") +
+  scale_x_continuous(
+    breaks = seq(1, 8, by = 1)
+  ) +
+  scale_y_continuous(
+    breaks = seq(1, 6, by = 1)
+  ) +
+  theme(
+      legend.position = "top"
+    )+
+  labs(x = "litter size", y = "# of litters") +
+  expand_limits(x = 0)+
+  facet_wrap(
+    ~ litterNum,
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )
+  
+plot
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  # filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
   width = thisWidth,
   height = thisHeight,
   units = thisUnits,
@@ -181,7 +273,7 @@ plot <- df %>%
   theme(
       legend.position = "top"
     )+
-  labs(x = "Litter Size", y = "# of Litters")
+  labs(x = "litter size", y = "# of litters")
   
 plot
 
@@ -190,7 +282,8 @@ flexSave(
   thisFilePrefix = NULL,
   plot = plot,
   fileType = imgType,
-  filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
+  filePath = file.path(plotOutputFolder, "ngp"),
+  # filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
   width = thisWidth,
   height = thisHeight,
   units = thisUnits,

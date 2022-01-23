@@ -7,15 +7,19 @@ LHprofileUI <- function(id){
   tagList(
     zoomAxisUI(ns("LHprofile_zoom_y"), "y"),
     filterLHUI(ns("filterLH")),
-    plotOutput(
-      ns("LHprofile"),
-      click = ns("LHprofile_click"),
-      height = "600px"
+    plotUI(
+      ns("LHprofile")
     ),
+    # plotOutput(
+    #   ns("LHprofile"),
+    #   click = ns("LHprofile_click"),
+    #   height = "600px"
+    # ),
+    
     verbatimTextOutput(
       ns("LHprofile_info")
     ),
-    plotOutput(
+    plotUI(
       ns("propSurged")
     )
   )
@@ -28,7 +32,8 @@ LHprofileServer <- function(
   AcuteStressDF,
   proUterineCutoff,
   diUterineCutoff,
-  dotSize
+  dotSize,
+  thisCompType
 ){
   moduleServer(
     id,
@@ -72,12 +77,15 @@ LHprofileServer <- function(
           )
         return(plot)
       })
-      output$LHprofile <- renderPlot({
-        plot()
-      })
+      
+      LHprofileInfo <- plotServer("LHprofile", plot, "LH_plot", thisCompType)
+      
+      # output$LHprofile <- renderPlot({
+      #   plot()
+      # })
       
       output$LHprofile_info <- renderPrint({
-        if(is.null(input$LHprofile_click)){
+        if(is.null(LHprofileInfo$click())){
           "Click on a point to display values - click in the middle of the horizontal scatter"
         }else(
           # print(input$LHprofile_click)
@@ -93,7 +101,8 @@ LHprofileServer <- function(
                 LH,
                 ReproTract_mass
               ),
-            input$LHprofile_click,
+            # input$LHprofile_click,
+            LHprofileInfo$click(),
             xvar = "time",
             yvar = "LH"
           )
@@ -111,11 +120,16 @@ LHprofileServer <- function(
             ReproTract_mass > 125,
             litterNum == 2
           ) %>%
-          propSurgedPlot()
+          propSurgedPlot(
+            fontSize = 16
+          )
       })
       
-      output$propSurged <- renderPlot(
-        plotSurged()
+      propSurgedInfo <- plotServer(
+        "propSurged",
+        plotSurged,
+        "propSurged",
+        thisCompType
       )
     }
   )

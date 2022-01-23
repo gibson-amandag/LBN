@@ -30,7 +30,8 @@ Cohorts 4 + 6
 ```{r}
 cycles_2ndLitter <- Cycles_off %>%
   filter(
-    litterNum == 2
+    litterNum == 2,
+    Litter_size >= 5 # added 2022-01-17
   )
 cyclesLong_2ndLitter <- makeCyclesLong(cycles_2ndLitter)
 
@@ -216,7 +217,8 @@ print(LBN_0005_cyclePPT, file.path(reportOutputFolder, "cyclePPTS", "LBN_0005_cy
 ```{r}
 cycles_2ndLitter <- Cycles_off %>%
   filter(
-    litterNum == 2
+    litterNum == 2,
+    Litter_size>=5
   )
 
 STDMice <- cycles_2ndLitter %>%
@@ -257,7 +259,7 @@ cycles_2ndLitter_LBN_plot
 flexSave(
   "cycles_2ndLitter_STD",
   plot = cycles_2ndLitter_STD_plot,
-  filePath = file.path(plotOutputFolder, "SFN"),
+  filePath = file.path(plotOutputFolder, "NGP"),
   width = 4,
   height = 5.5,
   units = "in",
@@ -267,11 +269,45 @@ flexSave(
 flexSave(
   "cycles_2ndLitter_LBN",
   plot = cycles_2ndLitter_LBN_plot,
-  filePath = file.path(plotOutputFolder, "SFN"),
+  filePath = file.path(plotOutputFolder, "NGP"),
   width = 4,
   height = 5.5,
   units = "in",
   fileType = "png"
+)
+```
+
+```{r}
+cycles_demo <- Cycles_off %>%
+  filter(
+    mouseID == 422
+  )
+cyclesLong_demo <- makeCyclesLong(cycles_demo) %>% filter(
+  day < 22
+)
+
+plot <- plotCycleTraces(cyclesLong_demo, removeFacets = TRUE, fontSize = 16)
+
+plot
+
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "Demo_cyclesPlot"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
 )
 ```
 

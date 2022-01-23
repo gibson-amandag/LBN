@@ -131,7 +131,9 @@ scatterPlotTwoVars_byLBN <- function(
   yVar,
   yLab,
   xVar,
-  xLab
+  xLab,
+  textSize = 11,
+  dotSize = 1.5
 ){
   viz <- df %>%
     ggplot(
@@ -141,11 +143,11 @@ scatterPlotTwoVars_byLBN <- function(
         fill = earlyLifeTrt
       )
     ) +
-    jitterGeom() +
+    jitterGeom(size = dotSize) +
     labs(y = yLab, x = xLab)+
     expand_limits(x = 0, y = 0)+
     earlyLifeFill() +
-    textTheme()+
+    textTheme(textSize)+
     boxTheme()
   
   return(viz)
@@ -175,7 +177,7 @@ scatterPlotTwoVars_byComboTrt <- function(
         shape = comboTrt
       )
     ) +
-    jitterGeom() +
+    jitterGeom(size = dotSize) +
     labs(y = yLab, x = xLab)+
     expand_limits(x = 0, y = 0)+
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +

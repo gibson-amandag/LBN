@@ -20,7 +20,7 @@ Cycles_off_extra <- loadExcelSheet(dataFolder, LBN_DataName, "Cycles_off_extra")
 CohortCyclingFolder <- loadExcelSheet(dataFolder, LBN_DataName, "CohortCyclingFolder")
 Sacrifice_off <- loadExcelSheet(dataFolder, LBN_DataName, "Sacrifice_off")%>%
   select(-mouseID_spec)
-Cort_off <- loadExcelSheet(dataFolder, LBN_DataName, "Cort_off")%>%
+Cort_off <- loadExcelSheet(dataFolder, LBN_DataName, "Cort_Dec2021")%>% # changed temporarily from Cort_off
   select(-mouseID_spec)
 Cort_random <- loadExcelSheet(dataFolder, LBN_DataName, "Cort_random")
 LH_code <- loadExcelSheet(dataFolder, LBN_DataName, "LH_code")%>%
@@ -164,6 +164,12 @@ Demo_dam <- Demo_dam %>%
 
 
 # CORT AND LH -------------------------------------------------------------
+# Remove the duplicates before doing anything else
+Cort_off <- Cort_off %>%
+  filter(
+    is.na(removeDup) | ! removeDup
+  )
+
 Cort_off <- Cort_off %>%
   mutate(
     exclude = ifelse(is.na(exclude), FALSE, TRUE)

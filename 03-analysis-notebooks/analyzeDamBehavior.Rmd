@@ -112,22 +112,54 @@ dam_behavior_litter2 %>%
 ```
 
 ```{r}
-behaviorOverTime <- dam_behavior %>%
+behaviorOverTime <- dam_behavior_litter2 %>%
+  filter(
+    Litter_size_startPara >= 5
+  ) %>%
   behavior_overTime(
     yVar = Num_exits,
-    yLab = "# of exits"
+    yLab = "# of exits",
+    fontSize = 16,
+    dotSize = 3
   )
-behaviorOverTime +
+plot <- behaviorOverTime +
   facet_wrap(
+    # ~earlyLifeTrt + litterNum,
+    # ncol = 4
     ~earlyLifeTrt
   )+
   theme(
     legend.position = "none"
   )
+
+plot
+
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "DamBehavior_secondLitters"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
 ```
 
 ```{r}
 dam_behavior_litter2 %>%
+  filter(
+    Litter_size_startPara >= 5
+  ) %>%
   anova_test(
     dv = Num_exits,
     wid = damID,

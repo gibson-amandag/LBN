@@ -39,7 +39,7 @@ cortEIAUI <- function(id){
           ns("modelType"),
           "Model Type",
           choices = c(
-            "4 parameter logarithmic" = "4PLC",
+            "4 parameter logistic" = "4PLC",
             "linear" = "linear"
           )
         )
@@ -93,7 +93,8 @@ cortEIAUI <- function(id){
             p("Now, we'll use the standards to calculate the relationship between percent binding and corticosterone per well"),
             p("Click on a row in the table to exclude the standard from the curve generation"),
             DTOutput(ns("standardsTable")),
-            plotOutput(ns("standardCurvePlot"), click = ns("standardCurvePlot_click")),
+            plotUI(ns("standardCurvePlot")),
+            # plotOutput(ns("standardCurvePlot"), click = ns("standardCurvePlot_click")),
             tableOutput(ns("standardCurvePlotInfo")),
             verbatimTextOutput(ns("stdCurveModel")),
             p("%B/B", tags$sub("0"), " = c + (d - c) / (1 + exp(b(log(ng/well) - log(e))))")
@@ -748,7 +749,12 @@ cortEIAServer <- function(
           ) +
           textTheme(size = 16) +
           boxTheme() +
-          scale_x_log10()
+          scale_x_log10(
+            breaks = c(c(500, 250, 125, 62, 31, 15, 8, 4, 2))
+          # )+
+          # scale_x_continuous(
+          #   breaks = c(500, 250, 125, 75, 37.5, 18.75, 9.375, 4.6875)
+          )
         
         if(modelType == "4PLC"){
           viz <- viz + 
@@ -768,7 +774,9 @@ cortEIAServer <- function(
       
       output$stdCurveModel <- renderPrint(stdCurve()$coefficients)
       
-      output$standardCurvePlot <- renderPlot(stdCurvePlot())
+      # output$standardCurvePlot <- renderPlot(stdCurvePlot())
+      standardCurvePlotClickInfo <- plotServer("standardCurvePlot", stdCurvePlot, paste0(fileName %>% path_ext_remove(), "_stdCurve"), compType = compType)
+      
       output$standardCurvePlotInfo <- renderTable(
         nearPoints(
           stdsNoZero() %>%
@@ -779,7 +787,8 @@ cortEIAServer <- function(
               pgPerWell,
               percBinding
             ),
-          input$standardCurvePlot_click
+          # input$standardCurvePlot_click
+          standardCurvePlotClickInfo$click()
         )
       )
       

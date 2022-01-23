@@ -2911,3 +2911,825 @@ Mass_off
 LBN_data
 ```
 
+
+```{r}
+cort_dec2021 <- loadExcelSheet(dataFolder, LBN_DataName, "Cort_Dec2021")
+cort_dec2021
+```
+
+```{r}
+Cort_off
+```
+
+
+```{r}
+oldCort <- loadExcelSheet(dataFolder, LBN_DataName, "Cort_off")
+
+oldCort_forCombo <- oldCort %>%
+  rename(cort_old = cort, plateQC_old = plateQC) %>%
+  mutate(mouseID = as.factor(mouseID)) %>%
+  select(mouseID, time, cort_old, plateQC_old)
+
+Cort_combo <- Cort_off %>%
+  left_join(
+    oldCort_forCombo,
+    by = c("mouseID", "time")
+  ) %>%
+  relocate(
+    cort_old,
+    .after = cort
+  ) %>%
+  relocate(
+    plateQC_old,
+    .after = plateQC
+  ) %>%
+  filter(
+    sex == "F",
+    !is.na(cort_old)
+  ) %>%
+  mutate(
+    propQC_old = cort_old / plateQC_old,
+    propQC_new = cort / plateQC,
+    .after = cort_old
+  )
+
+Cort_combo_orders <- Cort_combo %>%
+  arrange(
+    propQC_new
+  ) %>%
+  mutate(
+    rank_new = row_number(),
+    .after = mouseID
+  ) %>%
+  arrange(
+    propQC_old
+  ) %>%
+  mutate(
+    rank_old = row_number(),
+    .after = mouseID
+  )
+
+Cort_combo_orders
+
+Cort_combo_long <- Cort_combo_orders %>%
+  rename(cort_new = cort) %>%
+  pivot_longer(
+    c(propQC_old, propQC_new), 
+    names_to = "plate",
+    names_prefix = "propQC_",
+    values_to = "propQC"
+    ) %>%
+  relocate(
+    plate, propQC, .after = mouseID
+  )
+
+Cort_combo_long %>%
+  ggplot(
+    aes(
+      x = plate 
+      ,y = propQC
+      # ,group = comboTrt
+    )
+  ) +
+  geom_line(
+    aes(
+      group = interaction(mouseID, time)
+      # , linetype = comboTrt
+      # , color = comboTrt
+      )
+    # ,position = position_dodge(1.2)
+  )+
+  geom_point(
+    aes(
+      group = interaction(mouseID, time)
+      #, fill=comboTrt
+      # , shape=comboTrt, color=comboTrt
+      )
+    # ,position = position_dodge(1.2)
+  ) +
+  facet_wrap(~comboTrt, nrow = 1)
+```
+
+This shows the rank order of just the post samples based on the proportion of the cort QC on the respective plate for each sample and compares between the plates run in fall 2021 and winter 2021 with the same samples. 
+
+There doesn't seem to be strict adherence to the order between plates within a group, though the placement of the groups generally is similar, though there may be some differences between the alps groups
+
+```{r}
+Cort_combo_orders <- Cort_combo %>%
+  filter(time == 5) %>%
+  arrange(
+    propQC_new
+  ) %>%
+  mutate(
+    rank_new = row_number(),
+    .after = mouseID
+  ) %>%
+  arrange(
+    propQC_old
+  ) %>%
+  mutate(
+    rank_old = row_number(),
+    .after = mouseID
+  )
+
+Cort_combo_orders %>% mutate(
+  isHigher = ifelse(rank_new > rank_old, TRUE, FALSE),
+  isLower = ifelse(rank_new < rank_old, TRUE, FALSE),
+  .after = rank_new
+)
+
+Cort_combo_order_long <- Cort_combo_orders %>%
+  rename(cort_new = cort) %>%
+  pivot_longer(
+    c(rank_old, rank_new), 
+    names_to = "plate",
+    names_prefix = "rank_",
+    values_to = "rank"
+    ) %>%
+  relocate(
+    plate, rank, .after = mouseID
+  ) %>%
+  mutate(
+    plate = factor(plate, levels = c("old", "new"))
+  )
+
+Cort_combo_order_long %>%
+  ggplot(
+    aes(
+      x = plate 
+      ,y = rank
+      # ,group = comboTrt
+    )
+  ) +
+  geom_line(
+    aes(
+      group = interaction(mouseID, time)
+      # , linetype = comboTrt
+      # , color = comboTrt
+      )
+    # ,position = position_dodge(1.2)
+  )+
+  geom_point(
+    aes(
+      group = interaction(mouseID, time)
+      #, fill=comboTrt
+      # , shape=comboTrt, color=comboTrt
+      )
+    # ,position = position_dodge(1.2)
+  ) +
+  facet_wrap(~comboTrt, nrow = 1) +
+  boxTheme()+
+  textTheme()
+```
+
+Looking just at the rank for the post values for the alps groups. The LBN group had 12/14 that were higher in rank with the new plates than the old plates, compared to 7/16 for the STD group
+
+```{r}
+Cort_combo_orders <- Cort_combo %>%
+  filter(time == 5, adultTrt == "ALPS") %>%
+  arrange(
+    propQC_new
+  ) %>%
+  mutate(
+    rank_new = row_number(),
+    .after = mouseID
+  ) %>%
+  arrange(
+    propQC_old
+  ) %>%
+  mutate(
+    rank_old = row_number(),
+    .after = mouseID
+  )
+
+Cort_combo_orders <- Cort_combo_orders %>% mutate(
+  isHigher = ifelse(rank_new > rank_old, TRUE, FALSE),
+  isLower = ifelse(rank_new < rank_old, TRUE, FALSE),
+  .after = rank_new
+)
+
+Cort_combo_order_long <- Cort_combo_orders %>%
+  rename(cort_new = cort) %>%
+  pivot_longer(
+    c(rank_old, rank_new), 
+    names_to = "plate",
+    names_prefix = "rank_",
+    values_to = "rank"
+    ) %>%
+  relocate(
+    plate, rank, .after = mouseID
+  ) %>%
+  mutate(
+    plate = factor(plate, levels = c("old", "new"))
+  )
+
+Cort_combo_order_long %>%
+  ggplot(
+    aes(
+      x = plate 
+      ,y = rank
+      # ,group = comboTrt
+    )
+  ) +
+  geom_line(
+    aes(
+      group = interaction(mouseID, time)
+      # , linetype = comboTrt
+      # , color = comboTrt
+      )
+    # ,position = position_dodge(1.2)
+  )+
+  geom_point(
+    aes(
+      group = interaction(mouseID, time)
+      #, fill=comboTrt
+      # , shape=comboTrt, color=comboTrt
+      )
+    # ,position = position_dodge(1.2)
+  ) +
+  facet_wrap(~comboTrt, nrow = 1) +
+  boxTheme()+
+  textTheme()
+
+Cort_combo_orders %>% group_by(isHigher, earlyLifeTrt) %>%summarise(
+  n(),
+  .groups = "drop"
+)
+
+Cort_combo_long <- Cort_combo_orders %>%
+  rename(cort_new = cort) %>%
+  pivot_longer(
+    c(propQC_old, propQC_new), 
+    names_to = "plate",
+    names_prefix = "propQC_",
+    values_to = "propQC"
+    ) %>%
+  relocate(
+    plate, propQC, .after = mouseID
+  )%>%
+  mutate(
+    plate = factor(plate, levels = c("old", "new"))
+  )
+
+Cort_combo_long %>%
+  ggplot(
+    aes(
+      x = plate 
+      ,y = propQC
+      # ,group = comboTrt
+    )
+  ) +
+  geom_line(
+    aes(
+      group = interaction(mouseID, time)
+      # , linetype = comboTrt
+      # , color = comboTrt
+      )
+    # ,position = position_dodge(1.2)
+  )+
+  geom_point(
+    aes(
+      group = interaction(mouseID, time)
+      #, fill=comboTrt
+      # , shape=comboTrt, color=comboTrt
+      )
+    # ,position = position_dodge(1.2)
+  ) +
+  facet_wrap(~comboTrt, nrow = 1) + 
+  boxTheme()+
+  textTheme()
+
+Cort_combo_orders
+```
+
+The samples from this plate weren't re-run, they were just calculated with the 4PLC curve instead
+
+```{r}
+Cort_combo %>%
+  filter(
+    round(plateQC_old) == round(58.32452)
+  )
+```
+
+Without the mice on that plate
+
+```{r}
+Cort_combo_orders <- Cort_combo %>%
+  filter(
+    time == 5
+    , adultTrt == "ALPS"
+    , round(plateQC_old) != round(58.32452)) %>%
+  arrange(
+    propQC_new
+  ) %>%
+  mutate(
+    rank_new = row_number(),
+    .after = mouseID
+  ) %>%
+  arrange(
+    propQC_old
+  ) %>%
+  mutate(
+    rank_old = row_number(),
+    .after = mouseID
+  )
+
+Cort_combo_orders <- Cort_combo_orders %>% mutate(
+  isHigher = ifelse(rank_new > rank_old, TRUE, FALSE),
+  isLower = ifelse(rank_new < rank_old, TRUE, FALSE),
+  .after = rank_new
+)
+
+Cort_combo_order_long <- Cort_combo_orders %>%
+  rename(cort_new = cort) %>%
+  pivot_longer(
+    c(rank_old, rank_new), 
+    names_to = "plate",
+    names_prefix = "rank_",
+    values_to = "rank"
+    ) %>%
+  relocate(
+    plate, rank, .after = mouseID
+  ) %>%
+  mutate(
+    plate = factor(plate, levels = c("old", "new"))
+  )
+
+Cort_combo_order_long %>%
+  ggplot(
+    aes(
+      x = plate 
+      ,y = rank
+      # ,group = comboTrt
+    )
+  ) +
+  geom_line(
+    aes(
+      group = interaction(mouseID, time)
+      # , linetype = comboTrt
+      # , color = comboTrt
+      )
+    # ,position = position_dodge(1.2)
+  )+
+  geom_point(
+    aes(
+      group = interaction(mouseID, time)
+      #, fill=comboTrt
+      # , shape=comboTrt, color=comboTrt
+      )
+    # ,position = position_dodge(1.2)
+  ) +
+  facet_wrap(~comboTrt, nrow = 1) +
+  boxTheme()+
+  textTheme()
+
+Cort_combo_orders %>% group_by(isHigher, earlyLifeTrt) %>%summarise(
+  n(),
+  .groups = "drop"
+)
+
+Cort_combo_long <- Cort_combo_orders %>%
+  rename(cort_new = cort) %>%
+  pivot_longer(
+    c(propQC_old, propQC_new), 
+    names_to = "plate",
+    names_prefix = "propQC_",
+    values_to = "propQC"
+    ) %>%
+  relocate(
+    plate, propQC, .after = mouseID
+  )%>%
+  mutate(
+    plate = factor(plate, levels = c("old", "new"))
+  )
+
+Cort_combo_long %>%
+  ggplot(
+    aes(
+      x = plate 
+      ,y = propQC
+      # ,group = comboTrt
+    )
+  ) +
+  geom_line(
+    aes(
+      group = interaction(mouseID, time)
+      # , linetype = comboTrt
+      # , color = comboTrt
+      )
+    # ,position = position_dodge(1.2)
+  )+
+  geom_point(
+    aes(
+      group = interaction(mouseID, time)
+      #, fill=comboTrt
+      # , shape=comboTrt, color=comboTrt
+      )
+    # ,position = position_dodge(1.2)
+  ) +
+  facet_wrap(~comboTrt, nrow = 1) + 
+  boxTheme()+
+  textTheme()
+
+Cort_combo_orders
+```
+
+
+The thing that I need to go back and look at though, is what these values are when run with the 4PLC, and where the STD-ALPS values were relative to the curve. They might be artificially high with the old plates. 
+
+```{r}
+maturationLabel  <- c(
+  "VO" = "vaginal opening",
+  "firstE" = "first estrus",
+  "PreputialSep" = "preputial separation"
+)
+  
+litterNum_label <- c(
+  "1" = "first litter",
+  "2" = "second litter"
+)
+
+Maturation_long_filtered_byDam <- Maturation_off %>%
+  filter(
+    damStrain == "CBA",
+    cohort == 2 | cohort == 4 | cohort == 6 | cohort == 7 | cohort == 8,
+    Litter_size >= 5
+  )%>%
+  getAvgByDam() %>%
+  rename(
+    age_VO = VO_age,
+    age_firstE = Estrus_age,
+    age_PreputialSep = PreputialSep_age
+  )%>%
+  pivot_longer(
+    cols = c(age_VO, age_firstE, age_PreputialSep),
+    names_to = "maturationType",
+    values_to = "age",
+    names_prefix = "age_",
+    values_drop_na=TRUE
+  ) 
+
+Maturation_long_filtered_byDam <- Maturation_long_filtered_byDam %>%
+  mutate(
+    maturationType = factor(maturationType, levels = c("VO", "firstE", "PreputialSep"))
+  )
+
+plot <- Maturation_long_filtered_byDam%>%
+  scatterPlotLBN(
+    yVar = age,
+    yLab = "age (days)",
+    dotSize = 3,
+    textSize = 16
+  ) +
+  facet_grid(
+    cols = vars(maturationType, litterNum),
+    labeller = labeller(
+      maturationType = maturationLabel,
+      litterNum = litterNum_label
+    )
+  )
+
+fileBaseName = "maturation_LBN_litterNum"
+imgType = "png"
+thisWidth = 12
+thisHeight = 5.5
+thisUnits = "in"
+
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+plot
+```
+
+```{r}
+Maturation_long_filtered_byDam <- Maturation_off %>%
+  filter(
+    damStrain == "CBA",
+    cohort == 2 | cohort == 4 | cohort == 6 | cohort == 7 | cohort == 8,
+    Litter_size >= 5
+  )%>%
+  getAvgByDam() %>%
+  rename(
+    mass_VO = VO_mass,
+    mass_firstE = Estrus_mass,
+    mass_PreputialSep = PreputialSep_mass
+  )%>%
+  pivot_longer(
+    cols = c(mass_VO, mass_firstE, mass_PreputialSep),
+    names_to = "maturationType",
+    values_to = "mass",
+    names_prefix = "mass_",
+    values_drop_na=TRUE
+  ) 
+
+Maturation_long_filtered_byDam <- Maturation_long_filtered_byDam %>%
+  mutate(
+    maturationType = factor(maturationType, levels = c("VO", "firstE", "PreputialSep"))
+  )
+
+plot <- Maturation_long_filtered_byDam%>%
+  scatterPlotLBN(
+    yVar = mass,
+    yLab = "mass (g)",
+    dotSize = 3,
+    textSize = 16
+  ) +
+  facet_grid(
+    cols = vars(maturationType, litterNum),
+    labeller = labeller(
+      maturationType = maturationLabel,
+      litterNum = litterNum_label
+    )
+  )
+
+fileBaseName = "maturationMass_LBN_litterNum"
+imgType = "png"
+thisWidth = 12
+thisHeight = 5.5
+thisUnits = "in"
+
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+plot
+```
+
+```{r}
+Maturation_filtered_byDamSex <- Maturation_off %>%
+  filter(
+    damStrain == "CBA",
+    cohort == 2 | cohort == 4 | cohort == 6 | cohort == 7 | cohort == 8,
+    Litter_size >= 5
+  )%>%
+  getAvgByDam(bySex = TRUE) 
+
+Maturation_filtered_byDamSex %>%
+  select(
+    damID, sex, litterNum, earlyLifeTrt, AGD_adult
+  ) %>%
+  filter(
+    !is.na(AGD_adult)
+  ) %>%
+  group_by(litterNum, earlyLifeTrt, sex) %>%
+  summarise(
+    n = n(),
+    mean = mean(AGD_adult, na.rm = TRUE)
+  )
+
+Maturation_filtered_byDamSex %>%
+  scatterPlotLBN(
+    yVar = AGD_adult,
+    yLab = "anogenital distance (mm)",
+    textSize = 16,
+    dotSize = 3
+  ) +
+  facet_grid(
+    cols = vars(sex, litterNum),
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )
+```
+
+```{r}
+
+library('lmerTest')
+library('lme4')
+# library('nlme')
+
+# read data 
+# long format
+dat <- data.frame(litterID = ..., mouseID = ..., PND = ..., mass =  ..., Tx = ..., sex = ...)
+dat$Day11 <- dat$PND - 11
+
+# lmer in lme4
+mod <- lmer(mass ~ Tx + Day11 + Tx:Day11 + Sex + nsiblings + (1 | litterID) + (1 + Day11 | mouseID), data = dat, subset = PND < 30)
+
+# (lme in nlme has slightly different syntax)
+
+summary(mod)
+plot(mod)
+
+# gamm
+# library(mgcv)
+library(gamm4)
+mod <- gamm4(mass ~ Tx + Day11 + te(Tx, Day11) + Sex + nsiblings + (1 | litterID) + (1 + Day11 | mouseID), data = dat)
+
+
+##############
+
+mod <- lmer(log10(cort_post) ~ Tx*Stress + Sex*Stress + Tx*Sex + nsiblings + log10(cort_pre) + (1 | litterID), data = dat2)
+mod <- lmer(log10(cort_post) ~ Tx*Stress*Sex + nsiblings + log10(cort_pre) + (1 | litterID), data = dat2)
+
+library(effects)
+
+
+
+
+```
+
+
+```{r}
+Mass_off %>%
+  ggplot(
+    aes(x = earlyLifeTrt, y = Mass_P22, color = "earlyLifeTrt")
+  ) +
+  geom_point() +
+  boxTheme()
+```
+```{r}
+library("lmerTest")
+library("lme4")
+```
+
+```{r}
+
+VO_age_mod <- lmer(
+  VO_age ~ earlyLifeTrt + Litter_size + litterNum + (1 | damID),
+  data = filteredDF %>% mutate(Litter_size = as.integer(Litter_size)),
+  subset = !is.na(VO_age)
+)
+summary(VO_age_mod)
+anova(VO_age_mod)
+```
+
+```{r}
+Estrus_age_mod <- lmer(
+  Estrus_age ~ earlyLifeTrt + Litter_size + litterNum + (1 | damID),
+  data = filteredDF %>% mutate(Litter_size = as.integer(Litter_size)),
+  subset = !is.na(Estrus_age)
+)
+summary(Estrus_age_mod)
+```
+
+```{r}
+PreputialSep_age_mod <- lmer(
+  PreputialSep_age ~ earlyLifeTrt + Litter_size + litterNum + (1 | damID),
+  data = filteredDF %>% mutate(Litter_size = as.integer(Litter_size)),
+  subset = !is.na(PreputialSep_age)
+)
+summary(PreputialSep_age_mod)
+```
+```{r}
+
+VO_mass_mod <- lmer(
+  VO_mass ~ earlyLifeTrt + Litter_size + litterNum + (1 | damID),
+  data = filteredDF %>% mutate(Litter_size = as.integer(Litter_size)),
+  subset = !is.na(VO_mass)
+)
+summary(VO_mass_mod)
+```
+
+```{r}
+Estrus_mass_mod <- lmer(
+  Estrus_mass ~ earlyLifeTrt + Litter_size + litterNum + (1 | damID),
+  data = filteredDF %>% mutate(Litter_size = as.integer(Litter_size)),
+  subset = !is.na(Estrus_mass)
+)
+summary(Estrus_mass_mod)
+```
+
+```{r}
+PreputialSep_mass_mod <- lmer(
+  PreputialSep_mass ~ earlyLifeTrt + Litter_size + litterNum + (1 | damID),
+  data = filteredDF %>% mutate(Litter_size = as.integer(Litter_size)),
+  subset = !is.na(PreputialSep_mass)
+)
+summary(PreputialSep_mass_mod)
+```
+
+```{r}
+AcuteStress_off$exclude_cort_hr0
+Cort_off
+Cort_exclude_wide
+
+Cort_off %>%
+  pivot_wider(
+    id_cols = mouseID,
+    names_from = time,
+    values_from = cort,
+    names_prefix = "cort_hr",
+    values_fn = length
+  )
+
+rerunSamples <- c(4007, 4017, 6023, 6039, 4014, 6025, 6033, 6037)
+
+Cort_off %>%
+  filter(
+    mouseID %in% rerunSamples
+  ) %>%
+  arrange(mouseID, time)
+```
+
+```{r}
+AcuteStress_off_filtered <- AcuteStress_off %>%
+  filter(
+    Litter_size >= 5,
+    litterNum == 2,
+    !is.na(cort_hr0) & !is.na(cort_hr5),
+    is.na(exclude_cort_hr0) | !exclude_cort_hr0,
+    is.na(exclude_cort_hr5) | !exclude_cort_hr5
+  )
+AcuteStress_off_filtered
+
+mod <- lmer(
+  cort_hr5 ~ earlyLifeTrt * adultTrt + cort_hr0 + (1 | damID),
+  data = AcuteStress_off_filtered,
+  subset = sex == "M"
+)
+
+summary(mod)
+
+mod <- lmer(
+  log10(cort_hr5) ~ earlyLifeTrt * adultTrt + log10(cort_hr0) + (1 | damID),
+  data = AcuteStress_off_filtered,
+  subset = sex == "M"
+)
+
+summary(mod)
+
+AcuteStress_off_filtered <- AcuteStress_off_filtered %>%
+  mutate(
+    sexStage = ifelse(
+      sex == "M",
+      "M",
+      ifelse(
+        Sac_cycle == "proestrus" & ReproTract_mass >= 125, 
+        "proestrus",
+        ifelse(
+          Sac_cycle == "diestrus" & ReproTract_mass <= 100, 
+          "diestrus",
+          NA
+        )
+      )
+    )
+  )
+mod <- lmer(
+  log10(cort_hr5) ~ earlyLifeTrt * adultTrt  + log10(cort_hr0) + (1 | damID),
+  data = AcuteStress_off_filtered,
+  subset = sexStage == "diestrus"
+)
+
+summary(mod)
+```
+
+
+```{r}
+surgedDF <- AcuteStress_off %>%
+  mutate(
+    surged = maxLH > 3
+  ) %>%
+  filter(
+    Sac_cycle == "proestrus",
+    ReproTract_mass > 125,
+    litterNum == 2
+  ) 
+
+surgedDF %>% propSurgedPlot()
+
+surgedDF %>%
+  ggplot(aes(x = comboTrt, fill = interaction(comboTrt, surged), color = interaction(comboTrt, surged)))+
+    geom_bar(position = "fill") +
+    # geom_text(
+    #   aes(label = ..count.., color = surged), 
+    #   stat = "count", 
+    #   vjust = 1.3, 
+    #   # colour = "darkgrey", 
+    #   position = "fill"
+    # )+
+    labs(y = "proportion with LH surge") + 
+    # scale_fill_manual(values = c("white", "black")) +
+    # facet_wrap("comboTrt",
+    #            strip.position = "bottom"
+    # ) +
+    scale_color_manual(values = c("white", "white", "white", "white", "black", "black", "darkcyan", "darkcyan"))+
+    scale_fill_manual(values = c("white", "white", "white", "white", "white", "black", "lightblue1", "darkcyan")) +
+    theme_pubr() +
+    textTheme(size = fontSize)+
+    boxTheme()+
+    rremove("legend") +
+    rremove("xlab")
+```
+

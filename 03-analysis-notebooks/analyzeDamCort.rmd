@@ -1,0 +1,179 @@
+---
+title: "Dam Cort"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+P21_cortDams <- Demo_dam %>%
+  filter(
+    Litter_size_startPara >= 5,
+    !is.na(Cort_dam_P21)
+  )
+
+plot <- P21_cortDams %>%
+  scatterPlotLBN(
+    yVar = Cort_dam_P21,
+    yLab = "corticosterone (ng/mL)",
+    textSize = 16,
+    dotSize = 3
+  ) 
+
+imgType = "png"
+thisWidth = 4
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "DamCort_P21"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+P21_cortDams <- Demo_dam %>%
+  filter(
+    Litter_size_startPara >= 5,
+    !is.na(Cort_dam_P21)
+  )
+
+plot <- P21_cortDams %>%
+  scatterPlotLBN(
+    yVar = Cort_dam_P21,
+    yLab = "corticosterone (ng/mL)",
+    textSize = 16,
+    dotSize = 3,
+    zoom_y = TRUE,
+    ymin = 0,
+    ymax = 120
+  ) +
+  facet_wrap(
+    ~litterNum,
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )
+
+plot
+
+imgType = "png"
+thisWidth = 4
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "DamCort_P21_match11Zoom"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+facetForLitterNum <- facet_grid(
+    cols = vars(litterNum),
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )
+P11_cortDams <- Demo_dam %>%
+  filter(
+    Litter_size_startPara >= 5,
+    !is.na(Cort_dam_P11)
+  )
+
+plot <- P11_cortDams %>%
+  scatterPlotLBN(
+    yVar = Cort_dam_P11,
+    yLab = "corticosterone (ng/mL)",
+    textSize = 16,
+    dotSize = 3,
+    zoom_y = TRUE,
+    ymin = 0,
+    ymax = 120
+  ) + 
+  facetForLitterNum
+
+plot
+
+imgType = "png"
+thisWidth = 8
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "DamCort_P11"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+P11_cortDams %>%
+  anova_test(
+    dv = Cort_dam_P11,
+    between = c(litterNum, earlyLifeTrt)
+  )
+```
+
+```{r}
+Demo_dam %>%
+  filter(
+    Litter_size >= 5,
+    !is.na(earlyLifeTrt),
+    !(cohort == "3" | cohort == "5"),
+    ParaType == 4
+  ) %>%
+  group_by(
+    litterNum, Litter_size, earlyLifeTrt
+  ) %>%
+  summarize(
+    n = n()
+  )
+
+Demo_dam %>%
+  filter(
+    Litter_size_endPara >= 5,
+    !is.na(earlyLifeTrt),
+    ParaType == 4
+  ) %>%
+  group_by(
+    litterNum, Litter_size_endPara, earlyLifeTrt
+  ) %>%
+  summarize(
+    n = n()
+  )
+```
+

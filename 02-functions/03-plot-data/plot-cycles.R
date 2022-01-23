@@ -94,14 +94,15 @@ plotCycleTraces <- function(
     ) +
     scale_x_continuous(
       breaks = seq(
-        1,
+        7,
         400,
-        5
+        7
       ) #labels every third integer
+    # ) +
+    # expand_limits(
+    #   y = 0
     ) +
-    expand_limits(
-      y = 0
-    )
+    coord_cartesian(ylim = c(0.5, 3.5))
   
   viz <- viz + 
     theme_pubr() +

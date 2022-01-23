@@ -113,6 +113,10 @@ ui <- navbarPage(
             ) #End sampling PPTs tabPanel
         ) #end analysis tabsetPanel
     ),
+    tabPanel(
+        "Explore Data",
+        exploreDataUI("exploreData", LBN_data)
+    ),
 
     ## TASK TRACKING PANEL ----------------------
     tabPanel(
@@ -159,6 +163,7 @@ ui <- navbarPage(
 
 ############# SERVER #########################################################
 server <- function(input, output) {
+    exploreDataServer("exploreData", LBN_data, currentCompType)
     ### OFFSPRING DOB ----------------------
     # 
     # #### TASK TRACKING HTML TEXT------------------

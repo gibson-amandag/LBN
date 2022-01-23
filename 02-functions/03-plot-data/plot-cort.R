@@ -1,7 +1,13 @@
 cortPlot <- function(
   df_long,
   pointSize = 1.2,
-  fontSize = 11
+  fontSize = 11,
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL
 ){
   ggplot(
     df_long,
@@ -35,6 +41,8 @@ cortPlot <- function(
     addMeanSE_vertBar(color=comboTrt)+
     comboTrtFillShape()+
     theme_pubr() +
+    expand_limits(y = 0) +
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
     rremove("xlab") +
     labs(
       y = "corticosterone (ng/mL)"
@@ -95,7 +103,13 @@ baseCortPlot <- function(
 
 longCortPlot <- function(
   basePlot,
-  fontSize = 11
+  fontSize = 11,
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL
 ){
   longPlot <- basePlot +
     facet_wrap(
@@ -104,6 +118,8 @@ longCortPlot <- function(
       ncol = 4,
       nrow = 1
     ) +
+    expand_limits(y = 0) +
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
     rremove(
       "legend"
     ) + 
@@ -223,8 +239,62 @@ LHPlot <- function(
     comboTrtFillShape()+
     theme_pubr() +
     labs(
-      y = "LH (ng/mL)"
+      y = "LH (ng/mL)",
+      x = "time (hr) relative to lights out"
     ) +
+    scale_x_continuous(
+      breaks = c(0, 5, 5.5, 6.5, 7.5, 8.5),
+      labels = c(-7.5, "", -2, -1, 0, 1)
+    )+
+    textTheme(size = fontSize)+
+    boxTheme()+
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) + #this just zooms in on the graph, versus scale_[]_continuous actually eliminates data not in the range
+    guides(linetype = "none")
+}
+LHPlot_noMean <- function(
+  df_long,
+  fontSize = 11,
+  dotSize = 1.2,
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL
+){
+  ggplot(
+    df_long,
+    aes(
+      x = time,
+      y = LH,
+      group = comboTrt
+    )
+  ) +
+    geom_line(
+      alpha = 0.4,
+      color = "black",
+      aes(group = mouseID),
+      position = position_dodge(0.4)
+    ) +
+    geom_point(
+      # shape = 21, 
+      alpha = 1, 
+      aes(fill=comboTrt,group=mouseID, shape=comboTrt), 
+      position = position_dodge(0.4), 
+      size = dotSize
+    ) +
+    # addMeanHorizontalBar(width = 0.85, addLineType = TRUE)+
+    # addMeanSE_vertBar()+
+    comboTrtFillShape()+
+    theme_pubr() +
+    labs(
+      y = "LH (ng/mL)",
+      x = "time (hr) relative to lights out"
+    ) +
+    scale_x_continuous(
+      breaks = c(0, 5, 5.5, 6.5, 7.5, 8.5),
+      labels = c(-7.5, "", -2, -1, 0, 1)
+    )+
     textTheme(size = fontSize)+
     boxTheme()+
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) + #this just zooms in on the graph, versus scale_[]_continuous actually eliminates data not in the range
@@ -324,8 +394,41 @@ propSurgedPlot <- function(
     rremove("xlab")
   return(viz)
 }
+propSurgedPlotCombo <- function(
+  df,
+  fontSize = 11
+){
+  viz <- df %>%
+    ggplot(aes(x = comboTrt, fill = interaction(comboTrt, surged), color = interaction(comboTrt, surged)))+
+      geom_bar(position = "fill") +
+      # geom_text(
+      #   aes(label = ..count..),
+      #   stat = "count",
+      #   vjust = 1.3,
+      #   colour = "darkgrey",
+      #   position = "fill"
+      # )+
+      labs(y = "proportion with LH surge") + 
+      # scale_fill_manual(values = c("white", "black")) +
+      # facet_wrap("comboTrt",
+      #            strip.position = "bottom"
+      # ) +
+      scale_color_manual(values = c("white", "white", "white", "white", "black", "black", "darkcyan", "darkcyan"))+
+      scale_fill_manual(values = c("white", "white", "white", "white", "white", "black", "lightblue1", "darkcyan")) +
+      theme_pubr() +
+      textTheme(size = fontSize)+
+      boxTheme()+
+      rremove("legend") +
+      rremove("xlab")
+  return(viz)
+}
 
-plotLHAmp <- function(df, surgeMin, textSize = 11, dotSize = 2){
+plotLHAmp <- function(
+  df, 
+  surgeMin, 
+  textSize = 11, 
+  dotSize = 2
+){
   plot <- df %>%
     mutate(
       surgeStatus = 
@@ -373,6 +476,67 @@ plotLHAmp <- function(df, surgeMin, textSize = 11, dotSize = 2){
       legend.position = "none",
       axis.title.x = element_blank(),
       axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)
+    )
+  return(plot)
+}
+plotLHAmp_comboTrt <- function(
+  df, 
+  surgeMin, 
+  textSize = 11, 
+  dotSize = 2
+){
+  plot <- df %>%
+    mutate(
+      surgeStatus = 
+        case_when(
+          adultTrt == "CON" & maxLH > surgeMin ~ "control surge",
+          adultTrt == "CON" & maxLH <= surgeMin ~ "control no surge",
+          adultTrt == "ALPS" & maxLH > surgeMin ~ "stress surge",
+          TRUE ~ "stress no surge"
+        )
+    ) %>%
+    mutate(
+      surgeStatus = factor(surgeStatus, levels = c("control surge", "control no surge", "stress surge", "stress no surge"))
+    ) %>%
+    ggplot(
+      aes(
+        x = surgeStatus,
+        y = maxLH,
+        fill = comboTrt
+      )
+    ) +
+    geom_point(
+      alpha = 1,
+      position = position_dodge2(0.4),
+      size = dotSize,
+      shape = 21,
+      color = "black"
+    )+
+    addMeanHorizontalBar(
+      width = 0.85, 
+      addLineType = FALSE
+    ) +
+    addMeanSE_vertBar()+
+    # scale_fill_manual(
+    #   values = c("control" = "white", 
+    #              "stress surge" = "black", 
+    #              "stress no surge" = "grey60"
+    #   )
+    # )+
+    comboTrtFillShape() +
+    boxTheme()+
+    textTheme(textSize) +
+    ylab("LH (ng/mL)")+
+    scale_x_discrete(
+      labels = c("control\nsurge", "control  \nno surge", "stress\nsurge", "stress  \nno surge")
+    )+
+    theme(
+      legend.position = "none",
+      axis.title.x = element_blank(),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)
+    ) +
+    facet_wrap(
+      ~earlyLifeTrt
     )
   return(plot)
 }

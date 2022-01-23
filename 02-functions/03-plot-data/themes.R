@@ -19,6 +19,7 @@ boxTheme <- function(axisSize = 0.5){
     plot.background = element_blank(),
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
+    # legend.background = element_rect(color = "black", fill = NA, inherit.blank = TRUE),
     legend.background = element_blank(),
     legend.box.background = element_blank()
   )

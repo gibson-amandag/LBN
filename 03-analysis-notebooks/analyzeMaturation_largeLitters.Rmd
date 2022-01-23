@@ -30,25 +30,29 @@ source(file.path(scriptsFolder, "02-get-datasets.R"))
 doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
 ```
 
-# Second Litter - By Dam
-The paradigm was run with dams' second litters
+# By Dam
+The paradigm was run with dams' first or second litters
 
 ```{r}
-Maturation_byDam_litter2_females <- Maturation_off %>%
+filteredDF <- Maturation_off %>%
   filter(
-    litterNum == 2,
+    damStrain == "CBA",
+    cohort == 2 | cohort == 4 | cohort == 6 | cohort == 7 | cohort == 8,
+    Litter_size >= 5
+  )
+Maturation_byDam_5plusPups_females <- filteredDF %>%
+  filter(
     sex == "F"
   ) %>%
   getAvgByDam()
-Maturation_byDam_litter2_males <- Maturation_off %>%
+Maturation_byDam_5plusPups_males <- filteredDF %>%
   filter(
-    litterNum == 2,
     sex == "M"
   ) %>%
   getAvgByDam()
 
-df_females <- Maturation_byDam_litter2_females
-df_males <- Maturation_byDam_litter2_males
+df_females <- Maturation_byDam_5plusPups_females
+df_males <- Maturation_byDam_5plusPups_males
 ```
 ## Maturation
 
@@ -85,9 +89,9 @@ max_VO_mass <- df_females$VO_mass %>% max(na.rm = TRUE)
 
 ```{r}
 VO_age_plot <- df_females %>%
-  scatterPlotLBN(yVar = VO_age, "age at VO (days)")
+  scatterPlotLBN(yVar = VO_age, "age at VO (days)", textSize = 16, dotSize = 3)
 VO_mass_plot <- df_females %>%
-  scatterPlotLBN(yVar = VO_mass, "mass at VO (g)")
+  scatterPlotLBN(yVar = VO_mass, "mass at VO (g)", textSize = 16, dotSize = 3)
 ```
 
 ### First Estrus
@@ -122,9 +126,9 @@ max_estrus_mass <- df_females$Estrus_mass %>% max(na.rm = TRUE)
 
 ```{r}
 Estrus_age_plot <- df_females %>%
-  scatterPlotLBN(yVar = Estrus_age, "age at first estrus (days)")
+  scatterPlotLBN(yVar = Estrus_age, "age at first estrus (days)", textSize = 16, dotSize = 3)
 Estrus_mass_plot <- df_females %>%
-  scatterPlotLBN(yVar = Estrus_mass, "mass at first estrus (g)")
+  scatterPlotLBN(yVar = Estrus_mass, "mass at first estrus (g)", textSize = 16, dotSize = 3)
 ```
 
 ### Preputial Separation
@@ -159,32 +163,140 @@ max_PPS_mass <- df_males$PreputialSep_mass %>% max(na.rm = TRUE)
 
 ```{r}
 PreputialSep_age_plot <- df_males %>%
-  scatterPlotLBN(yVar = PreputialSep_age, "age at preputial sep. (days)")
+  scatterPlotLBN(yVar = PreputialSep_age, "age at preputial sep. (days)", textSize = 16, dotSize = 3)
 PreputialSep_mass_plot <- df_males %>%
-  scatterPlotLBN(yVar = PreputialSep_mass, "mass at preputial sep. (g)")
+  scatterPlotLBN(yVar = PreputialSep_mass, "mass at preputial sep. (g)", textSize = 16, dotSize = 3)
 ```
+
+```{r}
+litterNum_label <- c(
+  "1" = "first litter",
+  "2" = "second litter"
+)
+
+facetForLitterNum <- facet_grid(
+    cols = vars(litterNum),
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )
+
+imgType = "png"
+thisWidth = 4
+thisHeight = 5.5
+thisUnits = "in"
+
+
+```
+
 
 ### Age Plots
 ```{r}
 max_age <- max(max_VO_age, max_estrus_age, max_PPS_age, na.rm = TRUE) + 3
-plot_grid(
-  VO_age_plot + expand_limits(y = max_age),
-  Estrus_age_plot + expand_limits(y = max_age),
-  PreputialSep_age_plot + expand_limits(y = max_age),
+agePlots <- plot_grid(
+  VO_age_plot + expand_limits(y = max_age) + facetForLitterNum + labs(title = "vaginal opening"),
+  Estrus_age_plot + expand_limits(y = max_age) + facetForLitterNum + labs(title = "first estrus"),
+  PreputialSep_age_plot + expand_limits(y = max_age) + facetForLitterNum + labs(title = "preputial separation"),
   nrow = 1,
   align = "hv"
+)
+
+fileBaseName = "VO_age_litterNum"
+plot = VO_age_plot + expand_limits(y = max_age) + facetForLitterNum
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+fileBaseName = "estrus_age_litterNum"
+plot = Estrus_age_plot + expand_limits(y = max_age) + facetForLitterNum
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+fileBaseName = "pps_age_litterNum"
+plot = PreputialSep_age_plot + expand_limits(y = max_age) + facetForLitterNum
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
 )
 ```
 
 ### Mass Plots
 ```{r}
 max_mass <- max(max_VO_mass, max_estrus_mass, max_PPS_mass, na.rm = TRUE) + 3
-plot_grid(
-  VO_mass_plot + expand_limits(y = max_mass),
-  Estrus_mass_plot + expand_limits(y = max_mass),
-  PreputialSep_mass_plot + expand_limits(y = max_mass),
+massPlots <- plot_grid(
+  VO_mass_plot + expand_limits(y = max_mass) + facetForLitterNum,
+  Estrus_mass_plot + expand_limits(y = max_mass) + facetForLitterNum,
+  PreputialSep_mass_plot + expand_limits(y = max_mass) + facetForLitterNum,
   nrow = 1,
   align = "hv"
+)
+
+fileBaseName = "VO_mass_litterNum"
+plot = VO_mass_plot + expand_limits(y = max_mass) + facetForLitterNum
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+fileBaseName = "estrus_mass_litterNum"
+plot = Estrus_mass_plot + expand_limits(y = max_mass) + facetForLitterNum
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+fileBaseName = "pps_mass_litterNum"
+plot = PreputialSep_mass_plot + expand_limits(y = max_mass) + facetForLitterNum
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
 )
 ```
 
@@ -299,3 +411,38 @@ plot_grid(
   align = c("hv")
 )
 ```
+
+
+```{r}
+df_females %>%
+  anova_test(
+    dv = VO_age,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_females %>%
+  anova_test(
+    dv = Estrus_age,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_males %>%
+  anova_test(
+    dv = PreputialSep_age,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_females %>%
+  anova_test(
+    dv = VO_mass,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_females %>%
+  anova_test(
+    dv = Estrus_mass,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_males %>%
+  anova_test(
+    dv = PreputialSep_mass,
+    between = c(litterNum, earlyLifeTrt)
+  )
+```
+

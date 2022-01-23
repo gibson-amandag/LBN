@@ -21,7 +21,7 @@ source(file.path(scriptsFolder, "02-get-datasets.R"))
 ```
 
 ```{r}
-proUterineCutoff <- 135
+proUterineCutoff <- 125
 ```
 
 # Uterine Mass and Evening LH - all P4-P11 controls
@@ -659,7 +659,5 @@ Cort_off %>%
   cortAnova() 
 ```
 
-```{r}
 
-```
 

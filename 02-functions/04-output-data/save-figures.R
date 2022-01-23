@@ -15,7 +15,7 @@ flexSave <- function(
     thisFileName <- baseName
     thisPath <- NULL
   } else {
-    thisFileName <- paste0(filePrefix, baseName, ".", fileType)
+    thisFileName <- paste0(thisFilePrefix, baseName, ".", fileType)
     thisPath <- filePath
   }
   

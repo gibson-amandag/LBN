@@ -102,6 +102,85 @@ flexSave(
 ```
 
 ```{r}
+controlUtMass_LH <- AcuteStress_off %>%
+  filter(
+    Litter_size >= 5,
+    earlyLifeTrt != "LBN",
+    adultTrt != "ALPS",
+    !is.na(maxLH),
+    !is.na(ReproTract_mass)
+  ) %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = maxLH,
+    yLab = "max evening LH (ng/mL)",
+    xVar = ReproTract_mass,
+    xLab = "uterine mass (mg)",
+    fontSize = 16,
+    dotSize = 3
+  ) +
+  theme(
+    legend.position = "none"
+  )
 
+plot <- controlUtMass_LH
+
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "uterineMassByLH_controls"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+plot <- controlUtMass_LH +
+  geom_vline(aes(xintercept = 100), color = "blue")
+plot
+
+fileBaseName = "uterineMassByLH_controls_diestrousLine"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+plot <- controlUtMass_LH +
+  geom_vline(aes(xintercept = 100), color = "blue")+
+  geom_vline(aes(xintercept = 125), color = "red")
+plot
+
+fileBaseName = "uterineMassByLH_controls_proestrousLine"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
 ```
 

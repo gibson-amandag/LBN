@@ -133,6 +133,7 @@ acuteStressUI <- function(id,
             uiOutput(
               ns("cortANOVA_females")
             ),
+            zoomAxisUI(ns("femaleCort_zoom"), "y"),
             plotUI(
               ns("cortPlot_females")
             ),
@@ -354,7 +355,8 @@ acuteStressServer <- function(
             AcuteStressDF = AcuteStress_femaleCBA_react(),
             input$proUterineCutoff,
             input$diUterineCutoff,
-            input$dotSize
+            input$dotSize,
+            compType
           )
         })
       # LHprofile_zoom_y <- zoomAxisServer("LHprofile_zoom_y", "y", minVal = 0, maxVal = 45)
@@ -549,6 +551,8 @@ acuteStressServer <- function(
           htmltools_value()
       })
       
+      femaleCort_zoom_y <- zoomAxisServer("femaleCort_zoom", "y", minVal = 0, maxVal = 500)
+      
       cortPlot_females <- reactive({
         if(input$cortPlotLong){
           basePlot <- Cort_off_females() %>%
@@ -557,13 +561,21 @@ acuteStressServer <- function(
             ) %>%
             baseCortPlot(dotSize = input$dotSize)
           plot <- basePlot %>%
-            longCortPlot(fontSize = 16)
+            longCortPlot(
+              fontSize = 16, 
+              zoom_y = femaleCort_zoom_y$zoom(),
+              ymin = femaleCort_zoom_y$min(),
+              ymax = femaleCort_zoom_y$max()
+              )
         } else {
           plot <- Cort_off_females() %>%
             filter(
               ! (row_number() %in% input$cortPlot_females_table_rows_selected)
             ) %>%
-            cortPlot(pointSize = 2, fontSize = 16)
+            cortPlot(pointSize = input$dotSize, fontSize = 16,
+                     zoom_y = femaleCort_zoom_y$zoom(),
+                     ymin = femaleCort_zoom_y$min(),
+                     ymax = femaleCort_zoom_y$max())
         }
         return(plot)
       })

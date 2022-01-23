@@ -3,7 +3,9 @@ behavior_overTime <- function(
   yVar,
   yLab,
   timeBreaks = c(9, 14, 19, 0),
-  timeLabels = c("ZT9", "ZT14", "ZT19", "ZT0")
+  timeLabels = c("ZT9", "ZT14", "ZT19", "ZT0"),
+  fontSize = 12,
+  dotSize = 1.2
 ){
   viz <- df %>%
     mutate(
@@ -27,13 +29,15 @@ behavior_overTime <- function(
       alpha = 1, 
       aes(fill=earlyLifeTrt,group=damID), 
       position = position_dodge(0.4), 
-      size = 1.2
+      size = dotSize
     ) +
     addMeanHorizontalBar(addLineType = TRUE)+
     addMeanSE_vertBar() +
     labs(y = yLab, linetype = "early life trt") +
     earlyLifeFill() +
-    textTheme()+
+    textTheme(
+      size = fontSize
+    )+
     boxTheme()
   return(viz)
 }

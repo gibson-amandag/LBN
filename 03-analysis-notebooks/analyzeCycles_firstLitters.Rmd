@@ -1,0 +1,236 @@
+---
+title: "Cycles"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+# If can't find it, be sure that the directory is the project directory
+# Arrow between notebook and settings gear -> Knit directory
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+# First Litter Females
+
+Cohorts 2 + 7
+
+```{r}
+cycles_1stLitter <- Cycles_off %>%
+  filter(
+    litterNum == 1,
+    Litter_size >= 5, # added 2022-01-17
+    cohort == 2 | cohort == 7
+  )
+cyclesLong_1stLitter <- makeCyclesLong(cycles_1stLitter)
+
+cycles_1stLitter_STD_plot <- plotCycleTraces(cyclesLong_1stLitter %>% filter(earlyLifeTrt == "STD"))
+cycles_1stLitter_LBN_plot <- plotCycleTraces(cyclesLong_1stLitter %>% filter(earlyLifeTrt == "LBN"))
+
+flexSave(
+  "cycles_1stLitter_STD",
+  plot = cycles_1stLitter_STD_plot,
+  width = 11,
+  height = 8.5,
+  units = "in",
+  fileType = "png"
+)
+# ggsave(
+#   filename = paste0(filePrefix, "cycles_1stLitter_STD.pdf"),
+#   plot = cycles_1stLitter_STD_plot,
+#   device = "pdf",
+#   path = file.path(plotOutputFolder),
+#   width = 10,
+#   height = 7,
+#   units = "in",
+#   useDingbats = FALSE
+# )
+flexSave(
+  "cycles_1stLitter_LBN",
+  plot = cycles_1stLitter_LBN_plot,
+  width = 11,
+  height = 8.5,
+  units = "in",
+  fileType = "png"
+)
+# ggsave(
+#   filename = paste0(filePrefix, "cycles_1stLitter_LBN.pdf"),
+#   plot = cycles_1stLitter_LBN_plot,
+#   device = "pdf",
+#   path = file.path(plotOutputFolder),
+#   width = 10,
+#   height = 7,
+#   units = "in",
+#   useDingbats = FALSE
+# )
+
+```
+## Standard-reared
+```{r}
+cycles_1stLitter_STD_plot
+```
+
+## LBN
+```{r}
+cycles_1stLitter_LBN_plot
+```
+
+# Percent days in stage
+```{r}
+cyclesPerc_long_1stLitter <- makeCyclesPercLong(cycles_1stLitter)
+cyclesPercPlot_1stLitter <- plotCyclesPercent(cyclesPerc_long_1stLitter, fontSize = 16, dotSize = 2.5)
+cyclesPercPlot_1stLitter
+flexSave(
+  "cycles_1stLitter_percDaysStage",
+  plot = cyclesPercPlot_1stLitter,
+  width = 5,
+  height = 5,
+  units = "in"
+)
+flexSave(
+  "cycles_1stLitter_percDaysStage",
+  plot = cyclesPercPlot_1stLitter,
+  width = 4.65,
+  height = 4.62,
+  units = "in",
+  fileType = "png"
+)
+# ggsave(
+#   filename = paste0(filePrefix, "cycles_1stLitter_percDaysStage.pdf"),
+#   plot = cyclesPercPlot_1stLitter,
+#   device = "pdf",
+#   path = file.path(plotOutputFolder),
+#   width = 5,
+#   height = 5,
+#   units = "in",
+#   useDingbats = FALSE
+# )
+```
+
+# Cycles distribution
+```{r}
+cycles_1stLitter_contTable <- table(
+  cyclesLong_1stLitter$earlyLifeTrt,
+  cyclesLong_1stLitter$stageName
+)
+
+cycles_1stLitter_ChiSq <- chisq_test(cycles_1stLitter_contTable)
+cycles_1stLitter_ChiSq %>% flextable()
+
+chisq_descriptives(cycles_1stLitter_ChiSq) %>% flextable()
+```
+
+
+# 2021-10-19 - For SFN Poster
+```{r}
+cycles_1stLitter <- Cycles_off %>%
+  filter(
+    litterNum == 1,
+    Litter_size>=5,
+    cohort == 2 | cohort == 7
+  )
+
+cycles_1stLitter
+
+STDMice <- cycles_1stLitter %>%
+  filter(
+    earlyLifeTrt == "STD"
+  )
+STDtoUse <- STDMice[sample(nrow(STDMice))[1:9], ] %>% makeCyclesLong()
+
+LBNMice <- cycles_1stLitter %>%
+  filter(
+    earlyLifeTrt == "LBN"
+  )
+LBNtoUse <- LBNMice[sample(nrow(LBNMice))[1:9], ] %>% makeCyclesLong()
+
+# cycles_1stLitter_STD_plot <- plotCycleTraces(cyclesLong_1stLitter %>% filter(earlyLifeTrt == "STD"), 
+#                                              removeFacets = TRUE)
+# cycles_1stLitter_LBN_plot <- plotCycleTraces(cyclesLong_1stLitter %>% filter(earlyLifeTrt == "LBN"),
+#                                              removeFacets = TRUE)
+
+cycles_1stLitter_STD_plot <- plotCycleTraces(STDtoUse, 
+                                             colorValues = c("grey30", "cyan4"),
+                                             fontSize = 16,
+                                             removeFacets = TRUE
+                                             ) + theme(
+                                               axis.text.x = element_text(size = 14)
+                                             ) 
+cycles_1stLitter_LBN_plot <- plotCycleTraces(LBNtoUse,
+                                             colorValues = c("grey30", "cyan4"),
+                                             fontSize = 16,
+                                             removeFacets = TRUE
+                                             )+ theme(
+                                               axis.text.x = element_text(size = 14)
+                                             )
+
+cycles_1stLitter_STD_plot
+cycles_1stLitter_LBN_plot
+
+flexSave(
+  "cycles_1stLitter_STD",
+  plot = cycles_1stLitter_STD_plot,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = 4,
+  height = 5.5,
+  units = "in",
+  fileType = "png"
+)
+
+flexSave(
+  "cycles_1stLitter_LBN",
+  plot = cycles_1stLitter_LBN_plot,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = 4,
+  height = 5.5,
+  units = "in",
+  fileType = "png"
+)
+```
+
+```{r}
+cycles_demo <- Cycles_off %>%
+  filter(
+    mouseID == 422
+  )
+cyclesLong_demo <- makeCyclesLong(cycles_demo) %>% filter(
+  day < 22
+)
+
+plot <- plotCycleTraces(cyclesLong_demo, removeFacets = TRUE, fontSize = 16)
+
+plot
+
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "Demo_cyclesPlot"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+

@@ -1,0 +1,2439 @@
+---
+title: "NGP Seminar Data"
+output: html_notebook
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+```{r}
+litterNum_label <- c(
+  "1" = "first litter",
+  "2" = "second litter"
+)
+
+facetForLitterNum <- facet_grid(
+    cols = vars(litterNum),
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )
+
+figureNum <- 1
+
+pptBaseName <- function(figNum) {
+  baseName = paste0("NGP_fig", figNum, "_")
+  return(baseName)
+}
+```
+
+
+# Mass effects from cohort 1
+
+LBN from P2-9 led to differences in body mass, and affected offspring of C57Bl/6J dams more severely than those of CBA dams
+
+```{r}
+thisGroupByDam = TRUE
+facetBySex = FALSE
+useLineType = FALSE
+individualLines = TRUE
+meanLines = FALSE
+zoom_x = FALSE
+zoom_x_min = 0
+zoom_x_max = 21
+zoom_y = FALSE
+zoom_y_min = 0
+zoom_y_max = 15
+indivAlpha = 1
+meanAlpha = 1
+errorBarAlpha = 1
+fontSize = 16
+STDColor = "#4D4D4D"
+LBNColor = "#008B8B"
+
+fileBaseName = "mass_LBN_0001_byStrain"
+imgType = "png"
+thisWidth = 11.5
+thisHeight = 5
+thisUnits = "in"
+
+df <- Mass_off %>%
+  filter(
+    cohort == 1
+  )
+
+groupVar <- ifelse(thisGroupByDam, expr(damID), expr(mouseID))
+
+plot <- df %>%
+  plot_mass_lines(
+    groupByDam = thisGroupByDam,
+    facetBySex = facetBySex,
+    useLineType = useLineType, # TRUE/FALSE
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = {{ groupVar }},
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = individualLines, # plot individual lines
+    meanLines = meanLines, # plot mean lines with SE
+    zoom_x = zoom_x, # Zoom to part of x axis
+    xmin = zoom_x_min,
+    xmax = zoom_x_max,
+    zoom_y = zoom_y, # Zoom to part of y axis
+    ymin = zoom_y_min,
+    ymax = zoom_y_max,
+    indivLineAlpha = indivAlpha,
+    indivLineSize = 0.8,
+    errorBarWidth = 0,
+    meanLineSize = 1.4,
+    meanAlpha = meanAlpha,
+    errorBarSize = 1,
+    # errorBarColor = "grey10",
+    errorBarAlpha = errorBarAlpha,
+    textSize = fontSize,
+    axisSize = 0.5,
+    # legendPosition = "bottom",
+    legendPosition = c(0.85, 0.2),
+    STDColor = STDColor,
+    LBNColor = LBNColor
+  ) +
+  facet_wrap(
+    ~ damStrain
+  ) +
+  theme(
+    legend.key = element_rect(fill = NA)
+  )
+plot
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 1 -> 2
+figureNum <- figureNum + 1
+```
+
+# Mass effects, comparing cohort 1 and 2 CBA offspring
+```{r}
+thisGroupByDam = TRUE
+facetBySex = FALSE
+useLineType = FALSE
+individualLines = TRUE
+meanLines = FALSE
+zoom_x = FALSE
+zoom_x_min = 0
+zoom_x_max = 21
+zoom_y = FALSE
+zoom_y_min = 0
+zoom_y_max = 15
+indivAlpha = 1
+meanAlpha = 1
+errorBarAlpha = 1
+fontSize = 16
+STDColor = "#4D4D4D"
+LBNColor = "#008B8B"
+
+fileBaseName = "mass_LBN_0001vs2"
+imgType = "png"
+thisWidth = 11.5
+thisHeight = 5
+thisUnits = "in"
+
+df <- Mass_off %>%
+  filter(
+    cohort == 1 | cohort == 2,
+    damStrain == "CBA"
+  )
+df
+
+groupVar <- ifelse(thisGroupByDam, expr(damID), expr(mouseID))
+
+cohort_label <- c(
+  "1" = "P2-9",
+  "2" = "P4-11"
+)
+
+plot <- df %>%
+  plot_mass_lines(
+    groupByDam = thisGroupByDam,
+    facetBySex = facetBySex,
+    useLineType = useLineType, # TRUE/FALSE
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = {{ groupVar }},
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = individualLines, # plot individual lines
+    meanLines = meanLines, # plot mean lines with SE
+    zoom_x = zoom_x, # Zoom to part of x axis
+    xmin = zoom_x_min,
+    xmax = zoom_x_max,
+    zoom_y = zoom_y, # Zoom to part of y axis
+    ymin = zoom_y_min,
+    ymax = zoom_y_max,
+    indivLineAlpha = indivAlpha,
+    indivLineSize = 0.8,
+    errorBarWidth = 0,
+    meanLineSize = 1.4,
+    meanAlpha = meanAlpha,
+    errorBarSize = 1,
+    # errorBarColor = "grey10",
+    errorBarAlpha = errorBarAlpha,
+    textSize = fontSize,
+    axisSize = 0.5,
+    # legendPosition = "bottom",
+    legendPosition = c(0.85, 0.2),
+    STDColor = STDColor,
+    LBNColor = LBNColor
+  ) +
+  facet_wrap(
+    ~ cohort,
+    labeller = labeller(
+      cohort = cohort_label
+    )
+  ) +
+  theme(
+    legend.key = element_rect(fill = NA)
+  )
+plot
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  # filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 2 -> 3
+figureNum <- figureNum + 1
+```
+
+Just P4-11 for split to talk about litter size in NGP presentation. This isn't filtering out lower litter sizes
+```{r}
+thisGroupByDam = TRUE
+facetBySex = FALSE
+useLineType = FALSE
+individualLines = TRUE
+meanLines = TRUE
+zoom_x = FALSE
+zoom_x_min = 0
+zoom_x_max = 21
+zoom_y = FALSE
+zoom_y_min = 0
+zoom_y_max = 15
+indivAlpha = 0.5
+meanAlpha = 1
+errorBarAlpha = 1
+fontSize = 16
+STDColor = "#4D4D4D"
+LBNColor = "#008B8B"
+
+fileBaseName = "mass_LBN_0002"
+imgType = "png"
+thisWidth = 5.93
+thisHeight = 5
+thisUnits = "in"
+
+df <- Mass_off %>%
+  filter(
+    cohort == 2,
+    damStrain == "CBA"
+  )
+df
+
+groupVar <- ifelse(thisGroupByDam, expr(damID), expr(mouseID))
+
+cohort_label <- c(
+  "1" = "P2-9",
+  "2" = "P4-11"
+)
+
+plot <- df %>%
+  plot_mass_lines(
+    groupByDam = thisGroupByDam,
+    facetBySex = facetBySex,
+    useLineType = useLineType, # TRUE/FALSE
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = {{ groupVar }},
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = individualLines, # plot individual lines
+    meanLines = meanLines, # plot mean lines with SE
+    zoom_x = zoom_x, # Zoom to part of x axis
+    xmin = zoom_x_min,
+    xmax = zoom_x_max,
+    zoom_y = zoom_y, # Zoom to part of y axis
+    ymin = zoom_y_min,
+    ymax = zoom_y_max,
+    indivLineAlpha = indivAlpha,
+    indivLineSize = 0.8,
+    errorBarWidth = 0,
+    meanLineSize = 1.4,
+    meanAlpha = meanAlpha,
+    errorBarSize = 1,
+    # errorBarColor = "grey10",
+    errorBarAlpha = errorBarAlpha,
+    textSize = fontSize,
+    axisSize = 0.5,
+    # legendPosition = "bottom",
+    legendPosition = c(0.85, 0.2),
+    STDColor = STDColor,
+    LBNColor = LBNColor
+  ) +
+  facet_wrap(
+    ~ cohort,
+    labeller = labeller(
+      cohort = cohort_label
+    )
+  ) + 
+  theme(
+    legend.key = element_rect(fill = NA)
+  )
+plot
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  # filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 3 -> 4
+figureNum <- figureNum + 1
+```
+
+# Cohort 2 Litter Size
+```{r}
+
+thisCohort <- "2"
+
+fileBaseName = "litterSize_LBN_0002"
+imgType = "png"
+thisWidth = 5.75
+thisHeight = 5
+thisUnits = "in"
+
+df <- Demo_dam %>%
+  filter(
+    !is.na(Litter_size_endPara),
+    cohort == thisCohort
+  )
+
+df
+
+plot <- df %>%
+  ggplot(
+    aes(
+      x = Litter_size_endPara,
+      fill = earlyLifeTrt
+    )
+  )+
+  geom_bar(
+    position = position_dodge2(preserve = "single"),
+    width = 0.9,
+    color = "white"
+  ) +
+  boxTheme()+
+  textTheme(
+    size = 16
+  )+
+  earlyLifeFill(STDColor = "#4D4D4D") +
+  scale_x_continuous(
+    breaks = seq(1, 8, by = 1)
+  ) +
+  scale_y_continuous(
+    breaks = seq(1, 5, by = 1)
+  ) +
+  coord_cartesian(ylim = c(0,5), xlim = c(0, 8.5))+
+  theme(
+      legend.position = c(0.15, 0.8)
+    )+
+  labs(x = "litter size", y = "# of litters")+
+  facetForLitterNum
+  
+plot
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  # filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 4 -> 5
+figureNum <- figureNum + 1
+```
+
+# Cohort 4 and 6 - second litter - litter size
+```{r}
+# thisCohort <- "4"
+
+fileBaseName = "litterSize_LBN_0004or6"
+imgType = "png"
+# thisWidth = 11.5
+thisWidth = 5.75
+thisHeight = 5
+thisUnits = "in"
+
+df <- Demo_dam %>%
+  filter(
+    !is.na(Litter_size_endPara),
+    cohort == "4" | cohort == "6",
+    !is.na(earlyLifeTrt)
+  )
+df %>%
+  select(
+    damID, 
+    earlyLifeTrt,
+    Litter_size_endPara
+  )
+
+plot <- df %>%
+  ggplot(
+    aes(
+      x = Litter_size_endPara,
+      fill = earlyLifeTrt
+    )
+  )+
+  geom_bar(
+    position = position_dodge2(preserve = "single"),
+    width = 0.9,
+    color = "white"
+  ) +
+  boxTheme()+
+  textTheme(
+    size = 16
+  )+
+  earlyLifeFill(STDColor = "#4D4D4D") +
+  scale_x_continuous(
+    breaks = seq(1, 8, by = 1)
+  ) +
+  scale_y_continuous(
+    breaks = seq(1, 5, by = 1)
+  ) +
+  theme(
+      legend.position = c(0.15, 0.8)
+    )+
+  labs(x = "litter size", y = "# of litters")+
+  coord_cartesian(ylim = c(0,5), xlim = c(0, 8.5))+
+  facetForLitterNum
+  
+plot
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  # filePath = file.path(plotOutputFolder, "ephys-2021-12-13"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 5 -> 6
+figureNum <- figureNum + 1
+# figureNum <- 6
+```
+
+# First and Second Litter Sizes >= 5 pups
+```{r}
+fileBaseName = "litterSize_LBN_firstVsecond"
+imgType = "png"
+thisWidth = 11.5
+thisHeight = 5
+thisUnits = "in"
+
+df <- Demo_dam %>%
+  filter(
+    !is.na(Litter_size_endPara),
+    cohort == "2" | cohort == "4" | cohort == "6" | cohort == "7" | cohort == "8",
+    Litter_size_endPara >= 5, # Because in the middle of some
+    !is.na(earlyLifeTrt)
+  )
+
+df %>%
+  filter(
+    is.na(Duration_ZT19)
+  ) %>%
+  select(
+    damID, 
+    earlyLifeTrt,
+    Litter_size_endPara
+  )
+  
+
+plot <- df %>%
+  ggplot(
+    aes(
+      x = Litter_size_endPara,
+      fill = earlyLifeTrt
+    )
+  )+
+  geom_bar(
+    position = position_dodge2(preserve = "single"),
+    width = 0.9,
+    color = "white"
+  ) +
+  boxTheme()+
+  textTheme(
+    size = 16
+  )+
+  earlyLifeFill(STDColor = "#4D4D4D") +
+  scale_x_continuous(
+    breaks = seq(1, 8, by = 1)
+  ) +
+  scale_y_continuous(
+    breaks = seq(1, 6, by = 1)
+  ) +
+  theme(
+      legend.position = c(0.15, 0.8)
+    )+
+  labs(x = "litter size", y = "# of litters") +
+  expand_limits(x = 0)+
+  facetForLitterNum
+  
+plot
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 6 -> 7
+figureNum <- figureNum + 1
+# figureNum <- 7
+```
+
+# Body mass, >= 5 pups/litter, by sex, litter number
+```{r}
+thisGroupByDam = TRUE
+facetBySex = TRUE
+useLineType = FALSE
+individualLines = TRUE
+meanLines = TRUE
+zoom_x = FALSE
+zoom_x_min = 0
+zoom_x_max = 72
+zoom_y = FALSE
+zoom_y_min = 0
+zoom_y_max = 15
+indivAlpha = 0.1
+meanAlpha = 1
+errorBarAlpha = 1
+fontSize = 16
+STDColor = "#4D4D4D"
+LBNColor = "#008B8B"
+
+fileBaseName = "mass_LBN_litterNum"
+imgType = "png"
+thisWidth = 12
+thisHeight = 5.5
+thisUnits = "in"
+
+df <- Mass_off %>%
+  filter(
+    damStrain == "CBA",
+    cohort == 2 | cohort == 4 | cohort == 6 | cohort == 7 | cohort == 8,
+    Litter_size >= 5
+  )
+df
+
+groupVar <- ifelse(thisGroupByDam, expr(damID), expr(mouseID))
+
+plot <- df %>%
+  plot_mass_lines(
+    groupByDam = thisGroupByDam,
+    facetBySex = facetBySex,
+    useLineType = useLineType, # TRUE/FALSE
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = {{ groupVar }},
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = individualLines, # plot individual lines
+    meanLines = meanLines, # plot mean lines with SE
+    zoom_x = zoom_x, # Zoom to part of x axis
+    xmin = zoom_x_min,
+    xmax = zoom_x_max,
+    zoom_y = zoom_y, # Zoom to part of y axis
+    ymin = zoom_y_min,
+    ymax = zoom_y_max,
+    indivLineAlpha = indivAlpha,
+    indivLineSize = 0.8,
+    errorBarWidth = 0,
+    meanLineSize = 1.4,
+    meanAlpha = meanAlpha,
+    errorBarSize = 1,
+    # errorBarColor = "grey10",
+    errorBarAlpha = errorBarAlpha,
+    textSize = fontSize,
+    axisSize = 0.5,
+    legendPosition = c(0.1, 0.85),
+    STDColor = STDColor,
+    LBNColor = LBNColor
+  ) +
+  facet_grid(
+    # rows = vars(litterNum),
+    cols = vars(sex, litterNum),
+    labeller = labeller(
+      litterNum = litterNum_label,
+      sex = c("F" = "female", "M" = "male")
+    )
+  ) +
+  theme(
+    legend.key = element_rect(fill = NA)
+  )
+  # ) + 
+  # theme(
+  #   strip.text = element_blank(), 
+  #   strip.background = element_blank()
+plot 
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 7 -> 8
+figureNum <- figureNum + 1
+# figureNum <- 8
+```
+
+# Dam Behavior
+```{r}
+dam_behavior_filtered <- dam_behavior %>%
+  filter(
+    Litter_size_startPara >= 5
+  )
+
+dam_behavior_cohort4_6 <- dam_behavior_filtered %>%
+  filter(
+    cohort == 4 | cohort == 6
+  )
+```
+
+```{r}
+behaviorOverTime <- dam_behavior_cohort4_6 %>%
+  behavior_overTime(
+    yVar = Num_exits,
+    yLab = "# of exits",
+    fontSize = 16,
+    dotSize = 3
+  )
+plot <- behaviorOverTime +
+  facet_wrap(
+    # ~earlyLifeTrt + litterNum,
+    # ncol = 4
+    ~earlyLifeTrt
+  )+
+  theme(
+    legend.position = "none"
+    , axis.title.x = element_blank()
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "14" = "ZT14\nlights off"
+      , "19" = "ZT19"
+      , "0" = "ZT0\nlights on"
+    )
+  ) + 
+  expand_limits(y = 70)
+
+plot
+
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "DamBehavior_secondLitters"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+imgType = "png"
+thisWidth = 8
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "DamBehavior_secondLitters_small"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+
+
+```{r}
+plot <- dam_behavior_filtered %>%
+  filter(
+    time == 19
+    , litterNum == 1
+  ) %>%
+  behavior_overTime(
+    yVar = Num_exits,
+    yLab = "# of exits",
+    fontSize = 16,
+    dotSize = 3
+  ) +
+  theme(
+    legend.position = "none"
+    , axis.title.x = element_blank()
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "19" = "ZT19\n "
+    )
+  )+
+  facet_wrap(
+    ~ earlyLifeTrt
+  )+ 
+  expand_limits(y = 70)
+plot
+
+imgType = "png"
+thisWidth = 4.5
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "DamBehavior_firstLitters"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+dam_behavior_filtered %>%
+  filter(
+    time == 19
+  ) %>%
+  anova_test(
+    dv = Num_exits,
+    between = c(earlyLifeTrt, litterNum)
+  )
+```
+```{r}
+# 8 -> 9
+figureNum <- figureNum + 1
+# figureNum <- 9
+```
+
+# Dam Corticosterone
+```{r}
+P21_cortDams <- Demo_dam %>%
+  filter(
+    Litter_size >= 5,
+    ParaType == 4,
+    !is.na(Cort_dam_P21)
+  )
+
+plot <- P21_cortDams %>%
+  scatterPlotLBN(
+    Cort_dam_P21,
+    yLab = "corticosterone (ng/mL)",
+    dotSize = 3,
+    textSize = 16
+  )
+
+plot
+
+fileBaseName = "DamCort_P21firstLitters"
+thisWidth = 4
+thisHeight = 5.5
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+
+
+plot <- P21_cortDams %>%
+  scatterPlotLBN(
+    yVar = Cort_dam_P21,
+    yLab = "corticosterone (ng/mL)",
+    textSize = 16,
+    dotSize = 3,
+    zoom_y = TRUE,
+    ymin = 0,
+    ymax = 120
+  ) +
+  facet_wrap(
+    ~litterNum,
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )
+
+plot
+
+fileBaseName = "DamCort_P21_match11Zoom"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+P11_cortDams <- Demo_dam %>%
+  filter(
+    Litter_size >= 5,
+    ParaType == 4,
+    !is.na(Cort_dam_P11)
+  )
+
+plot <- P11_cortDams %>%
+  scatterPlotLBN(
+    yVar = Cort_dam_P11,
+    yLab = "corticosterone (ng/mL)",
+    textSize = 16,
+    dotSize = 3,
+    zoom_y = TRUE,
+    ymin = 0,
+    ymax = 120
+  ) + 
+  facetForLitterNum
+
+plot
+
+imgType = "png"
+thisWidth = 8
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "DamCort_P11"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+P11_cortDams %>%
+  anova_test(
+    dv = Cort_dam_P11,
+    between = c(litterNum, earlyLifeTrt)
+  )
+
+P11_cortDams %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = Cort_dam_P11,
+    yLab = "corticosterone (ng/mL)",
+    xVar = Litter_size,
+    xLab = "# pups in litter",
+    textSize = 16,
+    dotSize = 3
+  )
+```
+
+
+```{r}
+# 9 -> 10
+figureNum <- figureNum + 1
+# figureNum <- 10
+```
+
+# Maturation
+The paradigm was run with dams' first or second litters
+
+```{r}
+filteredDF <- Maturation_off %>%
+  filter(
+    damStrain == "CBA",
+    cohort == 2 | cohort == 4 | cohort == 6 | cohort == 7 | cohort == 8,
+    Litter_size >= 5
+  )
+Maturation_byDam_5plusPups_females <- filteredDF %>%
+  filter(
+    sex == "F"
+  ) %>%
+  getAvgByDam()
+Maturation_byDam_5plusPups_males <- filteredDF %>%
+  filter(
+    sex == "M"
+  ) %>%
+  getAvgByDam()
+
+df_females <- Maturation_byDam_5plusPups_females
+df_males <- Maturation_byDam_5plusPups_males
+```
+
+## Vaginal Opening
+### Age
+```{r}
+VO_age_plot <- df_females %>%
+  scatterPlotLBN(yVar = VO_age, "age at vaginal opening (days)", textSize = 16, dotSize = 3)
+max_VO_age <- df_females$VO_age %>% max(na.rm = TRUE)
+```
+### Mass
+```{r}
+VO_mass_plot <- df_females %>%
+  scatterPlotLBN(yVar = VO_mass, "mass at vaginal opening (g)", textSize = 16, dotSize = 3)
+max_VO_mass <- df_females$VO_mass %>% max(na.rm = TRUE)
+```
+
+## First Estrus
+### Age
+```{r}
+Estrus_age_plot <- df_females %>%
+  scatterPlotLBN(yVar = Estrus_age, "age at first estrus (days)", textSize = 16, dotSize = 3)
+max_estrus_age <- df_females$Estrus_age %>% max(na.rm = TRUE)
+```
+### Mass
+```{r}
+Estrus_mass_plot <- df_females %>%
+  scatterPlotLBN(yVar = Estrus_mass, "mass at first estrus (g)", textSize = 16, dotSize = 3)
+max_estrus_mass <- df_females$Estrus_mass %>% max(na.rm = TRUE)
+```
+## Preputial Separation
+### Age
+```{r}
+PreputialSep_age_plot <- df_males %>%
+  scatterPlotLBN(yVar = PreputialSep_age, "age at preputial sep. (days)", textSize = 16, dotSize = 3)
+max_PPS_age <- df_males$PreputialSep_age %>% max(na.rm = TRUE)
+```
+### Mass
+```{r}
+PreputialSep_mass_plot <- df_males %>%
+  scatterPlotLBN(yVar = PreputialSep_mass, "mass at preputial sep. (g)", textSize = 16, dotSize = 3)
+max_PPS_mass <- df_males$PreputialSep_mass %>% max(na.rm = TRUE)
+```
+
+```{r}
+imgType = "png"
+thisWidth = 4
+thisHeight = 5.5
+thisUnits = "in"
+```
+
+
+## Age Plots
+### VO
+```{r}
+max_age <- max(max_VO_age, max_estrus_age, max_PPS_age, na.rm = TRUE) + 3
+
+fileBaseName = "VO_age_litterNum"
+plot = VO_age_plot + expand_limits(y = max_age) + facetForLitterNum
+plot
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+```{r}
+# 10 -> 11
+figureNum <- figureNum + 1
+# figureNum <- 11
+```
+
+### First Estrus
+```{r}
+fileBaseName = "estrus_age_litterNum"
+plot = Estrus_age_plot + expand_limits(y = max_age) + facetForLitterNum
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 11 -> 12
+figureNum <- figureNum + 1
+# figureNum <- 12
+```
+
+### Preputial Separation
+```{r}
+
+fileBaseName = "pps_age_litterNum"
+plot = PreputialSep_age_plot + expand_limits(y = max_age) + facetForLitterNum
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 12 -> 13
+figureNum <- figureNum + 1
+# figureNum <- 13
+```
+
+## Cumulative Frequency
+```{r}
+temp_cumFreq_geom <- function(
+  zoom_x = FALSE, # Zoom to part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, # Zoom to part of y axis
+  ymin = NULL,
+  ymax = NULL,
+  textSize = 11,
+  lineSize = 2
+) {
+  list(
+    stat_ecdf(
+      size = lineSize
+      , geom = "line"
+      , pad = FALSE
+    ),
+    stat_ecdf(
+      geom = "point"
+      , pad = FALSE
+      ),
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}),
+    textTheme(size = textSize),
+    boxTheme()
+  )
+}
+
+temp_cumFreq_plot <- function(
+  df,
+  phenoVar,
+  phenotypeName,
+  zoom_x = FALSE, # Zoom to part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, # Zoom to part of y axis
+  ymin = NULL,
+  ymax = NULL,
+  textSize = 11,
+  lineSize = 1,
+  STDColor = "grey30",
+  LBNColor = "cyan4"
+) {
+  df %>%
+    filter(!is.na({{ phenoVar }})) %>%
+    ggplot(
+      aes(
+        {{ phenoVar }},
+        color = earlyLifeTrt
+      )
+    ) +
+    expand_limits(y = 0, x = 21) +
+    temp_cumFreq_geom(
+      zoom_x,
+      xmin,
+      xmax,
+      zoom_y,
+      ymin,
+      ymax,
+      textSize,
+      lineSize
+    ) +
+    scale_y_continuous(
+      labels = scales::percent
+    ) +
+    # scale_x_continuous(
+    #   breaks = 
+    # )
+    earlyLifeColor(STDColor = STDColor, LBNColor = LBNColor) +
+    labs(
+      y = paste("cumulative % of", phenotypeName),
+      x = "age (days)"
+    ) + 
+    theme(
+      legend.key = element_rect(fill = NA),
+      legend.position = c(0.8, 0.2)
+    )
+}
+```
+
+### First Litter
+```{r}
+thisLitterNum <- 1
+
+VO_freqPlot <- Maturation_byDam_5plusPups_females %>%
+  filter(
+    litterNum == thisLitterNum
+  ) %>%
+  temp_cumFreq_plot(
+    VO_age,
+    "vaginal opening",
+    zoom_x = TRUE,
+    xmin = 25,
+    xmax = max_age,
+    textSize = 16
+  ) #+ 
+  # facetForLitterNum
+
+VO_freqPlot
+Estrus_freqPlot <- Maturation_byDam_5plusPups_females %>%
+  filter(
+    litterNum == thisLitterNum
+  ) %>%
+  temp_cumFreq_plot(
+    Estrus_age,
+    "first estrus",
+    zoom_x = TRUE,
+    xmin = 25,
+    xmax = max_age,
+    textSize = 16
+  ) #+ 
+  # facetForLitterNum
+
+Estrus_freqPlot
+PreputialSep_freqPlot <- Maturation_byDam_5plusPups_males %>%
+  filter(
+    litterNum == thisLitterNum
+  ) %>%
+  temp_cumFreq_plot(
+    PreputialSep_age,
+    "preputial separation",
+    zoom_x = TRUE,
+    xmin = 25,
+    xmax = max_age,
+    textSize = 16
+  ) #+ 
+  # facetForLitterNum
+
+PreputialSep_freqPlot
+
+flexSave(
+  baseName = "VO_freq_plot",
+  thisFilePrefix = pptBaseName(paste0("_extra_", thisLitterNum)),
+  plot = VO_freqPlot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+flexSave(
+  baseName = "Estrus_freq_plot",
+  thisFilePrefix = pptBaseName(paste0("_extra_", thisLitterNum)),
+  plot = Estrus_freqPlot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+flexSave(
+  baseName = "PPS_freq_plot",
+  thisFilePrefix = pptBaseName(paste0("_extra_", thisLitterNum)),
+  plot = PreputialSep_freqPlot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+### Second Litter
+```{r}
+thisLitterNum <- 2
+
+VO_freqPlot <- Maturation_byDam_5plusPups_females %>%
+  filter(
+    litterNum == thisLitterNum
+  )%>%
+  temp_cumFreq_plot(
+    VO_age,
+    "vaginal opening",
+    zoom_x = TRUE,
+    xmin = 25,
+    xmax = max_age,
+    textSize = 16
+  ) #+ 
+  # facetForLitterNum
+
+VO_freqPlot
+Estrus_freqPlot <- Maturation_byDam_5plusPups_females %>%
+  filter(
+    litterNum == thisLitterNum
+  ) %>%
+  temp_cumFreq_plot(
+    Estrus_age,
+    "first estrus",
+    zoom_x = TRUE,
+    xmin = 25,
+    xmax = max_age,
+    textSize = 16
+  ) #+ 
+  # facetForLitterNum
+
+Estrus_freqPlot
+PreputialSep_freqPlot <- Maturation_byDam_5plusPups_males %>%
+  filter(
+    litterNum == thisLitterNum
+  ) %>%
+  temp_cumFreq_plot(
+    PreputialSep_age,
+    "preputial separation",
+    zoom_x = TRUE,
+    xmin = 25,
+    xmax = max_age,
+    textSize = 16
+  ) #+ 
+  # facetForLitterNum
+
+PreputialSep_freqPlot
+
+flexSave(
+  baseName = "VO_freq_plot",
+  thisFilePrefix = pptBaseName(paste0("_extra_", thisLitterNum)),
+  plot = VO_freqPlot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+flexSave(
+  baseName = "Estrus_freq_plot",
+  thisFilePrefix = pptBaseName(paste0("_extra_", thisLitterNum)),
+  plot = Estrus_freqPlot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+flexSave(
+  baseName = "PPS_freq_plot",
+  thisFilePrefix = pptBaseName(paste0("_extra_", thisLitterNum)),
+  plot = PreputialSep_freqPlot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+### Linear mixed effects model
+```{r}
+library("lmerTest")
+library("lme4")
+```
+
+```{r}
+
+VO_age_mod <- lmer(
+  VO_age ~ earlyLifeTrt + Litter_size + litterNum + (1 | damID),
+  data = filteredDF %>% mutate(Litter_size = as.integer(Litter_size)),
+  subset = !is.na(VO_age)
+)
+summary(VO_age_mod)
+anova(VO_age_mod)
+```
+
+```{r}
+Estrus_age_mod <- lmer(
+  Estrus_age ~ earlyLifeTrt + Litter_size + litterNum + (1 | damID),
+  data = filteredDF %>% mutate(Litter_size = as.integer(Litter_size)),
+  subset = !is.na(Estrus_age)
+)
+summary(Estrus_age_mod)
+```
+
+```{r}
+PreputialSep_age_mod <- lmer(
+  PreputialSep_age ~ earlyLifeTrt + Litter_size + litterNum + (1 | damID),
+  data = filteredDF %>% mutate(Litter_size = as.integer(Litter_size)),
+  subset = !is.na(PreputialSep_age)
+)
+summary(PreputialSep_age_mod)
+```
+
+
+## Mass Plots
+### Vaginal opening
+```{r}
+max_mass <- max(max_VO_mass, max_estrus_mass, max_PPS_mass, na.rm = TRUE) + 3
+
+fileBaseName = "VO_mass_litterNum"
+plot = VO_mass_plot + expand_limits(y = max_mass) + facetForLitterNum
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 13 -> 14
+figureNum <- figureNum + 1
+# figureNum <- 14
+```
+
+### First Estrus
+```{r}
+fileBaseName = "estrus_mass_litterNum"
+plot = Estrus_mass_plot + expand_limits(y = max_mass) + facetForLitterNum
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 14 -> 15
+figureNum <- figureNum + 1
+# figureNum <- 15
+```
+
+### Preputial Separation
+```{r}
+fileBaseName = "pps_mass_litterNum"
+plot = PreputialSep_mass_plot + expand_limits(y = max_mass) + facetForLitterNum
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 15 -> 16
+figureNum <- figureNum + 1
+# figureNum <- 16
+```
+
+```{r}
+df_females %>%
+  anova_test(
+    dv = VO_age,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_females %>%
+  anova_test(
+    dv = Estrus_age,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_males %>%
+  anova_test(
+    dv = PreputialSep_age,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_females %>%
+  anova_test(
+    dv = VO_mass,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_females %>%
+  anova_test(
+    dv = Estrus_mass,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_males %>%
+  anova_test(
+    dv = PreputialSep_mass,
+    between = c(litterNum, earlyLifeTrt)
+  )
+```
+
+# Cycles
+
+## Example
+Cohort 4, mouse 22
+```{r}
+cycles_demo <- Cycles_off %>%
+  filter(
+    mouseID == 422
+  )
+cyclesLong_demo <- makeCyclesLong(cycles_demo) %>% filter(
+  day < 22
+)
+
+plot <- plotCycleTraces(cyclesLong_demo, removeFacets = TRUE, fontSize = 16)
+
+plot
+
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "Demo_cyclesPlot"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 16 -> 17
+figureNum <- figureNum + 1
+# figureNum <- 17
+```
+
+## First litters
+```{r}
+cycles_1stLitter <- Cycles_off %>%
+  filter(
+    litterNum == 1,
+    Litter_size >= 5,
+    cohort == 2 | cohort == 7
+  )
+
+cyclesLong_1stLitter <- makeCyclesLong(cycles_1stLitter)
+cyclesPerc_long_1stLitter <- makeCyclesPercLong(cycles_1stLitter)
+```
+
+### Representative
+```{r}
+STDMice <- cycles_1stLitter %>%
+  filter(
+    earlyLifeTrt == "STD"
+  )
+STDtoUse <- STDMice[sample(nrow(STDMice))[1:6], ] %>% makeCyclesLong()
+
+LBNMice <- cycles_1stLitter %>%
+  filter(
+    earlyLifeTrt == "LBN"
+  )
+LBNtoUse <- LBNMice[sample(nrow(LBNMice))[1:6], ] %>% makeCyclesLong()
+
+cycles_1stLitter_STD_plot <- plotCycleTraces(
+  STDtoUse, 
+  colorValues = c("grey30", "cyan4"),
+  fontSize = 16,
+  removeFacets = TRUE,
+  ncol = 2,
+  nrow = 3
+  ) + theme(
+    # axis.text.x = element_text(size = 16)
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+  )
+cycles_1stLitter_LBN_plot <- plotCycleTraces(
+  LBNtoUse,
+  colorValues = c("grey30", "cyan4"),
+  fontSize = 16,
+  removeFacets = TRUE,
+  ncol = 2,
+  nrow = 3
+  )+ theme(
+    # axis.text.x = element_text(size = 16)
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+  )
+
+cycles_1stLitter_STD_plot
+cycles_1stLitter_LBN_plot
+
+STD_BaseName = "cycles_1stLitter_STD"
+LBN_BaseName = "cycles_1stLitter_LBN"
+
+thisWidth = 4
+thisHeight = 5.5
+
+flexSave(
+  baseName = STD_BaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = cycles_1stLitter_STD_plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+flexSave(
+  baseName = LBN_BaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = cycles_1stLitter_LBN_plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 17 -> 18
+figureNum <- figureNum + 1
+# figureNum <- 18
+```
+
+
+### Percent days in stage
+```{r}
+plot <- plotCyclesPercent(cyclesPerc_long_1stLitter, fontSize = 16, dotSize = 2.5)
+plot
+
+fileBaseName <- "cycles_1stLitter_percDaysStage"
+
+thisWidth = 4.65
+thisHeight = 4.62
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+```{r}
+# 18 -> 19
+figureNum <- figureNum + 1
+# figureNum <- 19
+```
+
+## Second litters
+```{r}
+cycles_2ndLitter <- Cycles_off %>%
+  filter(
+    litterNum == 2,
+    Litter_size >= 5,
+    cohort == 4 | cohort == 6
+  )
+
+cyclesLong_2ndLitter <- makeCyclesLong(cycles_2ndLitter)
+cyclesPerc_long_2ndLitter <- makeCyclesPercLong(cycles_2ndLitter)
+```
+
+### Representative
+```{r}
+STDMice <- cycles_2ndLitter %>%
+  filter(
+    earlyLifeTrt == "STD"
+  )
+STDtoUse <- STDMice[sample(nrow(STDMice))[1:6], ] %>% makeCyclesLong()
+
+LBNMice <- cycles_2ndLitter %>%
+  filter(
+    earlyLifeTrt == "LBN"
+  )
+LBNtoUse <- LBNMice[sample(nrow(LBNMice))[1:6], ] %>% makeCyclesLong()
+
+cycles_2ndLitter_STD_plot <- plotCycleTraces(
+  STDtoUse, 
+  colorValues = c("grey30", "cyan4"),
+  fontSize = 16,
+  removeFacets = TRUE,
+  ncol = 2,
+  nrow = 3
+  ) + theme(
+    # axis.text.x = element_text(size = 16)
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+  )
+cycles_2ndLitter_LBN_plot <- plotCycleTraces(
+  LBNtoUse,
+  colorValues = c("grey30", "cyan4"),
+  fontSize = 16,
+  removeFacets = TRUE,
+  ncol = 2,
+  nrow = 3
+  )+ theme(
+    # axis.text.x = element_text(size = 16)
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+  )
+
+cycles_2ndLitter_STD_plot
+cycles_2ndLitter_LBN_plot
+
+STD_BaseName = "cycles_2ndLitter_STD"
+LBN_BaseName = "cycles_2ndLitter_LBN"
+
+thisWidth = 4
+thisHeight = 5.5
+
+flexSave(
+  baseName = STD_BaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = cycles_2ndLitter_STD_plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+flexSave(
+  baseName = LBN_BaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = cycles_2ndLitter_LBN_plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 19 -> 20
+figureNum <- figureNum + 1
+# figureNum <- 20
+```
+
+
+### Percent days in stage
+```{r}
+plot <- plotCyclesPercent(cyclesPerc_long_2ndLitter, fontSize = 16, dotSize = 2.5)
+plot
+
+fileBaseName <- "cycles_2ndLitter_percDaysStage"
+
+thisWidth = 4.65
+thisHeight = 4.62
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+```{r}
+# 20 -> 21
+figureNum <- figureNum + 1
+# figureNum <- 21
+```
+
+# CBA x B6 cross response to ALPS
+
+```{r}
+# Load Beth's data
+source(file.path(scriptsFolder, "03-load-bw-lh-data.R"))
+```
+
+```{r}
+plot <- BW_data_wide %>%
+  plotLHAmp(surgeMin = surgeMin, textSize = 16, dotSize = 2.2)
+
+plot
+
+fileBaseName = "CBA_B6 Surge Plot"
+imgType = "png"
+thisWidth = 3.33
+thisHeight = 3.77
+thisUnits = "in"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 21 -> 22
+figureNum <- figureNum + 1
+# figureNum <- 22
+```
+
+# ALPS response
+## Second litters
+```{r}
+Cort_off_filtered <- Cort_off %>%
+  filter(
+    litterNum == 2,
+    Litter_size >= 5,
+    !is.na(cort),
+    !exclude
+  )
+```
+
+```{r}
+thisSex = "M"
+Cort_off_bySex <- Cort_off_filtered %>%
+  filter(
+    sex == thisSex
+  )
+
+basePlot <- Cort_off_bySex %>%
+  baseCortPlot(
+    dotSize = 2
+  )
+
+plot <- basePlot %>%
+  longCortPlot(fontSize = 16)
+plot
+
+fileBaseName = "malesCort"
+imgType = "png"
+thisWidth = 12.5
+thisHeight = 5.5
+thisUnits = "in"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+Cort_off_bySex %>%
+  cortAnova()
+```
+```{r}
+# 22 -> 23
+figureNum <- figureNum + 1
+# figureNum <- 23
+```
+
+```{r}
+thisSex = "F"
+Cort_off_bySex <- Cort_off_filtered %>%
+  filter(
+    sex == thisSex,
+    mouseID != 653
+  )
+
+basePlot <- Cort_off_bySex %>%
+  baseCortPlot(
+    dotSize = 2
+  )
+
+plot <- basePlot %>%
+  longCortPlot(
+    fontSize = 16
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 600
+  )
+plot
+
+fileBaseName = "femalesCort"
+imgType = "png"
+thisWidth = 12.5
+thisHeight = 5.5
+thisUnits = "in"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+Cort_off_bySex %>%
+  cortAnova()
+```
+
+### proestrus 
+
+```{r}
+Cort_off_bySex <- Cort_off_filtered %>%
+  filter(
+    sex == thisSex,
+    Sac_cycle == "proestrus" & ReproTract_mass >= 125,
+    mouseID != 653
+  )
+
+basePlot <- Cort_off_bySex %>%
+  baseCortPlot(
+    dotSize = 2
+  )
+
+plot <- basePlot %>%
+  longCortPlot(
+    fontSize = 16
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 600
+    , zoom_x = TRUE
+    , xmin = -1
+    , xmax = 6
+  )
+plot
+
+fileBaseName = "femalesCort_pro"
+imgType = "png"
+thisWidth = 5.94
+thisHeight = 5.21
+thisUnits = "in"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+
+Cort_off_bySex %>%
+  cortAnova()
+
+```
+
+### Diestrus 
+
+```{r}
+Cort_off_bySex <- Cort_off_filtered %>%
+  filter(
+    sex == thisSex,
+    Sac_cycle == "diestrus" & ReproTract_mass <= 100,
+    mouseID != 653
+  )
+
+basePlot <- Cort_off_bySex %>%
+  baseCortPlot(
+    dotSize = 2
+  )
+
+plot <- basePlot %>%
+  longCortPlot(
+    fontSize = 16
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 600
+    , zoom_x = TRUE
+    , xmin = -1
+    , xmax = 6
+  )
+plot
+
+fileBaseName = "femalesCort_di"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+Cort_off_bySex %>%
+  cortAnova()
+
+```
+
+```{r}
+# 23 -> 24
+figureNum <- figureNum + 1
+# figureNum <- 24
+```
+
+# LH
+## Example
+Orient to time with 641 and 407
+```{r}
+LH_example <- LH_off %>%
+  filter(
+    mouseID == 641
+  )
+
+plot <- LH_example %>%
+  LHPlot_noMean(
+    fontSize = 16,
+    dotSize = 3
+  ) + 
+  theme(
+    legend.position = "none"
+  )
+
+plot
+
+fileBaseName = "LH_example641"
+imgType = "png"
+thisWidth = 12
+thisHeight = 4
+thisUnits = "in"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+LH_example <- LH_off %>%
+  filter(
+    mouseID == 641 | mouseID == 407
+  )
+
+plot <- LH_example %>%
+  LHPlot_noMean(
+    fontSize = 16,
+    dotSize = 3
+  ) + 
+  theme(
+    legend.position = "none"
+  )
+
+plot
+
+fileBaseName = "LH_example641_407"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+LH_filtered <- LH_off %>%
+  filter(
+    Litter_size >= 5,
+    litterNum == 2,
+    Sac_cycle == "proestrus" & ReproTract_mass >= 125
+  )
+
+tempLHPlot <- function(
+  df,
+  ymax = 40
+){
+  df %>%
+    LHPlot(
+    fontSize = 16,
+    dotSize = 3,
+    zoom_y = TRUE,
+    ymin = 0,
+    ymax = ymax
+  ) +
+  theme(
+    legend.position = "none"
+  ) +
+  facet_wrap(~comboTrt)
+}
+
+thisWidth = 6.1
+thisHeight = 2.75
+```
+
+```{r}
+
+thisGroupLH <- LH_filtered %>%
+  filter(
+    earlyLifeTrt == "STD",
+    adultTrt == "CON"
+  )
+
+plot <- thisGroupLH %>%
+  tempLHPlot()
+
+plot
+
+fileBaseName = "LH_STD-CON"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+plot <- thisGroupLH %>%
+  tempLHPlot(ymax = 10)
+
+plot
+
+fileBaseName = "LH_STD-CON_zoomed"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+
+thisGroupLH <- LH_filtered %>%
+  filter(
+    earlyLifeTrt == "STD",
+    adultTrt == "ALPS"
+  )
+
+plot <- thisGroupLH %>%
+  tempLHPlot()
+
+plot
+
+fileBaseName = "LH_STD-ALPS"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+plot <- thisGroupLH %>%
+  tempLHPlot(ymax = 10)
+
+plot
+
+fileBaseName = "LH_STD-ALPS_zoomed"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+
+thisGroupLH <- LH_filtered %>%
+  filter(
+    earlyLifeTrt == "LBN",
+    adultTrt == "CON"
+  )
+
+plot <- thisGroupLH %>%
+  tempLHPlot()
+
+plot
+
+fileBaseName = "LH_LBN-CON"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+plot <- thisGroupLH %>%
+  tempLHPlot(ymax = 10)
+
+plot
+
+fileBaseName = "LH_LBN-CON_zoomed"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+
+thisGroupLH <- LH_filtered %>%
+  filter(
+    earlyLifeTrt == "LBN",
+    adultTrt == "ALPS"
+  )
+
+plot <- thisGroupLH %>%
+  tempLHPlot()
+
+plot
+
+fileBaseName = "LH_LBN-ALPS"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+plot <- thisGroupLH %>%
+  tempLHPlot(ymax = 10)
+
+plot
+
+fileBaseName = "LH_LBN-ALPS_zoomed"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+# 24 -> 25
+figureNum <- figureNum + 1
+# figureNum <- 25
+```
+
+```{r}
+plot <- LH_filtered %>%
+  tempLHPlot()
+
+thisHeight = 5.5
+thisWidth = 7
+
+fileBaseName = "LH_small"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+STD-CON = 5/6
+STD-ALPS = 1/6
+LBN-CON = 5/7
+LBN-ALPS = 3/5
+```{r}
+surgedDF <- AcuteStress_off %>%
+  mutate(
+    surged = maxLH > 3
+  ) %>%
+  filter(
+    Sac_cycle == "proestrus",
+    ReproTract_mass >= 125,
+    Litter_size >= 5,
+    litterNum == 2
+  ) 
+
+plot <- surgedDF %>%
+  propSurgedPlotCombo(fontSize = 16)
+
+plot
+
+thisWidth = 6
+fileBaseName = "LH_propSurged"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 25 -> 26
+figureNum <- figureNum + 1
+# figureNum <- 26
+```
+
+```{r}
+plot <- surgedDF %>%
+  plotLHAmp_comboTrt(
+    3,
+    textSize = 16,
+    dotSize = 3
+  )
+
+plot 
+thisWidth = 11.5
+
+fileBaseName = "LH_amplitude"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
