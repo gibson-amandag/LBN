@@ -528,7 +528,7 @@ plotLHAmp_comboTrt <- function(
     textTheme(textSize) +
     ylab("LH (ng/mL)")+
     scale_x_discrete(
-      labels = c("control\nsurge", "control  \nno surge", "stress\nsurge", "stress  \nno surge")
+      labels = c("CON \nsurge", "CON  \nno surge", "ALPS \nsurge", "ALPS  \nno surge")
     )+
     theme(
       legend.position = "none",
@@ -536,7 +536,8 @@ plotLHAmp_comboTrt <- function(
       axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)
     ) +
     facet_wrap(
-      ~earlyLifeTrt
+      ~earlyLifeTrt,
+      scales = "free_y"
     )
   return(plot)
 }

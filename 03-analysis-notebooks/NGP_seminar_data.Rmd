@@ -2436,4 +2436,46 @@ flexSave(
   shinySettings = FALSE
 )
 ```
+```{r}
+# 26 -> 27
+figureNum <- figureNum + 1
+# figureNum <- 27
+```
+
+```{r}
+GABAPSCs <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs")
+
+GABAPSCs <- GABAPSCs %>%
+  makeFactors(mouseID)
+
+plot <- GABAPSCs %>% left_join(
+  AcuteStress_off,
+  by = "mouseID"
+) %>%
+  scatterPlotComboTrt(
+    yVar = freq,
+    yLab = "GABA PSC frequency (Hz)",
+    dotSize = 3,
+    fontSize = 16,
+    addMeanSE = FALSE
+  )
+
+thisWidth = 3.5
+thisHeight = 4.5
+
+fileBaseName = "GABA_PSCs"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, "NGP"),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
 

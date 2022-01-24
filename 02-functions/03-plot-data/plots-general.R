@@ -194,7 +194,8 @@ scatterPlotComboTrt <- function(
   yVar,
   yLab,
   dotSize = 1.2,
-  fontSize = 11
+  fontSize = 11,
+  addMeanSE = TRUE
 ){
   viz <- df %>%
     filter(
@@ -209,8 +210,6 @@ scatterPlotComboTrt <- function(
       )
     ) +
     jitterGeom(size = dotSize) +
-    addMeanHorizontalBar() +
-    addMeanSE_vertBar()+
     labs(y = yLab)+
     comboTrtFillShape() +
     theme_pubr()+
@@ -221,6 +220,12 @@ scatterPlotComboTrt <- function(
     )+
     textTheme(size = fontSize)+
     boxTheme()
+  
+  if(addMeanSE){
+    viz <- viz +
+      addMeanHorizontalBar() +
+      addMeanSE_vertBar()
+  }
   
   return(viz)
 }
