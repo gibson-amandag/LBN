@@ -2419,6 +2419,7 @@ plot <- surgedDF %>%
   )
 
 plot 
+thisHeight = 5.5
 thisWidth = 11.5
 
 fileBaseName = "LH_amplitude"
@@ -2454,14 +2455,18 @@ plot <- GABAPSCs %>% left_join(
 ) %>%
   scatterPlotComboTrt(
     yVar = freq,
-    yLab = "GABA PSC frequency (Hz)",
+    yLab = "PSC frequency (Hz)",
     dotSize = 3,
     fontSize = 16,
     addMeanSE = FALSE
+  ) +
+  scale_x_discrete(
+    labels = c("STD-CON" = "STD\nCON", "STD-ALPS" = "STD\nALPS", "LBN-ALPS" = "LBN\nALPS")
   )
 
+plot
 thisWidth = 3.5
-thisHeight = 4.5
+thisHeight = 4.02
 
 fileBaseName = "GABA_PSCs"
 
