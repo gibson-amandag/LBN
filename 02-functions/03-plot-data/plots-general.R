@@ -233,3 +233,21 @@ scatterPlotComboTrt <- function(
   
   return(viz)
 }
+
+getNiceName <- function(
+  varName # as expression or as string, both work
+  , labelDF = niceNames #data frame with labels
+){
+  label <- as.character(varName) # default to name of variable
+  if(label %in% colnames(labelDF))
+  {
+    df <- labelDF %>%
+      select(
+        {{ varName }}
+      )
+    label <- df[[1]]
+  }
+  return(label)
+}
+
+

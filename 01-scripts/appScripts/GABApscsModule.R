@@ -183,74 +183,33 @@ GABApscsUI <- function(
       ## Single Variable -----------------------------------------------------------
       tabPanel(
         "Single Variable",
-        zoomAxisUI(ns("singleVarZoomY"), "y"),
-        fluidRow(
-          div(
-            class = "col-xs-4",
-            varSelectInput(
-              ns("singleVar"),
-              "Select variable to summarize",
-              GABApscs %>%
-                select(
-                  frequency:holdingCurrent
-                )
+        catPlotComboTrtUI(
+          ns("singleVarGABA"),
+          GABApscs %>%
+            select(
+              frequency:holdingCurrent
             )
-          )
-        ),
-        uiOutput(ns("GABApscsANOVA")),
-        plotUI(
-          ns("GABApscsScatterPlot")
-        ),
-        # verbatimTextOutput(
-        #   ns("GABApscsScatterPlot_info")
-        # ),
-        p("Click on a point to get info"),
-        tableOutput(
-          ns("GABApscsScatterPlot_info")
-        ),
-        shiny::dataTableOutput(ns("countTable")),
-        p("Click on a row in the table to exclude from plot"),
-        DTOutput(ns("GABApscsScatterTable"))
+        )
       ),
       
       ## Two-variable scatter --------------------------------------------------
       tabPanel(
         "Two Variable",
-        zoomAxisUI(ns("twoVarZoomX"), "x"),
-        zoomAxisUI(ns("twoVarZoomY"), "y"),
-        fluidRow(
-          div(
-            class = "col-xs-4",
-            varSelectInput(
-              ns("xVar"),
-              "Select x-variable",
-              GABApscs %>%
-                select(
-                  recHr,
-                  timeSinceSac,
-                  frequency:holdingCurrent,
-                  ReproTract_mass,
-                  AgeInDays
-                )
+        scatterPlotComboTrtUI(
+          ns("twoVarGABA"),
+          GABApscs %>%
+            select(
+              recHr,
+              timeSinceSac,
+              frequency:holdingCurrent,
+              ReproTract_mass,
+              AgeInDays
             ),
-            varSelectInput(
-              ns("yVar"),
-              "Select y-variable",
-              GABApscs %>%
-                select(
-                  frequency:holdingCurrent
-                )
+          GABApscs %>%
+            select(
+              frequency:holdingCurrent
             )
-          )
-        ),
-        plotUI(
-          ns("GABApscsScatterPlot2")
-        ),
-        verbatimTextOutput(
-          ns("GABApscsScatterPlot2_info")
-        ),
-        p("Click on a row in the table to exclude from plot"),
-        DTOutput(ns("GABApscsScatterTable2"))
+        )
       ),
       
       ## Mean Tables -----------------------------------------------------------
@@ -363,289 +322,85 @@ GABApscsServer <- function(
         return(df)
       })
       
+      # GABAcaseFunc <- function(colName){
+      #   case_when(
+      #     colName == "frequency" ~ "frequency (Hz)",
+      #     colName == "relPeak" ~ "relative amplitude (pA)",
+      #     colName == "interval" ~ "interval (s)",
+      #     colName == "derivative" ~ "derivative (pA/ms)",
+      #     colName == "riseTime" ~ "rise time (ms)",
+      #     colName == "fwhm" ~ "full width at half max. (ms)",
+      #     colName == "Rinput" ~ "input resistance (MOhm)",
+      #     colName == "Rseries" ~ "series resistance (MOhm)",
+      #     colName == "capacitance" ~ "capacitance (pF)",
+      #     colName == "holdingCurrent" ~ "holding current (pA)",
+      #     colName == "AgeInDays" ~ "age (days)",
+      #     colName == "ReproTract_mass" ~ "uterine mass (mg)",
+      #     colName == "recHr" ~ "hr since lights on",
+      #     colName == "timeSinceSac" ~ "hr since sacrifice",
+      #     TRUE ~ as.character(colName)
+      #   )
+      # }
       
       ## Single Var -----------------------------------------------------------------------
-      singleVarZoomY <- zoomAxisServer("singleVarZoomY", "y", minVal = 0, maxVal = 500)
       
-      GABApscsScatterPlot <- reactive({
-        yVar <- as.character(input$singleVar)
-        yText <- case_when(
-          yVar == "frequency" ~ "frequency (Hz)",
-          yVar == "relPeak" ~ "relative amplitude (pA)",
-          yVar == "interval" ~ "interval (s)",
-          yVar == "derivative" ~ "derivative (pA/ms)",
-          yVar == "riseTime" ~ "rise time (ms)",
-          yVar == "fwhm" ~ "full width at half max. (ms)",
-          yVar == "Rinput" ~ "input resistance (MOhm)",
-          yVar == "Rseries" ~ "series resistance (MOhm)",
-          yVar == "capacitance" ~ "capacitance (pF)",
-          yVar == "holdingCurrent" ~ "holding current (pA)",
-          yVar == "AgeInDays" ~ "age (days)",
-          TRUE ~ as.character(yVar)
-        )
-        GABApscs_filtered_react() %>%
-          filter(
-            ! is.na(!! input$singleVar)
-          ) %>%
-          filter(
-            ! (row_number() %in% input$GABApscsScatterTable_rows_selected),
-            ! (is.na(adultTrt)) # added 2022-03-14
-          ) %>%
-          scatterPlotComboTrt(
-            yVar = !! input$singleVar,
-            yLab = yText,
-            dotSize = input$dotSize,
-            fontSize = 16,
-            zoom_y = singleVarZoomY$zoom(),
-            ymin = singleVarZoomY$min(),
-            ymax = singleVarZoomY$max()
-          # ) + 
-          # theme(
-          #   legend.position = "top"
-          )
-      })
-      
-      GABApscsScatterPlot_info <- plotServer("GABApscsScatterPlot", GABApscsScatterPlot, "GABApscsPlot", compType)
-      
-      output$GABApscsScatterPlot_info <- renderTable({
-        if(is.null(GABApscsScatterPlot_info$click())){
-          # "Click on a point to display values - click in the center of the horizontal spread"
-        }else({
-          x <- GABApscsScatterPlot_info$click()$x
-          xRound <- round(x)
-          y <- GABApscsScatterPlot_info$click()$y
-          catLevel <- GABApscsScatterPlot_info$click()$domain$discrete_limits$x[[xRound]]
-          
-          GABApscs_filtered <- reactive({GABApscs_filtered_react() %>%
-            filter(
-              ! is.na(!! input$singleVar)
-            ) %>%
-            filter(
-              ! (row_number() %in% input$GABApscsScatterTable_rows_selected)
-            )
-          })
-          
-          if(singleVarZoomY$zoom()){
-            yRange = singleVarZoomY$max() - singleVarZoomY$min()
-          } else {
-            yMin <- min(GABApscs_filtered() %>% select(!! input$singleVar), na.rm = TRUE)
-            yMax <- max(GABApscs_filtered() %>% select(!! input$singleVar), na.rm = TRUE)
-            yRange <- yMax - yMin
-          }
-          
-          yError <- yRange * 0.03
-          
-          GABApscs_filtered() %>%
-            filter(
-              comboTrt == catLevel,
-              !! input$singleVar <= y + yError & !! input$singleVar >= y - yError
-            ) %>%
-            select(
-              cellID,
-              mouseID,
-              earlyLifeTrt,
-              adultTrt,
-              comboTrt,
-              !! input$singleVar,
-              ReproTract_mass,
-              Rseries,
-              Rinput,
-              capacitance,
-              holdingCurrent
-            )
-        })
-      })
-      
-      output$GABApscsScatterTable <- renderDT({
-        GABApscs_filtered_react() %>%
-          filter(
-            ! is.na(!! input$singleVar)
-          ) %>%
-          select(
-            cellID,
-            mouseID,
-            earlyLifeTrt,
-            adultTrt,
-            comboTrt,
-            !! input$singleVar,
-            ReproTract_mass,
-            Rseries,
-            Rinput,
-            capacitance,
-            holdingCurrent
-          )
-      })
-      
-      output$GABApscsANOVA <- renderUI({
-        GABApscs_filtered_react() %>%
-          filter(
-            ! is.na(!! input$singleVar)
-          ) %>%
-          filter(
-            ! (row_number() %in% input$GABApscsScatterTable_rows_selected)
-          ) %>%
-          anova_test(
-            dv = !! input$singleVar,
-            between = c(earlyLifeTrt, adultTrt),
-            type = 3
-          ) %>%
-          formatAnova() %>%
-          htmltools_value()
-      })
-      
-      output$countTable <- shiny::renderDataTable({
-        countTbl <-  GABApscs_filtered_react() %>%
-          # filter(
-          #   !is.na(!! input$singleVar)
-          # ) %>%
-          filter(
-            ! (row_number() %in% input$GABApscsScatterTable_rows_selected)
-          ) %>%
-          countMiceAndLitters(
-            !! input$singleVar,
-            c(expr(earlyLifeTrt), expr(adultTrt))
-          )
-        
-        meanTbl <- GABApscs_filtered_react() %>%
-          filter(
-            !is.na(!! input$singleVar)
-          ) %>%
-          filter(
-            ! (row_number() %in% input$GABApscsScatterTable_rows_selected)
-          ) %>%
-          group_by(earlyLifeTrt, adultTrt) %>%
-          meanSummary(!! input$singleVar)
-        
-        countTbl %>%
-          left_join(
-            meanTbl %>% select(-n),
-            by = c("earlyLifeTrt", "adultTrt")
-          )
-          
-      })
-      
-      ## Two variable ----------------------------------------------------------
-      twoVarZoomX <- zoomAxisServer("twoVarZoomX", "x", minVal = 0, maxVal = 500)
-      twoVarZoomY <- zoomAxisServer("twoVarZoomY", "y", minVal = 0, maxVal = 500)
-      
-      GABApscsScatterPlot2 <- reactive({
-        yVar <- as.character(input$yVar)
-        yText <- case_when(
-          yVar == "frequency" ~ "frequency (Hz)",
-          yVar == "relPeak" ~ "relative amplitude (pA)",
-          yVar == "interval" ~ "interval (s)",
-          yVar == "derivative" ~ "derivative (pA/ms)",
-          yVar == "riseTime" ~ "rise time (ms)",
-          yVar == "fwhm" ~ "full width at half max. (ms)",
-          yVar == "Rinput" ~ "input resistance (MOhm)",
-          yVar == "Rseries" ~ "series resistance (MOhm)",
-          yVar == "capacitance" ~ "capacitance (pF)",
-          yVar == "holdingCurrent" ~ "holding current (pA)",
-          TRUE ~ as.character(yVar)
-        )
-        xVar <- as.character(input$xVar)
-        xText <- case_when(
-          xVar == "frequency" ~ "frequency (Hz)",
-          xVar == "relPeak" ~ "relative amplitude (pA)",
-          xVar == "interval" ~ "interval (s)",
-          xVar == "derivative" ~ "derivative (pA/ms)",
-          xVar == "riseTime" ~ "rise time (ms)",
-          xVar == "fwhm" ~ "full width at half max. (ms)",
-          xVar == "Rinput" ~ "input resistance (MOhm)",
-          xVar == "Rseries" ~ "series resistance (MOhm)",
-          xVar == "capacitance" ~ "capacitance (pF)",
-          xVar == "holdingCurrent" ~ "holding current (pA)",
-          xVar == "ReproTract_mass" ~ "uterine mass (mg)",
-          xVar == "recHr" ~ "hr since lights on",
-          xVar == "timeSinceSac" ~ "hr since sacrifice",
-          TRUE ~ as.character(yVar)
-        )
-        GABApscs_filtered_react() %>%
-          filter(
-            ! is.na(!! input$xVar),
-            ! is.na(!! input$yVar)
-          ) %>%
-          filter(
-            ! (row_number() %in% input$GABApscsScatterTable2_rows_selected),
-            ! (is.na(adultTrt)) # added 2022-03-14
-          ) %>%
-          scatterPlotTwoVars_byComboTrt(
-            yVar = !! input$yVar,
-            yLab = yText,
-            xVar = !! input$xVar,
-            xLab = xText,
-            dotSize = input$dotSize,
-            fontSize = 16,
-            # zoom_x = TRUE,
-            # xmin = 13,
-            # xmax = 17,
-            zoom_x = twoVarZoomX$zoom(),
-            xmin = twoVarZoomX$min(),
-            xmax = twoVarZoomX$max(),
-            zoom_y = twoVarZoomY$zoom(),
-            ymin = twoVarZoomY$min(),
-            ymax = twoVarZoomY$max()
-            # ) + 
-            # theme(
-            #   legend.position = "top"
-          )
-      })
-      
-      GABApscsScatterPlot2_info <- plotServer("GABApscsScatterPlot2", GABApscsScatterPlot2, "GABApscsScatterPlot", compType)
-      
-      output$GABApscsScatterPlot2_info <- renderPrint({
-        if(is.null(GABApscsScatterPlot2_info$click())){
-          "Click on a point to display values"
-        }else(
-          nearPoints(
-            GABApscs_filtered_react() %>%
-              filter(
-                ! is.na(!! input$xVar),
-                ! is.na(!! input$yVar)
-              ) %>%
-              filter(
-                ! (row_number() %in% input$GABApscsScatterTable2_rows_selected)
-              ) %>%
-              select(
+      observeEvent(
+        c(GABApscs_filtered_react(),
+          input$dotSize),
+        {
+          catPlotComboTrtServer(
+            "singleVarGABA",
+            GABApscs_filtered_react(),
+            getNiceName,
+            c(
+              !!! exprs(
                 cellID,
                 mouseID,
                 earlyLifeTrt,
                 adultTrt,
                 comboTrt,
-                !! input$xVar,
-                !! input$yVar,
                 ReproTract_mass,
                 Rseries,
                 Rinput,
                 capacitance,
                 holdingCurrent
-              ),
-            GABApscsScatterPlot2_info$click()
+              )
+            ),
+            dotSize = input$dotSize,
+            compType = compType
           )
-        )
-      })
+        }
+      )
       
-      output$GABApscsScatterTable2 <- renderDT({
-        GABApscs_filtered_react() %>%
-          filter(
-            ! is.na(!! input$xVar),
-            ! is.na(!! input$yVar)
-          ) %>%
-          select(
-            cellID,
-            mouseID,
-            earlyLifeTrt,
-            adultTrt,
-            comboTrt,
-            !! input$xVar,
-            !! input$yVar,
-            ReproTract_mass,
-            Rseries,
-            Rinput,
-            capacitance,
-            holdingCurrent
+      ## Two variable ----------------------------------------------------------
+      observeEvent(
+        c(GABApscs_filtered_react(),
+          input$dotSize),
+        {
+          scatterPlotComboTrtServer(
+            "twoVarGABA",
+            GABApscs_filtered_react(),
+            getNiceName,
+            # GABAcaseFunc,
+            c(
+              !!! exprs(
+                cellID,
+                mouseID,
+                earlyLifeTrt,
+                adultTrt,
+                comboTrt,
+                ReproTract_mass,
+                Rseries,
+                Rinput,
+                capacitance,
+                holdingCurrent
+              )
+            ),
+            dotSize = input$dotSize,
+            compType = compType
           )
-      })
+        }
+      )
       
       ## Mean Summary Tables ----------------------------------------------------------
       AcuteStress_males_summary <- reactive({
