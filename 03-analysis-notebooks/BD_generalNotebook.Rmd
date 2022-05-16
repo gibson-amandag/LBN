@@ -1,0 +1,489 @@
+---
+title: "Bo Dong Test Data"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+BD_filePath <- normalizePath("C:\\Users\\percs\\OneDrive - Umich\\Moenter lab\\Bo Dong\\BD_cort-admin_AGG.xlsx")
+BD_fileInfo <- loadExcelSheet_fromFile(BD_filePath, "fileInfo")
+BD_cycleDir <- BD_fileInfo$cycleImgFolder[1]
+
+BD_damInfo <- loadExcelSheet_fromFile(BD_filePath, "DamInfo") %>%
+  makeFactors("damID")
+
+BD_offspringInfo <- loadExcelSheet_fromFile(BD_filePath, "OffspringInfo") %>% makeFactors(c("mouseID", "damID"))
+
+BD_offspringInfo <- BD_offspringInfo %>%
+  left_join(
+    BD_damInfo,
+    by = "damID"
+  ) %>%
+  mutate(
+    cyclingFolderPath = BD_cycleDir,
+    earlyLifeTrt = NA,
+    maxLH = NA
+  )
+
+BD_cycles <- loadExcelSheet_fromFile(BD_filePath, "Cycles_off") %>%
+  makeFactors(
+    "mouseID"
+  )%>%
+  mutate(
+    num_ID = cycleID
+  )
+BD_sacrifice <- loadExcelSheet_fromFile(BD_filePath, "Sacrifice_off") %>%
+  makeFactors("mouseID")
+
+BD_allInfo <- BD_offspringInfo %>%
+  left_join(
+    BD_cycles,
+    by = "mouseID"
+  ) %>%
+  left_join(
+    BD_sacrifice,
+    by = "mouseID"
+  )
+
+BD_cycles <- BD_cycles %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+
+
+BD_sacrifice <- BD_sacrifice %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+
+BD_damInfo
+BD_offspringInfo
+BD_cycles
+BD_sacrifice
+BD_allInfo
+```
+
+```{r}
+remainingDF_today <- BD_allInfo %>%
+  filter(
+    sex == "F",
+    is.na(Sac_date),
+    is.na(sacDateOff)
+  ) %>%
+  mutate(
+    Sac_date = dateToday
+  ) %>%
+  calcAgeInDays() #%>%
+  # combineStress()
+
+remainingDF_today <- remainingDF_today %>%
+  addRegExForSamplingDF(
+    numIDVar = cycleID
+  ) %>%
+  addSamplingImgFilePaths(
+    uterinePicFolder = BD_cycleDir
+  )
+
+samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
+samplingPPT <- ph_with(
+  samplingPPT,
+  value = paste("Mice remaining on", dateToday),
+  location = ph_location_label("Title 1")
+)
+remainingDF_today
+addSamplingSlidesFromDF(
+  remainingDF_today, 
+  samplingPPT = samplingPPT, 
+  cyclingDF = BD_cycles %>%
+    filter(
+      mouseID %in% remainingDF_today$mouseID
+    ),
+  trtVar = adultTrt
+)
+samplingPPT
+
+print(samplingPPT, target = file.path(reportOutputFolder, "remainingPPTs", "BD", paste0("remaining_", dateToday, ".pptx")))
+```
+```{r}
+BD_cyclePPT <- read_pptx("./estrousCycleTemplate.pptx")
+BD_cyclePPT <- add_slide(BD_cyclePPT)
+BD_cyclePPT <- ph_with(
+  BD_cyclePPT, 
+  "BD Female Cycle Pictures", 
+  location = ph_location_label("Title 1"))
+```
+
+```{r}
+for(mouse in BD_cycles$mouseID){
+  BD_cyclePPT <- addMouseImgsToCyclePPT(
+    BD_cycleDir,
+    mouse,
+    BD_cyclePPT,
+    numPerSlide = 9
+  )
+}
+```
+
+```{r}
+print(BD_cyclePPT, file.path(reportOutputFolder, "cyclePPTS", "BD", paste0("BD_cortAdmin_cycles.pptx")))
+```
+
+```{r}
+BD_cortOff_file <- loadExcelSheet_fromFile(BD_filePath, "Cort_off")
+BD_cortOff <- makeFactors(BD_cortOff_file, "mouseID")
+BD_cortOff<- BD_cortOff %>% 
+  left_join(
+    BD_sacrifice,
+    by = "mouseID"
+  )
+
+BD_cortOff <- BD_cortOff %>% makeFactors(c("adultTrt", "dosage"))
+BD_cortOff <- BD_cortOff %>%
+  mutate(ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella" ))
+BD_cortOff
+```
+
+
+```{r}
+nutellaCortPlot <- BD_cortOff %>%
+  cortPlot(
+    pointSize = 2,
+    fontSize = 20,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = dosage, # group by the dosage; this is why it needs to be a factor
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2 #this controls the spread of the data visually
+  ) +
+  facet_wrap(
+    ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  ) +
+  labs(
+    x = "time since administration (h)" # add a title to the x axis
+  )
+
+nutellaCortPlot
+```
+
+
+
+```{r}
+nutellaCortPlot <- BD_cortOff %>%
+  mutate(
+    ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella") 
+  ) %>%
+  cortPlot(
+    pointSize = 2,
+    fontSize = 20,
+    plotMean = FALSE,
+    plotSE = FALSE,
+    groupVar = dosage,
+    xBreaks = c(0, 0.5, 1, 3, 5),
+    xLabels = waiver(),
+    lineTypeGuide = "",
+    positionDodge = 0.2
+  ) +
+  facet_wrap(
+    ~ateAllNutella
+  ) + 
+  labs(x = "time since administration (h)")
+nutellaCortPlot
+
+flexSave(
+  "NutellaCortPlot",
+  thisFilePrefix = NULL,
+  fileType = "png",
+  width = 11
+)
+```
+
+```{r}
+pointSize = 1.2
+  fontSize = 11
+  zoom_x = FALSE #Zoom to a part of x axis
+  xmin = NULL
+  xmax = NULL
+  zoom_y = FALSE #Zoom to a part of y axis
+  ymin = NULL
+  ymax = NULL
+  
+ggplot(
+  BD_cortOff %>% filter(is.na(ateNutella)),
+  # BD_cortOff %>% mutate(ateNutella = ifelse(is.na(ateNutella), "Y", ateNutella)),
+  aes(
+    x = time,
+    y = cort,
+    group = dosage
+  )
+) +
+  geom_line(
+    alpha = 0.4,
+    # color = "black",
+    aes(group = mouseID, linetype = adultTrt, color = adultTrt),
+    position = position_dodge(0.1)
+  ) +
+  geom_point(
+    # shape = 21, 
+    alpha = 1, 
+    aes(fill=adultTrt,group=mouseID, shape=adultTrt, size = adultTrt, color = adultTrt), 
+    position = position_dodge(0.1), 
+    size = pointSize
+  ) +
+  # addMeanHorizontalBar(
+  #   width = 1.4, 
+  #   addLineType = FALSE,
+  #   # lineTypeName = "treatment",
+  #   # lineTypeGuide = c("dotted", "dotted", "solid", "solid"),
+  #   # typeVar=adultTrt,
+  #   # color=adultTrt
+  #   )+
+  # addMeanSE_vertBar(color=ateNutella)+
+  # comboTrtFillShape()+
+  theme_pubr() +
+  expand_limits(y = 0) +
+  coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
+  rremove("xlab") +
+  labs(
+    y = "corticosterone (ng/mL)"
+  ) +
+  # scale_x_continuous(
+  #   breaks = c(0, 5),
+  #   labels = c("pre", "post")
+  # ) +
+  textTheme(size = fontSize)+
+  boxTheme()+
+  guides()#linetype = "none")
+```
+
+```{r}
+ggplot(
+  BD_cortOff %>% filter(!is.na(ateNutella)),
+  # BD_cortOff %>% mutate(ateNutella = ifelse(is.na(ateNutella), "Y", ateNutella)),
+  aes(
+    x = time,
+    y = cort,
+    group = adultTrt
+  )
+) +
+  geom_line(
+    alpha = 0.4,
+    # color = "black",
+    aes(group = mouseID, linetype = adultTrt, color = adultTrt),
+    position = position_dodge(0.1)
+  ) +
+  geom_point(
+    # shape = 21, 
+    alpha = 1, 
+    aes(fill=adultTrt,group=mouseID, shape=adultTrt, size = adultTrt, color = adultTrt), 
+    position = position_dodge(0.1), 
+    size = pointSize
+  ) +
+  # addMeanHorizontalBar(
+  #   width = 1.4, 
+  #   addLineType = FALSE,
+  #   # lineTypeName = "treatment",
+  #   # lineTypeGuide = c("dotted", "dotted", "solid", "solid"),
+  #   # typeVar=adultTrt,
+  #   # color=adultTrt
+  #   )+
+  # addMeanSE_vertBar(color=ateNutella)+
+  # comboTrtFillShape()+
+  theme_pubr() +
+  expand_limits(y = 0) +
+  coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
+  rremove("xlab") +
+  labs(
+    y = "corticosterone (ng/mL)"
+  ) +
+  # scale_x_continuous(
+  #   breaks = c(0, 5),
+  #   labels = c("pre", "post")
+  # ) +
+  textTheme(size = fontSize)+
+  boxTheme()+
+  guides()#linetype = "none")
+```
+
+
+```{r}
+BD_cortOff %>%
+  # filter(
+  #   time == 0.5
+  # ) %>% 
+  select(
+    mouseID, time, cort, adultTrt, ateNutella
+  ) %>%
+  arrange(
+    time, adultTrt, mouseID
+  )
+```
+
+```{r}
+BD_sacrifice <- loadExcelSheet_fromFile(BD_filePath, "Sacrifice_off") %>%
+  makeFactors("mouseID")
+BD_sacrifice <- BD_sacrifice %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+BD_cortOff_file <- loadExcelSheet_fromFile(BD_filePath, "Cort_off")
+BD_cortOff <- makeFactors(BD_cortOff_file, "mouseID")
+BD_cortOff<- BD_cortOff %>% 
+  left_join(
+    BD_sacrifice,
+    by = "mouseID"
+  )
+
+BD_cortOff <- BD_cortOff %>% makeFactors(c("adultTrt", "dosage"))
+BD_cortOff <- BD_cortOff %>%
+  mutate(
+    ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella" ),
+    repeatAdmin = "single"
+    )
+BD_cortOff %>%
+  select(
+    mouseID, time, dosage, cort, ateAllNutella
+  ) %>%
+  arrange(
+    dosage, mouseID, time
+  ) %>%
+  myDisplay()
+```
+
+```{r}
+BD_sacrifice2 <- loadExcelSheet_fromFile(BD_filePath, "Sacrifice_off2") %>%
+  makeFactors("mouseID")
+BD_sacrifice2 <- BD_sacrifice2 %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+BD_cortOff_file2 <- loadExcelSheet_fromFile(BD_filePath, "Cort_off2")
+BD_cortOff2 <- makeFactors(BD_cortOff_file2, "mouseID")
+BD_cortOff2<- BD_cortOff2 %>% 
+  left_join(
+    BD_sacrifice2,
+    by = "mouseID"
+  )
+
+BD_cortOff2 <- BD_cortOff2 %>% makeFactors(c("adultTrt", "dosage"))
+BD_cortOff2 <- BD_cortOff2 %>%
+  mutate(ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella" ),
+         repeatAdmin = "multiple"
+         )
+BD_cortOff2 %>%
+  select(
+    mouseID, time, dosage, cort, ateAllNutella
+  ) %>%
+  arrange(
+    dosage, mouseID, time
+  ) %>%
+  myDisplay()
+```
+
+```{r}
+BD_sacrifice3 <- loadExcelSheet_fromFile(BD_filePath, "Sacrifice_off3") %>%
+  makeFactors("mouseID")
+BD_sacrifice3 <- BD_sacrifice %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+
+BD_cortOff_file3 <- loadExcelSheet_fromFile(BD_filePath, "Cort_off3")
+BD_cortOff3 <- makeFactors(BD_cortOff_file3, "mouseID")
+BD_cortOff3<- BD_cortOff3 %>% 
+  left_join(
+    BD_sacrifice3,
+    by = "mouseID"
+  )
+
+BD_cortOff3 <- BD_cortOff3 %>% makeFactors(c("adultTrt", "dosage"))
+BD_cortOff3 <- BD_cortOff3 %>%
+  mutate(ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella" ),
+         repeatAdmin = "single")
+BD_cortOff3 %>%
+  select(
+    mouseID, time, dosage, cort, ateAllNutella
+  ) %>%
+  arrange(
+    dosage, mouseID, time
+  ) %>%
+  myDisplay()
+```
+
+```{r}
+BD_cortOff3 <- BD_cortOff3 %>%
+  mutate(
+    mouseID = paste0(mouseID, "_p3")
+  )
+```
+```{r}
+BD_controls <- BD_cortOff %>%
+  bind_rows(
+    BD_cortOff2
+  ) %>%
+  bind_rows(
+    BD_cortOff3
+  ) %>%
+  filter(
+    dosage == 0
+  )
+```
+
+```{r}
+
+controlsCortPlot <- BD_controls %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 20,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = repeatAdmin,
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = FALSE,
+    ymax = 1000,
+    ymin = 0
+  # ) +
+  # facet_wrap(
+  #   ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  ) +
+  labs(
+    x = "time since administration (h)" # add a title to the x axis
+  ) 
+
+controlsCortPlot
+```
+
+```{r}
+flexSave(
+  "controls",
+  thisFilePrefix = BD_filePrefix,
+  plot = controlsCortPlot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  width = BD_width,
+  height = BD_height,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+

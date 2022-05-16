@@ -13,10 +13,20 @@ source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
 ```
 
+```{r}
+View(AcuteStress_off %>%
+  filter(
+    cohort == 7
+  ) %>%
+  arrange(
+    comboTrt
+  ) %>% select(mouseID, comboTrt, Sac_date))
+```
 
 ```{r}
 samplingDF_today <- AcuteStress_off %>%
   filter(
+    # Sac_date == as_date("2022-01-12")
     Sac_date == dateToday
     # cohort == 5
   )
@@ -40,7 +50,7 @@ addSamplingSlidesFromDF(
       mouseID %in% samplingDF_today$mouseID
     )
 )
-print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", 
+print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_",
                                                                                  dateToday,
                                                                                  ".pptx")))
 ```
@@ -76,6 +86,44 @@ addSamplingSlidesFromDF(
 )
 print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0(
   "LBN_ALPS_samplingImgs", 
+  # dateToday, 
+  ".pptx")
+  )
+)
+```
+Cohort 7
+```{r eval=FALSE, include=FALSE}
+samplingDF_ALPS <- AcuteStress_off %>%
+  filter(
+    sex == "F",
+    !is.na(cyclingFolderPath),
+    damStrain == "CBA",
+    cohort == 7 || 8,
+    !is.na(Sac_date),
+    !is.na(adultTrt)
+  )
+
+samplingDF_ALPS <- samplingDF_ALPS %>%
+  addRegExForSamplingDF() %>%
+  addSamplingImgFilePaths()
+
+samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
+samplingPPT <- ph_with(
+  samplingPPT,
+  value = "LBN Cycling Images, Uterine Mass, and LH Values",
+  location = ph_location_label("Title 1")
+)
+addSamplingSlidesFromDF(
+  samplingDF_ALPS, 
+  samplingPPT = samplingPPT, 
+  cyclingDF = Cycles_off_all %>%
+    filter(
+      mouseID %in% samplingDF_ALPS$mouseID
+    )
+)
+print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0(
+  "LBN_0007_ALPS_samplingImgs", 
   # dateToday, 
   ".pptx")
   )
@@ -124,7 +172,8 @@ print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0
 remainingDF_today <- LBN_data %>%
   filter(
     sex == "F",
-    litterNum == 2,
+    cohort == 7 | cohort == 8,
+    # litterNum == 2,
     is.na(Sac_date),
     is.na(Sac_stop_off)
   ) %>%
@@ -154,7 +203,15 @@ addSamplingSlidesFromDF(
     )
 )
 
-remainingDF_today
+# Cycles_off_all %>% 
+#   filter(mouseID %in% remainingDF_today$mouseID) %>%
+#   makeCyclesLong() %>%
+#   addPNDForCyles() %>%
+#   filter(
+#     mouseID == "701"
+#   )
+
+# remainingDF_today
 
 print(samplingPPT, target = file.path(reportOutputFolder, "remainingPPTs", paste0("remaining_", dateToday, ".pptx")))
 ```

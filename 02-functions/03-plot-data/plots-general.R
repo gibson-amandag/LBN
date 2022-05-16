@@ -177,7 +177,7 @@ scatterPlotTwoVars_byComboTrt <- function(
         shape = comboTrt
       )
     ) +
-    jitterGeom(size = dotSize) +
+    jitterGeom(size = dotSize, width = 0) +
     labs(y = yLab, x = xLab)+
     expand_limits(x = 0, y = 0)+
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
@@ -195,7 +195,10 @@ scatterPlotComboTrt <- function(
   yLab,
   dotSize = 1.2,
   fontSize = 11,
-  addMeanSE = TRUE
+  addMeanSE = TRUE,
+  zoom_y = FALSE, # Zoom to part of y axis
+  ymin = NULL,
+  ymax = NULL
 ){
   viz <- df %>%
     filter(
@@ -214,6 +217,7 @@ scatterPlotComboTrt <- function(
     comboTrtFillShape() +
     theme_pubr()+
     expand_limits(y=0)+
+    coord_cartesian(if(zoom_y){ylim = c(ymin, ymax)}) +
     theme(
       axis.title.x = element_blank(),
       legend.position = "none"

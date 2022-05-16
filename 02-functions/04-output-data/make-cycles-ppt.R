@@ -11,6 +11,25 @@ buildLBNCycleFileName <- function(
   return(fileName)
 }
 
+regExMouseAllFiles <- function(
+  cycleID,
+  excludePM = TRUE,
+  excludeUterus = TRUE
+){
+  idText <- sprintf("%04d", as.integer(cycleID))
+  regEx <- paste0(
+    # "^.*/", # looks for the whole file path when matching, not just file name
+    "^", # looks for the whole file path when matching, not just file name
+    if(excludePM)"(?!.*PM)",
+    if(excludeUterus)"(?!.*uterus)",
+    ".*/",
+    ".*[-_]", 
+    "*",
+    idText, "\\.jpg$")
+  # print(regEx)
+  return(regEx)
+}
+
 regExCycleFileName <- function(
   date,
   cycleID,
@@ -42,7 +61,8 @@ regExCycleFileName <- function(
 regExUterinePicFileName <- function(
   MouseID
 ){
-  regEx <- paste0("^.*uterus-", MouseID, ".*\\.jpg$")
+  # regEx <- paste0("^.*uterus-", MouseID, ".*\\.jpg$")
+  regEx <- paste0("^.*uterus-.*", MouseID, ".*\\.jpg$") ## AGG - Changed now that mouseID is numeric
   return(regEx)
 }
 
@@ -51,7 +71,8 @@ regExUterinePicFileName <- function(
 addRegExForSamplingDF <- function(
   samplingDF,
   arrangeByCycle = FALSE,
-  arrangeByLH = FALSE
+  arrangeByLH = FALSE,
+  numIDVar = num_ID
 ){
   df <- samplingDF %>%
     # select(
@@ -75,9 +96,12 @@ addRegExForSamplingDF <- function(
     mutate(
       endCycleDay_pres = AgeInDays,
       startCycleDay_pres = ifelse(endCycleDay_pres - 20 > 69, endCycleDay_pres - 20, 70),
-      amRegEx = regExCycleFileName(Sac_date, num_ID),
-      ayerRegEx = regExCycleFileName(Sac_date - 1, num_ID),
-      anteAyerRegEx = regExCycleFileName(Sac_date - 2, num_ID),
+      # amRegEx = regExCycleFileName(Sac_date, num_ID),
+      amRegEx = regExCycleFileName(Sac_date, {{numIDVar}}),
+      # ayerRegEx = regExCycleFileName(Sac_date - 1, num_ID),
+      ayerRegEx = regExCycleFileName(Sac_date - 1, {{numIDVar}}),
+      # anteAyerRegEx = regExCycleFileName(Sac_date - 2, num_ID),
+      anteAyerRegEx = regExCycleFileName(Sac_date - 2, {{numIDVar}}),
       uterinePicRegEx = regExUterinePicFileName(mouseID)
     )
   return(df)
@@ -152,6 +176,25 @@ getMouseCycleImgPaths <- function(
     glob = "*.jpg",
   )
   return(cycleImgPaths)
+}
+
+getAllMouseCycleImgs <- function(
+  folderPath,
+  cycleNum,
+  searchSubFolders = TRUE
+){
+  regEx <- regExMouseAllFiles(cycleNum)
+  foundPaths <- dir_ls(
+    path = folderPath,
+    all = TRUE,
+    recurse = searchSubFolders,
+    type = "any",
+    regexp = regEx,
+    invert = FALSE,
+    fail = TRUE,
+    perl = T
+  )
+  return(foundPaths)
 }
 
 
@@ -230,6 +273,24 @@ addMouseFolderImgsTocyclePPT <- function(
   return(cyclePPT)
 }
 
+addMouseImgsToCyclePPT <- function(
+  folderPath,
+  cycleNum,
+  cyclePPT,
+  numPerSlide = 12
+){
+  # print(paste("mouse", cycleNum))
+  cyclingImgPaths <- getAllMouseCycleImgs(folderPath, cycleNum)
+  # print(paste("path", cyclingImgPaths))
+  cyclePPT <- addImgsToCyclePPT(
+    cycleImgPaths = cyclingImgPaths,
+    sectionLabel = paste("Mouse", cycleNum),
+    cyclePPT = cyclePPT,
+    numPerSlide = numPerSlide
+  )
+  return(cyclePPT)
+}
+
 
 # Sampling Slide ----------------------------------------------------------
 
@@ -249,6 +310,7 @@ createSamplingSlide <- function(
   cyclingDF_long,
   slideVersion = 2
 ){
+  # print("in createSamplingSlide")
   print(paste0(MouseID))
   samplingPPT <- add_slide(samplingPPT, layout = paste0("samplingSlide", slideVersion))
   # print(amImgPath)
@@ -258,9 +320,10 @@ createSamplingSlide <- function(
   uterineMassLabel <- ifelse(!is.na(uterineMass), paste0(uterineMass, " mg"), "")
   
   # print(paste("Mouse:", MouseID, "Start Day:", startCycleDay_pres, "End Day:", endCycleDay_pres))
+  # print(cyclingDF_long$mouseID)
   cyclingPlot <- cyclingDF_long %>%
     filter(
-      mouseID == MouseID,
+      mouseID == as.character(MouseID),
       PND <= endCycleDay_pres & PND >= startCycleDay_pres
     ) %>%
     plotCycleTraces_single(
@@ -354,12 +417,16 @@ addSamplingSlidesFromDF <- function(
   samplingDF,
   cyclingDF,
   samplingPPT,
-  slideVersion = 2
+  slideVersion = 2,
+  trtVar = comboTrt
 ){
   print("addSamplingSlidesFromDF")
   cyclingDF_long <- cyclingDF %>%
     makeCyclesLong() %>%
     addPNDForCyles()
+  
+  # print(paste("maxLH", samplingDF$maxLH))
+  # print(paste("cyclingDF", cyclingDF$mouseID))
   
   pwalk(
     list(
@@ -367,7 +434,9 @@ addSamplingSlidesFromDF <- function(
       cycleID = samplingDF$num_ID,
       maxLH = samplingDF$maxLH,
       uterineMass = samplingDF$ReproTract_mass,
-      trt = samplingDF$comboTrt,
+      trt = samplingDF %>% select({{trtVar}}),
+      # trt = samplingDF$adultTrt,
+      # trt = sampleDF$comboTrt,
       amImgPath = samplingDF$AMPath,
       prevDayImgPath = samplingDF$ayerPath,
       twoDayPrevImgPath = samplingDF$anteAyerPath,

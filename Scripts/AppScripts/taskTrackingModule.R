@@ -59,7 +59,7 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_CRH, Off_dates){
           
           #Set up breeding
           for(val in Dam_seq()){
-            if(Dam_day_equals(Day, "Breed_date", val)){
+            if(Dam_day_equals(Day, "breedDate", val)){
               printCat <- Dam_tasks_app(
                 paste0(
                   "Set up ", blueText("breeding cages"), " for the following dams"
@@ -70,7 +70,7 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_CRH, Off_dates){
           }
           
           for(val in Dam_seq(df = Dam_dates_CRH)){
-            if(Dam_day_equals(Day, "Breed_date", val, df = Dam_dates_CRH)){
+            if(Dam_day_equals(Day, "breedDate", val, df = Dam_dates_CRH)){
               printCat <- Dam_tasks_app(
                 paste0(
                   "Set up ", blueText("breeding cages"), " for the following dams"
@@ -86,7 +86,7 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_CRH, Off_dates){
           #Plug check
           for(val in Dam_seq()){
             if(Dam_dates$plug_check[val] == TRUE & 
-               Dam_day_greater(Day, "Breed_date", val)){
+               Dam_day_greater(Day, "breedDate", val)){
               printCat <- Dam_tasks_app(
                 paste0(
                   "Check for ", blueText("plugs"), " from the following mice"
@@ -98,7 +98,7 @@ taskTrackingServer <- function(id, Dam_dates, Dam_dates_CRH, Off_dates){
           
           for(val in Dam_seq(df = Dam_dates_CRH)){
             if(Dam_dates_CRH$plug_check[val] == TRUE & 
-               Dam_day_greater(Day, "Breed_date", val, df = Dam_dates_CRH)){
+               Dam_day_greater(Day, "breedDate", val, df = Dam_dates_CRH)){
               printCat <- Dam_tasks_app(
                 paste0(
                   "Check for ", blueText("plugs"), " from the following mice"
@@ -536,8 +536,8 @@ taskTableServer <- function(
       output$damTable <- renderDataTable(
         Dam_dates %>%
           filter(is.na(Sac_or_stop)) %>%
-          filter(Breed_date > as.Date("2020-12-01")) %>% 
-          arrange(DOB, Plug_date),
+          filter(breedDate > as.Date("2020-12-01")) %>% 
+          arrange(DOB, plugDate),
         options = list(
           scrollX = TRUE,
           scroller = TRUE,
@@ -546,8 +546,8 @@ taskTableServer <- function(
       
       output$damTable_CRH <- renderDataTable(
         Dam_dates_CRH %>%
-          filter(Breed_date > as.Date("2020-12-01")) %>% 
-          arrange(DOB, Plug_date),
+          filter(breedDate > as.Date("2020-12-01")) %>% 
+          arrange(DOB, plugDate),
         options = list(
           scrollX = TRUE,
           scroller = TRUE,

@@ -161,12 +161,17 @@ acuteStressUI <- function(id,
               "Select variables to summarize",
               AcuteStress_off %>%
                 select(
+                  Body_mass_AM,
                   Body_mass_sac,
+                  bodyMass_diff,
                   ReproTract_mass,
+                  ReproTract_mass_perBodyAM_g,
                   ReproTract_mass_perBody_g,
                   Gonad_mass,
+                  Gonad_mass_perBodyAM_g,
                   Gonad_mass_perBody_g,
                   Adrenal_mass,
+                  Adrenal_mass_perBodyAM_g,
                   Adrenal_mass_perBody_g,
                   maxLH
                 )
@@ -662,18 +667,24 @@ acuteStressServer <- function(
         yVar <- as.character(input$massVar)
         yText <- case_when(
           yVar == "ReproTract_mass" ~ "seminal vesicle mass (mg)",
-          yVar == "ReproTract_mass_perBody_g" ~ "seminal vesicle mass / body mass (mg/g)",
+          yVar == "ReproTract_mass_perBody_g" ~ "seminal vesicle mass / body mass PM (mg/g)",
+          yVar == "ReproTract_mass_perBodyAM_g" ~ "seminal vesicle mass / body mass AM (mg/g)",
           yVar == "Gonad_mass" ~ "testicular mass (mg)",
-          yVar == "Gonad_mass_perBody_g" ~ "testicular mass / body mass (mg/g)",
+          yVar == "Gonad_mass_perBody_g" ~ "testicular mass / body mass PM (mg/g)",
+          yVar == "Gonad_mass_perBodyAM_g" ~ "testicular mass / body mass AM (mg/g)",
           yVar == "Adrenal_mass" ~ "adrenal mass (mg)",
-          yVar == "Adrenal_mass_perBody_g" ~ "adrenal mass / body mass (mg/g)",
-          yVar == "Body_mass_sac" ~ "body mass (g)",
+          yVar == "Adrenal_mass_perBody_g" ~ "adrenal mass / body mass PM (mg/g)",
+          yVar == "Adrenal_mass_perBodyAM_g" ~ "adrenal mass / body mass AM (mg/g)",
+          yVar == "Body_mass_sac" ~ "body mass PM (g)",
+          yVar == "Body_mass_AM" ~ "body mass AM (g)",
           yVar == "maxLH" ~ "max evening LH (ng/mL)",
+          yVar == "bodyMass_diff" ~ "change in body mass (PM - AM, g)",
           TRUE ~ as.character(yVar)
         )
         AcuteStress_males_masses() %>%
           filter(
-            ! (row_number() %in% input$mass_males_table_rows_selected)
+            ! (row_number() %in% input$mass_males_table_rows_selected),
+            ! (is.na(adultTrt)) # added 2022-03-14
           ) %>%
           scatterPlotComboTrt(
             yVar = !! input$massVar,

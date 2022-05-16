@@ -100,7 +100,7 @@ This chunk runs the functions that create the dates dataframes for the dams and 
 ```{r include=FALSE}
 #Dam and Litter Dates
 Dam_dates <- damDatesFunc(Demo_dam %>%
-                            filter(Breed_date > filterDateForTaskDFs))
+                            filter(breedDate > filterDateForTaskDFs))
 Off_dates <- offDatesFunc(LBN_data %>%
                             filter(DOB > filterDateForTaskDFs))
 ```
@@ -155,7 +155,7 @@ This chunk creates a workbook and writes the Dam_dates and Off_dates dataframes 
 datesWB <- createWorkbook()
 
 writeToWorkbook("Dam Dates", 
-                Dam_dates[order(Dam_dates$DOB, Dam_dates$Breed_date),], #sort by DOB and then Breed_date
+                Dam_dates[order(Dam_dates$DOB, Dam_dates$breedDate),], #sort by DOB and then breedDate
                 datesWB, 
                 tableStyle = "TableStyleLight8")
 writeToWorkbook("Offspring Dates", 

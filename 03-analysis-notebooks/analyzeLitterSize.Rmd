@@ -1,6 +1,8 @@
 ---
 title: "Litter Size"
-output: html_notebook
+output:
+  word_document: default
+  html_notebook: default
 ---
 
 ```{r setup, include=FALSE}

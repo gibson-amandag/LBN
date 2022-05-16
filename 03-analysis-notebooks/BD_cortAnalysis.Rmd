@@ -1,0 +1,358 @@
+---
+title: "R Notebook"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+```{r include=FALSE}
+BD_filePath <- normalizePath("C:\\Users\\percs\\OneDrive - Umich\\Moenter lab\\Bo Dong\\BD_cort-admin_AGG.xlsx")
+BD_fileInfo <- loadExcelSheet_fromFile(BD_filePath, "fileInfo")
+BD_cycleDir <- BD_fileInfo$cycleImgFolder[1]
+
+BD_damInfo <- loadExcelSheet_fromFile(BD_filePath, "DamInfo") %>%
+  makeFactors("damID")
+
+BD_offspringInfo <- loadExcelSheet_fromFile(BD_filePath, "OffspringInfo") %>% makeFactors(c("mouseID", "damID"))
+
+BD_offspringInfo <- BD_offspringInfo %>%
+  left_join(
+    BD_damInfo,
+    by = "damID"
+  ) %>%
+  mutate(
+    cyclingFolderPath = BD_cycleDir,
+    earlyLifeTrt = NA,
+    maxLH = NA
+  )
+
+BD_cycles <- loadExcelSheet_fromFile(BD_filePath, "Cycles_off") %>%
+  makeFactors(
+    "mouseID"
+  )%>%
+  mutate(
+    num_ID = cycleID
+  )
+
+
+# BD_allInfo <- BD_offspringInfo %>%
+#   left_join(
+#     BD_cycles,
+#     by = "mouseID"
+#   ) %>%
+#   left_join(
+#     BD_sacrifice,
+#     by = "mouseID"
+#   )
+
+BD_cycles <- BD_cycles %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+
+BD_damInfo
+BD_offspringInfo
+BD_cycles
+# BD_allInfo
+```
+
+```{r}
+BD_filePrefix  <-  "BD_cortAdmin_"
+BD_width <- 11.5
+BD_height <- 5
+```
+
+
+
+# Pilot 1 - single administration
+
+```{r}
+BD_sacrifice <- loadExcelSheet_fromFile(BD_filePath, "Sacrifice_off") %>%
+  makeFactors("mouseID")
+BD_sacrifice <- BD_sacrifice %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+```
+
+6 mice were included in this study
+- 1 vehicle (0 mg/kg) (ate all Nutella)
+- 1 10 mg/kg (ate all Nutella)
+- 2 20 mg/kg (1 ate all Nutella; 1 did not)
+- 2 50 mg/kg (did not eat all Nutella)
+
+Mice were administered a single bolus of corticosterone (or vehicle) in Nutella following the first tail blood sample at time 0h (~9:30a EST). Additional tail blood samples were collected at 0.5h, 1h, 3h, and 5h
+
+```{r}
+BD_cortOff_file <- loadExcelSheet_fromFile(BD_filePath, "Cort_off")
+BD_cortOff <- makeFactors(BD_cortOff_file, "mouseID")
+BD_cortOff<- BD_cortOff %>% 
+  left_join(
+    BD_sacrifice,
+    by = "mouseID"
+  )
+
+BD_cortOff <- BD_cortOff %>% makeFactors(c("adultTrt", "dosage"))
+BD_cortOff <- BD_cortOff %>%
+  mutate(ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella" ))
+BD_cortOff %>%
+  select(
+    mouseID, time, dosage, cort, ateAllNutella
+  ) %>%
+  arrange(
+    dosage, mouseID, time
+  ) %>%
+  myDisplay()
+```
+
+```{r, fig.width=11}
+nutellaCortPlot <- BD_cortOff %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 20,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = dosage, # group by the dosage; this is why it needs to be a factor
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2 #this controls the spread of the data visually
+  ) +
+  facet_wrap(
+    ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  ) +
+  labs(
+    x = "time since administration (h)" # add a title to the x axis
+  )
+
+nutellaCortPlot
+```
+
+```{r}
+flexSave(
+  "pilot1",
+  thisFilePrefix = BD_filePrefix,
+  plot = nutellaCortPlot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  width = BD_width,
+  height = BD_height,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+The vehicle control mouse maintained appropriate serum corticosterone levels.
+
+The 10 mg/kg mouse had serum corticosterone levels at the top of the standard curve (>1000 ng/mL) at 0.5h and 1h. At 3h, the serum corticsterone level was still 340 ng/mL, but it returned to baseline by 5h.
+
+The 20 mg/kg mouse that ate all of the Nutella remained elevated above the standard curve through 3h, but returned to baseline by 5h. The 20 mg/kg mouse that did not eat all of the Nutella had serum cort >1000 ng/mL for the first hour after administration, was at 233 ng/mL after 3h, and at basline after 5h.
+
+One of the 50 mg/kg mice that did not eat all of the Nutella still had serum corticosterone above the standard curve for the first hour after administration, while the other reached a measured peak of about 573 ng/mL at 0.5h, and both returned to baseline levels by 3h.
+
+One conclusion from this pilot was that 20 mg/kg and 50 mg/kg were too high. The 10 mg/kg dose was also likely too high, but was repeated in the following pilot to confirm this in additional mice. Another conclusion was that additional administrations of corticosterone would likely be needed to sustain elevated serum corticosterone levels during the 5h window.
+
+
+# Pilot 2 - repeated administration
+
+```{r}
+BD_sacrifice <- loadExcelSheet_fromFile(BD_filePath, "Sacrifice_off2") %>%
+  makeFactors("mouseID")
+BD_sacrifice <- BD_sacrifice %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+```
+
+6 mice were included in this study
+- 2 vehicle (0 mg/kg) (ate all Nutella)
+- 2 3 mg/kg (1 ate all Nutella; 1 ate most of initial sample, did not eat subsequent)
+- 2 10 mg/kg (both ate some but not all of Nutella)
+
+Mice were administered a bolus of corticosterone (or vehicle) in Nutella following the first tail blood sample at time 0h (~9:30a EST). Additional tail blood samples were collected at 0.5h, 1h, 3h, and 5h. Additional administrations of corticosterone were provided at 1h and 3hr, following tail blood samples at these times.
+
+```{r}
+BD_cortOff_file <- loadExcelSheet_fromFile(BD_filePath, "Cort_off2")
+BD_cortOff <- makeFactors(BD_cortOff_file, "mouseID")
+BD_cortOff<- BD_cortOff %>% 
+  left_join(
+    BD_sacrifice,
+    by = "mouseID"
+  )
+
+BD_cortOff <- BD_cortOff %>% makeFactors(c("adultTrt", "dosage"))
+BD_cortOff <- BD_cortOff %>%
+  mutate(ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella" ))
+BD_cortOff %>%
+  select(
+    mouseID, time, dosage, cort, ateAllNutella
+  ) %>%
+  arrange(
+    dosage, mouseID, time
+  ) %>%
+  myDisplay()
+```
+
+```{r, fig.width=11}
+nutellaCortPlot <- BD_cortOff %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 20,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = dosage, # group by the dosage; this is why it needs to be a factor
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2 #this controls the spread of the data visually
+  ) +
+  facet_wrap(
+    ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  ) +
+  labs(
+    x = "time since 1st administration (h)" # add a title to the x axis
+  )
+
+nutellaCortPlot
+```
+The vehicle control mice maintained appropriate serum corticosterone levels, though an elevation is evidence 30 min after the first sample and Nutella administration.
+
+
+```{r}
+flexSave(
+  "pilot2",
+  thisFilePrefix = BD_filePrefix,
+  plot = nutellaCortPlot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  width = BD_width,
+  height = BD_height,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+The 3 mg/kg mouse that ate all of the Nutella had serum corticsterone levels around 400 ng/mL at 0.5 and 1h after the first administration. With repeated administrations at 1h and 3h, serum corticsterone was around 290 ng/mL two hours later at 3h and 5h, respectively.
+
+The 3 mg/kg mouse that ate most of the initial Nutella also reached a peak of around 400 ng/mL at 0.5h, but decreased to around 300 ng/mL by 1h. Her serum cort levels returned to baseline by 3h and 5h.
+
+The 10 mg/kg mice ate some but did not always finish their Nutella. Even so, consistent with pilot 1, 10 mg/kg seems to be too high to induce a desired serum corticosterone level of between 250-350 ng/mL.
+
+This suggests that 3 mg/kg should be the maximal considered dosage, but may still cause an initial peak that is higher than desired, though elevated serum corticosterone can be maintained for 2h following repeated administration
+
+# Pilot 3 - single administration, single post sample
+
+```{r}
+BD_sacrifice <- loadExcelSheet_fromFile(BD_filePath, "Sacrifice_off3") %>%
+  makeFactors("mouseID")
+BD_sacrifice <- BD_sacrifice %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+```
+
+6 mice were included in this study
+- 2 vehicle (0 mg/kg)
+- 2 0.5 mg/kg
+- 2 1 mg/kg 
+
+These were the same mice that were used in Pilot 1 (>3wks later). All mice at all of the Nutella
+
+Mice were administered a single bolus of corticosterone (or vehicle) in Nutella following the first tail blood sample at time 0h (~9:30a EST). An additional tail blood sample was collected 1h later. Only a single sample was taken due to limitations in total blood volume that can be collected from a mouse.
+
+```{r}
+BD_cortOff_file <- loadExcelSheet_fromFile(BD_filePath, "Cort_off3")
+BD_cortOff <- makeFactors(BD_cortOff_file, "mouseID")
+BD_cortOff<- BD_cortOff %>% 
+  left_join(
+    BD_sacrifice,
+    by = "mouseID"
+  )
+
+BD_cortOff <- BD_cortOff %>% makeFactors(c("adultTrt", "dosage"))
+BD_cortOff <- BD_cortOff %>%
+  mutate(ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella" ))
+BD_cortOff %>%
+  select(
+    mouseID, time, dosage, cort, ateAllNutella
+  ) %>%
+  arrange(
+    dosage, mouseID, time
+  ) %>%
+  myDisplay()
+```
+
+```{r, fig.width=11}
+nutellaCortPlot <- BD_cortOff %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 20,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = dosage, # group by the dosage; this is why it needs to be a factor
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 1000,
+    ymin = 0
+  ) +
+  facet_wrap(
+    ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  ) +
+  labs(
+    x = "time since administration (h)" # add a title to the x axis
+  )
+
+nutellaCortPlot
+```
+
+```{r}
+flexSave(
+  "pilot3",
+  thisFilePrefix = BD_filePrefix,
+  plot = nutellaCortPlot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  width = BD_width / 2,
+  height = BD_height,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+The vehicle control mice maintained appropriate serum corticosterone levels
+
+Serum corticosterone for both the 0.5 and 1 mg/kg groups ranged from about 100-225 mg/kg.
+
+
+# Next step
+
+Investigate 2 mg/kg with administration at 0h, 1h, and 3h to determine if it produces a more appropriate peak at 1h while still maintaining elevated corticsterone levels with 2h between administrations
+
+
+
+

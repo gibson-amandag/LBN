@@ -89,8 +89,8 @@ Offspring_chronic_stress = myCSV_func(CSV_folder, OffspringChronicStressName)
 #Reformat dates into year-month-day
 
 Dam_info$Dam_DOB = format_dates(Dam_info$Dam_DOB)
-Dam_info$Breed_date = format_dates(Dam_info$Breed_date)
-Dam_info$Plug_date = format_dates(Dam_info$Plug_date)
+Dam_info$breedDate = format_dates(Dam_info$breedDate)
+Dam_info$plugDate = format_dates(Dam_info$plugDate)
 Dam_info$DOB = format_dates(Dam_info$DOB)
 Dam_info$Sac_or_stop = format_dates(Dam_info$Sac_or_stop)
 

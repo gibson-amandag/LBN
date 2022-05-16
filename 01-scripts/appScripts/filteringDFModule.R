@@ -48,7 +48,7 @@ filteringDFUI <- function(
           "Minimum Litter Size",
           min = 0,
           max = 8,
-          value = 3
+          value = 5
         )
       )
     )

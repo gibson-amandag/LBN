@@ -1,4 +1,5 @@
 if (!require(tidyverse)) install.packages('tidyverse')
+if (!require(clock)) install.packages('clock')
 if (!require(rlang)) install.packages('rlang')
 if (!require(scales)) install.packages('scales') # with tidyverse?
 if (!require(knitr)) install.packages('knitr')
@@ -52,6 +53,7 @@ library(shinyjs)
 library(colourpicker) # After shinyjs
 library(plater)
 library(tinytex)
+library(clock)
 select <- dplyr::select
 # Save a PDF - in ggsave, device = cairo_pdf on Windows
 # https://r-graphics.org/recipe-output-fonts-pdf - even when following these

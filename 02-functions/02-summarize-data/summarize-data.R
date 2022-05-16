@@ -175,12 +175,27 @@ calcAgeInDays <- function(
 calcOrganMassByBodyMass <- function(
   df,
   organMassVar,
-  bodyMassVar = Body_mass_sac
+  bodyMassVar = Body_mass_sac,
+  bodyText = "Body_g"
 ){
   df <- df %>%
     mutate(
-      "{{ organMassVar }}_perBody_g" := {{ organMassVar }} / {{ bodyMassVar }},
+      # "{{ organMassVar }}_perBody_g" := {{ organMassVar }} / {{ bodyMassVar }},
+      "{{ organMassVar }}_per{ bodyText }" := {{ organMassVar }} / {{ bodyMassVar }},
       .after = {{ organMassVar }}
+    )
+  return(df)
+}
+
+calcOrganMassByBodyMass_AM <- function(
+  df,
+  organMassVar
+){
+  df <- df %>%
+    calcOrganMassByBodyMass(
+      {{ organMassVar }},
+      Body_mass_AM,
+      "BodyAM_g"
     )
   return(df)
 }

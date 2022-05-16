@@ -1,6 +1,8 @@
 ---
 title: "Dam behavior"
-output: html_notebook
+output:
+  html_notebook: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -11,6 +13,9 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 ```{r}
 source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
 ```
 
 ```{r}
@@ -177,5 +182,339 @@ dam_behavior_cohort2 <- dam_behavior %>%
     cohort == 2
   )
 dam_behavior_cohort2
+```
+
+# All Litters > 5 pups
+
+```{r}
+litterNum_label <- c(
+  "1" = "first litter",
+  "2" = "second litter"
+)
+
+dam_behavior_filtered <- dam_behavior %>%
+  filter(
+    Litter_size_startPara >= 5
+  ) %>%
+  mutate(
+    firstDay = ifelse(
+      damID == "D015", 
+      FALSE, 
+      ifelse(
+        (cohort == 2 | cohort == 4 | cohort == 6), 
+        TRUE, 
+        ifelse(
+          damID == "D051-01",
+          TRUE,
+          FALSE
+        )
+      )
+    )
+  )
+
+dam_behavior_filtered %>%
+  filter(
+    time == 4
+  ) %>%
+  arrange(
+    -Num_exits
+  ) %>%
+  relocate(
+    cohort
+    , earlyLifeTrt
+    , firstDay
+    , litterNum
+    , .after = damID
+  # ) %>%
+  # filter(
+  #   cohort == 7
+  #   , firstDay == TRUE
+  # ) %>%
+  # group_by(
+  #   firstDay, earlyLifeTrt
+  )
+
+
+behaviorOverTime <- dam_behavior_filtered %>%
+  behavior_overTime(
+    yVar = Num_exits,
+    yLab = "# of exits",
+    fontSize = 16,
+    dotSize = 3,
+    dotSize_byFirstDay = TRUE
+  )
+plot <- behaviorOverTime +
+  facet_wrap(
+    ~litterNum + earlyLifeTrt,
+    ncol = 4,
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )+
+  theme(
+    legend.position = "bottom"
+    , axis.title.x = element_blank()
+  ) +
+  guides(
+    fill = "none"
+    , linetype = "none"
+  )+
+  labs(
+    shape = "start on P5"
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "ZT9" = "ZT9"
+      , "ZT14" = "ZT14\nlights off"
+      , "ZT19" = "ZT19"
+      , "ZT0" = "ZT0\nlights on"
+      , "ZT4" = "ZT4"
+    )
+  ) +
+  # labs(x = "ZT hour") + 
+  expand_limits(y = 70)
+
+plot
+
+flexSave(
+  baseName = "damBehavior",
+  thisFilePrefix = "AG_LBN_",
+  plot = plot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  width = 12,
+  height = 5.5,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+
+damBehaviorAnova <- dam_behavior_filtered %>%
+  anova_test(
+    dv = Num_exits,
+    wid = damID,
+    between = c(earlyLifeTrt, litterNum),
+    within = time
+  ) 
+
+damBehaviorAnova$ANOVA%>%
+  myDisplay()
+```
+# All Litters > 5 pups, exclude ZT9
+
+```{r}
+litterNum_label <- c(
+  "1" = "first litter",
+  "2" = "second litter"
+)
+
+dam_behavior_filtered <- dam_behavior %>%
+  filter(
+    Litter_size_startPara >= 5,
+    time != 9
+  ) %>%
+  mutate(
+    firstDay = ifelse(
+      damID == "D015", 
+      FALSE, 
+      ifelse(
+        (cohort == 2 | cohort == 4 | cohort == 6), 
+        TRUE, 
+        ifelse(
+          damID == "D051-01",
+          TRUE,
+          FALSE
+        )
+      )
+    )
+  )
+
+dam_behavior_filtered %>%
+  filter(
+    time == 4
+  ) %>%
+  arrange(
+    -Num_exits
+  ) %>%
+  relocate(
+    cohort
+    , earlyLifeTrt
+    , firstDay
+    , litterNum
+    , .after = damID
+  # ) %>%
+  # filter(
+  #   cohort == 7
+  #   , firstDay == TRUE
+  # ) %>%
+  # group_by(
+  #   firstDay, earlyLifeTrt
+  )
+
+
+behaviorOverTime <- dam_behavior_filtered %>%
+  behavior_overTime(
+    yVar = Num_exits,
+    yLab = "# of exits",
+    fontSize = 16,
+    dotSize = 3,
+    dotSize_byFirstDay = TRUE,
+    timeBreaks = c(14, 19, 0, 4),
+    timeLabels = c("ZT14", "ZT19", "ZT0", "ZT4")
+  )
+plot <- behaviorOverTime +
+  facet_wrap(
+    ~litterNum + earlyLifeTrt,
+    ncol = 4,
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )+
+  theme(
+    legend.position = "bottom"
+    , axis.title.x = element_blank()
+  ) +
+  guides(
+    fill = "none"
+    , linetype = "none"
+  )+
+  labs(
+    shape = "start on P5"
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "ZT14" = "ZT14\nlights off"
+      , "ZT19" = "ZT19"
+      , "ZT0" = "ZT0\nlights on"
+      , "ZT4" = "ZT4"
+    )
+  ) +
+  # labs(x = "ZT hour") + 
+  expand_limits(y = 70)
+
+plot
+
+flexSave(
+  baseName = "damBehavior_ZT14_19_0_4",
+  thisFilePrefix = "AG_LBN_",
+  plot = plot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  width = 12,
+  height = 5.5,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+
+damBehaviorAnova <- dam_behavior_filtered %>%
+  anova_test(
+    dv = Num_exits,
+    wid = damID,
+    between = c(earlyLifeTrt, litterNum),
+    within = time
+  ) 
+
+damBehaviorAnova$ANOVA%>%
+  myDisplay()
+```
+# All Litters > 5 pups, exclude ZT9
+
+```{r}
+litterNum_label <- c(
+  "1" = "first litter",
+  "2" = "second litter"
+)
+
+dam_behavior_filtered <- dam_behavior %>%
+  filter(
+    Litter_size_startPara >= 5
+    , time != 9
+  ) %>%
+  mutate(
+    firstDay = ifelse(
+      damID == "D015", 
+      FALSE, 
+      ifelse(
+        (cohort == 2 | cohort == 4 | cohort == 6), 
+        TRUE, 
+        ifelse(
+          damID == "D051-01",
+          TRUE,
+          FALSE
+        )
+      )
+    )
+  )
+
+behaviorOverTime <- dam_behavior_filtered %>%
+  behavior_overTime(
+    yVar = Num_exits,
+    yLab = "# of exits",
+    fontSize = 16,
+    dotSize = 3,
+    dotSize_byFirstDay = TRUE,
+    timeBreaks = c(14, 16, 19, 0, 4),
+    timeLabels = c("ZT14", "ZT16", "ZT19", "ZT0", "ZT4")
+  )
+plot <- behaviorOverTime +
+  facet_wrap(
+    ~litterNum + earlyLifeTrt,
+    ncol = 4,
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )+
+  theme(
+    legend.position = "bottom"
+    , axis.title.x = element_blank()
+  ) +
+  guides(
+    fill = "none"
+    , linetype = "none"
+  )+
+  labs(
+    shape = "start on P5"
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "ZT14" = "ZT14\nlights off"
+      , "ZT16" = "ZT16"
+      , "ZT19" = "ZT19"
+      , "ZT0" = "ZT0\nlights on"
+      , "ZT4" = "ZT4"
+    )
+  ) +
+  # labs(x = "ZT hour") + 
+  expand_limits(y = 70)
+
+plot
+
+# flexSave(
+#   baseName = "damBehavior_ZT14_16_19_0_4",
+#   thisFilePrefix = "AG_LBN_",
+#   plot = plot,
+#   fileType = "png",
+#   filePath = plotOutputFolder,
+#   width = 12,
+#   height = 5.5,
+#   units = "in",
+#   compType = currentCompType,
+#   shinySettings = FALSE
+# )
+
+
+damBehaviorAnova <- dam_behavior_filtered %>%
+  anova_test(
+    dv = Num_exits,
+    wid = damID,
+    between = c(earlyLifeTrt, litterNum),
+    within = time
+  ) 
+
+damBehaviorAnova$ANOVA%>%
+  myDisplay()
 ```
 

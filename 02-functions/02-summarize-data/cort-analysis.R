@@ -29,7 +29,10 @@ getStressTrtNumbers <- function(df){
 #' @export
 #'
 #' @examples
-cortAnova <- function(df){
+cortAnova <- function(
+  df,
+  byCycle = FALSE
+  ){
   anovaRes <- df %>%
     anova_test(
       dv = cort,
@@ -37,6 +40,15 @@ cortAnova <- function(df){
       between = c(earlyLifeTrt, adultTrt),
       within = time
     )
+  if(byCycle){
+    anovaRes <- df %>%
+      anova_test(
+        dv = cort,
+        wid = mouseID,
+        between = c(earlyLifeTrt, adultTrt, Sac_cycle),
+        within = time
+      )
+  }
   flxTbl <- formatAnova(anovaRes)
   return(flxTbl)
   # return(anovaRes)

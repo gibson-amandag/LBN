@@ -1946,8 +1946,8 @@ Mass_long_for_reg %>%
 ```{r}
 Mass_off_long_preWean <- Mass_off %>%
   filter(
-    litterNum == 2,
-    Litter_size_endPara >= 3
+    # litterNum == 2,
+    Litter_size_endPara >= 5
   ) %>%
   makeOffMassLong() %>%
   filter(
@@ -1956,8 +1956,8 @@ Mass_off_long_preWean <- Mass_off %>%
 
 Mass_off_long_postWean <- Mass_off %>%
   filter(
-    litterNum == 2,
-    Litter_size_endPara >= 3
+    # litterNum == 2,
+    Litter_size_endPara >= 5
   ) %>%
   makeOffMassLong() %>%
   filter(
@@ -1966,8 +1966,8 @@ Mass_off_long_postWean <- Mass_off %>%
 
 Mass_off_long_P11_21_70 <- Mass_off %>%
   filter(
-    litterNum == 2,
-    Litter_size_endPara >= 3
+    # litterNum == 2,
+    Litter_size_endPara >= 5
   ) %>%
   makeOffMassLong() %>%
   filter(
@@ -1981,7 +1981,14 @@ preWeanANOVA <- Mass_off_long_preWean %>%
   anova_test(
     dv = mass,
     wid = mouseID,
-    between = c(earlyLifeTrt, sex),
+    between = c(earlyLifeTrt, sex, litterNum),
+    within = day
+  )
+postWeanANOVA <- Mass_off_long_postWean %>%
+  anova_test(
+    dv = mass,
+    wid = mouseID,
+    between = c(earlyLifeTrt, sex, litterNum),
     within = day
   )
 
@@ -1989,7 +1996,7 @@ P11_21_70ANOVA <- Mass_off_long_P11_21_70 %>%
   anova_test(
     dv = mass,
     wid = mouseID,
-    between = c(earlyLifeTrt, sex),
+    between = c(earlyLifeTrt, sex, litterNum),
     within = day
   )
 
@@ -2593,7 +2600,7 @@ scatterPlot_general(
 ```{r}
 library(lme4)
 library(lmerTest)
-mass_lme <- Mass_2ndLitters_long %>%
+mass_lme <-  %>%
   mutate(
     day11 = day - 11,
     .after = day
@@ -3731,5 +3738,1255 @@ surgedDF %>%
     boxTheme()+
     rremove("legend") +
     rremove("xlab")
+```
+
+```{r}
+dam_behavior_filtered <- dam_behavior %>%
+  filter(
+    Litter_size_startPara >= 5
+  )
+
+
+behaviorOverTime <- dam_behavior_filtered %>%
+  behavior_overTime(
+    yVar = Num_exits,
+    yLab = "# of exits",
+    fontSize = 16,
+    dotSize = 3
+  )
+plot <- behaviorOverTime +
+  facet_wrap(
+    ~litterNum + earlyLifeTrt,
+    ncol = 4,
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )+
+  theme(
+    legend.position = "none"
+    , axis.title.x = element_blank()
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "14" = "ZT14\nlights off"
+      , "19" = "ZT19"
+      , "0" = "ZT0\nlights on"
+    )
+  ) +
+  # labs(x = "ZT hour") + 
+  expand_limits(y = 70)
+
+plot
+
+flexSave(
+  baseName = "damBehavior",
+  thisFilePrefix = "AG_LBN_",
+  plot = plot,
+  fileType = imgType,
+  filePath = plotOutputFolder,
+  width = 12,
+  height = 5.5,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+
+damBehaviorAnova <- dam_behavior_filtered %>%
+  anova_test(
+    dv = Num_exits,
+    wid = damID,
+    between = c(earlyLifeTrt, litterNum),
+    within = time
+  ) 
+
+damBehaviorAnova$ANOVA%>%
+  myDisplay(docType = "docx")
+```
+
+```{r}
+LBN_data %>%
+  filter(
+    mouseID == 706
+  ) %>%
+  select(
+    damID,
+    sire,
+    weanCageNumber,
+    damCage,
+    DOB
+  )
+
+getMouseInfoForSlicingWidget <- function(mouseIDs, df = LBN_data){
+  df %>%
+    filter(
+      mouseID %in% mouseIDs
+    ) %>%
+    select(
+      mouseID,
+      damID,
+      sire,
+      weanCageNumber,
+      damCage,
+      DOB,
+      sex
+    ) %>%
+    rename(
+      cageNum = weanCageNumber,
+      generation = damCage
+    )
+}
+
+getMouseInfoForSlicingWidget(705)
+getMouseInfoForSlicingWidget(c(705, 708, 702))
+getMouseInfoForSlicingWidget(c(711:726))
+```
+
+```{r}
+LBN_data %>%
+  filter(
+    damID == "D050-01"
+  )
+```
+
+
+```{r}
+# Prepare Dataframes ------------------------------------------------------
+BD_filePath <- normalizePath("C:\\Users\\percs\\OneDrive - Umich\\Moenter lab\\Bo Dong\\BD_cort-admin_AGG.xlsx")
+BD_fileInfo <- loadExcelSheet_fromFile(BD_filePath, "fileInfo")
+BD_cycleDir <- BD_fileInfo$cycleImgFolder[1]
+
+BD_damInfo <- loadExcelSheet_fromFile(BD_filePath, "DamInfo")
+
+BD_offspringInfo <- loadExcelSheet_fromFile(BD_filePath, "OffspringInfo")
+
+BD_offspringInfo <- BD_offspringInfo %>%
+  left_join(
+    BD_damInfo,
+    by = "damID"
+  ) %>%
+  mutate(
+    cyclingFolderPath = BD_cycleDir,
+    earlyLifeTrt = NA,
+    maxLH = NA
+  )
+
+BD_cycles <- loadExcelSheet_fromFile(BD_filePath, "Cycles_off") %>%
+  mutate(
+    num_ID = cycleID
+  )
+BD_sacrifice <- loadExcelSheet_fromFile(BD_filePath, "Sacrifice_off")
+
+BD_allInfo <- BD_offspringInfo %>%
+  left_join(
+    BD_cycles,
+    by = "mouseID"
+  ) %>%
+  left_join(
+    BD_sacrifice,
+    by = "mouseID"
+  )
+
+BD_cycles <- BD_cycles %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+
+
+BD_sacrifice <- BD_sacrifice %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+
+BD_damInfo
+BD_offspringInfo
+BD_cycles
+BD_sacrifice
+BD_allInfo
+```
+
+```{r}
+addRegExForSamplingDF_gen <- function(
+  samplingDF,
+  arrangeByCycle = FALSE,
+  arrangeByLH = FALSE
+){
+  df <- samplingDF %>%
+    arrange(
+      if(arrangeByLH) maxLH,
+      if(arrangeByCycle) Sac_cycle,
+      ReproTract_mass
+    ) %>%
+    mutate(
+      endCycleDay_pres = AgeInDays,
+      startCycleDay_pres = ifelse(endCycleDay_pres - 20 > 69, endCycleDay_pres - 20, 70),
+      amRegEx = regExCycleFileName(Sac_date, cycleID),
+      ayerRegEx = regExCycleFileName(Sac_date - 1, cycleID),
+      anteAyerRegEx = regExCycleFileName(Sac_date - 2, cycleID),
+      uterinePicRegEx = regExUterinePicFileName(mouseID)
+    )
+  return(df)
+}
+
+```
+
+
+```{r}
+remainingDF_today <- BD_allInfo %>%
+  filter(
+    sex == "F",
+    is.na(Sac_date),
+    is.na(sacDateOff)
+  ) %>%
+  mutate(
+    Sac_date = dateToday
+  ) %>%
+  calcAgeInDays() #%>%
+  # combineStress()
+
+remainingDF_today <- remainingDF_today %>%
+  addRegExForSamplingDF(
+    numIDVar = cycleID
+  ) %>%
+  addSamplingImgFilePaths(
+    uterinePicFolder = BD_cycleDir
+  )
+
+samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
+samplingPPT <- ph_with(
+  samplingPPT,
+  value = paste("Mice remaining on", dateToday),
+  location = ph_location_label("Title 1")
+)
+remainingDF_today
+addSamplingSlidesFromDF(
+  remainingDF_today, 
+  samplingPPT = samplingPPT, 
+  cyclingDF = BD_cycles %>%
+    filter(
+      mouseID %in% remainingDF_today$mouseID
+    ),
+  trtVar = adultTrt
+)
+samplingPPT
+
+print(samplingPPT, target = file.path(reportOutputFolder, "remainingPPTs", "BD", paste0("remaining_", dateToday, ".pptx")))
+```
+
+```{r}
+testFunc <- function(
+  MouseID,
+  cycleID,
+  maxLH = NULL#,
+  # uterineMass,
+  # trt = NULL,
+  # amImgPath,
+  # prevDayImgPath,
+  # twoDayPrevImgPath,
+  # uterinePicPath,
+  # startCycleDay_pres,
+  # endCycleDay_pres,
+  # samplingPPT,
+  # cyclingDF_long,
+  # slideVersion = 2
+){
+  print("in testFunc")
+  print(paste("lh", maxLH))
+}
+```
+```{r}
+SlicingInfo <- loadExcelSheet(dataFolder, LBN_DataName, "Slicing_off")
+GABApscs <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs")
+cellInfo <- loadExcelSheet(dataFolder, LBN_DataName, "cellInfo")
+cellExclusion <- loadExcelSheet(dataFolder, LBN_DataName, "cellExclusion")
+```
+
+```{r}
+cellInfo <- cellInfo %>%
+  makeFactors(
+    c(mouseID, cellID)
+  ) %>%
+  left_join(
+    AcuteStress_off,
+    by = "mouseID"
+  ) %>%
+  left_join(
+    cellExclusion %>% makeFactors(cellID),
+    by = "cellID"
+  )
+
+cellInfo
+
+GABApscs <- GABApscs %>%
+  makeFactors(
+    c(cellID)
+  ) %>%
+  left_join(
+    cellInfo,
+    by = "cellID"
+  )
+GABApscs
+
+```
+```{r}
+cellGroup <- cellInfo %>%
+  select(
+    cellID, comboTrt, mouseID
+  )
+saveDFsToExcel(
+  "cellGroup",
+  cellGroups = cellGroup
+)
+```
+
+
+```{r}
+AcuteStress_off %>%
+  filter(
+    cohort == 7,
+    !is.na(Sac_date),
+    Sac_cycle == "proestrus",
+    Litter_size_endPara>=5
+  ) %>%
+  plotUterineMassByGroup(hLineVal = 125)
+# cellInfo %>%
+#   plotUterineMassByGroup(hLineVal = 125)+
+#   facet_wrap(~exclude)
+
+cellInfo %>%
+  mutate(
+    proUterineMass = ifelse(ReproTract_mass>125, TRUE, FALSE),
+    Litter_size_endPara>=5
+  ) %>%
+  group_by(
+    comboTrt, proUterineMass, exclude
+  ) %>%
+  summarize(
+    n = n()
+  ) %>%
+  filter(
+    proUterineMass == TRUE
+  )
+
+plot <- cellInfo %>%
+  filter(
+    !is.na(comboTrt),
+    Litter_size_endPara>=5
+  )%>%
+  mutate(
+    proUterineMass = ifelse(ReproTract_mass>125, TRUE, FALSE)
+  ) %>%
+  filter(
+    exclude == FALSE
+  ) %>%
+  ggplot(
+    aes(x = comboTrt, fill = comboTrt, color = comboTrt)
+  ) + 
+  geom_bar()+
+  # facet_grid(rows=vars(proUterineMass), cols = vars(exclude), labeller = labeller(.rows=label_both, .cols = label_both)) + 
+  facet_wrap(~proUterineMass, nrow = 2, ncol = 1, labeller = labeller(proUterineMass = c("FALSE" = "cells from missed mice", "TRUE" = "cells from proestrous mice")), as.table = FALSE) +
+  boxTheme()+
+  textTheme(size = 22) +
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10)) +
+  comboTrtFillShape() +
+  labs(x = "")+
+  theme(legend.position = "none")
+
+plot 
+thisWidth = 5.25
+thisHeight = 6.5
+thisUnits = "in"
+
+fileBaseName = "cellNums_GABA_PSCs"
+
+flexSave(
+  baseName = fileBaseName,
+  plot = plot,
+  fileType = "png",
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+```
+
+```{r}
+plot <- AcuteStress_off %>%
+  filter(
+    cohort == 7,
+    !is.na(Sac_date),
+    Sac_cycle == "proestrus",
+    Litter_size_endPara>=5
+  ) %>%
+  plotUterineMassByGroup(hLineVal = 125, fontSize = 22, dotSize = 3) +
+  theme(
+    legend.position = "none"
+  )
+
+plot 
+thisWidth = 7.75
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "uterineMass_cohort7"
+
+flexSave(
+  baseName = fileBaseName,
+  plot = plot,
+  fileType = "png",
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+
+```{r}
+GABAPSCs <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs")
+
+GABAPSCs <- GABAPSCs %>%
+  makeFactors(cellID)
+
+GABAPSCs <- GABAPSCs %>%
+  left_join(
+    loadExcelSheet(dataFolder, LBN_DataName, "cellInfo") %>%
+      makeFactors(c(cellID, mouseID)),
+    by = "cellID"
+  ) %>% left_join(
+    AcuteStress_off,
+    by = "mouseID"
+  ) %>%
+  filter(
+    ReproTract_mass > 125,
+    Litter_size_endPara>=5
+  )
+```
+
+```{r}
+GABAPSCs %>%
+  anova_test(
+    dv = freq,
+    between = c(earlyLifeTrt, adultTrt),
+    type = 3
+  )
+GABAPSCs %>%
+  anova_test(
+    dv = Rinput,
+    between = c(earlyLifeTrt, adultTrt),
+    type = 3
+  )
+GABAPSCs %>%
+  anova_test(
+    dv = Rseries,
+    between = c(earlyLifeTrt, adultTrt),
+    type = 3
+  )
+GABAPSCs %>%
+  anova_test(
+    dv = Capacitance,
+    between = c(earlyLifeTrt, adultTrt),
+    type = 3
+  )
+GABAPSCs %>%
+  anova_test(
+    dv = HoldingCur,
+    between = c(earlyLifeTrt, adultTrt),
+    type = 3
+  )
+```
+
+
+```{r}
+plot <- GABAPSCs %>%
+  scatterPlotComboTrt(
+    yVar = freq,
+    yLab = "PSC frequency (Hz)",
+    dotSize = 3,
+    fontSize = 22,
+    addMeanSE = TRUE
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "STD-CON" = "STD\nCON", 
+      "STD-ALPS" = "STD\nALPS", 
+      "LBN-CON" = "LBN\nCON", 
+      "LBN-ALPS" = "LBN\nALPS"
+    )
+  )+ 
+  lims(y = c(0, 3.3))
+
+plot
+thisWidth = 6
+thisHeight = 4.02
+thisUnits = "in"
+
+fileBaseName = "GABA_PSCs"
+
+flexSave(
+  baseName = fileBaseName,
+  plot = plot,
+  fileType = "png",
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+plot <- GABAPSCs %>%
+  scatterPlotComboTrt(
+    yVar = Rinput,
+    yLab = "input resistance\n(MOhm)",
+    dotSize = 3,
+    fontSize = 16,
+    addMeanSE = TRUE
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "STD-CON" = "STD\nCON", 
+      "STD-ALPS" = "STD\nALPS", 
+      "LBN-CON" = "LBN\nCON", 
+      "LBN-ALPS" = "LBN\nALPS"
+    )
+  )
+
+plot
+thisWidth = 5
+thisHeight = 2.5
+thisUnits = "in"
+
+fileBaseName = "GABA_PSCs_Rinput"
+
+flexSave(
+  baseName = fileBaseName,
+  plot = plot,
+  fileType = "png",
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+```{r}
+plot <- GABAPSCs %>%
+  scatterPlotComboTrt(
+    yVar = Rseries,
+    yLab = "series resistance\n(MOhm)",
+    dotSize = 3,
+    fontSize = 16,
+    addMeanSE = TRUE
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "STD-CON" = "STD\nCON", 
+      "STD-ALPS" = "STD\nALPS", 
+      "LBN-CON" = "LBN\nCON", 
+      "LBN-ALPS" = "LBN\nALPS"
+    )
+  )
+
+plot
+thisWidth = 5
+thisHeight = 2.5
+thisUnits = "in"
+
+fileBaseName = "GABA_PSCs_Rseries"
+
+flexSave(
+  baseName = fileBaseName,
+  plot = plot,
+  fileType = "png",
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+plot <- GABAPSCs %>%
+  scatterPlotComboTrt(
+    yVar = Capacitance,
+    yLab = "capacitance\n(pF)",
+    dotSize = 3,
+    fontSize = 16,
+    addMeanSE = TRUE
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "STD-CON" = "STD\nCON", 
+      "STD-ALPS" = "STD\nALPS", 
+      "LBN-CON" = "LBN\nCON", 
+      "LBN-ALPS" = "LBN\nALPS"
+    )
+  )
+
+plot
+thisWidth = 5
+thisHeight = 2.5
+thisUnits = "in"
+
+fileBaseName = "GABA_PSCs_capa"
+
+flexSave(
+  baseName = fileBaseName,
+  plot = plot,
+  fileType = "png",
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+plot <- GABAPSCs %>%
+  scatterPlotComboTrt(
+    yVar = HoldingCur,
+    yLab = "holding current\n(pA)",
+    dotSize = 3,
+    fontSize = 16,
+    addMeanSE = TRUE
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "STD-CON" = "STD\nCON", 
+      "STD-ALPS" = "STD\nALPS", 
+      "LBN-CON" = "LBN\nCON", 
+      "LBN-ALPS" = "LBN\nALPS"
+    )
+  )
+
+plot
+thisWidth = 5
+thisHeight = 2.5
+thisUnits = "in"
+
+fileBaseName = "GABA_PSCs_holdingc"
+
+flexSave(
+  baseName = fileBaseName,
+  plot = plot,
+  fileType = "png",
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+df <- LBN_data %>%
+  filter(
+    cohort == 7 | cohort == 8,
+    sex == "F"
+  ) %>%
+  select(
+    mouseID,
+    damID,
+    earlyLifeTrt,
+    adultTrt,
+    ReproTract_mass
+  ) %>%
+  mutate(
+    hitPro = ifelse(ReproTract_mass > 125, TRUE, FALSE)
+  ) %>%
+  arrange(
+    mouseID
+  )
+
+saveDFsToExcel(
+  "GABA_PSC_mice_trt",
+  "df" = df
+)
+```
+
+Effect of adult treatment on body mass changes throughout the day
+```{r}
+bodyMassDiffs <- AcuteStress_off %>%
+  filter(
+    !is.na(Body_mass_sac) & !is.na(Body_mass_AM),
+    !is.na(comboTrt)
+  ) %>%
+  mutate(
+    massDiff = Body_mass_sac - Body_mass_AM,
+    .after = comboTrt
+  )
+
+bodyMassDiffViz <- bodyMassDiffs %>%
+  scatterPlotComboTrt(
+    yVar = massDiff,
+    yLab = "PM - AM body mass (g)",
+    fontSize = 16,
+    dotSize = 3
+  ) +
+  facet_wrap(
+    ~sex,
+    labeller = labeller(sex = c("M" = "males", "F" = "females"))
+  )
+
+bodyMassDiffViz
+
+flexSave(
+  "bodyMassDiff",
+  fileType =  "png",
+  width = 11
+)
+
+bodyMassDiffs %>%
+  anova_test(
+    dv = massDiff,
+    between = c(earlyLifeTrt, adultTrt)
+  ) %>%
+  formatAnova()
+
+bodyMassDiffs %>%
+  group_by(
+    sex, adultTrt
+  ) %>%
+  meanSummary(massDiff) %>%
+  select(-variable)
+```
+```{r}
+malesStress <- AcuteStress_off %>%
+  filter(
+    sex == "M",
+    Litter_size_endPara >= 5,
+    !is.na(adultTrt)
+  # ) %>%
+  # mutate(
+  #   Body_mass_AM = ifelse(!is.na(Body_mass_AM), Body_mass_AM, ifelse(adultTrt == "ALPS", Body_mass_sac + 2, Body_mass_sac + 0.4))
+  )
+
+malesStress %>%
+  scatterPlotComboTrt(
+    yVar = Body_mass_sac,
+    yLab = "body mass",
+    fontSize = 14,
+    dotSize = 3
+  )
+
+malesStress %>%
+  anova_test(
+    dv = Body_mass_sac,
+    between = c(earlyLifeTrt, adultTrt)
+  )
+malesStress %>%
+  scatterPlotComboTrt(
+    yVar = Body_mass_AM,
+    yLab = "body mass",
+    fontSize = 14,
+    dotSize = 3
+  )
+
+malesStress %>%
+  anova_test(
+    dv = Body_mass_AM,
+    between = c(earlyLifeTrt, adultTrt)
+  )
+
+
+```
+
+```{r}
+getMouseInfoForSlicingWidget(c(722:730, 801:804))
+```
+
+```{r}
+malesStress %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  meanSummary(
+    Gonad_mass
+  )
+
+(208.1-232.3)/(232.3)
+(203.1-216.714)/(216.714)
+```
+
+```{r}
+malesStress <-  malesStress %>%
+  mutate(
+    gonadMass_perAMmass = Gonad_mass / Body_mass_AM
+  )
+
+malesStress %>%
+  scatterPlotComboTrt(
+    yVar = gonadMass_perAMmass,
+    yLab = "gonad mass by AM body mass (mg/g)",
+    fontSize = 14,
+    dotSize = 3
+  )
+
+malesStress %>%
+  scatterPlotComboTrt(
+    yVar = Gonad_mass_perBody_g,
+    yLab = "gonad mass by PM body mass (mg/g)",
+    fontSize = 14,
+    dotSize = 3
+  )
+
+malesStress %>%
+  scatterPlotComboTrt(
+    yVar = Gonad_mass,
+    yLab = "gonad mass (mg)",
+    fontSize = 14,
+    dotSize = 3
+  )
+
+malesStress %>%
+  scatterPlotComboTrt(
+    yVar = Body_mass_AM,
+    yLab = "body mass AM (g)",
+    fontSize = 14,
+    dotSize = 3
+  )
+
+malesStress %>%
+  scatterPlotComboTrt(
+    yVar = Body_mass_sac,
+    yLab = "body mass PM (g)",
+    fontSize = 14,
+    dotSize = 3
+  )
+```
+```{r}
+malesStress %>%
+  calcOrganMassByBodyMass(
+    Gonad_mass,
+    Body_mass_AM,
+    "BodyAM_g"
+  )
+
+malesStress %>%
+  calcOrganMassByBodyMass_AM(
+    Gonad_mass
+  )
+```
+
+```{r}
+AcuteStress_off %>%
+  select(
+    mouseID, exclude_cort_hr0, exclude_cort_hr5
+  )
+```
+
+```{r}
+AcuteStress_off %>%
+  filter(
+    sex == "F",
+    cohort == 7
+  ) %>%
+  select(
+    Sac_date,
+    comboTrt
+  )
+```
+
+2022-04-19 - Get a list of the dam ids for litters with greater than or equal to 5 pups per litter, not from cohorts 1, 3, or 5, to use for dam video monitoring list
+```{r}
+damBehaveDates <- Demo_dam %>%
+  filter(
+    Litter_size >= 5
+    , cohort != 1
+    , cohort != 3
+    , cohort != 5
+    # , is.na(Num_entries_ZT0)
+  ) %>%
+  arrange(
+    cohort,
+    DOB
+  ) %>%
+  select(
+    damID
+    , cohort
+    , DOB
+  ) %>%
+  mutate(
+    P4_ZT9 = getZT_DateTime(DOB, PND = 4, ZT = 9)
+    , P4_ZT9_done = NA
+    , P4_ZT9_who = NA
+    , P4_ZT9_notes = NA
+    , P4_ZT14 = getZT_DateTime(DOB, PND = 4, ZT = 14)
+    , P4_ZT14_done = NA
+    , P4_ZT14_who = NA
+    , P4_ZT14_notes = NA
+    , P4_ZT19 = getZT_DateTime(DOB, PND = 4, ZT = 19)
+    , P4_ZT19_done = NA
+    , P4_ZT19_who = NA
+    , P4_ZT19_notes = NA
+    , P5_ZT0 = getZT_DateTime(DOB, PND = 5, ZT = 0)
+    , P5_ZT0_done = NA
+    , P5_ZT0_who = NA
+    , P5_ZT0_notes = NA
+    , P5_ZT9 = getZT_DateTime(DOB, PND = 5, ZT = 9)
+    , P5_ZT9_done = NA
+    , P5_ZT9_who = NA
+    , P5_ZT9_notes = NA
+    , P5_ZT14 = getZT_DateTime(DOB, PND = 5, ZT = 14)
+    , P5_ZT14_done = NA
+    , P5_ZT14_who = NA
+    , P5_ZT14_notes = NA
+    , P5_ZT19 = getZT_DateTime(DOB, PND = 5, ZT = 19)
+    , P5_ZT19_done = NA
+    , P5_ZT19_who = NA
+    , P5_ZT19_notes = NA
+    , P6_ZT0 = getZT_DateTime(DOB, PND = 6, ZT = 0)
+    , P6_ZT0_done = NA
+    , P6_ZT0_who = NA
+    , P6_ZT0_notes = NA
+  )
+
+damBehaveDates
+
+saveDFsToExcel(
+  "damBehaviorDates",
+  dates = damBehaveDates
+)
+``` 
+2022-04-24 - Get a list of the dam ids for litters with greater than or equal to 5 pups per litter, not from cohorts 1, 3, or 5, to use for dam video monitoring list
+```{r}
+damBehaveDates <- Demo_dam %>%
+  filter(
+    Litter_size >= 5
+    , cohort != 1
+    , cohort != 3
+    , cohort != 5
+    # , is.na(Num_entries_ZT0)
+  ) %>%
+  arrange(
+    cohort,
+    DOB
+  ) %>%
+  select(
+    damID
+    , cohort
+    , DOB
+  ) %>%
+  mutate(
+    P6_ZT4 = getZT_DateTime(DOB, PND = 6, ZT = 4)
+    , P6_ZT4_done = NA
+    , P6_ZT4_who = NA
+    , P6_ZT4_notes = NA
+    , P6_ZT5 = getZT_DateTime(DOB, PND = 6, ZT = 5)
+    , P6_ZT5_fullVideo = NA
+    , P6_ZT5_done = NA
+    , P6_ZT5_who = NA
+    , P6_ZT5_notes = NA
+  )
+
+damBehaveDates
+
+saveDFsToExcel(
+  "damBehaviorDates_P6AM",
+  dates = damBehaveDates
+)
+``` 
+2022-04-27 - Get a list of the dam ids for litters with greater than or equal to 5 pups per litter, not from cohorts 1, 3, or 5, to use for dam video monitoring list
+```{r}
+damBehaveDates <- Demo_dam %>%
+  filter(
+    Litter_size >= 5
+    , cohort != 1
+    , cohort != 3
+    , cohort != 5
+    # , is.na(Num_entries_ZT0)
+  ) %>%
+  arrange(
+    cohort,
+    DOB
+  ) %>%
+  select(
+    damID
+    , cohort
+    , DOB
+  ) %>%
+  mutate(
+    P5_ZT16 = getZT_DateTime(DOB, PND = 5, ZT = 16)
+    , P5_ZT16_done = NA
+    , P5_ZT16_who = NA
+    , P5_ZT16_notes = NA
+    , P5_ZT20 = getZT_DateTime(DOB, PND = 5, ZT = 20)
+    , P5_ZT20_done = NA
+    , P5_ZT20_who = NA
+    , P5_ZT20_notes = NA
+  )
+
+damBehaveDates
+
+saveDFsToExcel(
+  "damBehaviorDates_night",
+  dates = damBehaveDates
+)
+``` 
+
+
+```{r}
+test <- getZT_DateTime(
+  as_date("2021-04-15"),
+  PND = 4,
+  ZT = 9,
+  PND_byZT0 = TRUE
+)
+
+getZTDate(test)
+getZTHour(test)
+```
+
+```{r}
+get_year(as_date("2022-04-01"))
+myTime <- as_date_time(as_date("2022-03-13"), "America/New_York")
+zoned_time_parse_abbrev(myTime, "America/New_York")
+
+as.POSIXct(as_date("2022-03-13"), "America/New_York")
+
+
+x <- zoned_time_parse_complete("2019-01-01T00:00:00-05:00[America/New_York]")
+
+info <- sys_time_info(as_sys_time(x), zoned_time_zone(x))
+
+# Beginning of the current DST range
+as_zoned_time(info$begin, zoned_time_zone(x))
+#> <zoned_time<second><America/New_York>[1]>
+#> [1] "2018-11-04T01:00:00-05:00"
+
+# Beginning of the next DST range
+as_zoned_time(info$end, zoned_time_zone(x))
+#> <zoned_time<second><America/New_York>[1]>
+#> [1] "2019-03-10T03:00:00-04:00"
+```
+
+```{r}
+massLong <- Mass_off %>%
+  filter(
+    Litter_size >= 5
+    , cohort == 2 | cohort == 4 | cohort == 6 | cohort == 7 | cohort == 8
+  )  %>%
+  getAvgByDam(bySex = TRUE) %>%
+  makeOffMassLong()
+
+massLong_filtered <- massLong %>%
+  filter(
+    day == 11 | day == 21 | day == 35 | day == 70
+  )
+  
+massLong_filtered
+
+massLong_filtered %>%
+  anova_test(
+    dv = mass,
+    wid = damID,
+    between = c(earlyLifeTrt, litterNum),
+    within = c(sex, day)
+  )
+```
+
+
+```{r}
+massLong_indiv <- Mass_off %>%
+  filter(
+    Litter_size >= 5
+    , cohort == 2 | cohort == 4 | cohort == 6 | cohort == 7 | cohort == 8
+  )  %>%
+  makeOffMassLong()
+
+dat <- massLong_indiv %>%
+  mutate(
+    day11 = day - 11
+  )
+
+mod <- lmer(
+  mass ~ earlyLifeTrt + day11 + earlyLifeTrt:day11 + sex + litterNum + (1 | damID)
+  , data = massLong %>%
+    mutate(
+      day11 = day - 11
+    )
+  , subset = day <= 21
+)
+
+summary(mod)
+
+mod <- lmer(
+  mass ~ earlyLifeTrt + day11 + earlyLifeTrt:day11 + sex + litterNum + (1 | damID)
+  , data = massLong %>%
+    mutate(
+      day11 = day - 11
+    )
+  , subset = day > 21 & day <= 35
+)
+
+summary(mod)
+
+mod <- lmer(
+  mass ~ earlyLifeTrt + day11 + earlyLifeTrt:day11 + sex + litterNum + (1 | damID)
+  , data = massLong %>%
+    mutate(
+      day11 = day - 11
+    )
+  , subset = day > 35
+)
+
+summary(mod)
+
+
+mod <- lmer(
+  mass ~ earlyLifeTrt + day11 + earlyLifeTrt:day11 + sex + (1 | damID) + ((1 + day11) | mouseID)
+  , data = dat
+  , subset = day < 21)
+```
+
+
+# GABA PSCs - 2022-05-14
+```{r}
+GABApscs
+
+proCells <- GABApscs %>%
+  filter(
+    Sac_cycle == "proestrus"
+    , ReproTract_mass >= 125
+    , Litter_size >= 5
+    , !is.na(frequency)
+  ) 
+
+proCells %>%
+  countMiceAndLitters(
+    frequency,
+    exprs(earlyLifeTrt, adultTrt)
+  )
+
+proCells%>%
+  scatterPlotComboTrt(
+    yVar = frequency,
+    yLab = "frequency (Hz)",
+    fontSize = 16,
+    dotSize = 3
+  )
+proCells%>%
+  scatterPlotComboTrt(
+    yVar = relPeak,
+    yLab = "rel. amplitude (pA)",
+    fontSize = 16,
+    dotSize = 3
+  )
+proCells%>%
+  scatterPlotComboTrt(
+    yVar = interval,
+    yLab = "interval (s)",
+    fontSize = 16,
+    dotSize = 3
+  )
+proCells%>%
+  scatterPlotComboTrt(
+    yVar = derivative,
+    yLab = "derivative (pA/ms)",
+    fontSize = 16,
+    dotSize = 3
+  )
+proCells%>%
+  scatterPlotComboTrt(
+    yVar = riseTime,
+    yLab = "rise time (ms)",
+    fontSize = 16,
+    dotSize = 3
+  )
+proCells%>%
+  scatterPlotComboTrt(
+    yVar = fwhm,
+    yLab = "full with at half max. (ms)",
+    fontSize = 16,
+    dotSize = 3
+  )
+proCells%>%
+  scatterPlotComboTrt(
+    yVar = Rinput,
+    yLab = "input resistance (MOhm)",
+    fontSize = 16,
+    dotSize = 3
+  )
+proCells%>%
+  scatterPlotComboTrt(
+    yVar = Rseries,
+    yLab = "series resistance (MOhm)",
+    fontSize = 16,
+    dotSize = 3
+  )
+proCells%>%
+  scatterPlotComboTrt(
+    yVar = holdingCurrent,
+    yLab = "holding current (pA)",
+    fontSize = 16,
+    dotSize = 3
+  )
+proCells%>%
+  scatterPlotComboTrt(
+    yVar = capacitance,
+    yLab = "capacitance (pF)",
+    fontSize = 16,
+    dotSize = 3
+  )
+
+proCells %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = frequency
+    , yLab = "frequency (Hz)"
+    , xVar = recHr
+    , xLab = "hr since lights on"
+    , zoom_x = TRUE
+    , xmin = 13
+    , xmax = 18
+    , dotSize = 3
+  )
+
+proCells %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = frequency
+    , yLab = "frequency (Hz)"
+    , xVar = timeSinceSac
+    , xLab = "hr since sacrice"
+    , dotSize = 3
+  )
+
+proCells %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = frequency
+    , yLab = "frequency (Hz)"
+    , xVar = Rinput
+    , xLab = "input resistance (MOhm)"
+    , dotSize = 3
+  )
+
+GABApscs %>%
+  filter(
+    Litter_size >= 5
+    , !is.na(ReproTract_mass)
+    , !is.na(frequency)
+  ) %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = frequency
+    , yLab = "frequency (Hz)"
+    , xVar = ReproTract_mass
+    , xLab = "uterine mass (mg)"
+    , dotSize = 3
+  )
+
+# proCells %>%
+#   anova_test(
+#     dv = relPeak,
+#     between = c(earlyLifeTrt, adultTrt)
+#   )
 ```
 

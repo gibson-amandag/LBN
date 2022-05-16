@@ -7,54 +7,130 @@ cortPlot <- function(
   xmax = NULL,
   zoom_y = FALSE, #Zoom to a part of y axis
   ymin = NULL,
-  ymax = NULL
+  ymax = NULL,
+  plotMean = TRUE,
+  plotSE = TRUE,
+  xBreaks = c(0, 5),
+  xLabels = c("pre", "post"),
+  lineTypeGuide = c("dotted", "dotted", "solid", "solid"),
+  positionDodge = 1.2,
+  groupVar = comboTrt
 ){
-  ggplot(
+  viz <- ggplot(
     df_long,
     aes(
       x = time,
       y = cort,
-      group = comboTrt
+      group =  {{ groupVar }}
     )
   ) +
     geom_line(
       alpha = 0.4,
       # color = "black",
-      aes(group = mouseID, linetype = comboTrt, color = comboTrt),
-      position = position_dodge(1.2)
+      aes(group = mouseID, linetype =  {{ groupVar }}, color =  {{ groupVar }}),
+      position = position_dodge(positionDodge)
     ) +
     geom_point(
       # shape = 21, 
       alpha = 1, 
-      aes(fill=comboTrt,group=mouseID, shape=comboTrt, color=comboTrt), 
-      position = position_dodge(1.2), 
+      aes(fill= {{ groupVar }},group=mouseID, shape= {{ groupVar }}, color= {{ groupVar }}), 
+      position = position_dodge(positionDodge), 
       size = pointSize
     ) +
-    addMeanHorizontalBar(
-      width = 1.4, 
-      addLineType = TRUE,
-      lineTypeName = "treatment",
-      lineTypeGuide = c("dotted", "dotted", "solid", "solid"),
-      typeVar=comboTrt,
-      color=comboTrt
-      )+
-    addMeanSE_vertBar(color=comboTrt)+
-    comboTrtFillShape()+
     theme_pubr() +
     expand_limits(y = 0) +
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
-    rremove("xlab") +
+    # rremove("xlab") + ## seems like can't add back after if do this
     labs(
-      y = "corticosterone (ng/mL)"
+      y = "corticosterone (ng/mL)",
+      x = NULL
     ) +
     scale_x_continuous(
-      breaks = c(0, 5),
-      labels = c("pre", "post")
+      breaks = xBreaks, #c(0, 5),
+      labels = xLabels, #c("pre", "post")
     ) +
     textTheme(size = fontSize)+
     boxTheme()+
     guides()#linetype = "none")
+  
+  if(plotMean){
+    viz <- viz + addMeanHorizontalBar(
+      width = 1.4, 
+      addLineType = TRUE,
+      lineTypeName = "treatment",
+      lineTypeGuide = c("dotted", "dotted", "solid", "solid"),
+      typeVar= {{ groupVar }},
+      color= {{ groupVar }}
+    )
+  } else {
+    viz <- viz + labs(linetype = "treatment")
+  }
+  
+  if(plotSE){
+    viz <- viz + addMeanSE_vertBar(color= {{ groupVar }})
+  }
+  
+  if(deparse(substitute(groupVar)) == "comboTrt"){
+    viz <- viz + comboTrtFillShape()
+  } else {
+    viz <- viz + labs(color = "treatment", shape = "treatment", fill = "treatment")
+  }
+  return(viz)
 }
+
+testCort <- function(
+  df_long,
+  pointSize = 1.2,
+  fontSize = 11,
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL,
+  lineTypeGuide = c("dotted", "dotted", "solid", "solid"),
+  positionDodge = 1.2,
+  groupVar = comboTrt
+){
+  viz <- ggplot(
+    df_long,
+    aes(
+      x = time,
+      y = cort,
+      group = {{ groupVar }}
+    )
+  ) + 
+    geom_line(
+      alpha = 0.4,
+      aes(group = mouseID, linetype = {{groupVar}}, color = {{groupVar}}),
+      position = position_dodge(positionDodge)
+    ) +
+    geom_point(
+      # shape = 21, 
+      alpha = 1, 
+      aes(fill={{groupVar}},group=mouseID, shape={{groupVar}}, color={{groupVar}}), 
+      position = position_dodge(positionDodge), 
+      size = pointSize
+    ) +
+    addMeanHorizontalBar(
+      width = 1.4,
+      addLineType = FALSE,
+      lineTypeName = "treatment",
+      lineTypeGuide = lineTypeGuide,
+      typeVar={{ groupVar }},
+      color={{ groupVar }}
+    )+
+    addMeanSE_vertBar(color={{ groupVar }})+
+    theme_pubr() +
+    expand_limits(y = 0) +
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
+    rremove("xlab") +
+    textTheme(size = fontSize)+
+    boxTheme()+
+    guides()
+  return(viz)
+}
+
 baseCortPlot <- function(
   df_long,
   dotSize = 1.2
@@ -113,7 +189,8 @@ longCortPlot <- function(
 ){
   longPlot <- basePlot +
     facet_wrap(
-      ~ comboTrt,
+      # ~ comboTrt,
+      ~ earlyLifeTrt + adultTrt,
       strip.position = "bottom",
       ncol = 4,
       nrow = 1

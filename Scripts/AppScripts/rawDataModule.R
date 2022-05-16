@@ -25,8 +25,8 @@ rawDataUI <- function(
             selected = c(
               "Dam_ID", 
               "Treatment",
-              "Breed_date",
-              "Plug_date",
+              "breedDate",
+              "plugDate",
               "DOB"
             ),
             multiple = TRUE),
@@ -40,8 +40,8 @@ rawDataUI <- function(
             data = Dam_CRH,
             selected = c(
               "Dam_ID",
-              "Breed_date",
-              "Plug_date",
+              "breedDate",
+              "plugDate",
               "DOB"
             ),
             multiple = TRUE),

@@ -174,6 +174,23 @@ LBNCyclesServer <- function(
         thisCyclesDF7,
         compType
       )
+      cycleDir8 <- CohortCyclingFolder$cyclingFolderPath[which(CohortCyclingFolder$cohort == 8)]
+      thisCyclesDF8 <- Cycles_off %>%
+        filter(
+          cohort == 8
+        ) %>%
+        mutate(
+          cycleID = num_ID
+        )
+
+      cyclesServer(
+        paste0("cohort", 8),
+        cycleDir8,
+        damInfo,
+        offspringInfo,
+        thisCyclesDF8,
+        compType
+      )
     }
   )
 }

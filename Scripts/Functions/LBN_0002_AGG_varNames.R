@@ -34,9 +34,9 @@ LBN_varNames_func <- function(
   
   LBN_VarNames$Dam_Generation = "Dam Generation"
   LBN_VarNames$Dam_DOB = "Dam DOB"
-  LBN_VarNames$Breed_date = "Breed Date"
+  LBN_VarNames$breedDate = "Breed Date"
   LBN_VarNames$Sire = "Sire"
-  LBN_VarNames$Plug_date = "Plug Date"
+  LBN_VarNames$plugDate = "Plug Date"
   
   LBN_VarNames$DOB = "Date of Birth"
   LBN_VarNames$ParaType = "Paradigm Start Day"

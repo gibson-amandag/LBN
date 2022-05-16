@@ -7,8 +7,8 @@ damDatesFunc <- function(
   Dam_dates <- Demo_dam %>%
     select(
       Dam_ID,
-      Breed_date,
-      Plug_date,
+      breedDate,
+      plugDate,
       DOB,
       Sac_or_stop,
       ParaType
@@ -17,27 +17,27 @@ damDatesFunc <- function(
   Dam_dates <- Dam_dates %>%
     mutate(
       #plug check - true or false, based off of whether this is a plug date, DOB for litter, or sacrifice or stop marked
-      #when printing, will want to add a "is Day > breed_date"
+      #when printing, will want to add a "is Day > breedDate"
       plug_check = ifelse(
-        is.na(Plug_date) & is.na(DOB) & is.na(Sac_or_stop), 
+        is.na(plugDate) & is.na(DOB) & is.na(Sac_or_stop), 
         TRUE, 
         FALSE
       ),
       
       #Check for pregnancy of dam
-      mass_check = Breed_date + 12 - 1, #will use this only if mass_G12 is NA, meaning Plug_date hasn't occured
-      mass_G12 = Plug_date + 12 - 1,
+      mass_check = breedDate + 12 - 1, #will use this only if mass_G12 is NA, meaning plugDate hasn't occured
+      mass_G12 = plugDate + 12 - 1,
       
       #estimated birth dates
-      start_birth_check = Plug_date + 19 - 1,
-      est_birth_date = Plug_date + 21 - 1,
+      start_birth_check = plugDate + 19 - 1,
+      est_birth_date = plugDate + 21 - 1,
       
       #Mass of dam and pups on these days
       mass_startPara = ifelse(
         is.na(DOB), #if there isn't a DOB of the litter
         case_when(
-          ParaType == 2 ~ Plug_date + 21 - 1 + 2, #estimate based on plug date
-          ParaType == 4 ~ Plug_date + 21 - 1 + 4),
+          ParaType == 2 ~ plugDate + 21 - 1 + 2, #estimate based on plug date
+          ParaType == 4 ~ plugDate + 21 - 1 + 4),
         case_when(
           ParaType == 2 ~ DOB + 2, #if there is a DOB
           ParaType == 4 ~ DOB + 4
@@ -92,8 +92,8 @@ damDatesFunc <- function(
         ParaType == 4 ~ DOB + 11
       ),
       est_start_paradigm = case_when(
-        ParaType == 2 ~ Plug_date + 21 - 1 + 2,
-        ParaType == 4 ~ Plug_date + 21 - 1 + 4
+        ParaType == 2 ~ plugDate + 21 - 1 + 2,
+        ParaType == 4 ~ plugDate + 21 - 1 + 4
       ),
       end_recording = case_when(
         ParaType == 2 ~ DOB + 4,
@@ -125,8 +125,8 @@ damDatesFunc_litter1 <- function(
   Dam_dates <- Demo_dam %>%
     select(
       Dam_ID,
-      Breed_date,
-      Plug_date,
+      breedDate,
+      plugDate,
       DOB,
       Sac_or_stop,
       Pups_through_wean
@@ -135,20 +135,20 @@ damDatesFunc_litter1 <- function(
   Dam_dates <- Dam_dates %>%
     mutate(
       #plug check - true or false, based off of whether this is a plug date, DOB for litter, or sacrifice or stop marked
-      #when printing, will want to add a "is Day > breed_date"
+      #when printing, will want to add a "is Day > breedDate"
       plug_check = ifelse(
-        is.na(Plug_date) & is.na(DOB) & is.na(Sac_or_stop), 
+        is.na(plugDate) & is.na(DOB) & is.na(Sac_or_stop), 
         TRUE, 
         FALSE
       ),
       
       #Check for pregnancy of dam
-      mass_check = Breed_date + 12 - 1, #will use this only if mass_G12 is NA, meaning Plug_date hasn't occured
-      mass_G12 = Plug_date + 12 - 1,
+      mass_check = breedDate + 12 - 1, #will use this only if mass_G12 is NA, meaning plugDate hasn't occured
+      mass_G12 = plugDate + 12 - 1,
       
       #estimated birth dates
-      start_birth_check = Plug_date + 19 - 1,
-      est_birth_date = Plug_date + 21 - 1,
+      start_birth_check = plugDate + 19 - 1,
+      est_birth_date = plugDate + 21 - 1,
       
       #Mass of Dam
       mass_P21 = ifelse(
@@ -169,28 +169,28 @@ damDatesFunc_CRH <- function(
   Dam_dates <- Demo_dam %>%
     select(
       Dam_ID,
-      Breed_date,
-      Plug_date,
+      breedDate,
+      plugDate,
       DOB
     )
   
   Dam_dates <- Dam_dates %>%
     mutate(
       #plug check - true or false, based off of whether this is a plug date, DOB for litter, or sacrifice or stop marked
-      #when printing, will want to add a "is Day > breed_date"
+      #when printing, will want to add a "is Day > breedDate"
       plug_check = ifelse(
-        is.na(Plug_date) & is.na(DOB), 
+        is.na(plugDate) & is.na(DOB), 
         TRUE, 
         FALSE
       ),
       
       #Check for pregnancy of dam
-      mass_check = Breed_date + 12 - 1, #will use this only if mass_G12 is NA, meaning Plug_date hasn't occured
-      mass_G12 = Plug_date + 12 - 1,
+      mass_check = breedDate + 12 - 1, #will use this only if mass_G12 is NA, meaning plugDate hasn't occured
+      mass_G12 = plugDate + 12 - 1,
       
       #estimated birth dates
-      start_birth_check = Plug_date + 19 - 1,
-      est_birth_date = Plug_date + 21 - 1,
+      start_birth_check = plugDate + 19 - 1,
+      est_birth_date = plugDate + 21 - 1,
       
       #Mass of Dam
       mass_P21 = DOB + 21
@@ -465,7 +465,7 @@ Dam_day_equals <- function(Day, var, val, df = Dam_dates){
   Day == df[[var]][val]
 }
 
-# Dam_day_equals("2020-11-30", "Breed_date", 1)
+# Dam_day_equals("2020-11-30", "breedDate", 1)
 
 #Check if Day is greater than or equal to the date of a variable
 Dam_day_greater <- function(Day, var, val, df = Dam_dates){
@@ -480,7 +480,7 @@ Dam_not.na <- function(var, val, df = Dam_dates){
   !is.na(df[[var]][val])
 }
 
-# Dam_not.na("Breed_date", 1)
+# Dam_not.na("breedDate", 1)
 # Dam_not.na("Sac_or_stop", 1)
 
 #Check that the variable for this mouse is na

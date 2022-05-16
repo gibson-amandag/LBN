@@ -107,6 +107,10 @@ ui <- navbarPage(
             tabPanel("Offspring Cycles",
                      LBNCyclesUI("cycles", Cycles_off_all)
             ), #End cycles tabPanel
+            ### GABA PSCs ----
+            tabPanel("GABA PSCs",
+                     GABApscsUI("GABApscs", GABApscs)
+            ), #End GABA PSCs
             tabPanel(
                 "Sampling PPTs",
                 samplingPPTsUI("samplingPPTs")
@@ -219,6 +223,17 @@ server <- function(input, output) {
                       Demo_dam, 
                       niceNames,
                       currentCompType)
+    GABApscsServer(
+        "GABApscs",
+        GABApscs,
+        AcuteStress_off,
+        LH_off,
+        Cort_off,
+        Demo_dam,
+        niceNames,
+        currentCompType
+    )
+    
     LBNCyclesServer("cycles",
                     damInfo = Demo_dam,
                     offspringInfo = Demo_off,

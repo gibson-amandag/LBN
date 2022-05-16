@@ -31,9 +31,17 @@ ChronicStress_off <- loadExcelSheet(dataFolder, LBN_DataName, "ChronicStress_off
 CRH_dam <- loadExcelSheet(dataFolder, LBN_DataName, "CRH_dam")
 behavior_ZT0 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT0")
 behavior_ZT14 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT14")
+behavior_ZT16 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_P5_ZT16")
 behavior_ZT19 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT19")
+behavior_ZT9 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT9")
+behavior_ZT4 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_P6_ZT4")
 niceNames <- loadExcelSheet(dataFolder, LBN_DataName, "plotLabels")
 
+
+slicingInfo <- loadExcelSheet(dataFolder, LBN_DataName, "Slicing_off")
+GABApscs <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs")
+cellInfo <- loadExcelSheet(dataFolder, LBN_DataName, "cellInfo")
+cellExclusion <- loadExcelSheet(dataFolder, LBN_DataName, "cellExclusion")
 
 # FORMAT DATASETS ---------------------------------------------------------
 
@@ -106,20 +114,38 @@ Sacrifice_off <- Sacrifice_off %>%
   orderAdultTrt() %>%
   makeFactors(c(mouseID, adultTrt)) %>%
   calcOrganMassByBodyMass(ReproTract_mass) %>%
+  calcOrganMassByBodyMass_AM(ReproTract_mass) %>%
   calcOrganMassByBodyMass(Gonad_mass) %>%
-  calcOrganMassByBodyMass(Adrenal_mass)
+  calcOrganMassByBodyMass_AM(Gonad_mass) %>%
+  calcOrganMassByBodyMass(Adrenal_mass) %>%
+  calcOrganMassByBodyMass_AM(Adrenal_mass) %>%
+  mutate(
+    bodyMass_diff = Body_mass_sac - Body_mass_AM
+  )
 ChronicStress_off <- makeFactors(ChronicStress_off, mouseID)
 CRH_dam <- makeFactors(CRH_dam, c(damID,dam))
 behavior_ZT0 <- makeFactors(behavior_ZT0, damID)
 behavior_ZT14 <- makeFactors(behavior_ZT14, damID)
+behavior_ZT16 <- makeFactors(behavior_ZT16, damID)
+behavior_ZT19 <- makeFactors(behavior_ZT19, damID)
+behavior_ZT9 <- makeFactors(behavior_ZT9, damID)
+behavior_ZT4 <- makeFactors(behavior_ZT4, damID)
 Cort_off <- makeFactors(Cort_off, mouseID)
 LH_code <- makeFactors(LH_code, c(sampleID, mouseID))
 LH_off <- makeFactors(LH_off, c(sampleID))
 
+slicingInfo <- makeFactors(slicingInfo, c(mouseID))
+cellInfo <- makeFactors(cellInfo, c(mouseID, cellID))
+cellExclusion <- makeFactors(cellExclusion, c(cellID))
+GABApscs <- makeFactors(GABApscs, c(cellID))
+
 behaviorDFs <- list(
-  behavior_ZT0,
-  behavior_ZT14,
-  behavior_ZT19
+  behavior_ZT9
+  , behavior_ZT14
+  , behavior_ZT16
+  , behavior_ZT19
+  , behavior_ZT0
+  , behavior_ZT4
 )
 
 CohortCyclingFolder <- CohortCyclingFolder %>%
@@ -164,13 +190,10 @@ Demo_dam <- Demo_dam %>%
 
 
 # CORT AND LH -------------------------------------------------------------
-# Remove the duplicates before doing anything else
 Cort_off <- Cort_off %>%
   filter(
-    is.na(removeDup) | ! removeDup
-  )
-
-Cort_off <- Cort_off %>%
+    is.na(removeDup) | !removeDup
+  )%>%
   mutate(
     exclude = ifelse(is.na(exclude), FALSE, TRUE)
   )
@@ -260,6 +283,39 @@ LH_off <- LH_off %>%
     by = "mouseID"
   )
 
+
+# GABA PSCs ---------------------------------------------------------------
+
+GABApscs <- GABApscs %>%
+  select(-group) %>%
+  left_join(
+    cellExclusion %>%
+      select(
+        cellID, incCell, exclude
+      )
+    , by = "cellID"
+  ) %>%
+  left_join(
+    cellInfo,
+    by = "cellID"
+  ) %>%
+  left_join(
+    slicingInfo,
+    by = "mouseID"
+  ) %>%
+  mutate(
+    timeHr = ifelse(!is.na(time), time * 24, NA),
+    .after = time
+  ) %>%
+  mutate(
+    recHr = ifelse(Daylight_Savings == "Y", timeHr - 4, timeHr - 3), # hours since lights on
+    timeSinceSac = recHr - Sac_hr,
+    .after = timeHr
+  ) %>%
+  select(
+    -time, timeHr
+  )
+
 # COMBINE ALL DFS INTO ONE ------------------------------------------------
 
 LBN_all <- Demo_off %>%
@@ -295,7 +351,7 @@ Demo_dam_for_offspring <- Demo_dam %>%
     sire, 
     Litter_size_startPara, 
     Litter_size_endPara,
-    Duration_ZT0:Avg_dur_on_nest_ZT14
+    Duration_ZT9:Avg_dur_on_nest_ZT4
   )
 
 # Update offspring demographics
@@ -358,6 +414,12 @@ AcuteStress_off <- AcuteStress_off %>%
   combineStress() %>% # combined stress label
   calcAgeInDays()
 
+GABApscs <- GABApscs %>%
+  left_join(
+    AcuteStress_off,
+    by = "mouseID"
+  )
+
 ChronicStress_off <- ChronicStress_off %>%
   addOffspringDemoData()
 
@@ -400,20 +462,26 @@ LBN_data <- LBN_data %>%
     by = "mouseID"
   )
 
+# something's causing a problem here. Didn't change anything. Don't get it. 2022-03-07
+
 # Filter out extra second litter males -------
 AcuteStress_males_2ndLitter <-  AcuteStress_off %>%
+  # mutate(
+  #   exclude_cort_hr0 = as_logical(exclude_cort_hr0),
+  #   exclude_cort_hr5 = as_logical(exclude_cort_hr5)
+  # )%>%
   filter(
     litterNum == 2,
     sex == "M",
     !(is.na(cort_hr0) | is.na(cort_hr5)),
-    !(exclude_cort_hr5 | exclude_cort_hr5)
+    !(exclude_cort_hr0 | exclude_cort_hr5)
   ) %>%
   arrange(
     num_ID
   )
 
 #Randomize the LBN-CON mice
-AcuteStress_males_2ndLitter_LBN_CON <- AcuteStress_males_2ndLitter %>% 
+AcuteStress_males_2ndLitter_LBN_CON <- AcuteStress_males_2ndLitter %>%
   filter(comboTrt == "LBN-CON")
 LBN_CON_rows <- sample(nrow(AcuteStress_males_2ndLitter_LBN_CON))
 #Keep the first 7
@@ -427,7 +495,7 @@ AcuteStress_males_2ndLitter_LBN_CON_keep <- AcuteStress_males_2ndLitter_LBN_CON[
 
 #Randomize the LBN-ALPS mice
 set.seed(42)
-AcuteStress_males_2ndLitter_LBN_ALPS <- AcuteStress_males_2ndLitter %>% 
+AcuteStress_males_2ndLitter_LBN_ALPS <- AcuteStress_males_2ndLitter %>%
   filter(comboTrt == "LBN-ALPS")
 LBN_ALPS_rows <- sample(nrow(AcuteStress_males_2ndLitter_LBN_ALPS))
 #Keep the first 7
@@ -442,7 +510,7 @@ AcuteStress_males_2ndLitter_LBN_ALPS_keep <- AcuteStress_males_2ndLitter_LBN_ALP
 AcuteStress_males_2ndLitter_LBN_ALPS_keep
 
 #Keep all STD males
-AcuteStress_males_2ndLitter_STD <- AcuteStress_males_2ndLitter %>% 
+AcuteStress_males_2ndLitter_STD <- AcuteStress_males_2ndLitter %>%
   filter(earlyLifeTrt == "STD")
 STD_rows <- sample(nrow(AcuteStress_males_2ndLitter_STD))
 AcuteStress_males_2ndLitter_STD_keep <- AcuteStress_males_2ndLitter_STD[STD_rows, ] %>%
@@ -459,14 +527,14 @@ keepMales_mouseID <- bind_rows(
 AcuteStress_off <- AcuteStress_off %>%
   mutate(
     includeMaleCort = ifelse(
-      sex == "F", 
-      NA, 
+      sex == "F",
+      NA,
       ifelse(
         litterNum == 1,
         TRUE,
         ifelse(
-          mouseID %in% keepMales_mouseID$mouseID, 
-          TRUE, 
+          mouseID %in% keepMales_mouseID$mouseID,
+          TRUE,
           FALSE
         )
       )

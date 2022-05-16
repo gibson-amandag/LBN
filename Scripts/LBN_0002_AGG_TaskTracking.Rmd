@@ -72,7 +72,7 @@ LBN_varNames
 ## Variable names
 # "LBN_varNames_func" takes the full dataset and creates a new dataframe in which the column names match the LBN dataset and the cell contents are a string with nicer variable names to add to plots.
 Dam_dates <- damDatesFunc(Demo_dam %>%
-                            filter(Breed_date > filterDateForTaskDFs))
+                            filter(breedDate > filterDateForTaskDFs))
 Off_dates <- offDatesFunc(LBN_data %>%
                             filter(DOB > filterDateForTaskDFs))
 ```
@@ -100,7 +100,7 @@ for(day in days){
   
   #Set up breeding
   for(val in Dam_seq()){
-      if(Dam_day_equals(Day, "Breed_date", val)){
+      if(Dam_day_equals(Day, "breedDate", val)){
         printCat <- Dam_tasks_app(paste0("Set up ", blueText("breeding cages"), " for the following dams"), val, printCat)
       }
   }
@@ -110,7 +110,7 @@ for(day in days){
   #Plug check
   for(val in Dam_seq()){
     if(Dam_dates$plug_check[val] == TRUE & 
-       Dam_day_greater(Day, "Breed_date", val)){
+       Dam_day_greater(Day, "breedDate", val)){
       printCat <- Dam_tasks_app(paste0("Check for ", blueText("plugs"), " from the following mice"), val, printCat)
     }
   }
