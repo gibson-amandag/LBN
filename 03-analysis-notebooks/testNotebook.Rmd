@@ -4990,3 +4990,208 @@ GABApscs %>%
 #   )
 ```
 
+```{r}
+testCaseFunc <- function(orgText){
+  case_when(
+    orgText == "a" ~ "you entered a",
+    TRUE ~ as.character(orgText)
+  )
+}
+
+wrapFunc <- function(orgText, caseFunc){
+  caseFunc(orgText)
+}
+
+wrapFunc("a", testCaseFunc)
+
+df <- niceNames %>%
+  select(
+    ParaType
+  )
+
+text <- df[[1]]
+paste("the label is", text)
+
+```
+
+```{r}
+dam_behavior_filtered <- dam_behavior %>%
+  filter(
+    Litter_size_startPara >= 5
+    , time != 9
+    # , time != 19
+  ) %>%
+  mutate(
+    firstDay = ifelse(
+      damID == "D015", 
+      FALSE, 
+      ifelse(
+        (cohort == 2 | cohort == 4 | cohort == 6), 
+        TRUE, 
+        ifelse(
+          damID == "D051-01",
+          TRUE,
+          FALSE
+        )
+      )
+    )
+  )
+```
+
+```{r}
+behaviorOverTime <- dam_behavior_filtered %>%
+  mutate(
+    minOnNest = Time_on_nest / 60
+  )%>%
+  behavior_overTime(
+    yVar = minOnNest,
+    yLab = "time on nest (min)",
+    fontSize = 12,
+    dotSize = 3,
+    dotSize_byFirstDay = FALSE,
+    # timeBreaks = c(14, 16, 19, 0, 4),
+    # timeLabels = c("ZT14", "ZT16", "ZT19", "ZT0", "ZT4"),
+    # timeBreaks = c(14, 16, 20, 0, 4),
+    # timeLabels = c("ZT14", "ZT16", "ZT20", "ZT0", "ZT4"),
+    timeBreaks = c(14, 16, 19, 20, 0, 4),
+    timeLabels = c("ZT14", "ZT16", "ZT19", "ZT20", "ZT0", "ZT4"),
+    lineSize = 0.75
+  )
+plot <- behaviorOverTime +
+  facet_wrap(
+    ~litterNum + earlyLifeTrt,
+    ncol = 4,
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )+
+  theme(
+    legend.position = "bottom"
+    # , axis.title.x = element_blank()
+  ) +
+  guides(
+    fill = "none"
+    , linetype = "none"
+  )+
+  labs(
+    shape = "start on P5"
+    ,x = "ZT hour"
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "ZT14" = "14\nlights off"
+      , "ZT16" = "16"
+      , "ZT19" = "19"
+      , "ZT20" = "20"
+      , "ZT0" = "0\nlights on"
+      , "ZT4" = "4"
+    )
+  ) +
+  # labs(x = "ZT hour") +
+  expand_limits(y = 70)
+
+plot
+```
+```{r}
+damBehaviorAnova <- dam_behavior_filtered %>%
+  mutate(
+    minOnNest = Time_on_nest / 60
+  )%>%
+  anova_test(
+    dv = minOnNest,
+    wid = damID,
+    between = c(earlyLifeTrt, litterNum),
+    within = time
+  ) 
+
+damBehaviorAnova$ANOVA%>%
+  myDisplay()
+
+dam_behavior_filtered %>%
+  group_by(
+    time
+  ) %>%
+  mutate(
+    minOnNest = Time_on_nest / 60
+  )%>%
+  anova_test(
+    dv = minOnNest,
+    between = c(earlyLifeTrt)
+  ) %>%
+  adjust_pvalue(method = "bonferroni")
+```
+
+2022-05-19 - ZT12 times and dates
+```{r}
+damBehaveDates <- Demo_dam %>%
+  filter(
+    Litter_size >= 5
+    , cohort != 1
+    , cohort != 3
+    , cohort != 5
+    # , is.na(Num_entries_ZT0)
+  ) %>%
+  arrange(
+    cohort,
+    DOB
+  ) %>%
+  select(
+    damID
+    , cohort
+    , DOB
+  ) %>%
+  mutate(
+    P5_ZT16 = getZT_DateTime(DOB, PND = 5, ZT = 12)
+    , P5_ZT16_done = NA
+    , P5_ZT16_who = NA
+    , P5_ZT16_notes = NA
+  )
+
+damBehaveDates
+
+saveDFsToExcel(
+  "damBehaviorDates_ZT12",
+  dates = damBehaveDates
+)
+```
+
+```{r}
+cohort7_8_forCort <- AcuteStress_off %>%
+  filter(
+    cohort == 7 | cohort == 8,
+    is.na(cort_hr0),
+    !is.na(Sac_date),
+    mouseID != 721
+  ) %>%
+  select(
+    mouseID
+    , sex
+  ) %>%
+  arrange(
+    mouseID
+  )
+
+set.seed(42)
+rows <- sample(nrow(cohort7_8_forCort))
+cohort7_8_forCort_IDs <- cohort7_8_forCort[rows, ] %>%
+  mutate(
+    plateOrder = row_number()
+  )
+
+cohort7_8_forCort <- cohort7_8_forCort %>%
+  left_join(
+    cohort7_8_forCort_IDs
+    , by = c("mouseID", "sex")
+  ) %>%
+  arrange(
+    plateOrder
+  )
+cohort7_8_forCort
+
+saveDFsToExcel(
+  "cortPlateOrder"
+  , "AGG_LBN"
+  , cohort7_8_forCort = cohort7_8_forCort
+)
+```
+
