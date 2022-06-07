@@ -259,6 +259,7 @@ The 10 mg/kg mice ate some but did not always finish their Nutella. Even so, con
 
 This suggests that 3 mg/kg should be the maximal considered dosage, but may still cause an initial peak that is higher than desired, though elevated serum corticosterone can be maintained for 2h following repeated administration
 
+
 # Pilot 3 - single administration, single post sample
 
 ```{r}
@@ -354,5 +355,557 @@ Serum corticosterone for both the 0.5 and 1 mg/kg groups ranged from about 100-2
 Investigate 2 mg/kg with administration at 0h, 1h, and 3h to determine if it produces a more appropriate peak at 1h while still maintaining elevated corticsterone levels with 2h between administrations
 
 
+# Pilot 4 and 5 - repeated administration; 2mg/kg
+
+```{r}
+BD_sacrifice <- loadExcelSheet_fromFile(BD_filePath, "SamplingInfo4") %>%
+  makeFactors("mouseID")
+BD_sacrifice <- BD_sacrifice %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+```
+
+12 mice were included in this study
+- 6 vehicle (0 mg/kg)
+- 6 2 mg/kg 
+
+Mice were administered a bolus of corticosterone (or vehicle) in Nutella following the first tail blood sample at time 0h (~9:30a EST). Additional tail blood samples were collected at 0.5h, 1h, 3h, and 5h. Additional administrations of corticosterone were provided at 1h and 3hr, following tail blood samples at these times.
+
+```{r}
+BD_cortOff_file <- loadExcelSheet_fromFile(BD_filePath, "Cort4")
+BD_cortOff <- makeFactors(BD_cortOff_file, "mouseID")
+BD_cortOff<- BD_cortOff %>% 
+  left_join(
+    BD_sacrifice,
+    by = "mouseID"
+  )
+
+BD_cortOff <- BD_cortOff %>% makeFactors(c("adultTrt", "dosage"))
+BD_cortOff <- BD_cortOff  %>%
+  # mutate(ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella" ))
+  mutate(ateAllNutella = NA)
+BD_cortOff %>%
+  select(
+    mouseID, time, dosage, cort, ateAllNutella
+  ) %>%
+  arrange(
+    dosage, mouseID, time
+  ) %>%
+  myDisplay()
+
+BD_cortOff %>%
+  group_by(
+    dosage, time
+  ) %>%
+  meanSummary(
+    cort
+  )  %>%
+  flextable()
+```
+
+### Pilot 4
+
+```{r, fig.width=11}
+nutellaCortPlot <- BD_cortOff %>%
+  filter(
+    Sac_date != as_date("2022-05-27")
+  ) %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 20,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = dosage, # group by the dosage; this is why it needs to be a factor
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 1000,
+    ymin = 0
+  ) +
+  # facet_wrap(
+  #   ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  # ) +
+  labs(
+    x = "time since 1st administration (h)" # add a title to the x axis
+  ) + 
+  theme(
+    legend.position = "bottom"
+  )
+
+nutellaCortPlot
+```
+
+```{r}
+flexSave(
+  "pilot4",
+  # "pilot4_half",
+  thisFilePrefix = BD_filePrefix,
+  plot = nutellaCortPlot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  # width = 5.33,
+  # height = 6.07,
+  width = BD_width,
+  height = BD_height,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+The vehicle control mice in this study had slighly more elevated than in some of the previous pilot. Mouse 13, which ends sampling at 3h, was behaviorally excessively jumpy at the 3h time point, and was not sampled again at 5h. She had a cort level of over 200ng/mL at 1h. Mouse 18 was above 200ng/mL at the end of the day. In my ALPS data set, there are a few mice that are this high, though they're at the high end of the groups, and the mean is around 100ng/mL.
+
+One of the 2mg/kg mice, mouse 17, did not eat all of the Nutella at the 1h time point, but the serum sample for the 3h time point for this mouse was not usable, so I do not know how this impacted the cort levels. This mouse was only at a cort level of about 200ng/mL at 5h. 
+
+Compared to the data in Beth's paper, where the cort values at 1h are around 200ng/mL and at 3hr are 300ng/mL, the values here are a bit high at 1hr and low at 3h
 
 
+
+
+
+### Pilot 5
+
+```{r, fig.width=11}
+nutellaCortPlot <- BD_cortOff %>%
+  filter(
+    Sac_date == as_date("2022-05-27")
+  ) %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 20,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = dosage, # group by the dosage; this is why it needs to be a factor
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 1000,
+    ymin = 0
+  ) +
+  # facet_wrap(
+  #   ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  # ) +
+  labs(
+    x = "time since 1st administration (h)" # add a title to the x axis
+  ) + 
+  theme(
+    legend.position = "top"
+  )
+
+nutellaCortPlot
+```
+
+```{r}
+flexSave(
+  "pilot5",
+  thisFilePrefix = BD_filePrefix,
+  plot = nutellaCortPlot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  # width = 5.33,
+  # height = 6.07,
+  width = BD_width,
+  height = BD_height,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+
+
+
+
+# Pilot 6 - Repeated Sampling During ALPS
+
+```{r}
+BD_sacrifice <- loadExcelSheet_fromFile(BD_filePath, "SamplingInfoALPS") %>%
+  makeFactors("mouseID")
+BD_sacrifice <- BD_sacrifice %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+```
+
+5 mice were included in this study
+All received ALPS paradigm
+
+
+```{r}
+BD_cortOff_file <- loadExcelSheet_fromFile(BD_filePath, "CortALPS")
+BD_cortOff <- makeFactors(BD_cortOff_file, "mouseID")
+BD_cortOff<- BD_cortOff %>% 
+  left_join(
+    BD_sacrifice,
+    by = "mouseID"
+  )
+
+BD_cortOff <- BD_cortOff %>% makeFactors(c("adultTrt"))
+BD_cortOff <- BD_cortOff  %>%
+  # mutate(ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella" ))
+  mutate(ateAllNutella = NA)
+BD_cortOff %>%
+  select(
+    mouseID, time, cort, ateAllNutella
+  ) %>%
+  arrange(
+    mouseID, time
+  ) %>%
+  myDisplay()
+
+BD_cortOff %>%
+  group_by(
+    time
+  ) %>%
+  meanSummary(
+    cort
+  )  %>%
+  flextable()
+```
+
+```{r, fig.width=11}
+nutellaCortPlot <- BD_cortOff %>%
+  filter(
+    # Sac_date == as_date("2022-05-27")
+  ) %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 20,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = adultTrt, # group by the dosage; this is why it needs to be a factor
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 1000,
+    ymin = 0
+  ) +
+  # facet_wrap(
+  #   ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  # ) +
+  labs(
+    x = "time since 1st administration (h)" # add a title to the x axis
+  ) + 
+  theme(
+    legend.position = "bottom"
+  )
+
+nutellaCortPlot
+```
+The vehicle control mice in this study had slighly more elevated than in some of the previous pilot. Mouse 13, which ends sampling at 3h, was behaviorally excessively jumpy at the 3h time point, and was not sampled again at 5h. She had a cort level of over 200ng/mL at 1h. Mouse 18 was above 200ng/mL at the end of the day. In my ALPS data set, there are a few mice that are this high, though they're at the high end of the groups, and the mean is around 100ng/mL.
+
+One of the 2mg/kg mice, mouse 17, did not eat all of the Nutella at the 1h time point, but the serum sample for the 3h time point for this mouse was not usable, so I do not know how this impacted the cort levels. This mouse was only at a cort level of about 200ng/mL at 5h. 
+
+Compared to the data in Beth's paper, where the cort values at 1h are around 200ng/mL and at 3hr are 300ng/mL, the values here are a bit high at 1hr and low at 3h
+
+```{r}
+flexSave(
+  "pilotALPS",
+  thisFilePrefix = BD_filePrefix,
+  plot = nutellaCortPlot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  # width = 5.33,
+  # height = 6.07,
+  width = BD_width,
+  height = BD_height,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+flexSave(
+  "pilotALPS_half",
+  thisFilePrefix = BD_filePrefix,
+  plot = nutellaCortPlot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  width = 5.33,
+  height = 6.07,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+# Combined plot - 2mg/kg and ALPS
+
+```{r}
+BD_sacrifice_2mgkg <- loadExcelSheet_fromFile(BD_filePath, "SamplingInfo4") %>%
+  makeFactors(c("mouseID", "Sac_cycle", "dosage"))
+BD_sacrifice_ALPS <- loadExcelSheet_fromFile(BD_filePath, "SamplingInfoALPS") %>%
+  mutate(
+    dosage = "ALPS"
+  ) %>%
+  makeFactors(c("mouseID", "Sac_cycle", "dosage"))
+
+BD_sacrifice <- BD_sacrifice_2mgkg %>%
+  bind_rows(
+    BD_sacrifice_ALPS
+  )%>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+```
+
+11 mice were included in this study
+- 6 vehicle (0 mg/kg 20% DMSO in Nutella)
+- 6 2mg/kg corticosterone in 20% DMSO in Nutella
+- 5 acute, layered, psychosocial stress (ALPS) mice
+
+Mice with Nutella feeding were administered a bolus of corticosterone (or vehicle) in Nutella following the first tail blood sample at time 0h (~9:30a EST). Additional tail blood samples were collected at 0.5h, 1h, 2h, 3h, 4h and 5h. Additional administrations of corticosterone were provided at 1h and 3hr, following tail blood samples at these times.
+
+Mice with ALPS treatment were sampled at time 0h (~9:30a EST), and then transferred to a new cage and moved to a new room. Additional samples were taken at 0.5h and 1h. Then, after the 1h sample, the mice were placed in a restraint tube. Another sample was taken at 3h (mice were removed from the tubes), then mice were returned to the restraint tubes and exposed to a predator odor. The final sample was taken at 5h.
+
+```{r}
+BD_cortOff_file <- loadExcelSheet_fromFile(BD_filePath, "Cort4")
+BD_cortOff_2mgkg <- makeFactors(BD_cortOff_file, "mouseID")
+BD_cortOff_2mgkg<- BD_cortOff_2mgkg %>% 
+  left_join(
+    BD_sacrifice,
+    by = "mouseID"
+  )
+BD_cortOff_file <- loadExcelSheet_fromFile(BD_filePath, "CortALPS")
+BD_cortOff_ALPS <- makeFactors(BD_cortOff_file, "mouseID")
+BD_cortOff_ALPS<- BD_cortOff_ALPS %>% 
+  left_join(
+    BD_sacrifice,
+    by = "mouseID"
+  )
+
+BD_cortOff <- BD_cortOff_2mgkg %>% 
+  bind_rows(
+    BD_cortOff_ALPS
+  ) %>%
+  makeFactors(c("adultTrt", "dosage"))
+BD_cortOff <- BD_cortOff  %>%
+  # mutate(ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella" ))
+  mutate(ateAllNutella = NA)
+BD_cortOff %>%
+  select(
+    mouseID, time, dosage, cort, ateAllNutella
+  ) %>%
+  arrange(
+    dosage, mouseID, time
+  ) %>%
+  myDisplay()
+
+BD_cortOff %>%
+  group_by(
+    dosage, time
+  ) %>%
+  meanSummary(
+    cort
+  )  %>%
+  flextable()
+```
+```{r}
+fillShapeColor_2mgKg_ALPS <- function(){
+  layers <-  list(
+    scale_shape_manual(
+      "treatment",
+      values = c(
+        "0" = 21
+        , "2" = 22
+        , "ALPS" = 23
+      ),
+      labels = c("0" = "0mg/kg", "2" = "2mg/kg", "ALPS" = "ALPS")
+    ),
+    scale_fill_manual(
+      "treatment",
+      values = c(
+        "0" = "white"
+        , "2" = "black"
+        , "ALPS" = "grey70"
+      ),
+      labels = c("0" = "0mg/kg", "2" = "2mg/kg", "ALPS" = "ALPS")
+    ),
+    scale_color_manual(
+      "treatment",
+      values = c(
+        "0" = "black"
+        , "2" = "black"
+        , "ALPS" = "black"
+      ),
+      labels = c("0" = "0mg/kg", "2" = "2mg/kg", "ALPS" = "ALPS")
+    ), 
+    scale_linetype_manual(
+      "treatment",
+      values = c(
+        "0" = "solid"
+        , "2" = "dashed"
+        , "ALPS" = "dotted"
+      ),
+      labels = c("0" = "0mg/kg", "2" = "2mg/kg", "ALPS" = "ALPS")
+    )
+  )
+  return(layers)
+}
+```
+
+This plot includes all mice from both 2mg/kg admin pilot groups
+
+```{r}
+nutellaCortPlot <- BD_cortOff %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 20,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = dosage, # group by the dosage; this is why it needs to be a factor
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 1000,
+    ymin = 0
+  ) +
+  # facet_wrap(
+  #   ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  # ) +
+  labs(
+    x = "time since 1st administration (h)" # add a title to the x axis
+  ) + 
+  theme(
+    legend.position = "bottom"
+  ) + 
+  fillShapeColor_2mgKg_ALPS()
+
+nutellaCortPlot
+```
+
+```{r}
+flexSave(
+  "2mgKgALPS_all",
+  thisFilePrefix = BD_filePrefix,
+  plot = nutellaCortPlot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  # width = 5.33,
+  # height = 6.07,
+  width = BD_width,
+  height = BD_height,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+This plot only includes the mice habituated and sampled by Amanda on May 26 and 27, 2022
+
+```{r}
+nutellaCortPlot <- BD_cortOff %>%
+  filter(
+    Sac_date != as_date("2022-04-29")
+  ) %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 20,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = dosage, # group by the dosage; this is why it needs to be a factor
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 1000,
+    ymin = 0
+  ) +
+  # facet_wrap(
+  #   ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  # ) +
+  labs(
+    x = "time since 1st administration (h)" # add a title to the x axis
+  ) + 
+  theme(
+    legend.position = "bottom"
+  ) + 
+  fillShapeColor_2mgKg_ALPS()
+
+nutellaCortPlot
+```
+
+```{r}
+flexSave(
+  "2mgKgALPS_Amanda",
+  thisFilePrefix = BD_filePrefix,
+  plot = nutellaCortPlot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  # width = 5.33,
+  # height = 6.07,
+  width = BD_width,
+  height = BD_height,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+This is zoomed in to a maximum y-axis value of 500ng/mL
+
+```{r}
+nutellaCortPlot <- BD_cortOff %>%
+  filter(
+    Sac_date != as_date("2022-04-29")
+  ) %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 20,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = dosage, # group by the dosage; this is why it needs to be a factor
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = c("solid", "dashed", "dotted"),
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 500,
+    ymin = 0
+  ) +
+  # facet_wrap(
+  #   ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  # ) +
+  labs(
+    x = "time since 1st administration (h)" # add a title to the x axis
+    , 
+  ) + 
+  theme(
+    legend.position = "bottom"
+  ) + 
+  fillShapeColor_2mgKg_ALPS()
+
+nutellaCortPlot
+```
+```{r}
+flexSave(
+  "2mgKgALPS_Amanda500",
+  thisFilePrefix = BD_filePrefix,
+  plot = nutellaCortPlot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  # width = 5.33,
+  # height = 6.07,
+  width = BD_width,
+  height = BD_height,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```

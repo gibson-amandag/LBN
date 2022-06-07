@@ -1,0 +1,2408 @@
+---
+title: "NGP Seminar Data"
+output: html_notebook
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+```{r}
+litterNum_label <- c(
+  "1" = "first litter",
+  "2" = "second litter"
+)
+
+facetForLitterNum <- facet_grid(
+    cols = vars(litterNum),
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )
+
+figureNum <- 1
+
+pptBaseName <- function(figNum) {
+  baseName = paste0("NDSEG_fig", figNum, "_")
+  return(baseName)
+}
+
+subFolder <- "NDSEG"
+
+imgType <- "pdf"
+```
+
+# Dam Behavior
+```{r}
+dam_behavior_filtered <- dam_behavior %>%
+  filter(
+    Litter_size_startPara >= 5
+    , time != 9
+    # , time != 19
+  ) %>%
+  mutate(
+    firstDay = ifelse(
+      damID == "D015", 
+      FALSE, 
+      ifelse(
+        (cohort == 2 | cohort == 4 | cohort == 6), 
+        TRUE, 
+        ifelse(
+          damID == "D051-01",
+          TRUE,
+          FALSE
+        )
+      )
+    )
+  )
+```
+
+```{r}
+behaviorOverTime <- dam_behavior_filtered %>%
+  behavior_overTime(
+    yVar = Num_exits,
+    yLab = "# of exits",
+    fontSize = 28,
+    dotSize = 5,
+    dotSize_byFirstDay = FALSE,
+    # timeBreaks = c(14, 16, 19, 0, 4),
+    # timeLabels = c("ZT14", "ZT16", "ZT19", "ZT0", "ZT4"),
+    # timeBreaks = c(14, 16, 20, 0, 4),
+    # timeLabels = c("ZT14", "ZT16", "ZT20", "ZT0", "ZT4"),
+    timeBreaks = c(14, 16, 19, 20, 0, 4),
+    timeLabels = c("ZT14", "ZT16", "ZT19", "ZT20", "ZT0", "ZT4"),
+    lineSize = 0.75
+  )
+plot <- behaviorOverTime +
+  facet_wrap(
+    ~litterNum + earlyLifeTrt,
+    ncol = 4,
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )+
+  theme(
+    legend.position = "bottom"
+    # , axis.title.x = element_blank()
+  ) +
+  guides(
+    fill = "none"
+    , linetype = "none"
+  )+
+  labs(
+    shape = "start on P5"
+    ,x = "ZT hour"
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "ZT14" = "14\nlights off"
+      , "ZT16" = "16"
+      , "ZT19" = "19"
+      , "ZT20" = "20"
+      , "ZT0" = "0\nlights on"
+      , "ZT4" = "4"
+    )
+  ) +
+  # labs(x = "ZT hour") +
+  expand_limits(y = 70)
+
+plot
+
+fileBaseName <- "damBehavior"
+thisWidth = 15.5
+thisHeight = 9.5
+thisUnits = "in"
+
+# flexSave(
+#   baseName = fileBaseName,
+#   thisFilePrefix = pptBaseName(figureNum),
+#   plot = plot,
+#   fileType = imgType,
+#   filePath = file.path(plotOutputFolder, subFolder),
+#   width = thisWidth,
+#   height = thisHeight,
+#   units = thisUnits,
+#   compType = currentCompType,
+# )
+```
+
+## ANOVA
+```{r}
+
+damBehaviorAnova <- dam_behavior_filtered %>%
+  anova_test(
+    dv = Num_exits,
+    wid = damID,
+    between = c(earlyLifeTrt, litterNum),
+    within = time
+  ) 
+
+damBehaviorAnova$ANOVA%>%
+  myDisplay()
+
+dam_behavior_filtered %>%
+  group_by(
+    time
+  ) %>%
+  anova_test(
+    dv = Num_exits,
+    between = c(earlyLifeTrt)
+  ) %>%
+  adjust_pvalue(method = "bonferroni")
+```
+
+```{r}
+# 1 -> 2
+figureNum <- figureNum + 1
+```
+
+# Body mass, >= 5 pups/litter, by sex, litter number
+```{r}
+thisGroupByDam = TRUE
+facetBySex = FALSE
+useLineType = FALSE
+individualLines = TRUE
+meanLines = TRUE
+zoom_x = FALSE
+zoom_x_min = 0
+zoom_x_max = 72
+zoom_y = FALSE
+zoom_y_min = 0
+zoom_y_max = 15
+indivAlpha = 0.1
+meanAlpha = 1
+errorBarAlpha = 1
+fontSize = 28
+STDColor = "#4D4D4D"
+LBNColor = "#008B8B"
+
+fileBaseName = "mass_LBN_litterNum"
+thisWidth = 7.5
+thisHeight = 9.5
+thisUnits = "in"
+
+df <- Mass_off %>%
+  filter(
+    damStrain == "CBA",
+    cohort == 2 | cohort == 4 | cohort == 6 | cohort == 7 | cohort == 8,
+    Litter_size >= 5,
+    sex == "F"
+  )
+df
+
+groupVar <- ifelse(thisGroupByDam, expr(damID), expr(mouseID))
+
+plot <- df %>%
+  plot_mass_lines(
+    groupByDam = thisGroupByDam,
+    facetBySex = facetBySex,
+    useLineType = useLineType, # TRUE/FALSE
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = {{ groupVar }},
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = individualLines, # plot individual lines
+    meanLines = meanLines, # plot mean lines with SE
+    zoom_x = zoom_x, # Zoom to part of x axis
+    xmin = zoom_x_min,
+    xmax = zoom_x_max,
+    zoom_y = zoom_y, # Zoom to part of y axis
+    ymin = zoom_y_min,
+    ymax = zoom_y_max,
+    indivLineAlpha = indivAlpha,
+    indivLineSize = 0.8,
+    errorBarWidth = 0,
+    meanLineSize = 1.4,
+    meanAlpha = meanAlpha,
+    errorBarSize = 1,
+    # errorBarColor = "grey10",
+    errorBarAlpha = errorBarAlpha,
+    textSize = fontSize,
+    axisSize = 0.5,
+    legendPosition = c(0.2, 0.85),
+    STDColor = STDColor,
+    LBNColor = LBNColor
+  ) +
+  facet_grid(
+    # rows = vars(litterNum),
+    # cols = vars(sex, litterNum),
+    cols = vars(litterNum),
+    labeller = labeller(
+      litterNum = litterNum_label
+      # , sex = c("F" = "female", "M" = "male")
+    )
+  ) +
+  theme(
+    legend.key = element_rect(fill = NA)
+  )
+  # ) + 
+  # theme(
+  #   strip.text = element_blank(), 
+  #   strip.background = element_blank()
+plot 
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+## Body Mass ANOVA
+Group by dam and sex
+Look at start of paradigm, end of paradigm, weaning, day 35, and day 70
+```{r}
+massLong <- Mass_off %>%
+  filter(
+    Litter_size >= 5
+    , cohort == 2 | cohort == 4 | cohort == 6 | cohort == 7 | cohort == 8
+    , sex == "F"
+  )  %>%
+  getAvgByDam(bySex = FALSE) %>%
+  makeOffMassLong()
+
+massLong_filtered <- massLong %>%
+  filter(
+    day == 4 | day == 11 | day == 21 | day == 35 | day == 70
+  )
+
+massANOVA_byDam <- massLong_filtered %>%
+  anova_test(
+    dv = mass,
+    wid = damID,
+    between = c(earlyLifeTrt, litterNum),
+    # within = c(sex, day)
+    within = c(day)
+  )
+
+massANOVA_byDam$ANOVA %>%
+  formatAnova()
+
+# bySexAnova <- massLong_filtered %>%
+#   group_by(
+#     sex
+#   ) %>%
+#   anova_test(
+#     dv = mass,
+#     wid = damID,
+#     between = c(earlyLifeTrt),
+#     within = day
+#   ) %>%
+#   get_anova_table() %>%
+#   adjust_pvalue(method = "bonferroni") %>%
+#   formatAdjAnova()
+# 
+# bySexAnova
+# 
+# bySexAnova %>%
+#   get_anova_table()
+#   # %>%
+#   # formatAnova() 
+```
+
+
+# Dam Corticosterone
+```{r}
+P21_cortDams <- Demo_dam %>%
+  filter(
+    Litter_size >= 5,
+    ParaType == 4,
+    !is.na(Cort_dam_P21)
+  )
+
+plot <- P21_cortDams %>%
+  scatterPlotLBN(
+    Cort_dam_P21,
+    yLab = "corticosterone (ng/mL)",
+    dotSize = 3,
+    textSize = 28
+  )
+
+plot
+
+fileBaseName = "DamCort_P21firstLitters"
+thisWidth = 4
+thisHeight = 5.5
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+
+
+plot <- P21_cortDams %>%
+  scatterPlotLBN(
+    yVar = Cort_dam_P21,
+    yLab = "corticosterone (ng/mL)",
+    textSize = 28,
+    dotSize = 3,
+    zoom_y = TRUE,
+    ymin = 0,
+    ymax = 120
+  ) +
+  facet_wrap(
+    ~litterNum,
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )
+
+plot
+
+fileBaseName = "DamCort_P21_match11Zoom"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+P11_cortDams <- Demo_dam %>%
+  filter(
+    Litter_size >= 5,
+    ParaType == 4,
+    !is.na(Cort_dam_P11)
+  )
+
+plot <- P11_cortDams %>%
+  scatterPlotLBN(
+    yVar = Cort_dam_P11,
+    yLab = "corticosterone (ng/mL)",
+    textSize = 28,
+    dotSize = 5,
+    zoom_y = TRUE,
+    ymin = 0,
+    ymax = 120
+  ) + 
+  facetForLitterNum
+
+plot
+
+thisWidth = 5.5
+thisHeight = 6
+thisUnits = "in"
+
+fileBaseName = "DamCort_P11"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+P11_cortDams %>%
+  anova_test(
+    dv = Cort_dam_P11,
+    between = c(litterNum, earlyLifeTrt)
+  )
+
+P11_cortDams %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = Cort_dam_P11,
+    yLab = "corticosterone (ng/mL)",
+    xVar = Litter_size,
+    xLab = "# pups in litter",
+    textSize = 28,
+    dotSize = 3
+  )
+```
+
+
+```{r}
+# 2 -> 3
+figureNum <- figureNum + 1
+```
+
+# Maturation
+The paradigm was run with dams' first or second litters
+
+```{r}
+filteredDF <- Maturation_off %>%
+  filter(
+    damStrain == "CBA",
+    cohort == 2 | cohort == 4 | cohort == 6 | cohort == 7 | cohort == 8,
+    Litter_size >= 5
+  )
+Maturation_byDam_5plusPups_females <- filteredDF %>%
+  filter(
+    sex == "F"
+  ) %>%
+  getAvgByDam()
+Maturation_byDam_5plusPups_males <- filteredDF %>%
+  filter(
+    sex == "M"
+  ) %>%
+  getAvgByDam()
+
+df_females <- Maturation_byDam_5plusPups_females
+df_males <- Maturation_byDam_5plusPups_males
+```
+
+## Vaginal Opening
+### Age
+```{r}
+VO_age_plot <- df_females %>%
+  scatterPlotLBN(
+    yVar = VO_age, 
+    "age (days)\nvaginal opening",
+    # "age (days)",
+    textSize = 28, 
+    dotSize = 5
+  # ) +
+  )
+  # labs(title = "vaginal opening")
+max_VO_age <- df_females$VO_age %>% max(na.rm = TRUE)
+```
+### Mass
+```{r}
+VO_mass_plot <- df_females %>%
+  scatterPlotLBN(
+    yVar = VO_mass, 
+    "mass at vaginal opening (g)", 
+    textSize = 28, 
+    dotSize = 5)
+max_VO_mass <- df_females$VO_mass %>% max(na.rm = TRUE)
+```
+
+## First Estrus
+### Age
+```{r}
+Estrus_age_plot <- df_females %>%
+  scatterPlotLBN(
+    yVar = Estrus_age, 
+    "age (days)\nfirst estrus",
+    # NULL,
+    textSize = 28, 
+    dotSize = 5
+  # )+
+  )
+  # labs(title = "first estrus")
+max_estrus_age <- df_females$Estrus_age %>% max(na.rm = TRUE)
+```
+### Mass
+```{r}
+Estrus_mass_plot <- df_females %>%
+  scatterPlotLBN(yVar = Estrus_mass, "mass at first estrus (g)", textSize = 28, dotSize = 5)
+max_estrus_mass <- df_females$Estrus_mass %>% max(na.rm = TRUE)
+```
+## Preputial Separation
+### Age
+```{r}
+PreputialSep_age_plot <- df_males %>%
+  scatterPlotLBN(
+    yVar = PreputialSep_age, 
+    "age at preputial sep. (days)",
+    # NULL,
+    textSize = 28, 
+    dotSize = 5
+  # ) +
+  )
+  # labs(title = "preputial sep.")
+max_PPS_age <- df_males$PreputialSep_age %>% max(na.rm = TRUE)
+```
+### Mass
+```{r}
+PreputialSep_mass_plot <- df_males %>%
+  scatterPlotLBN(yVar = PreputialSep_mass, "mass at preputial sep. (g)", textSize = 28, dotSize = 5)
+max_PPS_mass <- df_males$PreputialSep_mass %>% max(na.rm = TRUE)
+```
+
+```{r}
+thisWidth = 7.5
+thisHeight = 4.75
+thisUnits = "in"
+
+# litterNum_label <- c(
+#   "1" = "first\nlitter",
+#   "2" = "second\nlitter"
+# )
+
+# facetForLitterNum <- facet_grid(
+#     cols = vars(litterNum),
+#     labeller = labeller(
+#       litterNum = litterNum_label
+#     )
+#   )
+```
+
+
+## Age Plots
+### VO
+```{r}
+max_age <- max(max_VO_age, max_estrus_age, max_PPS_age, na.rm = TRUE) + 3
+
+fileBaseName = "VO_age_litterNum"
+plot = VO_age_plot + expand_limits(y = max_age) + facetForLitterNum +
+  theme(
+    axis.text.x = element_text(size = 24)
+  )
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+### First Estrus
+```{r}
+# thisWidth = 3.8
+fileBaseName = "estrus_age_litterNum"
+plot = Estrus_age_plot + expand_limits(y = max_age) + facetForLitterNum +
+  theme(
+    axis.text.x = element_text(size = 24)
+  )
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+### Preputial Separation
+```{r}
+
+fileBaseName = "pps_age_litterNum"
+plot = PreputialSep_age_plot + expand_limits(y = max_age) + facetForLitterNum +
+  theme(
+    axis.text.x = element_text(size = 24)
+  )
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r eval=FALSE, include=FALSE}
+plot <- plot_grid(
+  VO_age_plot + expand_limits(y = max_age) + facetForLitterNum +
+    theme(
+      # plot.margin = margin(r = 1)
+    )
+  , Estrus_age_plot + expand_limits(y = max_age) + facetForLitterNum +
+    theme(
+      axis.text.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      axis.title.y = element_blank(),
+      plot.margin = margin(r = 1, l = 1)
+    )
+  , PreputialSep_age_plot + expand_limits(y = max_age) + facetForLitterNum +
+    theme(
+      axis.text.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      axis.title.y = element_blank(),
+      plot.margin = margin(r = 1, l = 1)
+    )
+  , nrow = 1
+  , align = "v"
+)
+plot
+fileBaseName <- "allMaturationAge"
+figureNum <- 3
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = 11.5,
+  height = 6.5,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+```
+
+
+### Linear mixed effects model
+```{r}
+library("lmerTest")
+library("lme4")
+```
+
+```{r}
+
+VO_age_mod <- lmer(
+  VO_age ~ earlyLifeTrt + Litter_size + litterNum + (1 | damID),
+  data = filteredDF %>% mutate(Litter_size = as.integer(Litter_size)),
+  subset = !is.na(VO_age)
+)
+summary(VO_age_mod)
+anova(VO_age_mod)
+```
+
+```{r}
+Estrus_age_mod <- lmer(
+  Estrus_age ~ earlyLifeTrt + Litter_size + litterNum + (1 | damID),
+  data = filteredDF %>% mutate(Litter_size = as.integer(Litter_size)),
+  subset = !is.na(Estrus_age)
+)
+summary(Estrus_age_mod)
+```
+
+```{r}
+PreputialSep_age_mod <- lmer(
+  PreputialSep_age ~ earlyLifeTrt + Litter_size + litterNum + (1 | damID),
+  data = filteredDF %>% mutate(Litter_size = as.integer(Litter_size)),
+  subset = !is.na(PreputialSep_age)
+)
+summary(PreputialSep_age_mod)
+```
+
+
+## Mass Plots
+### Vaginal opening
+```{r}
+max_mass <- max(max_VO_mass, max_estrus_mass, max_PPS_mass, na.rm = TRUE) + 3
+
+fileBaseName = "VO_mass_litterNum"
+plot = VO_mass_plot + expand_limits(y = max_mass) + facetForLitterNum
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+### First Estrus
+```{r}
+fileBaseName = "estrus_mass_litterNum"
+plot = Estrus_mass_plot + expand_limits(y = max_mass) + facetForLitterNum
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+### Preputial Separation
+```{r}
+fileBaseName = "pps_mass_litterNum"
+plot = PreputialSep_mass_plot + expand_limits(y = max_mass) + facetForLitterNum
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+df_females %>%
+  anova_test(
+    dv = VO_age,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_females %>%
+  anova_test(
+    dv = Estrus_age,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_males %>%
+  anova_test(
+    dv = PreputialSep_age,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_females %>%
+  anova_test(
+    dv = VO_mass,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_females %>%
+  anova_test(
+    dv = Estrus_mass,
+    between = c(litterNum, earlyLifeTrt)
+  )
+df_males %>%
+  anova_test(
+    dv = PreputialSep_mass,
+    between = c(litterNum, earlyLifeTrt)
+  )
+```
+
+
+```{r}
+litterNum_label <- c(
+  "1" = "first litter",
+  "2" = "second litter"
+)
+
+facetForLitterNum <- facet_grid(
+    cols = vars(litterNum),
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )
+```
+
+
+```{r}
+# 3 -> 4
+figureNum <- figureNum + 1
+```
+
+# ALPS response
+## Second litters
+```{r}
+Cort_off_filtered <- Cort_off %>%
+  filter(
+    litterNum == 2,
+    Litter_size >= 5,
+    !is.na(cort),
+    !exclude
+  )
+thisSex <- "F"
+
+cortByCycle <- Cort_off_filtered %>%
+  filter(
+    sex == thisSex,
+    (Sac_cycle == "proestrus" & ReproTract_mass >= 125) | (Sac_cycle == "diestrus" & ReproTract_mass <= 100),
+    mouseID != 653
+  )
+
+cortByCycle %>%
+  cortAnova(
+    byCycle = TRUE
+  )
+
+cortByCycle %>%
+  group_by(
+    Sac_cycle
+  ) %>%
+  anova_test(
+    dv = cort,
+    wid = mouseID,
+    between = c(earlyLifeTrt, adultTrt),
+    within = time
+  ) %>%
+  # adjust_pvalue() %>%
+  adjust_pvalue(method = "bonferroni") %>%
+  formatAdjAnova()
+
+cortByCycle %>%
+  group_by(
+    Sac_cycle, time
+  ) %>%
+  anova_test(
+    dv = cort,
+    wid = mouseID,
+    between = c(adultTrt)
+  ) %>%
+  # adjust_pvalue() %>%
+  adjust_pvalue(method = "bonferroni") %>%
+  formatAdjAnova()
+
+cortByCycle %>%
+  pairwise_t_test(
+    cort ~ Sac_cycle,
+    p.adjust.method = "bonferroni"
+  )
+```
+
+### proestrus 
+
+```{r}
+Cort_off_bySex <- Cort_off_filtered %>%
+  filter(
+    sex == thisSex,
+    Sac_cycle == "proestrus" & ReproTract_mass >= 125,
+    mouseID != 653
+  )
+
+basePlot <- Cort_off_bySex %>%
+  baseCortPlot(
+    dotSize = 5
+  )
+
+plot <- basePlot %>%
+  longCortPlot(
+    fontSize = 28
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 600
+    , zoom_x = TRUE
+    , xmin = -2
+    , xmax = 7
+  )
+plot
+
+fileBaseName = "femalesCort_pro"
+thisWidth = 7.4
+thisHeight = 6.75
+thisUnits = "in"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+
+Cort_off_bySex %>%
+  cortAnova()
+
+```
+
+### Diestrus 
+
+```{r}
+Cort_off_bySex <- Cort_off_filtered %>%
+  filter(
+    sex == thisSex,
+    Sac_cycle == "diestrus" & ReproTract_mass <= 100,
+    mouseID != 653
+  )
+
+basePlot <- Cort_off_bySex %>%
+  baseCortPlot(
+    dotSize = 5
+  )
+
+plot <- basePlot %>%
+  longCortPlot(
+    fontSize = 28
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 600
+    , zoom_x = TRUE
+    , xmin = -2
+    , xmax = 7
+  )
+plot
+
+fileBaseName = "femalesCort_di"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+Cort_off_bySex %>%
+  cortAnova()
+
+```
+
+
+```{r}
+# 4 -> 5
+figureNum <- figureNum + 1
+```
+
+# LH
+
+```{r}
+LH_filtered <- LH_off %>%
+  filter(
+    Litter_size >= 5,
+    litterNum == 2,
+    Sac_cycle == "proestrus" & ReproTract_mass >= 125
+  )
+
+tempLHPlot <- function(
+  df,
+  ymax = 40
+){
+  df %>%
+    LHPlot(
+    fontSize = 28,
+    dotSize = 5,
+    zoom_y = TRUE,
+    ymin = 0,
+    ymax = ymax
+  ) +
+  theme(
+    legend.position = "none"
+  ) +
+  facet_wrap(~comboTrt)
+}
+
+thisWidth = 7.4
+thisHeight = 6.5
+```
+
+```{r}
+
+thisGroupLH <- LH_filtered %>%
+  filter(
+    earlyLifeTrt == "STD",
+    adultTrt == "CON"
+  )
+
+plot <- thisGroupLH %>%
+  tempLHPlot()
+
+plot
+
+fileBaseName = "LH_STD-CON"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+plot <- thisGroupLH %>%
+  tempLHPlot(ymax = 10)
+
+plot
+
+# fileBaseName = "LH_STD-CON_zoomed"
+# 
+# flexSave(
+#   baseName = fileBaseName,
+#   thisFilePrefix = pptBaseName(figureNum),
+#   plot = plot,
+#   fileType = imgType,
+#   filePath = file.path(plotOutputFolder, subFolder),
+#   width = thisWidth,
+#   height = thisHeight,
+#   units = thisUnits,
+#   compType = currentCompType,
+#   shinySettings = FALSE
+# )
+```
+```{r}
+
+thisGroupLH <- LH_filtered %>%
+  filter(
+    earlyLifeTrt == "STD",
+    adultTrt == "ALPS"
+  )
+
+plot <- thisGroupLH %>%
+  tempLHPlot()
+
+plot
+
+fileBaseName = "LH_STD-ALPS"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+plot <- thisGroupLH %>%
+  tempLHPlot(ymax = 10)
+
+plot
+
+# fileBaseName = "LH_STD-ALPS_zoomed"
+# 
+# flexSave(
+#   baseName = fileBaseName,
+#   thisFilePrefix = pptBaseName(figureNum),
+#   plot = plot,
+#   fileType = imgType,
+#   filePath = file.path(plotOutputFolder, subFolder),
+#   width = thisWidth,
+#   height = thisHeight,
+#   units = thisUnits,
+#   compType = currentCompType,
+#   shinySettings = FALSE
+# )
+```
+```{r}
+
+thisGroupLH <- LH_filtered %>%
+  filter(
+    earlyLifeTrt == "LBN",
+    adultTrt == "CON"
+  )
+
+plot <- thisGroupLH %>%
+  tempLHPlot()
+
+plot
+
+fileBaseName = "LH_LBN-CON"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+plot <- thisGroupLH %>%
+  tempLHPlot(ymax = 10)
+
+plot
+
+# fileBaseName = "LH_LBN-CON_zoomed"
+# 
+# flexSave(
+#   baseName = fileBaseName,
+#   thisFilePrefix = pptBaseName(figureNum),
+#   plot = plot,
+#   fileType = imgType,
+#   filePath = file.path(plotOutputFolder, subFolder),
+#   width = thisWidth,
+#   height = thisHeight,
+#   units = thisUnits,
+#   compType = currentCompType,
+#   shinySettings = FALSE
+# )
+```
+```{r}
+
+thisGroupLH <- LH_filtered %>%
+  filter(
+    earlyLifeTrt == "LBN",
+    adultTrt == "ALPS"
+  )
+
+plot <- thisGroupLH %>%
+  tempLHPlot()
+
+plot
+
+fileBaseName = "LH_LBN-ALPS"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+plot <- thisGroupLH %>%
+  tempLHPlot(ymax = 10)
+
+plot
+
+# fileBaseName = "LH_LBN-ALPS_zoomed"
+# 
+# flexSave(
+#   baseName = fileBaseName,
+#   thisFilePrefix = pptBaseName(figureNum),
+#   plot = plot,
+#   fileType = imgType,
+#   filePath = file.path(plotOutputFolder, subFolder),
+#   width = thisWidth,
+#   height = thisHeight,
+#   units = thisUnits,
+#   compType = currentCompType,
+#   shinySettings = FALSE
+# )
+```
+
+```{r}
+# 5 -> 6
+figureNum <- figureNum + 1
+# figureNum <- 6
+```
+
+# Cycles
+
+## Example
+Cohort 4, mouse 22
+```{r}
+cycles_demo <- Cycles_off %>%
+  filter(
+    mouseID == 422
+  )
+cyclesLong_demo <- makeCyclesLong(cycles_demo) %>% filter(
+  day < 22
+)
+
+plot <- plotCycleTraces(cyclesLong_demo, removeFacets = TRUE, fontSize = 28)
+
+plot
+
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "Demo_cyclesPlot"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+cycles <- Cycles_off %>%
+  filter(
+    Litter_size >= 5,
+    cohort == 2 | cohort == 4 | cohort == 6 | cohort == 7 | cohort == 8
+  )
+
+cyclesLong <- makeCyclesLong(cycles)
+cyclesPerc_long <- makeCyclesPercLong(cycles)
+plot <- plotCyclesPercent(cyclesPerc_long, fontSize = 28, dotSize = 5)
+fileBaseName <- "cycles_percDaysStage"
+
+thisWidth <- 11.2
+thisHeight <- 6.5
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+## First litters
+```{r}
+cycles_1stLitter <- Cycles_off %>%
+  filter(
+    litterNum == 1,
+    Litter_size >= 5,
+    cohort == 2 | cohort == 7
+  )
+
+cyclesLong_1stLitter <- makeCyclesLong(cycles_1stLitter)
+cyclesPerc_long_1stLitter <- makeCyclesPercLong(cycles_1stLitter)
+```
+
+# Cycles distribution
+```{r}
+cycles_1stLitter_contTable <- table(
+  cyclesLong_1stLitter$earlyLifeTrt,
+  cyclesLong_1stLitter$stageName
+)
+
+cycles_1stLitter_ChiSq <- chisq_test(cycles_1stLitter_contTable)
+cycles_1stLitter_ChiSq %>% flextable()
+
+chisq_descriptives(cycles_1stLitter_ChiSq) %>% flextable()
+```
+
+### Representative
+```{r}
+STDMice <- cycles_1stLitter %>%
+  filter(
+    earlyLifeTrt == "STD"
+  )
+STDtoUse <- STDMice[sample(nrow(STDMice))[1:6], ] %>% makeCyclesLong()
+
+LBNMice <- cycles_1stLitter %>%
+  filter(
+    earlyLifeTrt == "LBN"
+  )
+LBNtoUse <- LBNMice[sample(nrow(LBNMice))[1:6], ] %>% makeCyclesLong()
+
+cycles_1stLitter_STD_plot <- plotCycleTraces(
+  STDtoUse, 
+  colorValues = c("grey30", "cyan4"),
+  fontSize = 28,
+  removeFacets = TRUE,
+  ncol = 2,
+  nrow = 3
+  ) + theme(
+    # axis.text.x = element_text(size = 16)
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+  )
+cycles_1stLitter_LBN_plot <- plotCycleTraces(
+  LBNtoUse,
+  colorValues = c("grey30", "cyan4"),
+  fontSize = 28,
+  removeFacets = TRUE,
+  ncol = 2,
+  nrow = 3
+  )+ theme(
+    # axis.text.x = element_text(size = 16)
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+  )
+
+cycles_1stLitter_STD_plot
+cycles_1stLitter_LBN_plot
+
+STD_BaseName = "cycles_1stLitter_STD"
+LBN_BaseName = "cycles_1stLitter_LBN"
+
+thisWidth = 5.5
+thisHeight = 6
+
+flexSave(
+  baseName = STD_BaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = cycles_1stLitter_STD_plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+flexSave(
+  baseName = LBN_BaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = cycles_1stLitter_LBN_plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 17 -> 18
+figureNum <- figureNum + 1
+# figureNum <- 18
+```
+
+
+### Percent days in stage
+```{r}
+plot <- plotCyclesPercent(cyclesPerc_long_1stLitter, fontSize = 28, dotSize = 5) +
+  expand_limits(y = 100)
+plot
+
+fileBaseName <- "cycles_1stLitter_percDaysStage"
+
+thisWidth = 11.2
+thisHeight = 4.5
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+## Second litters
+```{r}
+cycles_2ndLitter <- Cycles_off %>%
+  filter(
+    litterNum == 2,
+    Litter_size >= 5,
+    cohort == 4 | cohort == 6
+  )
+
+cyclesLong_2ndLitter <- makeCyclesLong(cycles_2ndLitter)
+cyclesPerc_long_2ndLitter <- makeCyclesPercLong(cycles_2ndLitter)
+```
+
+# Cycles distribution
+```{r}
+cycles_2ndLitter_contTable <- table(
+  cyclesLong_2ndLitter$earlyLifeTrt,
+  cyclesLong_2ndLitter$stageName
+)
+
+cycles_2ndLitter_ChiSq <- chisq_test(cycles_2ndLitter_contTable)
+cycles_2ndLitter_ChiSq %>% flextable()
+
+chisq_descriptives(cycles_2ndLitter_ChiSq) %>% flextable()
+```
+
+### Representative
+```{r}
+STDMice <- cycles_2ndLitter %>%
+  filter(
+    earlyLifeTrt == "STD"
+  )
+STDtoUse <- STDMice[sample(nrow(STDMice))[1:6], ] %>% makeCyclesLong()
+
+LBNMice <- cycles_2ndLitter %>%
+  filter(
+    earlyLifeTrt == "LBN"
+  )
+LBNtoUse <- LBNMice[sample(nrow(LBNMice))[1:6], ] %>% makeCyclesLong()
+
+cycles_2ndLitter_STD_plot <- plotCycleTraces(
+  STDtoUse, 
+  colorValues = c("grey30", "cyan4"),
+  fontSize = 28,
+  removeFacets = TRUE,
+  ncol = 2,
+  nrow = 3
+  ) + theme(
+    # axis.text.x = element_text(size = 16)
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+  )
+cycles_2ndLitter_LBN_plot <- plotCycleTraces(
+  LBNtoUse,
+  colorValues = c("grey30", "cyan4"),
+  fontSize = 28,
+  removeFacets = TRUE,
+  ncol = 2,
+  nrow = 3
+  )+ theme(
+    # axis.text.x = element_text(size = 16)
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+  )
+
+cycles_2ndLitter_STD_plot
+cycles_2ndLitter_LBN_plot
+
+STD_BaseName = "cycles_2ndLitter_STD"
+LBN_BaseName = "cycles_2ndLitter_LBN"
+
+thisWidth = 5.5
+thisHeight = 6
+
+flexSave(
+  baseName = STD_BaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = cycles_2ndLitter_STD_plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+flexSave(
+  baseName = LBN_BaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = cycles_2ndLitter_LBN_plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+### Percent days in stage
+```{r}
+plot <- plotCyclesPercent(cyclesPerc_long_2ndLitter, fontSize = 28, dotSize = 5)+
+  expand_limits(y = 100)
+plot
+
+fileBaseName <- "cycles_2ndLitter_percDaysStage"
+
+thisWidth = 11.2
+thisHeight = 4.5
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+<!-- # First and Second Litter Sizes >= 5 pups -->
+```{r eval=FALSE, include=FALSE}
+fileBaseName = "litterSize_LBN_firstVsecond"
+thisWidth = 11.5
+thisHeight = 5
+thisUnits = "in"
+
+df <- Demo_dam %>%
+  filter(
+    !is.na(Litter_size_endPara),
+    cohort == "2" | cohort == "4" | cohort == "6" | cohort == "7" | cohort == "8",
+    Litter_size_endPara >= 5, # Because in the middle of some
+    !is.na(earlyLifeTrt)
+  )
+
+df %>%
+  filter(
+    is.na(Duration_ZT19)
+  ) %>%
+  select(
+    damID,
+    earlyLifeTrt,
+    Litter_size_endPara
+  )
+
+
+plot <- df %>%
+  ggplot(
+    aes(
+      x = Litter_size_endPara,
+      fill = earlyLifeTrt
+    )
+  )+
+  geom_bar(
+    position = position_dodge2(preserve = "single"),
+    width = 0.9,
+    color = "white"
+  ) +
+  boxTheme()+
+  textTheme(
+    size = 16
+  )+
+  earlyLifeFill(STDColor = "#4D4D4D") +
+  scale_x_continuous(
+    breaks = seq(1, 8, by = 1)
+  ) +
+  scale_y_continuous(
+    breaks = seq(1, 6, by = 1)
+  ) +
+  theme(
+      legend.position = c(0.15, 0.8)
+    )+
+  labs(x = "litter size", y = "# of litters") +
+  expand_limits(x = 0)+
+  facetForLitterNum
+
+plot
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 6 -> 7
+figureNum <- figureNum + 1
+# figureNum <- 7
+```
+
+
+
+```{r}
+# 7 -> 8
+figureNum <- figureNum + 1
+# figureNum <- 8
+```
+
+
+```{r}
+# 8 -> 9
+figureNum <- figureNum + 1
+# figureNum <- 9
+```
+
+
+
+```{r}
+# 9 -> 10
+figureNum <- figureNum + 1
+# figureNum <- 10
+```
+
+
+
+# Cycles
+
+## Example
+Cohort 4, mouse 22
+```{r}
+cycles_demo <- Cycles_off %>%
+  filter(
+    mouseID == 422
+  )
+cyclesLong_demo <- makeCyclesLong(cycles_demo) %>% filter(
+  day < 22
+)
+
+plot <- plotCycleTraces(cyclesLong_demo, removeFacets = TRUE, fontSize = 28)
+
+plot
+
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+fileBaseName = "Demo_cyclesPlot"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 16 -> 17
+figureNum <- figureNum + 1
+# figureNum <- 17
+```
+
+## First litters
+```{r}
+cycles_1stLitter <- Cycles_off %>%
+  filter(
+    litterNum == 1,
+    Litter_size >= 5,
+    cohort == 2 | cohort == 7
+  )
+
+cyclesLong_1stLitter <- makeCyclesLong(cycles_1stLitter)
+cyclesPerc_long_1stLitter <- makeCyclesPercLong(cycles_1stLitter)
+```
+
+### Representative
+```{r}
+STDMice <- cycles_1stLitter %>%
+  filter(
+    earlyLifeTrt == "STD"
+  )
+STDtoUse <- STDMice[sample(nrow(STDMice))[1:6], ] %>% makeCyclesLong()
+
+LBNMice <- cycles_1stLitter %>%
+  filter(
+    earlyLifeTrt == "LBN"
+  )
+LBNtoUse <- LBNMice[sample(nrow(LBNMice))[1:6], ] %>% makeCyclesLong()
+
+cycles_1stLitter_STD_plot <- plotCycleTraces(
+  STDtoUse, 
+  colorValues = c("grey30", "cyan4"),
+  fontSize = 28,
+  removeFacets = TRUE,
+  ncol = 2,
+  nrow = 3
+  ) + theme(
+    # axis.text.x = element_text(size = 16)
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+  )
+cycles_1stLitter_LBN_plot <- plotCycleTraces(
+  LBNtoUse,
+  colorValues = c("grey30", "cyan4"),
+  fontSize = 28,
+  removeFacets = TRUE,
+  ncol = 2,
+  nrow = 3
+  )+ theme(
+    # axis.text.x = element_text(size = 16)
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+  )
+
+cycles_1stLitter_STD_plot
+cycles_1stLitter_LBN_plot
+
+STD_BaseName = "cycles_1stLitter_STD"
+LBN_BaseName = "cycles_1stLitter_LBN"
+
+thisWidth = 4
+thisHeight = 5.5
+
+flexSave(
+  baseName = STD_BaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = cycles_1stLitter_STD_plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+flexSave(
+  baseName = LBN_BaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = cycles_1stLitter_LBN_plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 17 -> 18
+figureNum <- figureNum + 1
+# figureNum <- 18
+```
+
+
+### Percent days in stage
+```{r}
+plot <- plotCyclesPercent(cyclesPerc_long_1stLitter, fontSize = 28, dotSize = 2.5)
+plot
+
+fileBaseName <- "cycles_1stLitter_percDaysStage"
+
+thisWidth = 4.65
+thisHeight = 4.62
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+```{r}
+# 18 -> 19
+figureNum <- figureNum + 1
+# figureNum <- 19
+```
+
+## Second litters
+```{r}
+cycles_2ndLitter <- Cycles_off %>%
+  filter(
+    litterNum == 2,
+    Litter_size >= 5,
+    cohort == 4 | cohort == 6
+  )
+
+cyclesLong_2ndLitter <- makeCyclesLong(cycles_2ndLitter)
+cyclesPerc_long_2ndLitter <- makeCyclesPercLong(cycles_2ndLitter)
+```
+
+### Representative
+```{r}
+STDMice <- cycles_2ndLitter %>%
+  filter(
+    earlyLifeTrt == "STD"
+  )
+STDtoUse <- STDMice[sample(nrow(STDMice))[1:6], ] %>% makeCyclesLong()
+
+LBNMice <- cycles_2ndLitter %>%
+  filter(
+    earlyLifeTrt == "LBN"
+  )
+LBNtoUse <- LBNMice[sample(nrow(LBNMice))[1:6], ] %>% makeCyclesLong()
+
+cycles_2ndLitter_STD_plot <- plotCycleTraces(
+  STDtoUse, 
+  colorValues = c("grey30", "cyan4"),
+  fontSize = 28,
+  removeFacets = TRUE,
+  ncol = 2,
+  nrow = 3
+  ) + theme(
+    # axis.text.x = element_text(size = 16)
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+  )
+cycles_2ndLitter_LBN_plot <- plotCycleTraces(
+  LBNtoUse,
+  colorValues = c("grey30", "cyan4"),
+  fontSize = 28,
+  removeFacets = TRUE,
+  ncol = 2,
+  nrow = 3
+  )+ theme(
+    # axis.text.x = element_text(size = 16)
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+  )
+
+cycles_2ndLitter_STD_plot
+cycles_2ndLitter_LBN_plot
+
+STD_BaseName = "cycles_2ndLitter_STD"
+LBN_BaseName = "cycles_2ndLitter_LBN"
+
+thisWidth = 4
+thisHeight = 5.5
+
+flexSave(
+  baseName = STD_BaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = cycles_2ndLitter_STD_plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+flexSave(
+  baseName = LBN_BaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = cycles_2ndLitter_LBN_plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 19 -> 20
+figureNum <- figureNum + 1
+# figureNum <- 20
+```
+
+
+### Percent days in stage
+```{r}
+plot <- plotCyclesPercent(cyclesPerc_long_2ndLitter, fontSize = 28, dotSize = 2.5)
+plot
+
+fileBaseName <- "cycles_2ndLitter_percDaysStage"
+
+thisWidth = 4.65
+thisHeight = 4.62
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+```{r}
+# 20 -> 21
+figureNum <- figureNum + 1
+# figureNum <- 21
+```
+
+
+# CBA x B6 cross response to ALPS
+
+```{r}
+# Load Beth's data
+source(file.path(scriptsFolder, "03-load-bw-lh-data.R"))
+```
+
+```{r eval=FALSE, include=FALSE}
+plot <- BW_data_wide %>%
+  plotLHAmp(surgeMin = surgeMin, textSize = 28, dotSize = 2.2)
+
+plot
+
+fileBaseName = "CBA_B6 Surge Plot"
+
+thisWidth = 3.33
+thisHeight = 3.77
+thisUnits = "in"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 21 -> 22
+figureNum <- figureNum + 1
+# figureNum <- 22
+```
+
+# LH
+## Example
+Orient to time with 641 and 407
+```{r}
+LH_example <- LH_off %>%
+  filter(
+    mouseID == 641
+  )
+
+plot <- LH_example %>%
+  LHPlot_noMean(
+    fontSize = 28,
+    dotSize = 3
+  ) + 
+  theme(
+    legend.position = "none"
+  )
+
+plot
+
+fileBaseName = "LH_example641"
+
+thisWidth = 12
+thisHeight = 4
+thisUnits = "in"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+LH_example <- LH_off %>%
+  filter(
+    mouseID == 641 | mouseID == 407
+  )
+
+plot <- LH_example %>%
+  LHPlot_noMean(
+    fontSize = 28,
+    dotSize = 3
+  ) + 
+  theme(
+    legend.position = "none"
+  )
+
+plot
+
+fileBaseName = "LH_example641_407"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+LH_filtered <- LH_off %>%
+  filter(
+    Litter_size >= 5,
+    litterNum == 2,
+    Sac_cycle == "proestrus" & ReproTract_mass >= 125
+  )
+
+tempLHPlot <- function(
+  df,
+  ymax = 40
+){
+  df %>%
+    LHPlot(
+    fontSize = 28,
+    dotSize = 3,
+    zoom_y = TRUE,
+    ymin = 0,
+    ymax = ymax
+  ) +
+  theme(
+    legend.position = "none"
+  ) +
+  facet_wrap(~comboTrt)
+}
+
+thisWidth = 6.1
+thisHeight = 2.75
+```
+
+```{r}
+
+thisGroupLH <- LH_filtered %>%
+  filter(
+    earlyLifeTrt == "STD",
+    adultTrt == "CON"
+  )
+
+plot <- thisGroupLH %>%
+  tempLHPlot()
+
+plot
+
+fileBaseName = "LH_STD-CON"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+plot <- thisGroupLH %>%
+  tempLHPlot(ymax = 10)
+
+plot
+
+fileBaseName = "LH_STD-CON_zoomed"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+
+thisGroupLH <- LH_filtered %>%
+  filter(
+    earlyLifeTrt == "STD",
+    adultTrt == "ALPS"
+  )
+
+plot <- thisGroupLH %>%
+  tempLHPlot()
+
+plot
+
+fileBaseName = "LH_STD-ALPS"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+plot <- thisGroupLH %>%
+  tempLHPlot(ymax = 10)
+
+plot
+
+fileBaseName = "LH_STD-ALPS_zoomed"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+
+thisGroupLH <- LH_filtered %>%
+  filter(
+    earlyLifeTrt == "LBN",
+    adultTrt == "CON"
+  )
+
+plot <- thisGroupLH %>%
+  tempLHPlot()
+
+plot
+
+fileBaseName = "LH_LBN-CON"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+plot <- thisGroupLH %>%
+  tempLHPlot(ymax = 10)
+
+plot
+
+fileBaseName = "LH_LBN-CON_zoomed"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+
+thisGroupLH <- LH_filtered %>%
+  filter(
+    earlyLifeTrt == "LBN",
+    adultTrt == "ALPS"
+  )
+
+plot <- thisGroupLH %>%
+  tempLHPlot()
+
+plot
+
+fileBaseName = "LH_LBN-ALPS"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+plot <- thisGroupLH %>%
+  tempLHPlot(ymax = 10)
+
+plot
+
+fileBaseName = "LH_LBN-ALPS_zoomed"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 24 -> 25
+# figureNum <- figureNum + 1
+figureNum <- 8
+```
+
+```{r}
+plot <- LH_filtered %>%
+  tempLHPlot()
+
+thisHeight = 5.25
+thisWidth = 11
+
+fileBaseName = "LH_small"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+STD-CON = 5/6
+STD-ALPS = 1/6
+LBN-CON = 5/7
+LBN-ALPS = 3/5
+```{r}
+surgedDF <- AcuteStress_off %>%
+  mutate(
+    surged = maxLH > 3
+  ) %>%
+  filter(
+    Sac_cycle == "proestrus",
+    ReproTract_mass >= 125,
+    Litter_size >= 5,
+    litterNum == 2
+  ) 
+
+plot <- surgedDF %>%
+  propSurgedPlotCombo(fontSize = 28)
+
+plot
+
+thisWidth = 6
+fileBaseName = "LH_propSurged"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 25 -> 26
+figureNum <- figureNum + 1
+# figureNum <- 26
+```
+
+```{r}
+plot <- surgedDF %>%
+  plotLHAmp_comboTrt(
+    3,
+    textSize = 28,
+    dotSize = 5,
+    angleX = FALSE
+  )
+
+plot 
+thisHeight = 5.75
+thisWidth = 11.5
+
+fileBaseName = "LH_amplitude"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+# 26 -> 27
+figureNum <- figureNum + 1
+# figureNum <- 27
+```
+
+```{r eval=FALSE, include=FALSE}
+GABAPSCs <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs")
+
+GABAPSCs <- GABAPSCs %>%
+  makeFactors(mouseID)
+
+plot <- GABAPSCs %>% left_join(
+  AcuteStress_off,
+  by = "mouseID"
+) %>%
+  scatterPlotComboTrt(
+    yVar = freq,
+    yLab = "PSC frequency (Hz)",
+    dotSize = 3,
+    fontSize = 28,
+    addMeanSE = FALSE
+  ) +
+  scale_x_discrete(
+    labels = c("STD-CON" = "STD\nCON", "STD-ALPS" = "STD\nALPS", "LBN-ALPS" = "LBN\nALPS")
+  )
+
+plot
+thisWidth = 3.5
+thisHeight = 4.02
+
+fileBaseName = "GABA_PSCs"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
