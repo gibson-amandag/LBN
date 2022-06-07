@@ -72,110 +72,8 @@ GABApscsUI <- function(
         
       )
     ),
-    fluidRow(
-      div(
-        class = "col-xs-4",
-        checkboxInput(
-          ns("filterByRseries"),
-          "Filter by series resistance?",
-          value = FALSE
-        )
-      ),
-      div(
-        class = "col-xs-4",
-        numericInput(
-          ns("RseriesMin"),
-          "min Rseries (MOhm):",
-          value = 0
-        )
-      ),
-      div(
-        class = "col-xs-4",
-        numericInput(
-          ns("RseriesMax"),
-          "max Rseries (MOhm):",
-          value = 20
-        )
-      )
-    ),
-    fluidRow(
-      div(
-        class = "col-xs-4",
-        checkboxInput(
-          ns("filterByRinput"),
-          "Filter by input resistance?",
-          value = FALSE
-        )
-      ),
-      div(
-        class = "col-xs-4",
-        numericInput(
-          ns("RinputMin"),
-          "min Rinput (MOhm):",
-          value = 500
-        ),
-      ),
-      div(
-        class = "col-xs-4",
-        numericInput(
-          ns("RinputMax"),
-          "max Rinput (MOhm):",
-          value = 1500
-        ),
-      )
-    ),
-    fluidRow(
-      div(
-        class = "col-xs-4",
-        checkboxInput(
-          ns("filterByHoldingCurr"),
-          "Filter by holding current?",
-          value = FALSE
-        )
-      ),
-      div(
-        class = "col-xs-4",
-        numericInput(
-          ns("holdingCurrMin"),
-          "min current (pA):",
-          value = -50
-        ),
-      ),
-      div(
-        class = "col-xs-4",
-        numericInput(
-          ns("holdingCurrMax"),
-          "max current (pA):",
-          value = 10
-        ),
-      )
-    ),
-    fluidRow(
-      div(
-        class = "col-xs-4",
-        checkboxInput(
-          ns("filterByCapacitance"),
-          "Filter by capacitance?",
-          value = FALSE
-        )
-      ),
-      div(
-        class = "col-xs-4",
-        numericInput(
-          ns("capacitanceMin"),
-          "min capacitance (pF):",
-          value = 5
-        ),
-      ),
-      div(
-        class = "col-xs-4",
-        numericInput(
-          ns("capacitanceMax"),
-          "max capacitance (pF):",
-          value = 20
-        ),
-      )
-    ),
+    
+    filteringEphysUI(ns("ephysFilter")),
     
   # Tabset panels -------------------------------------------------------------
     tabsetPanel(
@@ -275,42 +173,20 @@ GABApscsServer <- function(
         return(df)
       }
       
-      filterByPassives <- function(df){
-        if(input$filterByRseries){
-          df <- df %>%
-            filter(
-              Rseries <= input$RseriesMax & Rseries >= input$RseriesMin
-            )
-        }
-        if(input$filterByRinput){
-          df <- df %>%
-            filter(
-              Rinput <= input$RinputMax & Rinput >= input$RinputMin
-            )
-        }
-        if(input$filterByHoldingCurr){
-          df <- df %>%
-            filter(
-              holdingCurrent <= input$holdingCurrMax & holdingCurrent >= input$holdingCurrtMin
-            )
-        }
-        if(input$filterByCapacitance){
-          df <- df %>%
-            filter(
-              capacitance <= input$capacitanceMax & capacitance >= input$capacitanceMin
-            )
-        }
-        return(df)
-      }
+      # Change to expect reactive within function
+      GABApscs_filterEphys_react <- filteringEphysServer(
+          "ephysFilter",
+          GABApscs_react
+        )
       
+    
       GABApscs_filtered_react <- reactive({
-        df <- GABApscs_react() %>%
+        df <- GABApscs_filterEphys_react() %>%
           filter(
             sex == "F",
             damStrain == "CBA"
           ) %>%
-          filterByCycleStage() %>%
-          filterByPassives()
+          filterByCycleStage()
         
         if(input$filterByFreq){
           df <- df %>%
@@ -321,26 +197,6 @@ GABApscsServer <- function(
         
         return(df)
       })
-      
-      # GABAcaseFunc <- function(colName){
-      #   case_when(
-      #     colName == "frequency" ~ "frequency (Hz)",
-      #     colName == "relPeak" ~ "relative amplitude (pA)",
-      #     colName == "interval" ~ "interval (s)",
-      #     colName == "derivative" ~ "derivative (pA/ms)",
-      #     colName == "riseTime" ~ "rise time (ms)",
-      #     colName == "fwhm" ~ "full width at half max. (ms)",
-      #     colName == "Rinput" ~ "input resistance (MOhm)",
-      #     colName == "Rseries" ~ "series resistance (MOhm)",
-      #     colName == "capacitance" ~ "capacitance (pF)",
-      #     colName == "holdingCurrent" ~ "holding current (pA)",
-      #     colName == "AgeInDays" ~ "age (days)",
-      #     colName == "ReproTract_mass" ~ "uterine mass (mg)",
-      #     colName == "recHr" ~ "hr since lights on",
-      #     colName == "timeSinceSac" ~ "hr since sacrifice",
-      #     TRUE ~ as.character(colName)
-      #   )
-      # }
       
       ## Single Var -----------------------------------------------------------------------
       
