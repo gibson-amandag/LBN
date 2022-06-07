@@ -58,7 +58,8 @@ cortPlot <- function(
       width = 1.4, 
       addLineType = TRUE,
       lineTypeName = "treatment",
-      lineTypeGuide = c("dotted", "dotted", "solid", "solid"),
+      # lineTypeGuide = c("dotted", "dotted", "solid", "solid"),
+      lineTypeGuide = lineTypeGuide,
       typeVar= {{ groupVar }},
       color= {{ groupVar }}
     )
@@ -560,7 +561,8 @@ plotLHAmp_comboTrt <- function(
   df, 
   surgeMin, 
   textSize = 11, 
-  dotSize = 2
+  dotSize = 2,
+  angleX = TRUE
 ){
   plot <- df %>%
     mutate(
@@ -604,17 +606,30 @@ plotLHAmp_comboTrt <- function(
     boxTheme()+
     textTheme(textSize) +
     ylab("LH (ng/mL)")+
-    scale_x_discrete(
-      labels = c("CON \nsurge", "CON  \nno surge", "ALPS \nsurge", "ALPS  \nno surge")
-    )+
-    theme(
-      legend.position = "none",
-      axis.title.x = element_blank(),
-      axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)
-    ) +
     facet_wrap(
       ~earlyLifeTrt,
       scales = "free_y"
     )
+  
+  if(angleX){
+    plot <- plot +
+      scale_x_discrete(
+        labels = c("CON \nsurge", "CON  \nno surge", "ALPS \nsurge", "ALPS  \nno surge")
+      )+
+      theme(
+        legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)
+      )
+  } else {
+    plot <- plot +
+      scale_x_discrete(
+        labels = c("CON\nsurge", "CON\nno\nsurge", "ALPS\nsurge", "ALPS\nno\nsurge")
+      )+
+      theme(
+        legend.position = "none",
+        axis.title.x = element_blank()
+      )
+  }
   return(plot)
 }
