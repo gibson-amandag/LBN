@@ -33,6 +33,7 @@ behavior_ZT0 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT0")
 behavior_ZT14 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT14")
 behavior_ZT16 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_P5_ZT16")
 behavior_ZT19 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT19")
+behavior_ZT20 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_P5_ZT20")
 behavior_ZT9 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT9")
 behavior_ZT4 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_P6_ZT4")
 niceNames <- loadExcelSheet(dataFolder, LBN_DataName, "plotLabels")
@@ -128,6 +129,7 @@ behavior_ZT0 <- makeFactors(behavior_ZT0, damID)
 behavior_ZT14 <- makeFactors(behavior_ZT14, damID)
 behavior_ZT16 <- makeFactors(behavior_ZT16, damID)
 behavior_ZT19 <- makeFactors(behavior_ZT19, damID)
+behavior_ZT20 <- makeFactors(behavior_ZT20, damID)
 behavior_ZT9 <- makeFactors(behavior_ZT9, damID)
 behavior_ZT4 <- makeFactors(behavior_ZT4, damID)
 Cort_off <- makeFactors(Cort_off, mouseID)
@@ -144,6 +146,7 @@ behaviorDFs <- list(
   , behavior_ZT14
   , behavior_ZT16
   , behavior_ZT19
+  , behavior_ZT20
   , behavior_ZT0
   , behavior_ZT4
 )
