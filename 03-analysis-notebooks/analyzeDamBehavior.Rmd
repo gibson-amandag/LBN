@@ -518,3 +518,294 @@ damBehaviorAnova$ANOVA%>%
   myDisplay()
 ```
 
+2022-06-11
+
+# Dam Behavior
+```{r}
+dam_behavior_filtered <- dam_behavior %>%
+  filter(
+    Litter_size_startPara >= 5
+  ) %>%
+  mutate(
+    firstDay = ifelse(
+      damID == "D015", 
+      FALSE, 
+      ifelse(
+        (cohort == 2 | cohort == 4 | cohort == 6), 
+        TRUE, 
+        ifelse(
+          damID == "D051-01",
+          TRUE,
+          FALSE
+        )
+      )
+    )
+  )
+dam_behavior_filtered
+```
+
+```{r}
+behaviorOverTime <- dam_behavior_filtered %>%
+  behavior_overTime(
+    yVar = Num_exits,
+    yLab = "# of exits",
+    fontSize = 16,
+    dotSize = 3,
+    dotSize_byFirstDay = FALSE,
+    timeBreaks = c(12, 14, 16, 18, 20, 22, 0, 2, 4),
+    timeLabels = c("12", "14", "16", "18", "20", "22", "0", "2", "4"),
+    lineSize = 0.75
+  )
+plot <- behaviorOverTime +
+  facet_wrap(
+    ~litterNum + earlyLifeTrt,
+    ncol = 2,
+    # ncol = 1,
+    labeller = labeller(
+      litterNum = litterNum_label
+    ),
+    scales = "free"
+  )+
+  theme(
+    legend.position = "bottom"
+    # , axis.title.x = element_blank()
+  ) +
+  guides(
+    fill = "none"
+    , linetype = "none"
+  )+
+  labs(
+    shape = "start on P5"
+    ,x = "ZT hour"
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "12" = "12"
+      , "14" = "14\nlights off"
+      , "16" = "16"
+      , "18" = "18"
+      , "20" = "20"
+      , "22" = "22"
+      , "0" = "0\nlights on"
+      , "2" = "2"
+      , "4" = "4"
+    )
+  ) +
+  # labs(x = "ZT hour") +
+  expand_limits(y = 70)
+
+plot
+
+# fileBaseName <- "damBehavior"
+fileBaseName <- "damBehavior_square"
+thisWidth = 12.25
+thisHeight = 6.5
+thisUnits = "in"
+imgType <- "png"
+
+flexSave(
+  baseName = fileBaseName,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+)
+```
+
+## ANOVA
+```{r}
+damBehaviorAnova <- dam_behavior_filtered %>%
+  anova_test(
+    dv = Num_exits,
+    wid = damID,
+    between = c(earlyLifeTrt, litterNum),
+    within = time
+  ) 
+
+damBehaviorAnova$ANOVA%>%
+  myDisplay()
+
+dam_behavior_filtered %>%
+  group_by(
+    time
+  ) %>%
+  anova_test(
+    dv = Num_exits,
+    between = c(earlyLifeTrt)
+  ) %>%
+  adjust_pvalue(method = "bonferroni")
+```
+
+## Avg night/day
+```{r}
+nightTimes = c(14, 16, 18, 20, 22)
+damBehavior_avg <- dam_behavior_filtered %>%
+  mutate(
+    time = ifelse(time %in% nightTimes, "dark", "light")
+  ) %>%
+  group_by(
+    damID, time
+  ) %>%
+  summarize(
+    meanExits = mean(Num_exits, na.rm = TRUE)
+    , meanPercOnNest = mean(Perc_on_nest, na.rm = TRUE)
+    , .groups = "drop"
+  ) %>%
+  left_join(
+    Demo_dam,
+    by = "damID"
+  )
+damBehavior_avg
+```
+```{r}
+damBehaviorAnova <- damBehavior_avg %>%
+  anova_test(
+    dv = meanExits,
+    wid = damID,
+    between = c(earlyLifeTrt, litterNum),
+    within = time
+  ) 
+
+damBehaviorAnova%>%
+  myDisplay()
+
+damBehavior_avg %>%
+  group_by(
+    time
+  ) %>%
+  anova_test(
+    dv = meanExits,
+    between = c(earlyLifeTrt)
+  ) %>%
+  adjust_pvalue(method = "bonferroni")
+```
+
+
+# Time on nest
+```{r}
+behaviorOverTime <- dam_behavior_filtered %>%
+  behavior_overTime(
+    yVar = Perc_on_nest,
+    yLab = "% time on nest",
+    fontSize = 28,
+    dotSize = 5,
+    dotSize_byFirstDay = FALSE,
+    timeBreaks = c(12, 14, 16, 18, 20, 22, 0, 2, 4),
+    timeLabels = c("12", "14", "16", "18", "20", "22", "0", "2", "4"),
+    lineSize = 0.75
+  )
+plot <- behaviorOverTime +
+  facet_wrap(
+    ~litterNum + earlyLifeTrt,
+    ncol = 2,
+    labeller = labeller(
+      litterNum = litterNum_label
+    ),
+    scales = "free"
+  )+
+  theme(
+    legend.position = "bottom"
+    # , axis.title.x = element_blank()
+  ) +
+  guides(
+    fill = "none"
+    , linetype = "none"
+  )+
+  labs(
+    shape = "start on P5"
+    ,x = "ZT hour"
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "12" = "12"
+      , "14" = "14\nlights off"
+      , "16" = "16"
+      , "18" = "18"
+      , "20" = "20"
+      , "22" = "22"
+      , "0" = "0\nlights on"
+      , "2" = "2"
+      , "4" = "4"
+    )
+  ) +
+  # labs(x = "ZT hour") +
+  coord_cartesian(y = c(0, 100))
+
+plot
+
+fileBaseName <- "damBehavior_timeOnNest"
+thisWidth = 11.5
+thisHeight = 4.76
+thisUnits = "in"
+imgType <- "png"
+
+flexSave(
+  baseName = fileBaseName,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+)
+```
+## ANOVA
+```{r}
+damBehaviorAnova <- dam_behavior_filtered %>%
+  anova_test(
+    dv = Perc_on_nest,
+    wid = damID,
+    between = c(earlyLifeTrt, litterNum),
+    within = time
+  ) 
+
+damBehaviorAnova$ANOVA%>%
+  myDisplay()
+
+dam_behavior_filtered %>%
+  group_by(
+    time
+  ) %>%
+  anova_test(
+    dv = Perc_on_nest,
+    between = c(earlyLifeTrt)
+  ) %>%
+  adjust_pvalue(method = "bonferroni")
+```
+
+```{r}
+dam_behavior_filtered %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = Num_exits,
+    yLab = "# of exits",
+    xVar = Perc_on_nest,
+    xLab = "% on nest"
+  )
+```
+```{r}
+damBehavior_avg %>%
+  filter(
+    time == "dark"
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = meanExits,
+    yLab = "# of exits",
+    xVar = meanPercOnNest,
+    xLab = "% on nest"
+  )
+damBehavior_avg %>%
+  filter(
+    time == "light"
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = meanExits,
+    yLab = "# of exits",
+    xVar = meanPercOnNest,
+    xLab = "% on nest"
+  )
+```
+

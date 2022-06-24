@@ -5154,6 +5154,76 @@ saveDFsToExcel(
   dates = damBehaveDates
 )
 ```
+2022-06-05 - ZT18 times and dates
+```{r}
+damBehaveDates <- Demo_dam %>%
+  filter(
+    Litter_size >= 5
+    , cohort != 1
+    , cohort != 3
+    , cohort != 5
+    # , is.na(Num_entries_ZT0)
+  ) %>%
+  arrange(
+    cohort,
+    DOB
+  ) %>%
+  select(
+    damID
+    , cohort
+    , DOB
+  ) %>%
+  mutate(
+    P5_ZT18 = getZT_DateTime(DOB, PND = 5, ZT = 18)
+    , P5_ZT18_done = NA
+    , P5_ZT18_who = NA
+    , P5_ZT18_notes = NA
+  )
+
+damBehaveDates
+
+saveDFsToExcel(
+  "damBehaviorDates_ZT18",
+  dates = damBehaveDates
+)
+```
+2022-06-10 - ZT22 and P6_ZT2 times and dates
+```{r}
+damBehaveDates <- Demo_dam %>%
+  filter(
+    Litter_size >= 5
+    , cohort != 1
+    , cohort != 3
+    , cohort != 5
+    # , is.na(Num_entries_ZT0)
+  ) %>%
+  arrange(
+    cohort,
+    DOB
+  ) %>%
+  select(
+    damID
+    , cohort
+    , DOB
+  ) %>%
+  mutate(
+    P5_ZT22 = getZT_DateTime(DOB, PND = 5, ZT = 22)
+    , P5_ZT22_done = NA
+    , P5_ZT22_who = NA
+    , P5_ZT22_notes = NA,
+    P6_ZT2 = getZT_DateTime(DOB, PND = 6, ZT = 2)
+    , P6_ZT2_done = NA
+    , P6_ZT2_who = NA
+    , P6_ZT2_notes = NA
+  )
+
+damBehaveDates
+
+saveDFsToExcel(
+  "damBehaviorDates_ZT22",
+  dates = damBehaveDates
+)
+```
 
 ```{r}
 cohort7_8_forCort <- AcuteStress_off %>%
@@ -5192,6 +5262,199 @@ saveDFsToExcel(
   "cortPlateOrder"
   , "AGG_LBN"
   , cohort7_8_forCort = cohort7_8_forCort
+)
+```
+
+```{r}
+dam_behavior_wide
+```
+
+```{r}
+AcuteStress_off %>%
+  filter(
+    sex == "F"
+    , is.na(cort_hr0)
+    , cohort != 1 & cohort != 5
+  )
+AcuteStress_off %>%
+  filter(
+    sex == "M"
+    , is.na(cort_hr0)
+    , cohort != 1 & cohort != 5
+    , cohort == 2
+  )
+```
+
+```{r}
+AcuteStress_off %>%
+  filter(
+    Litter_size < 5 & Litter_size >= 3
+    , sex == "F"
+    , cohort != 1 & cohort != 5
+  ) %>%
+  group_by(
+    comboTrt
+  ) %>%
+  summarize(
+    n = n()
+  )
+```
+
+
+```{r}
+
+damInfoForIgor <- Demo_dam %>%
+  filter(
+    Litter_size >= 5
+    , cohort != 1
+    , cohort != 3
+    , cohort != 5
+    # , is.na(Num_entries_ZT0)
+  ) %>%
+  arrange(
+    cohort,
+    DOB
+  ) %>%
+  select(
+    -c(CyclesFolder, cyclingFolderPath)
+  )
+
+damInfoForIgor
+
+saveDFsToExcel(
+  "damInformation"
+  , "AGG_LBN"
+  , damInfo = damInfoForIgor
+)
+```
+
+
+```{r}
+AcuteStress_off %>%
+  filter(
+    !exclude_cort_hr0
+    # is.na(exclude_cort_hr0)
+  ) %>%
+  select(
+    mouseID, ReproTract_mass, maxLH, exclude_cort_hr0, exclude_cort_hr5
+  )
+
+Cort_off %>%
+  filter(
+    mouseID==718
+    # ,!exclude
+    # is.na(exclude)
+  ) %>%
+  select(
+    mouseID, exclude
+  )
+```
+
+
+# LH
+
+```{r}
+LH_filtered <- LH_off %>%
+  filter(
+    Litter_size >= 5,
+    Sac_cycle == "proestrus" & ReproTract_mass >= 125
+  )
+
+tempLHPlot <- function(
+  df,
+  ymax = 40
+){
+  df %>%
+    LHPlot(
+    fontSize = 28,
+    dotSize = 5,
+    zoom_y = TRUE,
+    ymin = 0,
+    ymax = ymax
+  ) +
+  theme(
+    legend.position = "none"
+  ) +
+  facet_wrap(~comboTrt, scales = "free")
+}
+
+plot <- LH_filtered %>%
+  tempLHPlot() #+
+  # facet_wrap(
+  #   ~litterNum + earlyLifeTrt,
+  #   ncol = 2,
+  #   labeller = labeller(
+  #     litterNum = litterNum_label
+  #   ),
+  #   scales = "free"
+  # )
+
+plot 
+
+thisWidth = 10.66
+thisHeight = 11
+
+# fileBaseName = "LH_combined_2022-06-23"
+# 
+# flexSave(
+#   baseName = fileBaseName,
+#   thisFilePrefix = pptBaseName(figureNum),
+#   plot = plot,
+#   fileType = imgType,
+#   filePath = file.path(plotOutputFolder, subFolder),
+#   width = thisWidth,
+#   height = thisHeight,
+#   units = thisUnits,
+#   compType = currentCompType,
+#   shinySettings = FALSE
+# )
+```
+```{r}
+cohortsToInclude <- c(4, 6, 7, 8)
+
+surgedDF <- AcuteStress_off %>%
+  mutate(
+    surged = maxLH > 3
+  ) %>%
+  filter(
+    Sac_cycle == "proestrus",
+    ReproTract_mass >= 125,
+    Litter_size >= 5,
+    cohort %in% cohortsToInclude
+  ) 
+
+plot <- surgedDF %>%
+  plotLHAmp_comboTrt(
+    3,
+    textSize = 16,
+    dotSize = 2,
+    angleX = FALSE
+  ) +
+  facet_wrap(
+    ~litterNum + earlyLifeTrt,
+    ncol = 4,
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )
+  
+
+plot 
+thisHeight = 5
+thisWidth = 11.5
+
+fileBaseName = "LH_amplitude_byLitterNum"
+
+flexSave(
+  baseName = fileBaseName,
+  plot = plot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  width = thisWidth,
+  height = thisHeight,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
 )
 ```
 

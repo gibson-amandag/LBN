@@ -289,7 +289,8 @@ LHPlot <- function(
   xmax = NULL,
   zoom_y = FALSE, #Zoom to a part of y axis
   ymin = NULL,
-  ymax = NULL
+  ymax = NULL,
+  dodgeAmnt = 0.4
 ){
   ggplot(
     df_long,
@@ -303,13 +304,13 @@ LHPlot <- function(
       alpha = 0.4,
       color = "black",
       aes(group = mouseID),
-      position = position_dodge(0.4)
+      position = position_dodge(dodgeAmnt)
     ) +
     geom_point(
       # shape = 21, 
       alpha = 1, 
       aes(fill=comboTrt,group=mouseID, shape=comboTrt), 
-      position = position_dodge(0.4), 
+      position = position_dodge(dodgeAmnt), 
       size = dotSize
     ) +
     addMeanHorizontalBar(width = 0.85, addLineType = TRUE)+

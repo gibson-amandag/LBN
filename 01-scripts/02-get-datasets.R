@@ -29,13 +29,14 @@ LH_random <- loadExcelSheet(dataFolder, LBN_DataName, "LH_random")
 LH_off <- loadExcelSheet(dataFolder, LBN_DataName, "LH_off")
 ChronicStress_off <- loadExcelSheet(dataFolder, LBN_DataName, "ChronicStress_off")
 CRH_dam <- loadExcelSheet(dataFolder, LBN_DataName, "CRH_dam")
-behavior_ZT0 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT0")
-behavior_ZT14 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT14")
-behavior_ZT16 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_P5_ZT16")
-behavior_ZT19 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT19")
-behavior_ZT20 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_P5_ZT20")
-behavior_ZT9 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT9")
-behavior_ZT4 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_P6_ZT4")
+damBehavior <- loadExcelSheet(dataFolder, LBN_DataName, "damBehavior")
+# behavior_ZT0 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT0")
+# behavior_ZT14 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT14")
+# behavior_ZT16 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_P5_ZT16")
+# behavior_ZT19 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT19")
+# behavior_ZT20 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_P5_ZT20")
+# behavior_ZT9 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT9")
+# behavior_ZT4 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_P6_ZT4")
 niceNames <- loadExcelSheet(dataFolder, LBN_DataName, "plotLabels")
 
 
@@ -125,13 +126,14 @@ Sacrifice_off <- Sacrifice_off %>%
   )
 ChronicStress_off <- makeFactors(ChronicStress_off, mouseID)
 CRH_dam <- makeFactors(CRH_dam, c(damID,dam))
-behavior_ZT0 <- makeFactors(behavior_ZT0, damID)
-behavior_ZT14 <- makeFactors(behavior_ZT14, damID)
-behavior_ZT16 <- makeFactors(behavior_ZT16, damID)
-behavior_ZT19 <- makeFactors(behavior_ZT19, damID)
-behavior_ZT20 <- makeFactors(behavior_ZT20, damID)
-behavior_ZT9 <- makeFactors(behavior_ZT9, damID)
-behavior_ZT4 <- makeFactors(behavior_ZT4, damID)
+damBehavior <- makeFactors(damBehavior, damID)
+# behavior_ZT0 <- makeFactors(behavior_ZT0, damID)
+# behavior_ZT14 <- makeFactors(behavior_ZT14, damID)
+# behavior_ZT16 <- makeFactors(behavior_ZT16, damID)
+# behavior_ZT19 <- makeFactors(behavior_ZT19, damID)
+# behavior_ZT20 <- makeFactors(behavior_ZT20, damID)
+# behavior_ZT9 <- makeFactors(behavior_ZT9, damID)
+# behavior_ZT4 <- makeFactors(behavior_ZT4, damID)
 Cort_off <- makeFactors(Cort_off, mouseID)
 LH_code <- makeFactors(LH_code, c(sampleID, mouseID))
 LH_off <- makeFactors(LH_off, c(sampleID))
@@ -141,15 +143,15 @@ cellInfo <- makeFactors(cellInfo, c(mouseID, cellID))
 cellExclusion <- makeFactors(cellExclusion, c(cellID))
 GABApscs <- makeFactors(GABApscs, c(cellID))
 
-behaviorDFs <- list(
-  behavior_ZT9
-  , behavior_ZT14
-  , behavior_ZT16
-  , behavior_ZT19
-  , behavior_ZT20
-  , behavior_ZT0
-  , behavior_ZT4
-)
+# behaviorDFs <- list(
+#   behavior_ZT9
+#   , behavior_ZT14
+#   , behavior_ZT16
+#   , behavior_ZT19
+#   , behavior_ZT20
+#   , behavior_ZT0
+#   , behavior_ZT4
+# )
 
 CohortCyclingFolder <- CohortCyclingFolder %>%
   mutate(
@@ -168,7 +170,8 @@ Demo_dam <- Demo_dam %>%
 # DAM BEHAVIOR ------------------------------------------------------------
 
 # Long-form - combined in one
-dam_behavior_noDemo <- bind_rows(behaviorDFs)
+# dam_behavior_noDemo <- bind_rows(behaviorDFs)
+dam_behavior_noDemo <- damBehavior
 
 # Add dam demo info
 dam_behavior <- dam_behavior_noDemo %>%
@@ -181,10 +184,10 @@ dam_behavior <- dam_behavior_noDemo %>%
 dam_behavior_wide <- dam_behavior_noDemo %>%
   pivot_wider(
     id_cols = damID,
-    names_from = time,
+    names_from = PND:time,
     values_from = Duration:Avg_dur_on_nest,
-    names_prefix = "ZT",
-    names_sep = "_"
+    names_glue = "P{PND}_ZT{time}_{.value}"#,
+    # names_sep = "_"
   )
 
 # Add behavior wide to Demo_dam
@@ -228,6 +231,10 @@ AcuteStress_off <- Sacrifice_off %>%
   left_join(
     Cort_off_wide,
     by = "mouseID"
+  ) %>%
+  mutate(
+    exclude_cort_hr0 = ifelse(!is.na(exclude_cort_hr0), exclude_cort_hr0, FALSE),
+    exclude_cort_hr5 = ifelse(!is.na(exclude_cort_hr5), exclude_cort_hr5, FALSE)
   )
 
 # Add stress day demo to long cort df
@@ -354,7 +361,7 @@ Demo_dam_for_offspring <- Demo_dam %>%
     sire, 
     Litter_size_startPara, 
     Litter_size_endPara,
-    Duration_ZT9:Avg_dur_on_nest_ZT4
+    P5_ZT12_Duration:P6_ZT4_Avg_dur_on_nest
   )
 
 # Update offspring demographics

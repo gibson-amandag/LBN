@@ -59,10 +59,11 @@ byUterineMassUI <- function(id,
     ),
     zoomAxisUI(ns("zoom_x"), "x"),
     zoomAxisUI(ns("zoom_y"), "y"),
-    plotOutput(
-      ns("plotByUterineMass"),
-      click = ns("plotByUterineMass_click")
-    ),
+    plotUI(ns("plotByUterineMass")),
+    # plotOutput(
+    #   ns("plotByUterineMass"),
+    #   click = ns("plotByUterineMass_click")
+    # ),
     verbatimTextOutput(
       ns("plotByUterineMass_info")
     ),
@@ -77,11 +78,13 @@ byUterineMassServer <- function(
   df,
   proUterineCutoff,
   diUterineCutoff,
-  dotSize
+  dotSize,
+  thisCompType
 ){
   moduleServer(
     id,
     function(input, output, session) {
+      
       
       zoom_x <- zoomAxisServer("zoom_x", "x", minVal = 0, maxVal = 200)
       zoom_y <- zoomAxisServer(
@@ -99,6 +102,7 @@ byUterineMassServer <- function(
             adultTrt %in% as.character(input$adultTrt),
             !exclude_cort_hr5
           )
+        
         
         filterLH <- LHfilter()$useFilter()
         minLH <- LHfilter()$surgeMin()
@@ -188,12 +192,15 @@ byUterineMassServer <- function(
         return(plot)
       })
       
-      output$plotByUterineMass <- renderPlot({
-        plot()
-      })
+      plotByUterineMassInfo <- plotServer("plotByUterineMass", plot, "uterineMassPlot", thisCompType)
+      
+      # output$plotByUterineMass <- renderPlot({
+      #   plot()
+      # })
       
       output$plotByUterineMass_info <- renderPrint({
-        if(is.null(input$plotByUterineMass_click)){
+        # if(is.null(input$plotByUterineMass_click)){
+        if(is.null(plotByUterineMassInfo$click())){
           "Click on a point to display values"
         }else(
           nearPoints(
@@ -210,7 +217,8 @@ byUterineMassServer <- function(
                 !! input$uterineMass_yVar,
                 !! input$uterineMass_xVar
               ),
-            input$plotByUterineMass_click
+            # input$plotByUterineMass_click
+            plotByUterineMassInfo$click()
           )
         )
       })

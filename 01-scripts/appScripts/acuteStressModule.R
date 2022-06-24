@@ -342,7 +342,8 @@ acuteStressServer <- function(
             df = AcuteStress_femaleCBA_react(),
             input$proUterineCutoff,
             input$diUterineCutoff,
-            input$dotSize
+            input$dotSize,
+            compType
           )
         })
 

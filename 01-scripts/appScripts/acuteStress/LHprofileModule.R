@@ -69,7 +69,8 @@ LHprofileServer <- function(
             dotSize = dotSize,
             zoom_y = LHprofile_zoom_y$zoom(),
             ymin = LHprofile_zoom_y$min(),
-            ymax = LHprofile_zoom_y$max()
+            ymax = LHprofile_zoom_y$max(),
+            dodgeAmnt = 0.25
           )+
           facet_wrap(
             # ~adultTrt
@@ -117,8 +118,8 @@ LHprofileServer <- function(
           ) %>%
           filter(
             Sac_cycle == "proestrus",
-            ReproTract_mass > 125,
-            litterNum == 2
+            ReproTract_mass > 125
+            # ,litterNum == 2
           ) %>%
           propSurgedPlot(
             fontSize = 16
