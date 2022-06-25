@@ -1,0 +1,364 @@
+---
+title: "R Notebook"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+```{r include=FALSE}
+JL_filePath <- normalizePath("C:\\Users\\percs\\OneDrive - Umich\\Moenter lab\\LBN_0002_OneDrive\\DataForR\\AGG_JL_CRH-CrexL10a-GFP_data.xlsx")
+JL_fileInfo <- loadExcelSheet_fromFile(JL_filePath, "fileInfo")
+JL_cycleDir <- JL_fileInfo$cycleImgFolder[1]
+
+JL_damInfo <- loadExcelSheet_fromFile(JL_filePath, "DamInfo") %>%
+  makeFactors("damID")
+
+JL_offspringInfo <- loadExcelSheet_fromFile(JL_filePath, "OffspringInfo") %>% makeFactors(c("mouseID", "damID"))
+
+JL_offspringInfo <- JL_offspringInfo %>%
+  left_join(
+    JL_damInfo,
+    by = "damID"
+  ) %>%
+  mutate(
+    cyclingFolderPath = JL_cycleDir,
+    earlyLifeTrt = NA
+  )
+
+JL_cycles <- loadExcelSheet_fromFile(JL_filePath, "Cycles_off") %>%
+  makeFactors(
+    "mouseID"
+  )%>%
+  mutate(
+    num_ID = cycleID
+  )
+
+JL_cycles <- JL_cycles %>%
+  left_join(
+    JL_offspringInfo,
+    by = "mouseID"
+  )
+
+JL_damInfo
+JL_offspringInfo
+JL_cycles
+```
+
+```{r}
+JL_filePrefix  <-  "JL_CRHcre-L10a_"
+JL_width <- 11.5
+JL_height <- 5
+```
+
+```{r}
+JL_sacrifice <- loadExcelSheet_fromFile(JL_filePath, "Sacrifice_off") %>%
+  makeFactors("mouseID")
+JL_sacrifice <- JL_sacrifice %>%
+  left_join(
+    JL_offspringInfo,
+    by = "mouseID"
+  )
+```
+
+```{r}
+JL_cortOff_file <- loadExcelSheet_fromFile(JL_filePath, "cort")
+JL_cortOff <- makeFactors(JL_cortOff_file, "mouseID")
+JL_cortOff<- JL_cortOff %>% 
+  left_join(
+    JL_sacrifice,
+    by = "mouseID"
+  )
+
+JL_cortOff <- JL_cortOff %>% makeFactors(c("adultTrt"))
+JL_cortOff %>%
+  select(
+    mouseID, time, cort
+  ) %>%
+  arrange(
+    mouseID, time
+  ) %>%
+  myDisplay()
+```
+
+Get the LH data
+Load the code, and use that to match the values with the mouseID
+
+```{r}
+JL_LH_code_file <- loadExcelSheet_fromFile(JL_filePath, "LH_code")
+JL_LH_code <- makeFactors(JL_LH_code_file, "mouseID")
+
+JL_LH <- loadExcelSheet_fromFile(JL_filePath, "LH")
+JL_LH<- JL_LH_code %>%
+  select(
+    mouseID, sampleID, time, comments
+  ) %>%
+  left_join(
+    JL_LH,
+    by = "sampleID"
+  ) %>%
+  select(
+    -sampleID
+  ) %>%
+  left_join(
+    JL_sacrifice,
+    by = "mouseID"
+  )
+
+JL_LH
+```
+
+Find the maximum evening LH value for each mouse
+Add back to the LH dataframe
+
+```{r}
+JL_LH_max <- JL_LH %>%
+  filter(
+    time != 0
+  ) %>%
+  getMaxFromRepMeasures(
+    col = LH,
+    maxColName = maxLH,
+    groupingVar = mouseID
+  )
+
+JL_LH_max
+
+
+
+# Make wider, also add max again
+JL_LH_wide <- JL_LH %>%
+  pivot_wider(
+    id_cols = mouseID,
+    names_from = time,
+    values_from = LH,
+    names_prefix = "LH_hr"
+  ) %>%
+  left_join(
+    JL_LH_max,
+    by = "mouseID"
+  )
+
+# Add to long LH data frame
+JL_LH <- JL_LH %>%
+  left_join(
+    JL_LH_max,
+    by = "mouseID"
+  )
+
+JL_LH_wide
+```
+
+```{r}
+JL_sacrifice <-  JL_sacrifice %>%
+  left_join(
+    JL_LH_wide,
+    by = "mouseID"
+  )
+
+JL_sacrifice
+```
+
+
+```{r, fig.width=11}
+cortPlot <- JL_cortOff %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 20,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = adultTrt, # group by the adultTrt; this is why it needs to be a factor
+    xBreaks = c(0, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2 #this controls the spread of the data visually
+  ) +
+  labs(
+    x = "time (h)" # add a title to the x axis
+  )
+
+cortPlot
+```
+
+```{r}
+flexSave(
+  "cortPlot",
+  thisFilePrefix = JL_filePrefix,
+  plot = cortPlot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  width = JL_width,
+  height = JL_height,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+JL_LHPlot <- function(
+  df_long,
+  fontSize = 11,
+  dotSize = 2,
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL,
+  dodgeAmnt = 0.4,
+  groupVar = adultTrt
+){
+  ggplot(
+    df_long,
+    aes(
+      x = time,
+      y = LH,
+      group = {{ groupVar }}
+    )
+  ) +
+    geom_line(
+      alpha = 0.4,
+      color = "black",
+      aes(group = mouseID),
+      position = position_dodge(dodgeAmnt)
+    ) +
+    geom_point(
+      # shape = 21,
+      alpha = 1, 
+      aes(fill={{ groupVar }},group=mouseID, shape={{ groupVar }}), 
+      position = position_dodge(dodgeAmnt), 
+      size = dotSize
+    ) +
+    addMeanHorizontalBar(width = 0.85, addLineType = TRUE)+
+    addMeanSE_vertBar()+
+    adultTrtFillShape()+ # hardcoded - could cause problems
+    theme_pubr() +
+    labs(
+      y = "LH (ng/mL)",
+      x = "time (hr) relative to lights out"
+    ) +
+    scale_x_continuous(
+      breaks = c(0, 2.5, 5),
+      labels = c(-7.5, -5, -2.5)
+    )+
+    textTheme(size = fontSize)+
+    boxTheme()+
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) + #this just zooms in on the graph, versus scale_[]_continuous actually eliminates data not in the range
+    guides(linetype = "none")
+}
+```
+
+```{r}
+JL_LH %>%
+  filter(
+    time != 0
+  ) %>%
+  arrange(
+    adultTrt, perfusionHr, mouseID
+  )%>%
+  myDisplay()
+
+JL_LH %>%
+  filter(
+    time != 0
+  ) %>%
+  arrange(
+    adultTrt, perfusionHr, LH
+  )%>%
+  myDisplay()
+```
+
+
+```{r}
+LHplot <- JL_LH %>%
+  JL_LHPlot()
+LHplot
+```
+```{r}
+flexSave(
+  "LHPlot",
+  thisFilePrefix = JL_filePrefix,
+  plot = LHplot,
+  fileType = "png",
+  filePath = plotOutputFolder,
+  width = JL_width,
+  height = JL_height,
+  units = "in",
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r eval=FALSE, include=FALSE}
+samplingDF <- JL_sacrifice %>%
+  filter(
+    !is.na(cyclingFolderPath)
+    , sex == "F"
+  ) %>%
+  unite(
+    comboTrt,
+    adultTrt,
+    perfusionHr,
+    sep = "-",
+    remove = FALSE
+  ) %>%
+  left_join(
+    JL_cycles %>% select(mouseID, cycleID, cycleStartDate, num_ID),
+    by = "mouseID"
+  ) %>%
+  mutate(
+    comboTrt = factor(comboTrt, levels = c("CON-2.5", "ALPS-2.5", "CON-5", "ALPS-5"))
+  ) %>%
+  calcAgeInDays() %>%
+  arrange(
+    comboTrt, maxLH
+  )
+
+samplingDF <- samplingDF %>%
+  addRegExForSamplingDF() %>%
+  addSamplingImgFilePaths()
+
+samplingDF
+
+samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
+samplingPPT <- ph_with(
+  samplingPPT,
+  value = "Cycling Images and LH Values",
+  location = ph_location_label("Title 1")
+)
+
+addSamplingSlidesFromDF(
+  samplingDF, 
+  samplingPPT = samplingPPT, 
+  cyclingDF = JL_cycles %>%
+    filter(
+      mouseID %in% samplingDF$mouseID
+    )
+)
+
+print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0(
+  "CRH-crexL10a_samplingImgs", 
+  dateToday,
+  ".pptx")
+  )
+)
+
+samplingDF %>%
+  select(
+    mouseID, num_ID, maxLH, ReproTract_mass, comboTrt, AMPath, ayerPath, anteAyerPath, uterinePicPath, startCycleDay_pres, endCycleDay_pres
+  )
+```

@@ -77,6 +77,29 @@ adultTrtColor <- function(
   return(color)
 }
 
+adultTrtFillShape <- function(
+  CON_color = "black",
+  ALPS_color = "black",
+  CON_fill = "white",
+  ALPS_fill = "black"
+){
+  layers <- list(
+    scale_color_manual(
+      "treatment", 
+      values = c("CON"=CON_color, 
+                 "ALPS"=ALPS_color)),
+    scale_fill_manual(
+      "treatment", 
+      values = c("CON"=CON_fill, 
+                 "ALPS"=ALPS_fill)),
+    scale_shape_manual(
+      "treatment", 
+      values = c("CON"=21, 
+                 "ALPS"=23))
+  )
+  return(layers)
+}
+
 earlyLifeLineType <- function(
   STD = "STD",
   LBN = "LBN"

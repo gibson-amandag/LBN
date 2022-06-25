@@ -434,9 +434,8 @@ addSamplingSlidesFromDF <- function(
       cycleID = samplingDF$num_ID,
       maxLH = samplingDF$maxLH,
       uterineMass = samplingDF$ReproTract_mass,
-      trt = samplingDF %>% select({{trtVar}}),
-      # trt = samplingDF$adultTrt,
-      # trt = sampleDF$comboTrt,
+      # trt = samplingDF %>% select({{trtVar}}), ## this doesn't work for whatever reason - gives the whole list of them, not just the one, leads to rep of first trt
+      trt = samplingDF$comboTrt,
       amImgPath = samplingDF$AMPath,
       prevDayImgPath = samplingDF$ayerPath,
       twoDayPrevImgPath = samplingDF$anteAyerPath,
