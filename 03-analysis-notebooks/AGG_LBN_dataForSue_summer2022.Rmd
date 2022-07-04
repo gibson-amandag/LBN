@@ -1,0 +1,451 @@
+---
+title: "Data for Sue - Summer 2022"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+```{r}
+cohortsToInclude <- c(2, 4, 6, 7, 8)
+LBNdataFilter <- function(df){
+  df <- df %>%
+    filter(
+      cohort %in% cohortsToInclude
+      , Litter_size >= 5
+    )
+  return(df)
+}
+
+```
+
+```{r}
+AcuteStress_off %>%
+  LBNdataFilter() %>%
+  filter(
+    !is.na(cort_hr0)
+    ,!exclude_cort_hr0
+    ,!exclude_cort_hr5
+  ) %>%
+  select(
+    mouseID
+    ,sex
+    ,damID
+    ,DOB
+    ,earlyLifeTrt
+    ,cohort
+    ,litterNum
+    ,Litter_size
+    ,adultTrt
+    ,comboTrt
+    ,Sac_date
+    ,AgeInDays
+    ,Sac_cycle
+    ,Body_mass_AM
+    ,Body_mass_sac
+    ,ReproTract_mass
+    # ,ReproTract_mass_perBodyAM_g
+    # ,ReproTract_mass_perBody_g
+    ,Gonad_mass
+    # ,Gonad_mass_perBodyAM_g
+    # ,Gonad_mass_perBody_g
+    ,Adrenal_mass
+    # ,Adrenal_mass_perBodyAM_g
+    # ,Adrenal_mass_perBody_g
+    ,starts_with("cort")
+    ,starts_with("LH")
+  ) %>%
+  mutate(
+    UterineMassMatchesStage = ifelse(
+      sex == "M",
+      NA,
+      ifelse(
+        Sac_cycle == "proestrus",
+        ifelse(
+          ReproTract_mass >= 125,
+          TRUE,
+          FALSE
+        ),
+        ifelse(
+          ReproTract_mass <= 100,
+          TRUE,
+          FALSE
+        )
+      )
+    ),
+    .after = ReproTract_mass
+  ) %>%
+  arrange(
+    sex
+    ,-UterineMassMatchesStage
+    ,Sac_cycle
+    ,comboTrt
+  )
+```
+```{r}
+dataForSue <- AcuteStress_off %>%
+  LBNdataFilter() %>%
+  filter(
+    sex == "F"
+    # ,!is.na(cort_hr0)
+    , !is.na(Sac_cycle)
+  ) %>%
+  mutate(
+    cort_hr0 = ifelse(
+      exclude_cort_hr0,
+      NA,
+      cort_hr0
+    ),
+    cort_hr5 = ifelse(
+      exclude_cort_hr5,
+      NA,
+      cort_hr5
+    )
+  ) %>%
+  select(
+    mouseID
+    ,earlyLifeTrt
+    ,adultTrt
+    ,comboTrt
+    ,Sac_cycle
+    ,ReproTract_mass
+    ,AgeInDays
+    ,starts_with("cort")
+    ,starts_with("LH")
+  ) %>%
+  mutate(
+    UterineMassMatchesStage = ifelse(
+      Sac_cycle == "proestrus",
+      ifelse(
+        ReproTract_mass >= 125,
+        TRUE,
+        FALSE
+      ),
+      ifelse(
+        ReproTract_mass <= 100,
+        TRUE,
+        FALSE
+      )
+    ),
+    .after = ReproTract_mass
+  ) %>%
+  arrange(
+    -UterineMassMatchesStage
+    ,Sac_cycle
+    ,comboTrt
+  )
+dataForSue
+```
+
+```{r}
+dataForSue %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = cort_hr5,
+    yLab = "cort",
+    xVar = AgeInDays,
+    xLab = "age (days)"
+  )
+
+dataForSue <- dataForSue %>%
+  select(-AgeInDays)
+```
+
+```{r}
+saveDFsToExcel(
+  "femaleCortLH"
+  , "AGG_LBN" = dataForSue
+)
+```
+
+```{r include=FALSE}
+BD_filePath <- normalizePath("C:\\Users\\percs\\OneDrive - Umich\\Moenter lab\\Bo Dong\\BD_cort-admin_AGG.xlsx")
+BD_fileInfo <- loadExcelSheet_fromFile(BD_filePath, "fileInfo")
+
+BD_damInfo <- loadExcelSheet_fromFile(BD_filePath, "DamInfo") %>%
+  makeFactors("damID")
+
+BD_offspringInfo <- loadExcelSheet_fromFile(BD_filePath, "OffspringInfo") %>% makeFactors(c("mouseID", "damID"))
+
+BD_offspringInfo <- BD_offspringInfo %>%
+  left_join(
+    BD_damInfo,
+    by = "damID"
+  ) %>%
+  mutate(
+    cyclingFolderPath = BD_cycleDir,
+    earlyLifeTrt = NA,
+    maxLH = NA
+  )
+
+BD_damInfo
+BD_offspringInfo
+```
+
+```{r}
+BD_filePrefix  <-  "cortAdmin_"
+```
+
+
+
+# Pilot 1 - single administration
+
+6 mice were included in this study
+- 1 vehicle (0 mg/kg) (ate all Nutella)
+- 1 10 mg/kg (ate all Nutella)
+- 2 20 mg/kg (1 ate all Nutella; 1 did not)
+- 2 50 mg/kg (did not eat all Nutella)
+
+Mice were administered a single bolus of corticosterone (or vehicle) in Nutella following the first tail blood sample at time 0h (~9:30a EST). Additional tail blood samples were collected at 0.5h, 1h, 3h, and 5h
+
+# Pilot 2 - repeated administration
+
+6 mice were included in this study
+- 2 vehicle (0 mg/kg) (ate all Nutella)
+- 2 3 mg/kg (1 ate all Nutella; 1 ate most of initial sample, did not eat subsequent)
+- 2 10 mg/kg (both ate some but not all of Nutella)
+
+Mice were administered a bolus of corticosterone (or vehicle) in Nutella following the first tail blood sample at time 0h (~9:30a EST). Additional tail blood samples were collected at 0.5h, 1h, 3h, and 5h. Additional administrations of corticosterone were provided at 1h and 3hr, following tail blood samples at these times.
+
+# Pilot 3 - single admin, single sample
+
+6 mice were included in this study
+- 2 vehicle (0 mg/kg)
+- 2 0.5 mg/kg
+- 2 1 mg/kg 
+
+These were the same mice that were used in Pilot 1 (>3wks later). All mice at all of the Nutella
+
+Mice were administered a single bolus of corticosterone (or vehicle) in Nutella following the first tail blood sample at time 0h (~9:30a EST). An additional tail blood sample was collected 1h later. Only a single sample was taken due to limitations in total blood volume that can be collected from a mouse.
+
+
+# Pilot 4 and 5 - repeated administration
+
+12 mice were included in this study
+- 6 vehicle (0 mg/kg)
+- 6 2 mg/kg 
+
+Mice were administered a bolus of corticosterone (or vehicle) in Nutella following the first tail blood sample at time 0h (~9:30a EST). Additional tail blood samples were collected at 0.5h, 1h, 3h, and 5h. Additional administrations of corticosterone were provided at 1h and 3hr, following tail blood samples at these times.
+
+
+# Pilot 6 - Repeated Sampling During ALPS
+
+5 mice were included in this study
+All received ALPS paradigm
+
+
+```{r}
+BD_sacrifice1_file <- loadExcelSheet_fromFile(BD_filePath, "Sacrifice_off") %>%
+  makeFactors(c(
+    mouseID,
+    adultTrt,
+    dosage
+  ))
+BD_cort1_file <- loadExcelSheet_fromFile(BD_filePath, "Cort_off") %>%
+  makeFactors(c(
+    mouseID
+  ))
+BD_sacrifice2_file <- loadExcelSheet_fromFile(BD_filePath, "Sacrifice_off2") %>%
+  makeFactors(c(
+    mouseID,
+    adultTrt,
+    dosage
+  ))
+BD_cort2_file <- loadExcelSheet_fromFile(BD_filePath, "Cort_off2") %>%
+  makeFactors(c(
+    mouseID
+  ))
+BD_sacrifice3_file <- loadExcelSheet_fromFile(BD_filePath, "Sacrifice_off3") %>%
+  makeFactors(c(
+    mouseID,
+    adultTrt,
+    dosage
+  ))
+BD_cort3_file <- loadExcelSheet_fromFile(BD_filePath, "Cort_off3") %>%
+  makeFactors(c(
+    mouseID
+  ))
+BD_sacrifice4_file <- loadExcelSheet_fromFile(BD_filePath, "SamplingInfo4") %>%
+  makeFactors(c(
+    mouseID,
+    adultTrt,
+    dosage
+  ))
+BD_cort4_file <- loadExcelSheet_fromFile(BD_filePath, "Cort4") %>%
+  makeFactors(c(
+    mouseID
+  ))
+BD_sacrificeALPS_file <- loadExcelSheet_fromFile(BD_filePath, "SamplingInfoALPS") %>%
+  makeFactors(c(
+    mouseID,
+    adultTrt
+  ))
+BD_cortALPS_file <- loadExcelSheet_fromFile(BD_filePath, "CortALPS") %>%
+  makeFactors(c(
+    mouseID
+  ))
+```
+
+```{r}
+makeBDCortWider <- function(df){
+  spec <- build_wider_spec(
+    df,
+    names_from = time, 
+    values_from = c(cort, atePrevNutella, cortCV, exclude),
+    names_sep = "_hr"
+  )
+  spec <- arrange(spec, time, .value)
+  wider <- pivot_wider_spec(
+    df %>%
+      select(-belowLimit),
+    spec
+  )
+  return(wider)
+}
+makeBDCortWider_ALPS <- function(df){
+  spec <- build_wider_spec(
+    df,
+    names_from = time, 
+    values_from = c(cort, cortCV, exclude),
+    names_sep = "_hr"
+  )
+  spec <- arrange(spec, time, .value)
+  wider <- pivot_wider_spec(
+    df %>%
+      select(-belowLimit),
+    spec
+  )
+  return(wider)
+}
+```
+
+
+```{r}
+BD_cort1_wide <- BD_cort1_file %>%
+  makeBDCortWider()
+BD_cort2_wide <- BD_cort2_file %>%
+  makeBDCortWider()
+BD_cort3_wide <- BD_cort3_file %>%
+  makeBDCortWider()
+BD_cort4_wide <- BD_cort4_file %>%
+  makeBDCortWider()
+BD_cortALPS_wide <- BD_cortALPS_file %>%
+  makeBDCortWider_ALPS()
+BD_cort1_wide
+BD_cort2_wide
+BD_cort3_wide
+BD_cort4_wide
+BD_cortALPS_wide
+```
+
+```{r}
+BD_sacrifice1 <- BD_sacrifice1_file %>%
+  left_join(
+    BD_cort1_wide,
+    by = "mouseID"
+  )
+BD_sacrifice2 <- BD_sacrifice2_file %>%
+  left_join(
+    BD_cort2_wide,
+    by = "mouseID"
+  )
+BD_sacrifice3 <- BD_sacrifice3_file %>%
+  left_join(
+    BD_cort3_wide,
+    by = "mouseID"
+  )
+BD_sacrifice4 <- BD_sacrifice4_file %>%
+  left_join(
+    BD_cort4_wide,
+    by = "mouseID"
+  )
+BD_sacrificeALPS <- BD_sacrificeALPS_file %>%
+  left_join(
+    BD_cortALPS_wide,
+    by = "mouseID"
+  )
+BD_sacrifice1
+BD_sacrifice2
+BD_sacrifice3
+BD_sacrifice4
+BD_sacrificeALPS
+```
+
+```{r}
+filterBDforSue <- function(df){
+  df_filter <- df %>%
+    select(
+      -c(
+        Sac_date
+        ,adultTrt
+        ,Body_mass
+        ,ReproTract_mass
+        ,Gonad_mass
+        ,ateNutella
+        ,atePrevNutella_hr0
+        ,starts_with("cortCV_")
+        ,starts_with("exclude_")
+      )
+    ) %>%
+    arrange(
+      primaryExperimenter
+      ,dosage
+    )
+  return(df_filter)
+}
+filterBDforSue_ALPS <- function(df){
+  df_filter <- df %>%
+    select(
+      -c(
+        Sac_date
+        ,adultTrt
+        ,Body_mass
+        ,ReproTract_mass
+        ,Gonad_mass
+        ,starts_with("cortCV_")
+        ,starts_with("exclude_")
+      )
+    )
+  return(df_filter)
+}
+```
+
+
+```{r}
+BD_pilot1 <- BD_sacrifice1 %>% 
+  filterBDforSue()
+BD_pilot1
+BD_pilot2 <- BD_sacrifice2 %>% 
+  filterBDforSue()
+BD_pilot2
+BD_pilot3 <- BD_sacrifice3 %>% 
+  filterBDforSue()
+BD_pilot3
+BD_pilot4 <- BD_sacrifice4 %>% 
+  filterBDforSue()
+BD_pilot4
+BD_pilotALPS <- BD_sacrificeALPS %>% 
+  filterBDforSue_ALPS()
+BD_pilotALPS
+```
+```{r}
+saveDFsToExcel(
+  "nutellaCortAdmin"
+  , prefix = ""
+  , "pilot1" = BD_pilot1
+  , "pilot2" = BD_pilot2
+  , "pilot3" = BD_pilot3
+  , "pilot4" = BD_pilot4
+  , "pilotALPS" = BD_pilotALPS
+)
+```
