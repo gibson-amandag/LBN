@@ -1136,13 +1136,30 @@ flexSave(
 ```
 
 ```{r}
+surgedDF <- AcuteStress_off %>%
+  mutate(
+    surged = maxLH > 3
+  ) %>%
+  filter(
+    Sac_cycle == "proestrus",
+    ReproTract_mass >= 125,
+    Litter_size >= 5,
+    litterNum == 1
+    , cohort == 2 | cohort == 7
+  ) 
+surgedDF
+```
+
+
+```{r}
 plot <- surgedDF %>%
   plotLHAmp_comboTrt(
     3,
     textSize = 28,
     dotSize = 5,
     angleX = FALSE
-  )
+  ) + 
+  coord_cartesian(ylim = c(0, 40))
 
 plot 
 thisHeight = 5.5
@@ -1217,6 +1234,21 @@ flexSave(
   shinySettings = FALSE
 )
 ```
+```{r}
+surgedDF <- AcuteStress_off %>%
+  mutate(
+    surged = maxLH > 3
+  ) %>%
+  filter(
+    Sac_cycle == "proestrus",
+    ReproTract_mass >= 125,
+    Litter_size >= 5,
+    litterNum == 2
+    , cohort == 4 | cohort == 6
+  ) 
+surgedDF
+```
+
 
 ```{r}
 plot <- surgedDF %>%
@@ -1225,7 +1257,8 @@ plot <- surgedDF %>%
     textSize = 28,
     dotSize = 5,
     angleX = FALSE
-  )
+  )+ 
+  coord_cartesian(ylim = c(0, 40))
 
 plot 
 thisHeight = 5.5
