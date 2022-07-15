@@ -535,7 +535,8 @@ dam_behavior_filtered <- dam_behavior %>%
         TRUE, 
         ifelse(
           damID == "D051-01",
-          TRUE,
+          # TRUE,
+          FALSE,
           FALSE
         )
       )
@@ -546,6 +547,10 @@ dam_behavior_filtered
 
 ```{r}
 behaviorOverTime <- dam_behavior_filtered %>%
+  filter(
+    !firstDay,
+    litterNum == 2
+  ) %>%
   behavior_overTime(
     yVar = Num_exits,
     yLab = "# of exits",
@@ -558,12 +563,13 @@ behaviorOverTime <- dam_behavior_filtered %>%
   )
 plot <- behaviorOverTime +
   facet_wrap(
-    ~litterNum + earlyLifeTrt,
+    # ~litterNum + earlyLifeTrt,
+    ~earlyLifeTrt,
     ncol = 2,
     # ncol = 1,
-    labeller = labeller(
-      litterNum = litterNum_label
-    ),
+    # labeller = labeller(
+    #   litterNum = litterNum_label
+    # ),
     scales = "free"
   )+
   theme(
@@ -597,7 +603,7 @@ plot <- behaviorOverTime +
 plot
 
 # fileBaseName <- "damBehavior"
-fileBaseName <- "damBehavior_square"
+fileBaseName <- "damBehavior_square_firstDay"
 thisWidth = 12.25
 thisHeight = 6.5
 thisUnits = "in"
@@ -618,10 +624,50 @@ flexSave(
 ## ANOVA
 ```{r}
 damBehaviorAnova <- dam_behavior_filtered %>%
+  filter(
+    !firstDay,
+    litterNum == 1
+  ) %>%
   anova_test(
     dv = Num_exits,
     wid = damID,
-    between = c(earlyLifeTrt, litterNum),
+    between = c(earlyLifeTrt),
+    within = time
+  ) 
+
+dam_behavior_filtered %>%
+  filter(
+    !firstDay,
+    litterNum == 1,
+    time == 4
+  ) %>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  summarize(
+    n()
+  )
+
+damBehaviorAnova$ANOVA%>%
+  myDisplay()
+
+# dam_behavior_filtered %>%
+#   group_by(
+#     time
+#   ) %>%
+#   anova_test(
+#     dv = Num_exits,
+#     between = c(earlyLifeTrt)
+#   ) %>%
+#   adjust_pvalue(method = "bonferroni")
+```
+## ANOVA - 2way
+```{r}
+damBehaviorAnova <- dam_behavior_filtered %>%
+  anova_test(
+    dv = Num_exits,
+    wid = damID,
+    between = c(earlyLifeTrt),
     within = time
   ) 
 
