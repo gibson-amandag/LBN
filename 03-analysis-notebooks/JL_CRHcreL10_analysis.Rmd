@@ -173,7 +173,7 @@ JL_sacrifice
 
 
 ```{r, fig.width=11}
-cortPlot <- JL_cortOff %>%
+cort_plot <- JL_cortOff %>%
   cortPlot(
     pointSize = 3,
     fontSize = 20,
@@ -187,16 +187,20 @@ cortPlot <- JL_cortOff %>%
   ) +
   labs(
     x = "time (h)" # add a title to the x axis
+  ) +
+  adultTrtFillShape()+
+  facet_wrap(
+    ~sex
   )
 
-cortPlot
+cort_plot
 ```
 
 ```{r}
 flexSave(
   "cortPlot",
   thisFilePrefix = JL_filePrefix,
-  plot = cortPlot,
+  plot = cort_plot,
   fileType = "png",
   filePath = plotOutputFolder,
   width = JL_width,
@@ -362,3 +366,124 @@ samplingDF %>%
     mouseID, num_ID, maxLH, ReproTract_mass, comboTrt, AMPath, ayerPath, anteAyerPath, uterinePicPath, startCycleDay_pres, endCycleDay_pres
   )
 ```
+
+```{r}
+JL_sacrifice %>%
+  filter(
+    !is.na(cyclingFolderPath)
+    , sex == "F"
+  ) %>%
+  unite(
+    comboTrt,
+    adultTrt,
+    perfusionHr,
+    sep = "-",
+    remove = FALSE
+  ) %>%
+  right_join(
+    JL_cycles %>% select(mouseID, cycleID, cycleStartDate, num_ID),
+    by = "mouseID"
+  ) %>%
+  mutate(
+    comboTrt = factor(comboTrt, levels = c("CON-2.5", "ALPS-2.5", "CON-5", "ALPS-5"))
+  ) %>%
+  filter(
+    cycleStartDate >= as.Date("2022-06-01")
+  ) %>%
+  createRemainingPPT(addToName = "JL") %>%
+  select(
+    DOB
+  )
+
+
+```
+
+
+```{r include=FALSE}
+JL_filePath <- normalizePath("C:\\Users\\percs\\OneDrive - Umich\\Moenter lab\\LBN_0002_OneDrive\\DataForR\\AGG_JL_CRH-CrexL10a-GFP_data.xlsx")
+JL_fileInfo <- loadExcelSheet_fromFile(JL_filePath, "fileInfo")
+JL_cycleDir <- JL_fileInfo$cycleImgFolder[1]
+
+JL_damInfo <- loadExcelSheet_fromFile(JL_filePath, "DamInfo") %>%
+  makeFactors("damID")
+
+JL_offspringInfo <- loadExcelSheet_fromFile(JL_filePath, "OffspringInfo") %>% makeFactors(c("mouseID", "damID"))
+
+JL_offspringInfo <- JL_offspringInfo %>%
+  left_join(
+    JL_damInfo,
+    by = "damID"
+  ) %>%
+  mutate(
+    cyclingFolderPath = JL_cycleDir,
+    earlyLifeTrt = NA
+  )
+
+JL_cycles <- loadExcelSheet_fromFile(JL_filePath, "Cycles_off") %>%
+  makeFactors(
+    "mouseID"
+  )%>%
+  mutate(
+    num_ID = cycleID
+  )
+
+JL_allInfo <- JL_offspringInfo %>%
+  left_join(
+    JL_cycles,
+    by = "mouseID"
+  )
+
+JL_cycles <- JL_cycles %>%
+  left_join(
+    JL_offspringInfo,
+    by = "mouseID"
+  )
+
+JL_damInfo
+JL_offspringInfo
+JL_cycles
+```
+
+```{r}
+JL_filePrefix  <-  "JL_CRHcre-L10a_"
+JL_width <- 11.5
+JL_height <- 5
+```
+
+```{r}
+JL_sacrifice <- loadExcelSheet_fromFile(JL_filePath, "Sacrifice_off") %>%
+  makeFactors("mouseID")
+JL_allInfo <- JL_allInfo %>%
+  left_join(
+    JL_sacrifice,
+    by = "mouseID"
+  )
+JL_sacrifice <- JL_sacrifice %>%
+  left_join(
+    JL_offspringInfo,
+    by = "mouseID"
+  )
+```
+
+```{r}
+JL_allInfo %>%
+  filter(
+    is.na(sacDateOff),
+    is.na(Sac_date),
+    DOB >= as.Date("2022-01-01"),
+    cycleID >= 44 & cycleID <=49
+  ) %>%
+   unite(
+    comboTrt,
+    adultTrt,
+    perfusionHr,
+    sep = "-",
+    remove = FALSE
+  ) %>%
+  mutate(
+    comboTrt = factor(comboTrt, levels = c("CON-2.5", "ALPS-2.5", "CON-5", "ALPS-5"))
+  ) %>%
+  createRemainingPPT(addToName = "JL")
+```
+
+

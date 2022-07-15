@@ -51,7 +51,11 @@ uploadCyclesServer <- function(
       cycleDir <- reactive({
         req(input$dataFile$datapath %>% path_ext() == "xlsx")
         fileInfo <- loadExcelSheet_fromFile(input$dataFile$datapath, "fileInfo")
-        cycleDir <- fileInfo$cycleImgFolder[1]
+        if("cycleImgFolder" %in% names(fileInfo)){
+          cycleDir <- fileInfo$cycleImgFolder[1]
+        } else if("cyclingFolderPath" %in% names(fileInfo)){
+          cycleDir <- fileInfo$cyclingFolderPath[1]
+        }
         cycleDir <- normalizePath(cycleDir)
         return(cycleDir)
       })

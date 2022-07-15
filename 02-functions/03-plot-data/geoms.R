@@ -34,6 +34,7 @@ addMeanHorizontalBar <- function(
   lineTypeName = "early life trt",
   lineTypeGuide = c("STD" = "dotted", "LBN" = "solid"),
   typeVar = earlyLifeTrt,
+  barPosition = "identity",
   ... # Into aes
 ){
   if(!addLineType){
@@ -44,6 +45,7 @@ addMeanHorizontalBar <- function(
         fun.max = mean, 
         width = width,
         size = size,
+        position = barPosition,
         aes(...)
       )
   } else{
@@ -55,6 +57,7 @@ addMeanHorizontalBar <- function(
         fun.max = mean, 
         width = width,
         size = size,
+        position = barPosition,
         aes(linetype = {{ typeVar }}, ...)
       ),
       scale_linetype_manual(lineTypeName, values = lineTypeGuide)
@@ -64,12 +67,14 @@ addMeanHorizontalBar <- function(
 
 addMeanSE_vertBar <- function(
   size = 0.4,
+  barPosition = "identity",
   ... # into aes
 ){
   stat_summary(
     geom = "linerange", 
     fun.data = mean_se,
     size = size,
+    position = barPosition,
     aes(...),
     show.legend = FALSE
   )

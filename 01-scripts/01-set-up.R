@@ -116,6 +116,11 @@ dataOutputFolder <- normalizePath(file.path(outputFolder, "data"))
 plotOutputFolder <- normalizePath(file.path(outputFolder, "plots"))
 reportOutputFolder <- normalizePath(file.path(outputFolder, "reports"))
 
+
+#Where cort admin files are saved
+cortAdminFolder <- normalizePath(Sys.getenv("CORT_ADMIN_FOLDER"))
+cortAdminFileName <- Sys.getenv("CORT_ADMIN_FILE_NAME")
+
 #Where R script files are saved
 scriptsFolder <- normalizePath(file.path("01-scripts"))
 appScriptsFolder <- normalizePath(file.path(scriptsFolder, "appScripts"))

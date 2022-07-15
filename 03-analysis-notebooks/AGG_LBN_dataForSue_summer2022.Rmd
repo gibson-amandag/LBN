@@ -172,6 +172,8 @@ saveDFsToExcel(
 BD_filePath <- normalizePath("C:\\Users\\percs\\OneDrive - Umich\\Moenter lab\\Bo Dong\\BD_cort-admin_AGG.xlsx")
 BD_fileInfo <- loadExcelSheet_fromFile(BD_filePath, "fileInfo")
 
+BD_cycleDir <- BD_fileInfo$cycleImgFolder[1]
+
 BD_damInfo <- loadExcelSheet_fromFile(BD_filePath, "DamInfo") %>%
   makeFactors("damID")
 

@@ -487,3 +487,76 @@ flexSave(
 )
 ```
 
+
+
+
+```{r}
+BD_offspringInfo
+
+BD_cycles
+```
+
+
+
+
+```{r}
+remainingDF_today <- BD_offspringInfo %>%
+  left_join(
+    BD_cycles,
+    by = "mouseID"
+  ) %>%
+  left_join(
+    BD_sacrifice4,
+    by = "mouseID"
+  ) %>%
+  filter(
+    cohort == "AG_BW"
+  ) %>%
+  mutate(
+    Sac_date = dateToday
+  ) %>%
+  calcAgeInDays() %>%
+  mutate(
+    comboTrt = NA,
+    earlyLifeTrt = NA
+  )
+
+remainingDF_today <- remainingDF_today %>%
+  addRegExForSamplingDF() %>%
+  addSamplingImgFilePaths()
+
+samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
+samplingPPT <- ph_with(
+  samplingPPT,
+  value = paste("Mice remaining on", dateToday),
+  location = ph_location_label("Title 1")
+)
+addSamplingSlidesFromDF(
+  remainingDF_today, 
+  samplingPPT = samplingPPT, 
+  cyclingDF = BD_cycles %>%
+    filter(
+      mouseID %in% remainingDF_today$mouseID
+    ) %>%
+    left_join(
+      BD_offspringInfo,
+      by = "mouseID"
+    ) %>%
+    mutate(
+      earlyLifeTrt = NA
+    )
+)
+
+# Cycles_off_all %>% 
+#   filter(mouseID %in% remainingDF_today$mouseID) %>%
+#   makeCyclesLong() %>%
+#   addPNDForCyles() %>%
+#   filter(
+#     mouseID == "701"
+#   )
+
+# remainingDF_today
+
+print(samplingPPT, target = file.path(reportOutputFolder, "remainingPPTs", paste0("remaining_", dateToday, ".pptx")))
+```

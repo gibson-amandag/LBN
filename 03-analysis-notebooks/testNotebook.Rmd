@@ -5458,3 +5458,643 @@ flexSave(
 )
 ```
 
+2022-07-01 - ZT15 and ZT1 times and dates (1h after light transitions)
+```{r}
+damBehaveDates <- Demo_dam %>%
+  filter(
+    Litter_size >= 5
+    , cohort != 1
+    , cohort != 3
+    , cohort != 5
+    # , is.na(Num_entries_ZT0)
+  ) %>%
+  arrange(
+    cohort,
+    DOB
+  ) %>%
+  select(
+    damID
+    , cohort
+    , DOB
+  ) %>%
+  mutate(
+    P5_ZT15 = getZT_DateTime(DOB, PND = 5, ZT = 15)
+    , P5_ZT15_done = NA
+    , P5_ZT15_who = NA
+    , P5_ZT15_notes = NA,
+    P6_ZT1 = getZT_DateTime(DOB, PND = 6, ZT = 1)
+    , P6_ZT1_done = NA
+    , P6_ZT1_who = NA
+    , P6_ZT1_notes = NA
+  )
+
+damBehaveDates
+
+saveDFsToExcel(
+  "damBehaviorDates_ZT15_ZT1",
+  dates = damBehaveDates
+)
+```
+
+```{r}
+damBehavior1hr <- dam_behavior %>%
+  filter(
+    time %in% c(15, 1),
+    Litter_size >= 5
+  )
+
+behaviorOverTime <- damBehavior1hr %>%
+  behavior_overTime(
+    yVar = Num_exits,
+    yLab = "# of exits",
+    fontSize = 16,
+    dotSize = 3,
+    dotSize_byFirstDay = FALSE,
+    timeBreaks = c(15, 1),
+    timeLabels = c("15", "1"),
+    lineSize = 0.75
+  )
+
+plot <- behaviorOverTime +
+  facet_wrap(
+    ~earlyLifeTrt,
+    ncol = 2,
+    scales = "free"
+  )+
+  theme(
+    legend.position = "bottom"
+  ) +
+  guides(
+    fill = "none"
+    , linetype = "none"
+  )+
+  labs(
+    x = "ZT hour"
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "15" = "15"
+      , "1" = "1"
+    )
+  ) +
+  # labs(x = "ZT hour") +
+  expand_limits(y = 70)
+
+plot
+```
+
+```{r}
+behaviorOverTime <- damBehavior1hr %>%
+  behavior_overTime_dodge(
+    yVar = Num_exits,
+    "# of exits",
+    fontSize = 16,
+    dotSize = 3
+  )
+
+plot <- behaviorOverTime +
+  theme(
+    legend.position = "bottom"
+  ) +
+  labs(
+    x = "ZT hour"
+  ) +
+  # scale_x_discrete(
+  #   labels = c(
+  #     "15" = "15"
+  #     , "1" = "1"
+  #   )
+  # ) +
+  # labs(x = "ZT hour") +
+  expand_limits(y = 70)
+
+plot
+```
+
+```{r}
+damBehaviorAnova <- damBehavior1hr %>%
+  anova_test(
+    dv = Num_exits,
+    wid = damID,
+    between = c(earlyLifeTrt),
+    within = time
+  )
+
+damBehaviorAnova
+```
+
+```{r}
+
+# works
+testCol = "mouseID"
+
+testFunc <- function(
+  df
+  ,colName
+){
+  df %>% select(
+    all_of({{ colName }})
+  )
+}
+
+AcuteStress_off %>%
+  testFunc(testCol)
+
+```
+
+```{r}
+testCol = expr(mouseID)
+testFunc <- function(
+  df
+  ,colName
+){
+  df %>% select(
+    all_of({{ colName }})
+  )
+}
+
+AcuteStress_off %>%
+  testFunc(testCol)
+```
+```{r}
+# doesn't work
+testCol = expr(mouseID:DOB)
+testFunc <- function(
+  df
+  ,colName
+){
+  df %>% select(
+    all_of({{ colName }})
+  )
+}
+
+AcuteStress_off %>%
+  testFunc(testCol)
+```
+```{r}
+# doesn't works
+testCol = exprs(mouseID:DOB)
+testFunc <- function(
+  df
+  ,colName
+){
+  df %>% select(
+    {{ colName }}
+  )
+}
+
+AcuteStress_off %>%
+  testFunc(testCol)
+```
+```{r}
+# works
+testCol = exprs(mouseID:DOB)
+testFunc <- function(
+  df
+  ,colName
+){
+  df %>% select(
+    {{ colName }}
+  )
+}
+
+AcuteStress_off %>%
+  testFunc(mouseID:DOB)
+```
+```{r}
+# doesn't works
+testCol = exprs(c(mouseID, DOB))
+testFunc <- function(
+  df
+  ,colName
+){
+  df %>% select(
+    {{ colName }}
+  )
+}
+
+AcuteStress_off %>%
+  testFunc(testCol)
+```
+
+
+```{r}
+#works
+testCol <- "mouseID"
+
+testFunc <- function(
+  df
+  ,colName
+){
+  df %>% select(
+    .data[[testCol]]
+  )
+}
+
+AcuteStress_off %>%
+  testFunc(testCol)
+```
+```{r}
+#works - two separate ones
+testCol <- c("mouseID", "DOB")
+
+testFunc <- function(
+  df
+  ,colName
+){
+  df %>% select(
+    {{ colName }}
+  )
+}
+
+for(var in testCol){
+  AcuteStress_off %>% testFunc(.data[[var]]) %>% print()
+}
+```
+
+
+# IMPORTANT!
+Important work around for when have a character string and want to use
+in a function that's expecting an expression
+```{r}
+#works
+testCol <- "mouseID"
+
+testFunc <- function(
+  df
+  ,colName
+){
+  df %>% select(
+    {{ colName }}
+  )
+}
+
+AcuteStress_off %>% testFunc(.data[[testCol]])
+```
+
+# Check if column exists
+
+```{r}
+#works
+as.character(expr(mouseID))
+```
+
+```{r}
+# work
+makeExprCharacter <- function (var){
+  as.character(substitute(var))
+}
+makeExprCharacter(mouseID)
+```
+
+
+```{r}
+selectIfExists <- function(
+  df,
+  colVar,
+  colVarAsString
+){
+  df %>%
+    select({
+      if(colVarAsString %in% colnames(.))
+        {{ colVar }}
+    })
+}
+AcuteStress_off %>%
+  selectIfExists(
+    mouseID,
+    "mouseID"
+  )
+```
+
+```{r}
+AcuteStress_off %>%
+  select({if("mouseID" %in% names(.)) expr(mouseID) else NULL})
+AcuteStress_off %>%
+  filter({if("cohort" %in% names(.)) cohort else NULL} == 6)
+AcuteStress_off %>%
+  select_if(
+    as.character(expr(mouseID)) == names(.)
+  )
+```
+
+```{r}
+selectIfExists <- function(
+  df,
+  colVar,
+  colVarAsString
+){
+  df %>%
+    select_if(
+      as.character(expr(colVar))
+    )
+}
+AcuteStress_off %>%
+  selectIfExists(
+    mouseID,
+    "mouseID"
+  )
+```
+```{r}
+selectIfExists <- function(
+  df,
+  colVar
+){
+  # colString <- as.character(substitute(colVar))
+  colString <- makeExprCharacter(colVar)
+  return(colString)
+}
+AcuteStress_off %>%
+  selectIfExists(
+    mouseID
+  )
+
+colVar <- expr(mouseID)
+all.names(colVar)
+substitute(mouseID)
+
+mySubFunc <- function(var){substitute(var)}
+mySubFunc(mouseID)
+is.character(mySubFunc(mouseID))
+```
+
+
+https://adv-r.hadley.nz/quasiquotation.html
+```{r}
+expr(x + y)
+expr(1/2/3)
+f1 <- function(x) expr(x)
+f1(a + b + c)
+f2 <- function(x) enexpr(x)
+f2(a + b + c)
+
+f <- function(...) ensyms(...)
+f(x)
+```
+# ALSO IMPORANT!
+```{r}
+getSymAndString <- function(colVar){
+  colSym <- ensym(colVar)
+  colName <- as.character(colSym)
+  return(
+    list(
+      "symbol" = colSym,
+      "string" = colName
+    )
+  )
+}
+
+demoUseSymAndString <- function(var){
+  colVar <- enquo(var)
+  getSymAndString(!! colVar)
+}
+demoUseSymAndString(mouseID)
+```
+
+```{r}
+#WORKS!
+selectIfExists <- function(
+  df,
+  colVar
+){
+  var <- enquo(colVar)
+  info <- getSymAndString(!! var)
+  info$string
+  df %>%
+    select_if(
+      info$string == names(.)
+    )
+}
+AcuteStress_off %>%
+  selectIfExists(
+    mouseID
+  )
+```
+
+
+```{r}
+AcuteStress_off %>%
+  filter(
+    mouseID == 807
+  ) %>%
+  addImgRegExColsForSamplingDF() %>%
+  select(
+    mouseID, Sac_date, contains("regEx")
+  )
+
+BD_sacrifice4 %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )%>% 
+  left_join(
+    BD_cycles,
+    by = "mouseID"
+  ) %>%
+  addImgRegExCols_forDate() %>%
+  select(
+    mouseID, Sac_date, contains("regEx")
+  )
+```
+
+```{r}
+source("C:/Users/percs/Documents/Development/LBN/01-scripts/cortAdmin/cortAdmin-set-up.R")
+```
+
+```{r}
+# LOAD EXCEL SHEETS -------------------------------------------------------
+
+BD_damInfo <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "DamInfo")
+BD_offspringInfo <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "OffspringInfo")
+BD_cycles <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "Cycles_off")
+BD_fileInfo <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "fileInfo")
+BD_sampling <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "samplingInfo")
+BD_ateNutella <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "ateNutella")
+BD_cort <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "cort")
+BD_sampling1 <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "Sacrifice_off1")
+BD_sampling2 <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "Sacrifice_off2")
+BD_sampling3 <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "Sacrifice_off3")
+BD_sampling4 <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "SamplingInfo4")
+BD_samplingALPS <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "SamplingInfoALPS")
+BD_cort1 <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "Cort_off1")
+BD_cort2 <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "Cort_off2")
+BD_cort3 <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "Cort_off3")
+BD_cort4 <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "Cort4")
+BD_cortALPS <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "CortALPS")
+
+
+# niceNames <- loadExcelSheet(dataFolder, LBN_DataName, "plotLabels")
+
+```
+
+```{r}
+# FORMAT DATASETS ---------------------------------------------------------
+
+#Make factor variables
+# damID
+# dam
+# mouseID
+# cohort
+
+BD_damInfo <- BD_damInfo %>%
+  makeFactors(c(
+    damID,
+    dam
+  ))
+
+BD_offspringInfo <- BD_offspringInfo %>%
+  makeFactors(c(
+    mouseID,
+    originalID,
+    cohort,
+    sex,
+    damID
+  ))
+
+BD_fileInfo <- BD_fileInfo %>%
+  makeFactors(c(
+    cohort
+  ))
+
+BD_cycles <- BD_cycles %>% makeFactors(c(mouseID))
+
+BD_sampling <- BD_sampling %>% makeFactors(c(mouseID, Sac_cycle, adultTrt, dosage, primaryExperimenter))
+BD_sampling1 <- BD_sampling1 %>% makeFactors(c(mouseID, Sac_cycle, adultTrt, dosage, primaryExperimenter))
+BD_sampling2 <- BD_sampling2 %>% makeFactors(c(mouseID, Sac_cycle, adultTrt, dosage, primaryExperimenter))
+BD_sampling3 <- BD_sampling3 %>% makeFactors(c(mouseID, Sac_cycle, adultTrt, dosage, primaryExperimenter))
+BD_sampling4 <- BD_sampling4 %>% makeFactors(c(mouseID, Sac_cycle, adultTrt, dosage, primaryExperimenter))
+BD_samplingALPS <- BD_samplingALPS %>% makeFactors(c(mouseID, Sac_cycle, adultTrt, primaryExperimenter))
+
+BD_cort <- BD_cort %>% makeFactors(c(mouseID))
+BD_cort1 <- BD_cort1 %>% makeFactors(c(mouseID))
+BD_cort2 <- BD_cort2 %>% makeFactors(c(mouseID))
+BD_cort3 <- BD_cort3 %>% makeFactors(c(mouseID))
+BD_cort4 <- BD_cort4 %>% makeFactors(c(mouseID))
+BD_cortALPS <- BD_cortALPS %>% makeFactors(c(mouseID))
+```
+
+```{r}
+
+# DAM DEMO FOR OFFSPRING --------------------------------------------------
+
+# Update offspring demographics
+BD_offspringInfo <- BD_offspringInfo %>%
+  left_join(
+    BD_damInfo,
+    by = "damID"
+  ) %>%
+  left_join(
+    BD_fileInfo,
+    by = "cohort"
+  )
+
+# Cycles ------------------------------------------------------------------
+
+BD_cycles <- BD_cycles %>%
+  left_join(
+    BD_offspringInfo,
+    by = "mouseID"
+  )
+
+BD_offspringInfo <- BD_offspringInfo %>%
+  left_join(
+    BD_cycles %>%
+      select(
+        mouseID, cycleID
+      ),
+      by = "mouseID"
+  ) %>% mutate(
+    numID = cycleID
+  ) %>%
+  relocate(
+    cycleID, numID,
+    .after = originalID
+  )
+```
+```{r}
+# CORT AND LH -------------------------------------------------------------
+makeBDCortWider <- function(df){
+  spec <- build_wider_spec(
+    df,
+    names_from = time, 
+    values_from = c(cort, cortCV, exclude),
+    names_sep = "_hr"
+  )
+  spec <- arrange(spec, time, .value)
+  wider <- pivot_wider_spec(
+    df %>%
+      select(-belowLimit),
+    spec
+  )
+  return(wider)
+}
+
+processCort <- function(
+  cortDF,
+  samplingDF,
+  demoDF = BD_offspringInfo,
+  mouseIDName = "mouseID"
+){
+  cortDF <- cortDF %>%
+    mutate(
+      exclude = ifelse(is.na(exclude), FALSE, TRUE)
+    )
+  
+  cortWide <- cortDF %>%
+    makeBDCortWider()
+  
+  samplingDF_joined <- samplingDF %>%
+    left_join(
+      cortWide,
+      by = mouseIDName
+    ) %>%
+    mutate(
+      across(starts_with("exclude_cort"), ~ ifelse(!is.na(.x), .x, FALSE))
+    ) %>%
+    left_join(
+      demoDF,
+      by = mouseIDName
+    )
+  
+  cortDF <- cortDF %>%
+    left_join(
+      samplingDF,
+      by = mouseIDName
+    )
+  
+  return(
+    list(
+      "cort" = cortDF,
+      "sampling" = samplingDF_joined
+    )
+  )
+}
+```
+
+```{r}
+cortSampling <- processCort(BD_cort, BD_sampling)
+BD_cort <- cortSampling$cort
+BD_sampling <- cortSampling$sampling
+
+cortSampling1 <- processCort(BD_cort1, BD_sampling1)
+BD_cort1 <- cortSampling1$cort
+BD_sampling1 <- cortSampling1$sampling
+
+cortSampling2 <- processCort(BD_cort2, BD_sampling2)
+BD_cort2 <- cortSampling2$cort
+BD_sampling2 <- cortSampling2$sampling
+
+cortSampling3 <- processCort(BD_cort3, BD_sampling3)
+BD_cort3 <- cortSampling3$cort
+BD_sampling3 <- cortSampling3$sampling
+
+cortSampling4 <- processCort(BD_cort4, BD_sampling4)
+BD_cort4 <- cortSampling4$cort
+BD_sampling4 <- cortSampling4$sampling
+
+cortSamplingALPS <- processCort(BD_cortALPS, BD_samplingALPS)
+BD_cortALPS <- cortSamplingALPS$cort
+BD_samplingALPS <- cortSamplingALPS$sampling
+
+```
+

@@ -615,7 +615,8 @@ plotLHAmp_comboTrt <- function(
   if(angleX){
     plot <- plot +
       scale_x_discrete(
-        labels = c("CON \nsurge", "CON  \nno surge", "ALPS \nsurge", "ALPS  \nno surge")
+        labels = c("control surge"="CON \nsurge", "control no surge"="CON  \nno surge", "stress surge"="ALPS \nsurge", "stress no surge"="ALPS  \nno surge")
+        , drop=FALSE
       )+
       theme(
         legend.position = "none",
@@ -625,7 +626,8 @@ plotLHAmp_comboTrt <- function(
   } else {
     plot <- plot +
       scale_x_discrete(
-        labels = c("CON\nsurge", "CON\nno\nsurge", "ALPS\nsurge", "ALPS\nno\nsurge")
+        labels = c("control surge"="CON\nsurge", "control no surge" = "CON\nno\nsurge", "stress surge"="ALPS\nsurge", "stress no surge"="ALPS\nno\nsurge")
+        , drop=FALSE
       )+
       theme(
         legend.position = "none",
