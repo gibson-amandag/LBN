@@ -471,7 +471,7 @@ JL_allInfo %>%
     is.na(sacDateOff),
     is.na(Sac_date),
     DOB >= as.Date("2022-01-01"),
-    cycleID >= 44 & cycleID <=49
+    cycleID >= 44 & cycleID <=60
   ) %>%
    unite(
     comboTrt,
@@ -486,4 +486,36 @@ JL_allInfo %>%
   createRemainingPPT(addToName = "JL")
 ```
 
+```{r}
+df <- JL_allInfo %>%
+  filter(
+    DOB >= as.Date("2022-01-01"),
+    cycleID >= 44 & cycleID <=60
+  ) %>%
+  select(
+    mouseID,
+    damID,
+    adultTrt,
+    perfusionHr,
+    UterineDescription
+  ) %>%
+  mutate(
+    hitPro = NA
+  ) %>%
+  arrange(
+    mouseID
+  )
+
+saveDFsToExcel(
+  "AG_JL_CRH-cre_L10a_mice_trt",
+  "df" = df,
+  prefix = NULL
+)
+```
+```{r}
+JL_allInfo %>%
+  filter(
+    mouseID == "CRH60"
+  )
+```
 

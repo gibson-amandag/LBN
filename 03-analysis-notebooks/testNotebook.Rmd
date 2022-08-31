@@ -4005,6 +4005,28 @@ cellExclusion <- loadExcelSheet(dataFolder, LBN_DataName, "cellExclusion")
 ```
 
 ```{r}
+getGroups <- cellInfo %>%
+  makeFactors(
+    mouseID
+  ) %>%
+  left_join(
+    AcuteStress_off,
+    by = "mouseID"
+  ) %>%
+  select(
+    cellID, comboTrt
+  )
+
+getGroups
+
+saveDFsToExcel(
+  "cellTrt",
+  "cellTrt" = getGroups
+)
+```
+
+
+```{r}
 cellInfo <- cellInfo %>%
   makeFactors(
     c(mouseID, cellID)
@@ -6096,5 +6118,420 @@ cortSamplingALPS <- processCort(BD_cortALPS, BD_samplingALPS)
 BD_cortALPS <- cortSamplingALPS$cort
 BD_samplingALPS <- cortSamplingALPS$sampling
 
+```
+
+```{r}
+CRH_opto_path <- "C:\\Users\\percs\\OneDrive - Umich\\Moenter lab\\CRH_opto\\AGG_CRH_opto_20220717a.xlsx"
+CRH_opto_excel <- loadExcelSheet_fromFile(CRH_opto_path, "Sheet2")
+```
+
+
+```{r}
+CRH_opto <- CRH_opto_excel %>%
+  filter(
+    is.na(exclude) | !exclude
+  ) %>%
+  mutate(
+    across(c(RedAmp, BlueAmp), ~round(., 1)),
+    across(c(RedDur, BlueDur), ~round(., 4))
+  )
+
+CRH_opto
+```
+
+```{r}
+red_1ms_0V <- CRH_opto %>%
+  filter(
+    RedDur == 0.001,
+    RedAmp == 0
+  )
+
+red_1ms_0V
+red_1ms <- CRH_opto %>%
+  filter(
+    RedDur == 0.001
+  )
+
+red_1ms
+```
+
+```{r}
+useLineType <- FALSE
+lineTypeVar <- expr(RedFreq)
+xtitle <- "frequency (Hz)"
+ytitle <- "% stimuli with events"
+title <- NULL
+individualLines <- FALSE
+meanLines <- TRUE
+zoom_x <- FALSE
+xmin <- NULL
+xmax <- NULL
+zoom_y <- FALSE
+ymin <- NULL
+ymax <- NULL
+indivLineAlpha = 0.7
+indivLineSize <- 1
+errorBarWidth <- 0.3
+meanAlpha <- 1
+meanLineSize <- 1
+errorBarSize <- 0.5
+errorBarAlpha <- 1
+textSize <- 16
+axisSize <- 1
+
+plot <- red_1ms_0V %>%
+  ggplot(
+    aes(x = RedFreq, y = fidelityPercent)
+  ) +
+    plot_line_geom_layers (
+      useLineType = useLineType, # TRUE/FALSE
+      lineTypeVar = {{ lineTypeVar }},
+      lineGroupVar = {{ lineGroupVar }},
+      xtitle = xtitle, #x axis label
+      ytitle = ytitle, #y axis label
+      title = title, # plot title
+      individualLines = individualLines, # plot individual lines
+      meanLines = meanLines, # plot mean lines with SE
+      zoom_x = zoom_x, # Zoom to part of x axis
+      xmin = xmin,
+      xmax = xmax,
+      zoom_y = zoom_y, # Zoom to part of y axis
+      ymin = ymin,
+      ymax = ymax,
+      indivLineAlpha = indivLineAlpha,
+      indivLineSize = indivLineSize,
+      errorBarWidth = errorBarWidth,
+      meanLineSize = meanLineSize,
+      meanAlpha = meanAlpha,
+      errorBarSize = errorBarSize,
+      # errorBarColor = errorBarColor,
+      errorBarAlpha = errorBarAlpha,
+      textSize = textSize,
+      axisSize = axisSize
+    ) +
+  geom_point()
+
+fileBaseName = "CRH_opto_1ms_0V_freq"
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+plot
+
+```
+
+
+```{r}
+useLineType <- TRUE
+lineTypeVar <- expr(RedAmp)
+xtitle <- "frequency (Hz)"
+ytitle <- "% stimuli with events"
+title <- NULL
+individualLines <- FALSE
+meanLines <- TRUE
+zoom_x <- FALSE
+xmin <- NULL
+xmax <- NULL
+zoom_y <- FALSE
+ymin <- NULL
+ymax <- NULL
+indivLineAlpha = 0.7
+indivLineSize <- 1
+errorBarWidth <- 0.3
+meanAlpha <- 1
+meanLineSize <- 1
+errorBarSize <- 0.5
+errorBarAlpha <- 1
+textSize <- 16
+axisSize <- 1
+
+
+plot <- red_1ms  %>%
+  filter(
+    RedAmp != 3.2 & RedAmp != 3.5
+  ) %>%
+  makeFactors(RedAmp) %>%
+  ggplot(
+    aes(x = RedFreq, y = fidelityPercent, color = {{ lineTypeVar }})
+  ) +
+    plot_line_geom_layers (
+      useLineType = useLineType, # TRUE/FALSE
+      lineTypeVar = {{ lineTypeVar }},
+      lineGroupVar = {{ lineGroupVar }},
+      xtitle = xtitle, #x axis label
+      ytitle = ytitle, #y axis label
+      title = title, # plot title
+      individualLines = individualLines, # plot individual lines
+      meanLines = meanLines, # plot mean lines with SE
+      zoom_x = zoom_x, # Zoom to part of x axis
+      xmin = xmin,
+      xmax = xmax,
+      zoom_y = zoom_y, # Zoom to part of y axis
+      ymin = ymin,
+      ymax = ymax,
+      indivLineAlpha = indivLineAlpha,
+      indivLineSize = indivLineSize,
+      errorBarWidth = errorBarWidth,
+      meanLineSize = meanLineSize,
+      meanAlpha = meanAlpha,
+      errorBarSize = errorBarSize,
+      # errorBarColor = errorBarColor,
+      errorBarAlpha = errorBarAlpha,
+      textSize = textSize,
+      axisSize = axisSize
+    )
+fileBaseName = "CRH_opto_1ms_freq"
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+plot
+```
+
+```{r}
+red_0V <- CRH_opto %>%
+  filter(
+    RedAmp == 0
+  )
+```
+
+```{r}
+useLineType <- TRUE
+lineTypeVar <- expr(RedDur)
+xtitle <- "frequency (Hz)"
+ytitle <- "% stimuli with events"
+title <- NULL
+individualLines <- FALSE
+meanLines <- TRUE
+zoom_x <- FALSE
+xmin <- NULL
+xmax <- NULL
+zoom_y <- FALSE
+ymin <- NULL
+ymax <- NULL
+indivLineAlpha = 0.7
+indivLineSize <- 1
+errorBarWidth <- 0.3
+meanAlpha <- 1
+meanLineSize <- 1
+errorBarSize <- 0.5
+errorBarAlpha <- 1
+textSize <- 16
+axisSize <- 1
+
+
+plot <- red_0V  %>%
+  mutate(
+    RedDur = RedDur * 1000
+  ) %>%
+  makeFactors(RedDur) %>%
+  ggplot(
+    aes(x = RedFreq, y = fidelityPercent, color = {{ lineTypeVar }})
+  ) +
+    plot_line_geom_layers (
+      useLineType = useLineType, # TRUE/FALSE
+      lineTypeVar = {{ lineTypeVar }},
+      lineGroupVar = {{ lineGroupVar }},
+      xtitle = xtitle, #x axis label
+      ytitle = ytitle, #y axis label
+      title = title, # plot title
+      individualLines = individualLines, # plot individual lines
+      meanLines = meanLines, # plot mean lines with SE
+      zoom_x = zoom_x, # Zoom to part of x axis
+      xmin = xmin,
+      xmax = xmax,
+      zoom_y = zoom_y, # Zoom to part of y axis
+      ymin = ymin,
+      ymax = ymax,
+      indivLineAlpha = indivLineAlpha,
+      indivLineSize = indivLineSize,
+      errorBarWidth = errorBarWidth,
+      meanLineSize = meanLineSize,
+      meanAlpha = meanAlpha,
+      errorBarSize = errorBarSize,
+      # errorBarColor = errorBarColor,
+      errorBarAlpha = errorBarAlpha,
+      textSize = textSize,
+      axisSize = axisSize
+    ) +
+  geom_point()
+
+fileBaseName = "CRH_opto_0V_duration"
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+plot
+
+```
+```{r}
+blue_5HZ <- CRH_opto %>%
+  filter(
+    BlueFreq == 5
+  )
+blue_5HZ
+```
+
+```{r}
+useLineType <- FALSE
+lineTypeVar <- expr(BlueDur)
+xtitle <- "intensity (V)"
+ytitle <- "% stimuli with events"
+title <- NULL
+individualLines <- FALSE
+meanLines <- FALSE
+zoom_x <- FALSE
+xmin <- NULL
+xmax <- NULL
+zoom_y <- FALSE
+ymin <- NULL
+ymax <- NULL
+indivLineAlpha = 0.7
+indivLineSize <- 1
+errorBarWidth <- 0.3
+meanAlpha <- 1
+meanLineSize <- 1
+errorBarSize <- 0.5
+errorBarAlpha <- 1
+textSize <- 16
+axisSize <- 1
+
+
+plot <- blue_5HZ  %>%
+  mutate(
+    BlueDur = BlueDur * 1000
+  ) %>%
+  makeFactors(BlueDur) %>%
+  ggplot(
+    aes(x = BlueAmp, y = fidelityPercent, color = BlueDur)
+  ) +
+    plot_line_geom_layers (
+      useLineType = useLineType, # TRUE/FALSE
+      lineTypeVar = {{ lineTypeVar }},
+      lineGroupVar = {{ lineGroupVar }},
+      xtitle = xtitle, #x axis label
+      ytitle = ytitle, #y axis label
+      title = title, # plot title
+      individualLines = individualLines, # plot individual lines
+      meanLines = meanLines, # plot mean lines with SE
+      zoom_x = zoom_x, # Zoom to part of x axis
+      xmin = xmin,
+      xmax = xmax,
+      zoom_y = zoom_y, # Zoom to part of y axis
+      ymin = ymin,
+      ymax = ymax,
+      indivLineAlpha = indivLineAlpha,
+      indivLineSize = indivLineSize,
+      errorBarWidth = errorBarWidth,
+      meanLineSize = meanLineSize,
+      meanAlpha = meanAlpha,
+      errorBarSize = errorBarSize,
+      # errorBarColor = errorBarColor,
+      errorBarAlpha = errorBarAlpha,
+      textSize = textSize,
+      axisSize = axisSize
+    ) +
+  geom_point()
+
+
+fileBaseName = "CRH_opto_blueIntensity"
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+plot
+
+```
+
+
+```{r}
+samplingDF_ALPS <- AcuteStress_off %>%
+  filter(
+    sex == "F",
+    !is.na(cyclingFolderPath),
+    damStrain == "CBA",
+    cohort != 2,
+    # cohort == 4 | cohort == 5 | cohort == 6
+  )
+
+for(row in 1:nrow(samplingDF_ALPS)){
+  mouseID <- samplingDF_ALPS[[row, "mouseID"]]
+  num_ID <- samplingDF_ALPS[[row, "num_ID"]]
+  mouseID_spec <- samplingDF_ALPS[[row, "mouseID_spec"]]
+  idText <- str_pad(mouseID, width = 4, pad = "0")
+  newRegEx <- regExUterinePicFileName(mouseID)
+  oldRegEx <- regExUterinePicFileName(mouseID_spec)
+  newFile <- findMatchingFile(LBN_uterinePicsFolder, newRegEx, mouseID, "uterine pic new ")
+  if(is.na(newFile)){
+    newNameString <- paste0("uterus-", idText, ".jpg")
+    oldFile <- findMatchingFile(LBN_uterinePicsFolder, oldRegEx, mouseID, "uterine pic old ")
+    if(!is.na(oldFile)){
+      newFullPath <- file.path(LBN_uterinePicsFolder, newNameString)
+      # print(paste(
+      #   "mouseID", mouseID,
+      #   "numID", num_ID,
+      #   "idText", idText,
+      #   "mouseID_spec", mouseID_spec,
+      #   "\noldFile", oldFile,
+      #   "\nnewFile", newFullPath
+      # ))
+      file.rename(oldFile, newFullPath)
+    }
+  }
+}
 ```
 

@@ -855,3 +855,99 @@ damBehavior_avg %>%
   )
 ```
 
+
+# ZT15 and ZT1
+
+```{r}
+damBehavior1hr <- dam_behavior %>%
+  filter(
+    time %in% c(15, 1),
+    Litter_size >= 5
+  )
+
+behaviorOverTime <- damBehavior1hr %>%
+  behavior_overTime(
+    yVar = Num_exits,
+    yLab = "# of exits",
+    fontSize = 16,
+    dotSize = 3,
+    dotSize_byFirstDay = FALSE,
+    timeBreaks = c(15, 1),
+    timeLabels = c("15", "1"),
+    lineSize = 0.75
+  )
+
+plot <- behaviorOverTime +
+  facet_wrap(
+    ~earlyLifeTrt,
+    ncol = 2,
+    scales = "free"
+  )+
+  theme(
+    legend.position = "bottom"
+  ) +
+  guides(
+    fill = "none"
+    , linetype = "none"
+  )+
+  labs(
+    x = "ZT hour"
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "15" = "15"
+      , "1" = "1"
+    )
+  ) +
+  # labs(x = "ZT hour") +
+  expand_limits(y = 70)
+
+plot
+```
+
+```{r}
+behaviorOverTime <- damBehavior1hr %>%
+  # filter(
+  #   litterNum == 2
+  # ) %>%
+  behavior_overTime_dodge(
+    yVar = Num_exits,
+    "# of exits",
+    fontSize = 16,
+    dotSize = 3
+  )
+
+plot <- behaviorOverTime +
+  theme(
+    legend.position = "bottom"
+  ) +
+  labs(
+    x = "ZT hour"
+  ) +
+  # scale_x_discrete(
+  #   labels = c(
+  #     "15" = "15"
+  #     , "1" = "1"
+  #   )
+  # ) +
+  # labs(x = "ZT hour") +
+  expand_limits(y = 70)
+
+plot
+```
+
+```{r}
+damBehaviorAnova <- damBehavior1hr %>%
+  # filter(
+  #   litterNum == 2
+  # ) %>%
+  anova_test(
+    dv = Num_exits,
+    wid = damID,a
+    between = c(earlyLifeTrt),
+    within = time
+  )
+
+damBehaviorAnova
+```
+

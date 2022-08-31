@@ -41,5 +41,44 @@ BD_offspringInfo %>%
 
 ```{r}
 
+saveDFsToExcel(
+  "nutellaCortAdmin"
+  , prefix = ""
+  , "cortAdmin" = BD_sampling %>%
+    select(
+      mouseID,
+      dosage,
+      oocytes1,
+      oocytes2,
+      notes,
+      trust,
+      starts_with("LH"),
+      maxLH
+    ) %>%
+    arrange(
+      -trust,
+      dosage
+    )
+)
+
+```
+```{r}
+LHPlot_adultTrt(
+  BD_LH %>% makeFactors(dosage) %>% filter(trust == TRUE, !is.na(LH)),
+  trtVar = dosage,
+  trtName = "doseage (mg/kg)",
+  trtLineGuide = c("0" = "dotted", "2" = "solid"),
+  trtFill = scale_fill_manual(
+    "dosage (mg/kg)",
+    values = c("0" = "white", "2" = "black")
+  ),
+  trtColor = scale_color_manual(
+    "dosage (mg/kg)",
+    values = c("0" = "black", "2" = "black")
+  )
+) + facet_wrap(
+  ~ dosage,
+  ncol = 2
+)
 ```
 
