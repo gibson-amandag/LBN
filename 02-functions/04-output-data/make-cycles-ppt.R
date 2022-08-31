@@ -66,12 +66,21 @@ regExUterinePicFileName <- function(
   return(regEx)
 }
 
+regExUterinePicFileName_old <- function(
+  MouseID
+){
+  regEx <- paste0("^.*uterus-", MouseID, ".*\\.jpg$")
+  # regEx <- paste0("^.*uterus-.*", MouseID, ".*\\.jpg$") ## AGG - Changed now that mouseID is numeric
+  return(regEx)
+}
+
 # Get Paths for Data Frame ------------------------------------------------
 
 addRegExForSamplingDF <- function(
   samplingDF,
   arrangeByCycle = FALSE,
   arrangeByLH = FALSE,
+  arrangeByTrt = FALSE,
   numIDVar = num_ID
 ){
   df <- samplingDF %>%
@@ -89,8 +98,9 @@ addRegExForSamplingDF <- function(
     #   cycleStartDate
     # ) %>%
     arrange(
-      if(arrangeByLH) maxLH,
       if(arrangeByCycle) Sac_cycle,
+      if(arrangeByTrt) comboTrt,
+      if(arrangeByLH) maxLH,
       ReproTract_mass
     ) %>%
     mutate(

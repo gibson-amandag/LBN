@@ -92,15 +92,17 @@ print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0
 )
 ```
 Cohort 7
+diestrus
 ```{r eval=FALSE, include=FALSE}
 samplingDF_ALPS <- AcuteStress_off %>%
   filter(
     sex == "F",
     !is.na(cyclingFolderPath),
     damStrain == "CBA",
-    cohort == 7 || 8,
+    cohort == 7 | cohort == 8,
     !is.na(Sac_date),
-    !is.na(adultTrt)
+    !is.na(adultTrt),
+    Sac_cycle == "diestrus"
   )
 
 samplingDF_ALPS <- samplingDF_ALPS %>%
@@ -123,25 +125,27 @@ addSamplingSlidesFromDF(
     )
 )
 print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0(
-  "LBN_0007_ALPS_samplingImgs", 
+  "LBN_0007_8_ALPS_diestrus_samplingImgs", 
   # dateToday, 
   ".pptx")
   )
 )
 ```
-Full Presentation by Cycle Stage - All CBAs
+proestrus 
 ```{r eval=FALSE, include=FALSE}
 samplingDF_ALPS <- AcuteStress_off %>%
   filter(
     sex == "F",
     !is.na(cyclingFolderPath),
-    damStrain == "CBA"
-    # cohort == 4 | cohort == 5 | cohort == 6
-  ) 
-samplingDF_ALPS
+    damStrain == "CBA",
+    cohort == 7 | cohort == 8,
+    !is.na(Sac_date),
+    !is.na(adultTrt),
+    Sac_cycle == "proestrus"
+  )
 
 samplingDF_ALPS <- samplingDF_ALPS %>%
-  addRegExForSamplingDF(arrangeByCycle = TRUE) %>%
+  addRegExForSamplingDF() %>%
   addSamplingImgFilePaths()
 
 samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
@@ -153,6 +157,68 @@ samplingPPT <- ph_with(
 )
 addSamplingSlidesFromDF(
   samplingDF_ALPS, 
+  samplingPPT = samplingPPT, 
+  cyclingDF = Cycles_off_all %>%
+    filter(
+      mouseID %in% samplingDF_ALPS$mouseID
+    )
+)
+print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0(
+  "LBN_0007_ALPS_proestrus_samplingImgs", 
+  # dateToday, 
+  ".pptx")
+  )
+)
+```
+Full Presentation by Cycle Stage - All CBAs
+```{r eval=FALSE, include=FALSE}
+samplingDF_ALPS <- AcuteStress_off %>%
+  filter(
+    sex == "F",
+    !is.na(cyclingFolderPath),
+    damStrain == "CBA",
+    cohort != 2,
+    # cohort == 4 | cohort == 5 | cohort == 6
+  ) 
+samplingDF_ALPS
+
+samplingDF_ALPS <- samplingDF_ALPS %>%
+  addRegExForSamplingDF(arrangeByCycle = TRUE, arrangeByTrt = TRUE, arrangeByLH = TRUE) %>%
+  addSamplingImgFilePaths()
+
+samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
+samplingPPT <- ph_with(
+  samplingPPT,
+  value = "LBN Cycling Images, Uterine Mass, and LH Values",
+  location = ph_location_label("Title 1")
+)
+addSamplingSlidesFromDF(
+  samplingDF_ALPS %>% 
+    filter(
+      !(is.na(Sac_cycle)),
+      !is.na(ReproTract_mass)
+    ) %>%
+    mutate(
+      hitCycle = ifelse(
+        Sac_cycle == "proestrus",
+        ifelse(
+          ReproTract_mass >= 125,
+          TRUE,
+          FALSE
+        ),
+        ifelse(
+          Sac_cycle == "diestrus",
+          ifelse(
+            ReproTract_mass <=100,
+            TRUE,
+            FALSE
+          ),
+          NA
+        )
+      )
+    ) %>%
+    arrange(-hitCycle, Sac_cycle, comboTrt, maxLH, ReproTract_mass), 
   samplingPPT = samplingPPT, 
   cyclingDF = Cycles_off_all %>%
     filter(

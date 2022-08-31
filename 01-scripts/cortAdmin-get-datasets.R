@@ -7,6 +7,8 @@ BD_fileInfo <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "fileInfo")
 BD_sampling <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "samplingInfo")
 BD_ateNutella <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "ateNutella")
 BD_cort <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "cort")
+BD_LHcode <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "LH_code")
+BD_LH <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "LH")
 BD_sampling1 <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "Sacrifice_off1")
 BD_sampling2 <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "Sacrifice_off2")
 BD_sampling3 <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "Sacrifice_off3")
@@ -65,6 +67,9 @@ BD_cort2 <- BD_cort2 %>% makeFactors(c(mouseID, atePrevNutella))
 BD_cort3 <- BD_cort3 %>% makeFactors(c(mouseID, atePrevNutella))
 BD_cort4 <- BD_cort4 %>% makeFactors(c(mouseID, atePrevNutella))
 BD_cortALPS <- BD_cortALPS %>% makeFactors(c(mouseID))
+
+BD_LHcode <- BD_LHcode %>% makeFactors(c(mouseID, sampleID))
+BD_LH <- BD_LH %>% makeFactors(c(sampleID))
 
 
 
@@ -231,6 +236,54 @@ BD_cortALPS <- cortSamplingALPS$cort
 BD_samplingALPS <- cortSamplingALPS$sampling
 
 
+# Add mouse and time info to LH values
+BD_LH <- BD_LH %>%
+  left_join(
+    BD_LHcode,
+    by = "sampleID"
+  )
+
+# Get max LH value after baseline for each mouse
+BD_LH_max <- BD_LH %>%
+  filter(time !=0) %>% # missing initially -> max could have been AM
+  getMaxFromRepMeasures(
+    col = LH,
+    maxColName = maxLH,
+    groupingVar = mouseID
+  )
+
+BD_LH <- BD_LH %>%
+  left_join(
+    BD_LH_max,
+    by = "mouseID"
+  )
+
+# Make wide version of LH
+BD_LH_wide <- BD_LH %>%
+  pivot_wider(
+    id_cols = mouseID,
+    names_from = time,
+    values_from = LH,
+    names_prefix = "LH_hr",
+  ) %>%
+  left_join( # Add max column
+    BD_LH_max,
+    by = "mouseID"
+  )
+
+# Add stress day demo to long cort df
+BD_LH <- BD_LH %>%
+  left_join(
+    BD_sampling,
+    by = "mouseID"
+  )
+
+# Add LH data to BD_sampling
+BD_sampling <- BD_sampling %>%
+  left_join(
+    BD_LH_wide,
+    by = "mouseID"
+  )
 
 
 

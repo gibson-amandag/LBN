@@ -684,15 +684,17 @@ createOvulationPPT <- function(
     ) %>%
     mutate(
       comboNotes = paste0(
-        "smear: ", Sac_stage, 
+        "trt: ", {{trtVar}},
+        "\nsmear: ", Sac_stage, 
         ", uterus: ", Uterine_description, 
         "\noocytes 1: ", ifelse(!is.na(oocytes1), oocytes1, ""),
         ", oocytes 2: ", ifelse(!is.na(oocytes2), oocytes2, ""),
-        "\nadditional notes: ", notes
+        "\nadditional notes: ", gsub("_x000D_", "", notes)
         )
     ) %>%
     arrange(
       - trust,
+      {{ trtVar }},
       maxLH
     )
   

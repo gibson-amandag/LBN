@@ -382,6 +382,11 @@ LHPlot_noMean <- function(
 
 LHPlot_adultTrt <- function(
   df_long,
+  trtVar = adultTrt,
+  trtName = "adult trt",
+  trtLineGuide = c("CON" = "dotted", "ALPS" = "solid"),
+  trtFill = adultTrtFill(),
+  trtColor = adultTrtColor(),
   fontSize = 11,
   dotSize = 1.2,
   zoom_x = FALSE, #Zoom to a part of x axis
@@ -396,7 +401,7 @@ LHPlot_adultTrt <- function(
     aes(
       x = time,
       y = LH,
-      group = adultTrt
+      group = {{ trtVar }}
     )
   ) +
     geom_line(
@@ -408,9 +413,9 @@ LHPlot_adultTrt <- function(
     geom_point(
       shape = 21,
       alpha = 1, 
-      aes(fill=adultTrt
+      aes(fill={{ trtVar }}
           ,group=mouseID
-          # ,shape=adultTrt
+          # ,shape={{ trtVar }}
           ), 
       position = position_dodge(0.4), 
       size = dotSize
@@ -418,13 +423,15 @@ LHPlot_adultTrt <- function(
     addMeanHorizontalBar(
       width = 0.85, 
       addLineType = TRUE,
-      lineTypeName = "adult trt",
-      lineTypeGuide = c("CON" = "dotted", "ALPS" = "solid"),
-      typeVar = adultTrt
+      lineTypeName = trtName,
+      lineTypeGuide = trtLineGuide,
+      typeVar = {{ trtVar }}
     )+
     addMeanSE_vertBar()+
-    adultTrtFill()+
-    adultTrtColor()+
+    trtFill +
+    trtColor +
+    # adultTrtFill()+
+    # adultTrtColor()+
     # scale_color_manual(
     #     "treatment", 
     #     values = c("CON" = "black"
