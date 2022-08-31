@@ -127,6 +127,7 @@ GABApscsUI <- function(
             )
           )
         ),
+        shiny::dataTableOutput(ns("summaryTableCount")),
         shiny::dataTableOutput(ns("summaryTable"))
       )
     )
@@ -259,6 +260,27 @@ GABApscsServer <- function(
       )
       
       ## Mean Summary Tables ----------------------------------------------------------
+      output$summaryTable <- shiny::renderDataTable({
+        if(length(input$summaryVars)>0 & length(GABApscs_filtered_react()$cellID) > 0){
+        GABApscs_filtered_react() %>%
+          group_by(earlyLifeTrt, adultTrt) %>%
+          meanSummary(c(!!! input$summaryVars))
+        }
+      })
+      
+      output$summaryTableCount <- shiny::renderDataTable({
+        if(length(input$summaryVars)>0 & length(GABApscs_filtered_react()$cellID) > 0){
+          GABApscs_filtered_react() %>%
+            group_by(earlyLifeTrt, adultTrt) %>%
+            summarise(
+              numCells = n(),
+              numMice = length(unique(mouseID)),
+              numLitters = length(unique(damID)),
+              .groups = "drop"
+            )
+        }
+      })
+      
       AcuteStress_males_summary <- reactive({
         df <- AcuteStress_off_react() %>%
           filter(
