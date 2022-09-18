@@ -450,14 +450,38 @@ LHPlot_adultTrt <- function(
     #   "treatment", 
     #   values = c("CON" = 21,
     #              "ALPS" = 23))+
-    theme_pubr() +
     labs(
-      y = "LH (ng/mL)"
+      y = "LH (ng/mL)",
+      x = "time (hr) relative to lights out"
     ) +
+    scale_x_continuous(
+      breaks = c(0, 5, 5.5, 6.5, 7.5, 8.5, 9.5),
+      labels = c(-7.5, "", -2, -1, 0, 1, 2)
+    )+
+    theme_pubr() +
     textTheme(size = fontSize)+
     boxTheme()+
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) + #this just zooms in on the graph, versus scale_[]_continuous actually eliminates data not in the range
     guides(linetype = "none")
+}
+
+
+propOvulatedPlot <- function(
+  df,
+  xVar = comboTrt,
+  fontSize = 11
+){
+  viz <- ggplot(df, aes(x = {{ xVar }}, fill = ovulated))+
+    geom_bar(position = "fill", color = "black") +
+    geom_text(aes(label = ..count..), stat = "count", vjust = 1.3, colour = "darkgrey", position = "fill")+
+    labs(y = "proportion with oocytes") + 
+    scale_fill_manual(values = c("white", "black")) +
+    theme_pubr() +
+    textTheme(size = fontSize)+
+    boxTheme()+
+    rremove("legend") +
+    rremove("xlab")
+  return(viz)
 }
 
 propSurgedPlot <- function(
@@ -565,6 +589,8 @@ plotLHAmp <- function(
     )
   return(plot)
 }
+
+
 plotLHAmp_comboTrt <- function(
   df, 
   surgeMin, 
@@ -634,6 +660,90 @@ plotLHAmp_comboTrt <- function(
     plot <- plot +
       scale_x_discrete(
         labels = c("control surge"="CON\nsurge", "control no surge" = "CON\nno\nsurge", "stress surge"="ALPS\nsurge", "stress no surge"="ALPS\nno\nsurge")
+        , drop=FALSE
+      )+
+      theme(
+        legend.position = "none",
+        axis.title.x = element_blank()
+      )
+  }
+  return(plot)
+}
+
+plotLHTime_comboTrt <- function(
+  df, 
+  surgeMin, 
+  textSize = 11, 
+  dotSize = 2,
+  angleX = TRUE
+){
+  plot <- df %>%
+    filter(
+      maxLH > surgeMin
+    ) %>%
+    mutate(
+      surgeStatus = 
+        case_when(
+          adultTrt == "CON" & maxLH > surgeMin ~ "control surge",
+          adultTrt == "ALPS" & maxLH > surgeMin ~ "stress surge",
+        )
+    ) %>%
+    mutate(
+      surgeStatus = factor(surgeStatus, levels = c("control surge", "stress surge"))
+    ) %>%
+    ggplot(
+      aes(
+        x = surgeStatus,
+        y = timeAtMax,
+        fill = comboTrt
+      )
+    ) +
+    geom_point(
+      alpha = 1,
+      position = position_dodge2(0.4),
+      size = dotSize,
+      shape = 21,
+      color = "black"
+    )+
+    addMeanHorizontalBar(
+      width = 0.85, 
+      addLineType = FALSE
+    ) +
+    addMeanSE_vertBar()+
+    # scale_fill_manual(
+    #   values = c("control" = "white", 
+    #              "stress surge" = "black", 
+    #              "stress no surge" = "grey60"
+    #   )
+    # )+
+    comboTrtFillShape() +
+    boxTheme()+
+    textTheme(textSize) +
+    scale_y_continuous(
+      breaks = c(5, 5.5, 6.5, 7.5, 8.5),
+      labels = c(-2.5, -2, -1, 0, 1)
+    )+
+    ylab("time at maximum LH\n(hr) relative to lights out")+
+    facet_wrap(
+      ~earlyLifeTrt,
+      scales = "free_y"
+    )
+  
+  if(angleX){
+    plot <- plot +
+      scale_x_discrete(
+        labels = c("control surge"="CON \nsurge", "stress surge"="ALPS \nsurge")
+        , drop=FALSE
+      )+
+      theme(
+        legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)
+      )
+  } else {
+    plot <- plot +
+      scale_x_discrete(
+        labels = c("control surge"="CON\nsurge", "stress surge"="ALPS\nsurge")
         , drop=FALSE
       )+
       theme(

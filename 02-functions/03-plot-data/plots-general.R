@@ -23,7 +23,8 @@ scatterPlot_general <- function(
   jitterHeight = 0,
   title = NULL,
   addMean = TRUE,
-  addSE = TRUE
+  addSE = TRUE,
+  hideXAxisLab = TRUE
 ){
   viz <- df %>%
     ggplot(
@@ -45,7 +46,6 @@ scatterPlot_general <- function(
     expand_limits(y=0)+
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
     theme(
-      axis.title.x = element_blank(),
       legend.position = "none"
     )+
     textTheme(size = textSize)+
@@ -61,10 +61,17 @@ scatterPlot_general <- function(
   if(!is.null(enquo(lineColorVar))){
     viz <- viz + scale_color_manual(limits = lineColorLimits, values = lineColorValues)
   }
+  
   if(!is.null(enquo(fillVar))){
     viz <- viz + scale_fill_manual(limits = fillLimits, values = fillValues)
   }
 
+  if(hideXAxisLab){
+    viz <- viz + theme(
+      axis.title.x = element_blank()
+    )
+  }
+  
   if(!is.null(xLab)){
     viz <- viz + labs(x = xLab)
   }

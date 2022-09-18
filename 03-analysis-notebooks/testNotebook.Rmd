@@ -6535,3 +6535,44 @@ for(row in 1:nrow(samplingDF_ALPS)){
 }
 ```
 
+```{r}
+AcuteStress_off %>%
+  filter(
+    cohort == 4 | cohort == 6,
+    sex == "F",
+    Litter_size >= 5,
+    (ReproTract_mass > 125 & Sac_cycle == "proestrus") | (ReproTract_mass < 100 & Sac_cycle == "diestrus")
+  ) %>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  summarize(
+    litters = length(unique(damID)),
+    n = n()
+  )
+
+AcuteStress_off %>%
+  filter(
+    cohort == 4 | cohort == 6,
+    sex == "F",
+    Litter_size >= 5,
+    (ReproTract_mass > 125 & Sac_cycle == "proestrus") | (ReproTract_mass < 100 & Sac_cycle == "diestrus")
+  ) %>%
+  group_by(
+    earlyLifeTrt,
+    adultTrt,
+    Sac_cycle
+  ) %>%
+  summarize(
+    n = n()
+  )
+```
+
+```{r}
+GABApscs %>%
+  filter(
+    incCell != "no" | is.na(incCell)
+  )
+```
+
+

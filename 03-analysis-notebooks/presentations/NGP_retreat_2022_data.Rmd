@@ -1,0 +1,463 @@
+---
+title: "NGP Seminar Data"
+output: html_notebook
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+```{r}
+litterNum_label <- c(
+  "1" = "first litter",
+  "2" = "second litter"
+)
+
+facetForLitterNum <- facet_grid(
+    cols = vars(litterNum),
+    labeller = labeller(
+      litterNum = litterNum_label
+    )
+  )
+
+figureNum <- 1
+
+pptBaseName <- function(figNum) {
+  baseName = paste0("ICN_fig", figNum, "_")
+  return(baseName)
+}
+
+subFolder <- "NGP_retreat"
+
+imgType <- "png"
+```
+
+# ALPS response
+## First and Second litters
+
+
+```{r}
+Cort_off_filtered <- Cort_off %>%
+  filter(
+    cohort == 2 | cohort == 4 | cohort == 6 | cohort == 7 | cohort == 8,
+    Litter_size >= 5,
+    !is.na(cort),
+    !exclude
+  ) %>%
+  mutate(
+    adjMax = ifelse(cort >= 500, TRUE, FALSE),
+    adjMin = ifelse(cort <= 1.95, TRUE, FALSE),
+    cort = ifelse(cort >= 500, 500, ifelse(cort <= 1.95, 1.95, cort))
+  )
+thisSex <- "F"
+
+cortByCycle <- Cort_off_filtered %>%
+  filter(
+    sex == thisSex,
+    (Sac_cycle == "proestrus" & ReproTract_mass >= 125) | (Sac_cycle == "diestrus" & ReproTract_mass <= 100),
+    mouseID != 653
+  )
+
+```
+
+
+4-way ANOVA - LBN x ALPS x Cycle Stage x Time
+
+```{r}
+
+cortByCycle %>%
+  cortAnova(
+    byCycle = TRUE
+  )
+
+```
+
+
+There is a significant 4-way interaction, so do the 3-way interaction of 
+LBN x ALPS x Time for each cycle stage. Correct for two comparisons
+
+```{r}
+
+cortByCycle %>%
+  group_by(
+    Sac_cycle
+  ) %>%
+  anova_test(
+    dv = cort,
+    wid = mouseID,
+    between = c(earlyLifeTrt, adultTrt),
+    within = time
+  ) %>%
+  # adjust_pvalue() %>%
+  get_anova_table() %>%
+  as_tibble() %>%
+  mutate(
+    p.adj = p * 2 # doing two cycle stage comparisons
+  ) %>%
+  # adjust_pvalue(method = "bonferroni") %>%
+  formatAdjAnova()
+  
+```
+
+For diestrous mice, there is a 3-way interaction of LBN x ALPS x time
+
+For proestrous mice, there is a 2-way interaction of ALPS x time
+
+
+Follow-up the diestrous mice with a 2-way interaction between 
+LBN x ALPS at each time. Adjust the p-values for two levels of time
+
+```{r}
+cortByCycle %>%
+  filter(
+    Sac_cycle == "diestrus"
+  ) %>%
+  group_by(
+    time
+  ) %>%
+  anova_test(
+    dv = cort,
+    wid = mouseID,
+    between = c(earlyLifeTrt, adultTrt)
+  ) %>%
+  # adjust_pvalue() %>%
+  # adjust_pvalue(method = "bonferroni") %>%
+  get_anova_table() %>%
+  as_tibble() %>%
+  mutate(
+    p.adj = p * 2 # doing two time comparisons
+  ) %>%
+  formatAdjAnova()
+```
+
+
+At the end of the paradigm, there is an interaction between LBN and ALPS for
+the diestrous mice. This means that LBN changes the way that the mice
+respond to the ALPS paradigm in diestrous mice.
+
+
+
+For the diestrous mice at the end of the paradigm, group by adult treatment
+and see if the early-life mice are significantly different.
+Adjust for making two treatment comparisons
+
+```{r}
+
+cortByCycle %>%
+  filter(
+    Sac_cycle == "diestrus",
+    time == 5
+  ) %>%
+  group_by(
+    adultTrt
+  ) %>%
+  anova_test(
+    dv = cort,
+    wid = mouseID,
+    between = c(earlyLifeTrt)
+  ) %>%
+  # adjust_pvalue() %>%
+  adjust_pvalue(method = "bonferroni") %>%
+  formatAdjAnova()
+```
+
+For the proestrous mice, follow up the ALPS x time interaction.
+
+Group by time, see if there is an effect of ALPS
+
+```{r}
+cortByCycle %>%
+  filter(
+    Sac_cycle == "proestrus"
+  ) %>%
+  group_by(
+    time
+  ) %>%
+  anova_test(
+    dv = cort,
+    wid = mouseID,
+    between = c(adultTrt)
+  ) %>%
+  # adjust_pvalue() %>%
+  adjust_pvalue(method = "bonferroni") %>%
+  formatAdjAnova()
+```
+
+### proestrus 
+
+```{r}
+Cort_off_bySex <- Cort_off_filtered %>%
+  filter(
+    sex == thisSex,
+    Sac_cycle == "proestrus" & ReproTract_mass >= 125,
+    mouseID != 653
+  )
+
+basePlot <- Cort_off_bySex %>%
+  baseCortPlot(
+    dotSize = 2
+  )
+
+plot <- basePlot %>%
+  longCortPlot(
+    fontSize = 16
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 550
+    , zoom_x = TRUE
+    , xmin = -2
+    , xmax = 7
+  ) +
+  ylab("corticosterone (ng/mL)") + 
+  scale_y_continuous(
+    breaks = c(0, 100, 200, 300, 400, 500)
+  )
+  
+plot
+
+fileBaseName = "femalesCort_pro"
+thisWidth = 5.5
+thisHeight = 5
+thisUnits = "in"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+### Diestrus 
+
+```{r}
+Cort_off_bySex <- Cort_off_filtered %>%
+  filter(
+    sex == thisSex,
+    Sac_cycle == "diestrus" & ReproTract_mass <= 100,
+    mouseID != 653
+  )
+
+Cort_off_bySex
+
+basePlot <- Cort_off_bySex %>%
+  baseCortPlot(
+    dotSize = 2
+  )
+
+plot <- basePlot %>%
+  longCortPlot(
+    fontSize = 16
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 550
+    , zoom_x = TRUE
+    , xmin = -2
+    , xmax = 7
+  )+
+  ylab("corticosterone (ng/mL)")+ 
+  scale_y_continuous(
+    breaks = c(0, 100, 200, 300, 400, 500)
+  )
+plot
+
+fileBaseName = "femalesCort_di"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+# 1 -> 2
+figureNum = 1
+figureNum <- figureNum + 1
+```
+
+
+# LH
+
+## Second litter
+
+```{r}
+LH_filtered <- LH_off %>%
+  filter(
+    Litter_size >= 5,
+    litterNum == 2,
+    Sac_cycle == "proestrus" & ReproTract_mass >= 125
+  )
+
+tempLHPlot <- function(
+  df,
+  ymax = 40
+){
+  df %>%
+    LHPlot(
+    fontSize = 16,
+    dotSize = 2,
+    zoom_y = TRUE,
+    ymin = 0,
+    ymax = ymax
+  ) +
+  theme(
+    legend.position = "none"
+  ) +
+  facet_wrap(~comboTrt, scales = "free")
+}
+
+plot <- LH_filtered %>%
+  mutate(
+    comboTrt = factor(comboTrt, levels = c("STD-CON", "LBN-CON", "STD-ALPS", "LBN-ALPS"))
+  ) %>%
+  tempLHPlot()
+
+plot 
+
+thisWidth = 7
+thisHeight = 5
+
+fileBaseName = "LH_combined_second"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+surgedDF <- AcuteStress_off %>%
+  mutate(
+    surged = maxLH > 3
+  ) %>%
+  filter(
+    Sac_cycle == "proestrus",
+    ReproTract_mass >= 125,
+    Litter_size >= 5,
+    litterNum == 2
+    , cohort == 4 | cohort == 6
+  ) 
+surgedDF
+```
+
+```{r}
+# 2 -> 3
+figureNum <- figureNum + 1
+```
+
+```{r}
+plot <- surgedDF %>%
+  plotLHAmp_comboTrt(
+    3,
+    textSize = 16,
+    dotSize = 2,
+    angleX = FALSE
+  )+ 
+  coord_cartesian(ylim = c(0, 40))
+
+plot 
+thisHeight = 5
+thisWidth = 5.5
+
+fileBaseName = "LH_amplitude_second"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+plot <- surgedDF %>%
+  plotLHTime_comboTrt(
+    3,
+    textSize = 16,
+    dotSize = 2,
+    angleX = FALSE
+  )
+
+plot 
+thisHeight = 5
+thisWidth = 5.5
+
+fileBaseName = "LH_time_second"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+
+
+<!-- ```{r} -->
+<!-- # 3 -> 4 -->
+<!-- figureNum <- figureNum + 1 -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!-- # 4 -> 5 -->
+<!-- figureNum <- figureNum + 1 -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- # 5 -> 6 -->
+<!-- figureNum <- figureNum + 1 -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!-- # 6 -> 7 -->
+<!-- figureNum <- figureNum + 1 -->
+<!-- ``` -->
+

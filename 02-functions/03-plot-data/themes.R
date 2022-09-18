@@ -142,3 +142,26 @@ comboTrtFillShape <- function(
   )
   return(layers)
 }
+
+dosageFillShape <- function(
+  color_0 = "black",
+  color_2 = "black",
+  fill_0 = "white",
+  fill_2 = "black"
+){
+  layers <- list(
+    scale_color_manual(
+      "treatment", 
+      values = c("0"=color_0, 
+                 "2"=color_2)),
+    scale_fill_manual(
+      "treatment", 
+      values = c("0"=fill_0, 
+                 "2"=fill_2)),
+    scale_shape_manual(
+      "treatment", 
+      values = c("0"=21,
+                 "2"=23))
+  )
+  return(layers)
+}
