@@ -65,7 +65,11 @@ GABApscsUI <- function(
       ),
       div(
         class = "col-xs-4",
-        
+        checkboxInput(
+          ns("filterNoToInclude"),
+          "Remove cells marked 'no' to include?",
+          value = TRUE
+        )
       ),
       div(
         class = "col-xs-4",
@@ -101,7 +105,9 @@ GABApscsUI <- function(
               timeSinceSac,
               frequency:holdingCurrent,
               ReproTract_mass,
-              AgeInDays
+              AgeInDays,
+              maxLH,
+              cort_hr5
             ),
           GABApscs %>%
             select(
@@ -174,15 +180,8 @@ GABApscsServer <- function(
         return(df)
       }
       
-      # Change to expect reactive within function
-      GABApscs_filterEphys_react <- filteringEphysServer(
-          "ephysFilter",
-          GABApscs_react
-        )
-      
-    
-      GABApscs_filtered_react <- reactive({
-        df <- GABApscs_filterEphys_react() %>%
+      GABApscs_filtered_step1_react <- reactive({
+        df <- GABApscs_react() %>%
           filter(
             sex == "F",
             damStrain == "CBA"
@@ -196,8 +195,24 @@ GABApscsServer <- function(
             )
         }
         
+        if(input$filterNoToInclude){
+          df <- df %>%
+            filter(
+              incCell != "no" | is.na(incCell)
+            )
+        }
+        
         return(df)
       })
+      
+      # Change to expect reactive within function
+      # Filter ephys after doing cycle stage and removing non-freq cells
+      GABApscs_filtered_react <- filteringEphysServer(
+          "ephysFilter",
+          GABApscs_filtered_step1_react
+        )
+      
+    
       
       ## Single Var -----------------------------------------------------------------------
       

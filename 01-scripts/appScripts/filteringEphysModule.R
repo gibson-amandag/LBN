@@ -14,6 +14,52 @@ filteringEphysUI <- function(
       div(
         class = "col-xs-3",
         checkboxInput(
+          ns("filterByCellNum"),
+          "Limit cells per mouse?",
+          value = FALSE
+        ),
+        numericInput(
+          ns("maxCellNum"),
+          "max cells per mouse",
+          value = 3
+        )
+      ),
+      div(
+        class = "col-xs-3",
+        checkboxInput(
+          ns("filterBySacHr"),
+          "Filter by time since sac?",
+          value = FALSE
+        ),
+        numericInput(
+          ns("maxSacHr"),
+          "max time since sac?",
+          value = 5
+        )
+      ),
+      div(
+        class = "col-xs-3",
+        checkboxInput(
+          ns("filterByRecHr"),
+          "Filter by time since lights on",
+          value = FALSE
+        ),
+        numericInput(
+          ns("recHrMin"),
+          "min time since lights on",
+          value = 13
+        ),
+        numericInput(
+          ns("recHrMax"),
+          "max time since lights on",
+          value = 20
+        )
+      )
+    ),
+    fluidRow(
+      div(
+        class = "col-xs-3",
+        checkboxInput(
           ns("filterByRseries"),
           "Filter by series resistance?",
           value = FALSE
@@ -126,9 +172,50 @@ filteringEphysServer <- function(
         return(df)
       }
       
+      filterByCellNum <- function(df){
+        if(input$filterByCellNum){
+          df <- df %>%
+            group_by(
+              mouseID
+            ) %>%
+            mutate(
+              cellNum = 1:n()
+            ) %>%
+            ungroup(
+              mouseID
+            )
+          
+          df <- df %>%
+            filter(
+              cellNum <= input$maxCellNum
+            )
+        }
+        return(df)
+      }
+      
+      filterByTime <- function(df){
+        if(input$filterBySacHr){
+          df <- df %>%
+            filter(
+              timeSinceSac <= input$maxSacHr
+            )
+        }
+        if(input$filterByRecHr){
+          df <- df %>%
+            filter(
+              recHr <= input$recHrMax & recHr >= input$recHrMin
+            )
+        }
+        return(df)
+      }
+      
+      
+      
       df_react <- reactive({
         df <- df() %>%
-          filterByPassives()
+          filterByPassives() %>%
+          filterByCellNum() %>%
+          filterByTime()
         
         return(df)
       })

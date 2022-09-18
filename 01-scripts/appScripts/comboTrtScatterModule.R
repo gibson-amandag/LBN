@@ -101,7 +101,7 @@ catPlotComboTrtServer <- function(
           )
       })
       
-      info <- plotServer("plot", plot, paste0(yText(), Sys.Date()), compType)
+      info <- plotServer("plot", plot, paste0(yVar()), compType)
       
       output$info <- renderTable({
         if(!is.null(info$click())){
@@ -313,7 +313,7 @@ scatterPlotComboTrtServer <- function(
           )
       })
       
-      info <- plotServer("plot", plot, paste0(yText(), "-by-", xText(), Sys.Date()), compType)
+      info <- plotServer("plot", plot, paste0(yText(), "-by-", xText()), compType)
       
       output$info <- renderTable({
         if(!is.null(info$click())){
