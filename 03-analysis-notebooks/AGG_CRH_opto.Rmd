@@ -1,0 +1,1005 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+subFolder <- "2022-09-19_ephys"
+```
+
+
+```{r}
+# CRH_opto_path <- "C:\\Users\\percs\\OneDrive - Umich\\Moenter lab\\CRH_opto\\AGG_CRH_opto_20220717a.xlsx"
+# CRH_opto_excel <- loadExcelSheet_fromFile(CRH_opto_path, "Sheet2")
+CRH_opto_path <- file.path(dataFolder, "AGG_opto_data.xlsx")
+DamInfo <- loadExcelSheet_fromFile(CRH_opto_path, "DamInfo")
+OffspringInfo <- loadExcelSheet_fromFile(CRH_opto_path, "OffspringInfo")
+Cycles_off <- loadExcelSheet_fromFile(CRH_opto_path, "Cycles_off")
+fileInfo <- loadExcelSheet_fromFile(CRH_opto_path, "fileInfo")
+slicingInfo <- loadExcelSheet_fromFile(CRH_opto_path, "slicingInfo")
+cellInfo <- loadExcelSheet_fromFile(CRH_opto_path, "cellInfo")
+optoOutput <- loadExcelSheet_fromFile(CRH_opto_path, "optoOutput")
+```
+
+```{r}
+DamInfo <- DamInfo %>%
+  makeFactors(damID)
+OffspringInfo <- OffspringInfo %>%
+  makeFactors(c(damID, mouseID))
+Cycles_off <- Cycles_off %>%
+  makeFactors(c(mouseID, cycleID))
+slicingInfo <- slicingInfo %>%
+  makeFactors(mouseID)
+cellInfo <- cellInfo %>%
+  makeFactors(c(cellID, mouseID))
+optoOutput <- optoOutput %>%
+  makeFactors(c(cellID, seriesName))
+```
+
+```{r}
+OffspringInfo <- OffspringInfo %>%
+  left_join(
+    DamInfo,
+    by = "damID"
+  )
+
+slicingInfo <- slicingInfo %>%
+  left_join(
+    OffspringInfo,
+    by = "mouseID"
+  )
+
+cellInfo <- cellInfo %>%
+  left_join(
+    slicingInfo,
+    by = "mouseID"
+  )
+
+optoOutput <- optoOutput %>%
+  left_join(
+    cellInfo,
+    by = "cellID"
+  )
+```
+
+
+```{r}
+optoOutput
+```
+
+```{r}
+
+```
+
+```{r}
+optoFidelityPlot <- function(
+  df,
+  lineTypeVar,
+  useLineType,
+  xVar = redFreq,
+  thisXTitle = "frequency (Hz)"
+){
+  ytitle <- "(# events / # stims) * 100"
+  title <- NULL
+  individualLines <- FALSE
+  meanLines <- TRUE
+  zoom_x <- FALSE
+  xmin <- NULL
+  xmax <- NULL
+  zoom_y <- FALSE
+  ymin <- NULL
+  ymax <- NULL
+  indivLineAlpha = 0.7
+  indivLineSize <- 1
+  errorBarWidth <- 0.3
+  meanAlpha <- 1
+  meanLineSize <- 1
+  errorBarSize <- 0.5
+  errorBarAlpha <- 1
+  textSize <- 16
+  axisSize <- 1
+  
+  plot <- df %>%
+    ggplot(
+      aes(x = {{ xVar }}, y = fidelity, color = {{ lineTypeVar }})
+    ) +
+      plot_line_geom_layers (
+        useLineType = useLineType, # TRUE/FALSE
+        lineTypeVar = {{ lineTypeVar }},
+        lineGroupVar = {{ lineGroupVar }},
+        xtitle = thisXTitle, #x axis label
+        ytitle = ytitle, #y axis label
+        title = title, # plot title
+        individualLines = individualLines, # plot individual lines
+        meanLines = meanLines, # plot mean lines with SE
+        zoom_x = zoom_x, # Zoom to part of x axis
+        xmin = xmin,
+        xmax = xmax,
+        zoom_y = zoom_y, # Zoom to part of y axis
+        ymin = ymin,
+        ymax = ymax,
+        indivLineAlpha = indivLineAlpha,
+        indivLineSize = indivLineSize,
+        errorBarWidth = errorBarWidth,
+        meanLineSize = meanLineSize,
+        meanAlpha = meanAlpha,
+        errorBarSize = errorBarSize,
+        # errorBarColor = errorBarColor,
+        errorBarAlpha = errorBarAlpha,
+        textSize = textSize,
+        axisSize = axisSize
+      ) +
+    geom_point()
+}
+```
+
+
+```{r}
+CRH_opto_all <- optoOutput %>%
+  filter(
+    is.na(exclude) | !exclude
+  ) %>%
+  mutate(
+    across(c(redAmp, blueAmp), ~round(., 1)),
+    across(c(redDur, blueDur), ~round(., 4))
+  )
+
+CRH_opto_all
+```
+
+## 20220712a 
+
+```{r}
+thisCell <- "20220712a"
+```
+
+
+```{r}
+CRH_opto <- CRH_opto_all %>%
+  filter(
+    cellID == thisCell
+  )
+```
+
+
+
+```{r}
+red_1ms_0V <- CRH_opto %>%
+  filter(
+    redDur == 0.001,
+    redAmp == 0
+  )
+
+red_1ms_0V
+red_1ms <- CRH_opto %>%
+  filter(
+    redDur == 0.001
+  )
+
+red_1ms
+```
+
+
+```{r}
+plot <- CRH_opto %>%
+  filter(
+    redNumStims == 30,
+    redAmp == 0,
+  ) %>%
+  mutate(
+    redDur = redDur * 1000
+  ) %>%
+  makeFactors(
+    redDur
+  ) %>%
+  optoFidelityPlot(
+    redDur,
+    TRUE
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_0V_Dur")
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+```{r}
+plot <- CRH_opto %>%
+  filter(
+    redNumStims == 30,
+    redDur == 0.001,
+    redAmp != 3.2 | redAmp != 3.5
+  ) %>%
+  makeFactors(
+    redAmp
+  ) %>%
+  optoFidelityPlot(
+    redAmp,
+    TRUE
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_1ms_amp")
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+## 20220907f 
+
+```{r}
+thisCell <- "20220907f"
+```
+
+
+```{r}
+CRH_opto <- CRH_opto_all %>%
+  filter(
+    cellID == thisCell
+  )
+```
+
+
+
+```{r}
+red_1ms_0V <- CRH_opto %>%
+  filter(
+    redDur == 0.001,
+    redAmp == 0
+  )
+
+red_1ms_0V
+red_1ms <- CRH_opto %>%
+  filter(
+    redDur == 0.001
+  )
+
+red_1ms
+```
+
+
+```{r}
+plot <- CRH_opto %>%
+  filter(
+    redNumStims == 30,
+    redAmp == 1,
+  ) %>%
+  mutate(
+    redDur = redDur * 1000
+  ) %>%
+  makeFactors(
+    redDur
+  ) %>%
+  optoFidelityPlot(
+    redDur,
+    TRUE
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_1V_Dur")
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+```{r}
+
+totalStimDurSeries <- c(
+  "20220907fg1s28sw1t1"
+  , "20220907fg1s29sw1t1"
+  , "20220907fg1s30sw1t1"
+  , "20220907fg1s32sw1t1"
+  , "20220907fg1s33sw1t1"
+  , "20220907fg1s34sw1t1"
+  , "20220907fg1s36sw1t1"
+  , "20220907fg1s37sw1t1"
+  , "20220907fg1s38sw1t1"
+  )
+plot <- CRH_opto %>%
+  filter(
+    seriesName %in% totalStimDurSeries
+  ) %>%
+  mutate(
+    duration = floor(duration)
+  ) %>%
+  makeFactors(
+    redFreq
+  ) %>%
+  optoFidelityPlot(
+    redFreq,
+    TRUE,
+    duration,
+    "total duration (s)"
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_variedDur")
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+
+constBlueTestSeries <- c(
+  "20220907fg1s40sw1t1"
+  , "20220907fg1s41sw1t1"
+  , "20220907fg1s42sw1t1"
+  , "20220907fg1s43sw1t1"
+  , "20220907fg1s44sw1t1"
+  , "20220907fg1s45sw1t1"
+  , "20220907fg1s46sw1t1"
+  , "20220907fg1s47sw1t1"
+  , "20220907fg1s48sw1t1"
+  , "20220907fg1s49sw1t1"
+  , "20220907fg1s50sw1t1"
+  , "20220907fg1s51sw1t1"
+  )
+
+sumTimeConstBlue <- CRH_opto %>%
+  filter(
+    pgfLabel == "ConstBlue_IntDur"
+  ) %>%
+  select(
+    sumTime
+  )
+
+valSumTimeConstBlue <- sumTimeConstBlue["sumTime"][[1]]
+valSumTimeConstBlue
+
+plot <- CRH_opto %>%
+  filter(
+    seriesName %in% constBlueTestSeries
+  ) %>%
+  mutate(
+    beforeAfter = ifelse(
+      sumTime < valSumTimeConstBlue,
+      "before",
+      "after"
+    ),
+    beforeAfter = factor(beforeAfter, levels = c("before" ="before", "after" = "after"))
+  ) %>%
+  makeFactors(
+    redFreq
+  ) %>%
+  optoFidelityPlot(
+    redFreq,
+    TRUE,
+    beforeAfter,
+    "before and after 30s constant blue stim"
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_constBlue")
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+## 20220911c 
+
+```{r}
+thisCell <- "20220911c"
+```
+
+
+```{r}
+CRH_opto <- CRH_opto_all %>%
+  filter(
+    cellID == thisCell
+  )
+```
+
+
+```{r}
+plot <- CRH_opto %>%
+  filter(
+    redNumStims == 30,
+    redAmp == 1,
+  ) %>%
+  mutate(
+    redDur = redDur * 1000
+  ) %>%
+  makeFactors(
+    redDur
+  ) %>%
+  optoFidelityPlot(
+    redDur,
+    TRUE
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_1V_Dur")
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+```{r}
+
+totalStimDurSeries <- c(
+  "20220911cg1s39sw1t1"
+  , "20220911cg1s40sw1t1"
+  , "20220911cg1s41sw1t1"
+  , "20220911cg1s43sw1t1"
+  , "20220911cg1s44sw1t1"
+  , "20220911cg1s45sw1t1"
+  , "20220911cg1s47sw1t1"
+  , "20220911cg1s48sw1t1"
+  , "20220911cg1s49sw1t1"
+  )
+plot <- CRH_opto %>%
+  filter(
+    seriesName %in% totalStimDurSeries
+  ) %>%
+  mutate(
+    duration = floor(duration)
+  ) %>%
+  makeFactors(
+    redFreq
+  ) %>%
+  optoFidelityPlot(
+    redFreq,
+    TRUE,
+    duration,
+    "total duration (s)"
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_variedDur")
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+
+constBlueTestSeries <- c(
+  "20220911cg1s51sw1t1"
+  , "20220911cg1s52sw1t1"
+  , "20220911cg1s53sw1t1"
+  , "20220911cg1s54sw1t1"
+  , "20220911cg1s55sw1t1"
+  , "20220911cg1s56sw1t1"
+  , "20220911cg1s57sw1t1"
+  , "20220911cg1s58sw1t1"
+  , "20220911cg1s59sw1t1"
+  , "20220911cg1s60sw1t1"
+  , "20220911cg1s61sw1t1"
+  , "20220911cg1s62sw1t1"
+  )
+
+sumTimeConstBlue <- CRH_opto %>%
+  filter(
+    pgfLabel == "ConstBlue_IntDur"
+  ) %>%
+  select(
+    sumTime
+  )
+
+valSumTimeConstBlue <- sumTimeConstBlue["sumTime"][[1]]
+valSumTimeConstBlue
+
+plot <- CRH_opto %>%
+  filter(
+    seriesName %in% constBlueTestSeries
+  ) %>%
+  mutate(
+    beforeAfter = ifelse(
+      sumTime < valSumTimeConstBlue,
+      "before",
+      "after"
+    ),
+    beforeAfter = factor(beforeAfter, levels = c("before" ="before", "after" = "after"))
+  ) %>%
+  makeFactors(
+    redFreq
+  ) %>%
+  optoFidelityPlot(
+    redFreq,
+    TRUE,
+    beforeAfter,
+    "before and after 30s constant blue stim"
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_constBlue")
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+## 20220911e 
+
+```{r}
+thisCell <- "20220911e"
+```
+
+
+```{r}
+CRH_opto <- CRH_opto_all %>%
+  filter(
+    cellID == thisCell
+  )
+```
+
+
+```{r}
+plot <- CRH_opto %>%
+  filter(
+    redNumStims == 30,
+    redAmp == 1,
+  ) %>%
+  mutate(
+    redDur = redDur * 1000
+  ) %>%
+  makeFactors(
+    redDur
+  ) %>%
+  optoFidelityPlot(
+    redDur,
+    TRUE
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_1V_Dur")
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+plot <- CRH_opto %>%
+  mutate(
+    duration = floor(duration)
+  )%>%
+  filter(
+    # redNumStims == 30,
+    redAmp == 0,
+    # duration == 30
+  ) %>%
+  mutate(
+    redDur = redDur * 1000
+  ) %>%
+  makeFactors(
+    redDur
+  ) %>%
+  optoFidelityPlot(
+    redDur,
+    TRUE
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_0V_Dur")
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+## 20220914c 
+
+```{r}
+thisCell <- "20220914c"
+```
+
+
+```{r}
+CRH_opto <- CRH_opto_all %>%
+  filter(
+    cellID == thisCell
+  )
+```
+
+
+```{r}
+plot <- CRH_opto %>%
+  filter(
+    redNumStims == 30,
+    redAmp == 1,
+  ) %>%
+  mutate(
+    redDur = redDur * 1000
+  ) %>%
+  makeFactors(
+    redDur
+  ) %>%
+  optoFidelityPlot(
+    redDur,
+    TRUE
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_1V_Dur")
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+plot <- CRH_opto %>%
+  filter(
+    redNumStims == 30,
+    redAmp == 0,
+  ) %>%
+  mutate(
+    redDur = redDur * 1000
+  ) %>%
+  makeFactors(
+    redDur
+  ) %>%
+  optoFidelityPlot(
+    redDur,
+    TRUE
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_0V_Dur")
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+
+```{r}
+
+totalStimDurSeries <- c(
+  "20220914cg1s47sw1t1"
+  , "20220914cg1s48sw1t1"
+  , "20220914cg1s49sw1t1"
+  , "20220914cg1s51sw1t1"
+  , "20220914cg1s52sw1t1"
+  , "20220914cg1s53sw1t1"
+  , "20220914cg1s84sw1t1"
+  , "20220914cg1s85sw1t1"
+  , "20220914cg1s86sw1t1"
+  )
+plot <- CRH_opto %>%
+  filter(
+    seriesName %in% totalStimDurSeries
+  ) %>%
+  mutate(
+    duration = floor(duration),
+    redDur = redDur * 1000
+  ) %>%
+  makeFactors(
+    redDur
+  ) %>%
+  optoFidelityPlot(
+    redDur,
+    TRUE,
+    duration,
+    "total duration (s)"
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_variedDur_10Hz")
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+
+totalStimDurSeries <- c(
+  "20220914cg1s84sw1t1"
+  , "20220914cg1s85sw1t1"
+  , "20220914cg1s86sw1t1"
+  , "20220914cg1s88sw1t1"
+  , "20220914cg1s89sw1t1"
+  , "20220914cg1s90sw1t1"
+  , "20220914cg1s92sw1t1"
+  , "20220914cg1s93sw1t1"
+  , "20220914cg1s94sw1t1"
+  )
+plot <- CRH_opto %>%
+  filter(
+    seriesName %in% totalStimDurSeries
+  ) %>%
+  mutate(
+    duration = floor(duration)
+  ) %>%
+  makeFactors(
+    redFreq
+  ) %>%
+  optoFidelityPlot(
+    redFreq,
+    TRUE,
+    duration,
+    "total duration (s)"
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_variedDur_5ms")
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+
+totalStimDurSeries <- c(
+  "20220914cg1s51sw1t1"
+  , "20220914cg1s52sw1t1"
+  , "20220914cg1s53sw1t1"
+  , "20220914cg1s62sw1t1"
+  , "20220914cg1s63sw1t1"
+  , "20220914cg1s64sw1t1"
+  , "20220914cg1s67sw1t1"
+  , "20220914cg1s68sw1t1"
+  , "20220914cg1s69sw1t1"
+  )
+plot <- CRH_opto %>%
+  filter(
+    seriesName %in% totalStimDurSeries
+  ) %>%
+  mutate(
+    duration = floor(duration)
+  ) %>%
+  makeFactors(
+    redFreq
+  ) %>%
+  optoFidelityPlot(
+    redFreq,
+    TRUE,
+    duration,
+    "total duration (s)"
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_variedDur_2ms")
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+
+```{r}
+
+constBlueTestSeries <- c(
+  "20220914cg1s71sw1t1"
+  , "20220914cg1s72sw1t1"
+  , "20220914cg1s73sw1t1"
+  , "20220914cg1s74sw1t1"
+  , "20220914cg1s75sw1t1"
+  , "20220914cg1s76sw1t1"
+  , "20220914cg1s77sw1t1"
+  , "20220914cg1s78sw1t1"
+  , "20220914cg1s79sw1t1"
+  , "20220914cg1s80sw1t1"
+  , "20220914cg1s81sw1t1"
+  , "20220914cg1s82sw1t1"
+  )
+
+sumTimeConstBlue <- CRH_opto %>%
+  filter(
+    pgfLabel == "ConstBlue_IntDur"
+  ) %>%
+  select(
+    sumTime
+  )
+
+valSumTimeConstBlue <- sumTimeConstBlue["sumTime"][[1]]
+valSumTimeConstBlue
+
+plot <- CRH_opto %>%
+  filter(
+    seriesName %in% constBlueTestSeries
+  ) %>%
+  mutate(
+    beforeAfter = ifelse(
+      sumTime < valSumTimeConstBlue,
+      "before",
+      "after"
+    ),
+    beforeAfter = factor(beforeAfter, levels = c("before" ="before", "after" = "after"))
+  ) %>%
+  makeFactors(
+    redFreq
+  ) %>%
+  optoFidelityPlot(
+    redFreq,
+    TRUE,
+    beforeAfter,
+    "before and after 30s constant blue stim"
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", thisCell, "_constBlue")
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
