@@ -206,7 +206,7 @@ Cort_off_bySex <- Cort_off_filtered %>%
 
 basePlot <- Cort_off_bySex %>%
   baseCortPlot(
-    dotSize = 2
+    dotSize = 3
   )
 
 plot <- basePlot %>%
@@ -259,7 +259,7 @@ Cort_off_bySex
 
 basePlot <- Cort_off_bySex %>%
   baseCortPlot(
-    dotSize = 2
+    dotSize = 3
   )
 
 plot <- basePlot %>%
@@ -320,7 +320,7 @@ tempLHPlot <- function(
   df %>%
     LHPlot(
     fontSize = 16,
-    dotSize = 2,
+    dotSize = 3,
     zoom_y = TRUE,
     ymin = 0,
     ymax = ymax
@@ -339,10 +339,28 @@ plot <- LH_filtered %>%
 
 plot 
 
-thisWidth = 7
+thisWidth = 5.5
 thisHeight = 5
 
 fileBaseName = "LH_combined_second"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+thisWidth = 11.5
+thisHeight = 5
+
+fileBaseName = "LH_combined_second_full"
 
 flexSave(
   baseName = fileBaseName,
@@ -382,14 +400,15 @@ plot <- surgedDF %>%
   plotLHAmp_comboTrt(
     3,
     textSize = 16,
-    dotSize = 2,
-    angleX = FALSE
+    dotSize = 3,
+    angleX = FALSE,
+    addSurgeMinLine = TRUE
   )+ 
   coord_cartesian(ylim = c(0, 40))
 
 plot 
 thisHeight = 5
-thisWidth = 5.5
+thisWidth = 11
 
 fileBaseName = "LH_amplitude_second"
 
@@ -412,7 +431,7 @@ plot <- surgedDF %>%
   plotLHTime_comboTrt(
     3,
     textSize = 16,
-    dotSize = 2,
+    dotSize = 3,
     angleX = FALSE
   )
 
@@ -439,16 +458,342 @@ flexSave(
 
 
 
-<!-- ```{r} -->
-<!-- # 3 -> 4 -->
-<!-- figureNum <- figureNum + 1 -->
-<!-- ``` -->
+```{r}
+# 3 -> 4
+figureNum <- figureNum + 1
+```
+
+```{r}
+source(file.path(scriptsFolder, "cortAdmin-get-datasets.R"))
+```
 
 
-<!-- ```{r} -->
-<!-- # 4 -> 5 -->
-<!-- figureNum <- figureNum + 1 -->
-<!-- ``` -->
+```{r}
+BD_comboNutALPS <- rbind(
+  BD_cortALPS %>%
+    mutate(
+      atePrevNutella = NA,
+      ateNutella = NA,
+      cortNutTrt = adultTrt
+    ), 
+  BD_cort4 %>% 
+    filter(Sac_date == as_date("2022-05-27")) %>%
+    mutate(
+      cortNutTrt = dosage
+    )
+)
+plot <- BD_comboNutALPS %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 16,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = cortNutTrt, # group by the dosage; this is why it needs to be a factor
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 500,
+    ymin = 0
+  ) +
+  # facet_wrap(
+  #   ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  # ) +
+  labs(
+    x = "time since 1st administration (h)" # add a title to the x axis
+  ) + 
+  theme(
+    legend.position = "top"
+  )  +
+  scale_color_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"="black",
+      "0" = "black",
+      "2" = "black"
+      )
+  )+
+  scale_fill_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"="black",
+      "0" = "#F5C6F1",
+      "2" = "#F127DF"
+      )
+  )+
+  scale_shape_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"=23,
+      "0" = 21,
+      "2" = 21
+      )
+  ) + scale_linetype_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"="dotted",
+      "0" = "solid",
+      "2" = "solid"
+    )
+  )
+
+plot 
+
+thisHeight = 5
+thisWidth = 11.5
+
+fileBaseName = "cort_nutella"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+thisHeight = 5
+thisWidth = 5.5
+
+fileBaseName = "cort_nutella_half"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+plot <- BD_comboNutALPS %>%
+  filter(
+    cortNutTrt == "ALPS"
+  ) %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 16,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = cortNutTrt, # group by the dosage; this is why it needs to be a factor
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 500,
+    ymin = 0
+  ) +
+  # facet_wrap(
+  #   ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  # ) +
+  labs(
+    x = "time since 1st administration (h)" # add a title to the x axis
+  ) + 
+  theme(
+    legend.position = "top"
+  )  +
+  scale_color_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"="black",
+      "0" = "black",
+      "2" = "black"
+      )
+  )+
+  scale_fill_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"="black",
+      "0" = "#F5C6F1",
+      "2" = "#F127DF"
+      )
+  )+
+  scale_shape_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"=23,
+      "0" = 21,
+      "2" = 21
+      )
+  ) + scale_linetype_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"="dotted",
+      "0" = "solid",
+      "2" = "solid"
+    )
+  )
+
+plot
+
+thisHeight = 5
+thisWidth = 11.5
+
+fileBaseName = "cort_nutella_onlyALPS"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+
+```
+
+
+
+```{r}
+# 4 -> 5
+figureNum <- figureNum + 1
+```
+
+```{r}
+BD_ovulation <- BD_sampling %>%
+  filter(
+    cohort == "AG_BW",
+    trust == TRUE
+  ) %>%
+  mutate(
+    ovulated = ifelse(oocytes1>0 | oocytes2 > 0, TRUE, FALSE),
+    numOocytes = oocytes1 + oocytes2,
+    .after = oocytes2
+  )
+
+plot <- BD_ovulation %>%
+  filter(
+    !is.na(numOocytes)
+  )%>%
+  scatterPlot_general(
+    xVar = dosage,
+    xLab = "dosage (mg/kg)",
+    yVar = numOocytes,
+    yLab = "# of oocytes",
+    fillVar = dosage,
+    fillLimits = c("0", "2"),
+    fillValues = c("#F5C6F1", "#F127DF"),
+    lineColorVar = dosage,
+    lineColorLimits = c("0", "2"),
+    lineColorValues = c("black", "black"),
+    textSize = 16,
+    dotSize = 3,
+    hideXAxisLab = FALSE
+  ) +
+  scale_y_continuous(
+    breaks = c(0, 2, 4, 6, 8)
+  ) +
+  xlab("treatment")+
+  scale_x_discrete(
+    labels = c("0"="vehicle", "2"="corticosterone")
+  )
+
+plot
+
+thisHeight = 5
+thisWidth = 5.5
+
+fileBaseName = "cort_nutella_oocytes"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+plot <- BD_ovulation %>%
+  propOvulatedPlot(
+    xVar = dosage,
+    fontSize = 16
+  ) +
+  xlab("treatment")+
+  scale_x_discrete(
+    labels = c("0"="vehicle", "2"="corticosterone")
+  )
+
+plot
+
+thisHeight = 5
+thisWidth = 9
+
+fileBaseName = "cort_nutella_ovulated"
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = pptBaseName(figureNum),
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
 
 <!-- ```{r} -->
 <!-- # 5 -> 6 -->

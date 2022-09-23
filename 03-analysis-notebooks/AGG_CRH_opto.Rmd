@@ -136,6 +136,68 @@ optoFidelityPlot <- function(
       ) +
     geom_point()
 }
+optoFidelityPlot_lineAndShape <- function(
+  df,
+  lineTypeVar,
+  useLineType,
+  shapeVar,
+  xVar = redFreq,
+  thisXTitle = "frequency (Hz)",
+  individ = TRUE
+){
+  ytitle <- "(# events / # stims) * 100"
+  title <- NULL
+  individualLines <- individ
+  meanLines <- TRUE
+  zoom_x <- FALSE
+  xmin <- NULL
+  xmax <- NULL
+  zoom_y <- FALSE
+  ymin <- NULL
+  ymax <- NULL
+  indivLineAlpha = 0.7
+  indivLineSize <- 1
+  errorBarWidth <- 0.3
+  meanAlpha <- 1
+  meanLineSize <- 1
+  errorBarSize <- 0.5
+  errorBarAlpha <- 1
+  textSize <- 16
+  axisSize <- 1
+  
+  plot <- df %>%
+    ggplot(
+      aes(x = {{ xVar }}, y = fidelity, color = {{ lineTypeVar }}, shape = {{ shapeVar }})
+    ) +
+      plot_line_geom_layers (
+        useLineType = useLineType, # TRUE/FALSE
+        lineTypeVar = {{ lineTypeVar }},
+        lineGroupVar = {{ lineGroupVar }},
+        xtitle = thisXTitle, #x axis label
+        ytitle = ytitle, #y axis label
+        title = title, # plot title
+        individualLines = individualLines, # plot individual lines
+        meanLines = meanLines, # plot mean lines with SE
+        zoom_x = zoom_x, # Zoom to part of x axis
+        xmin = xmin,
+        xmax = xmax,
+        zoom_y = zoom_y, # Zoom to part of y axis
+        ymin = ymin,
+        ymax = ymax,
+        indivLineAlpha = indivLineAlpha,
+        indivLineSize = indivLineSize,
+        errorBarWidth = errorBarWidth,
+        meanLineSize = meanLineSize,
+        meanAlpha = meanAlpha,
+        errorBarSize = errorBarSize,
+        # errorBarColor = errorBarColor,
+        errorBarAlpha = errorBarAlpha,
+        textSize = textSize,
+        axisSize = axisSize
+      # ) +
+    # geom_point()
+      )
+}
 ```
 
 
@@ -1003,3 +1065,106 @@ flexSave(
   shinySettings = FALSE
 )
 ```
+
+
+```{r}
+plot <- CRH_opto_all %>%
+  filter(
+    redNumStims == 30,
+    redAmp == 0
+  ) %>%
+  group_by(
+    cellID, redAmp, redDur, redFreq
+  ) %>%
+  summarise(
+    across(
+      where(is.numeric),
+      ~ mean(.x, na.rm = TRUE)
+    ),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    redDur = redDur * 1000
+  ) %>%
+  makeFactors(
+    c(redDur, redAmp)
+  ) %>%
+  optoFidelityPlot_lineAndShape(
+    redDur,
+    TRUE,
+    redAmp,
+    individ = FALSE
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", "_0V_Dur")
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+```{r}
+plot <- CRH_opto_all %>%
+  filter(
+    redNumStims == 30,
+    redAmp == 1
+  ) %>%
+  group_by(
+    cellID, redAmp, redDur, redFreq
+  ) %>%
+  summarise(
+    across(
+      where(is.numeric),
+      ~ mean(.x, na.rm = TRUE)
+    ),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    redDur = redDur * 1000
+  ) %>%
+  makeFactors(
+    c(redDur, redAmp)
+  ) %>%
+  optoFidelityPlot_lineAndShape(
+    redDur,
+    TRUE,
+    redAmp,
+    individ = FALSE
+  )
+plot
+
+fileBaseName = paste0("CRH_opto_", "_1V_Dur")
+imgType = "png"
+thisWidth = 11
+thisHeight = 5.5
+thisUnits = "in"
+
+
+flexSave(
+  baseName = fileBaseName,
+  thisFilePrefix = NULL,
+  plot = plot,
+  fileType = imgType,
+  filePath = file.path(plotOutputFolder, subFolder),
+  width = thisWidth,
+  height = thisHeight,
+  units = thisUnits,
+  compType = currentCompType,
+  shinySettings = FALSE
+)
+```
+

@@ -473,14 +473,14 @@ propOvulatedPlot <- function(
 ){
   viz <- ggplot(df, aes(x = {{ xVar }}, fill = ovulated))+
     geom_bar(position = "fill", color = "black") +
-    geom_text(aes(label = ..count..), stat = "count", vjust = 1.3, colour = "darkgrey", position = "fill")+
-    labs(y = "proportion with oocytes") + 
+    geom_text(aes(label = ..count..), stat = "count", vjust = 1.3, colour = "darkgrey", position = "fill", size=10)+
+    labs(y = "% with oocytes") + 
+    scale_y_continuous(labels = scales::percent)+
     scale_fill_manual(values = c("white", "black")) +
     theme_pubr() +
     textTheme(size = fontSize)+
     boxTheme()+
-    rremove("legend") +
-    rremove("xlab")
+    rremove("legend")
   return(viz)
 }
 
@@ -596,7 +596,8 @@ plotLHAmp_comboTrt <- function(
   surgeMin, 
   textSize = 11, 
   dotSize = 2,
-  angleX = TRUE
+  angleX = TRUE,
+  addSurgeMinLine = FALSE
 ){
   plot <- df %>%
     mutate(
@@ -666,6 +667,11 @@ plotLHAmp_comboTrt <- function(
         legend.position = "none",
         axis.title.x = element_blank()
       )
+  }
+  
+  if(addSurgeMinLine){
+    plot <- plot + geom_hline(yintercept = surgeMin, color = "grey50")
+      
   }
   return(plot)
 }

@@ -288,6 +288,11 @@ BD_comboNutALPS %>%
       "ALPS" = "ALPS",
       "0" = "0mg/kg",
       "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"="dotted",
+      "0" = "solid",
+      "2" = "solid"
     )
   )
 
