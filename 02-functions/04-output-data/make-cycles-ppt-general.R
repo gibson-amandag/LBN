@@ -120,7 +120,8 @@ addImgRegExColsForSamplingDF <- function(
   dateVar = Sac_date,
   ageVar = AgeInDays,
   includeUterus = TRUE,
-  includeNextDay = FALSE
+  includeNextDay = FALSE,
+  arrangeByDate = FALSE
 ){
   if(includeNextDay){
     addDays = 1
@@ -131,6 +132,7 @@ addImgRegExColsForSamplingDF <- function(
     arrange(
       if(arrangeByLH) maxLH,
       if(arrangeByCycle) Sac_cycle,
+      if(arrangeByDate) {{ dateVar }},
       ReproTract_mass
     ) %>%
     mutate(
@@ -654,7 +656,10 @@ createOvulationPPT <- function(
   useVar = Sampling_date,
   outPath = file.path(reportOutputFolder, "samplingPPTs"),
   addToName = "",
-  slideVersion = 4
+  slideVersion = 4,
+  sortByCycle = FALSE,
+  sortByLH = TRUE,
+  sortByDate = FALSE
 ){
   if(!"maxLH" %in% names(df)){
     df <- df %>%
@@ -670,8 +675,8 @@ createOvulationPPT <- function(
       ageAtDateVar = {{ useVar }}
     ) %>%
     addImgRegExColsForSamplingDF(
-      arrangeByCycle = TRUE,
-      arrangeByLH = TRUE,
+      arrangeByCycle = sortByCycle,
+      arrangeByLH = sortByLH,
       numIDVar = cycleID,
       dateVar = {{ useVar }},
       ageVar = AgeInDays,
@@ -695,7 +700,8 @@ createOvulationPPT <- function(
     arrange(
       - trust,
       {{ trtVar }},
-      maxLH
+      maxLH,
+      if(sortByDate) {{ useVar }}
     )
   
   print(samplingDF %>% select(comboNotes))

@@ -68,7 +68,10 @@ cortAnova <- function(
 #' @export
 #'
 #' @examples
-formatAnova <- function(anovaDF){
+formatAnova <- function(
+    anovaDF,
+    fontSize = 11
+  ){
   flxTbl <- anovaDF %>%
     get_anova_table() %>% # added 2021-10-23
     as_tibble() %>% # replaced as_data_frame()
@@ -92,7 +95,7 @@ formatAnova <- function(anovaDF){
       i = ~ `p<.05` == "*"
     ) %>%
     fontsize(
-      size = 11
+      size = fontSize
     )
   return(flxTbl)
 }
