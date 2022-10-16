@@ -144,7 +144,7 @@ filteringEphysServer <- function(
     id,
     function(input, output, session) {
       
-      filterByPassives <- function(df){
+      filterByPassivesShiny <- function(df){
         if(input$filterByRseries){
           df <- df %>%
             filter(
@@ -172,7 +172,7 @@ filteringEphysServer <- function(
         return(df)
       }
       
-      filterByCellNum <- function(df){
+      filterByCellNumShiny <- function(df){
         if(input$filterByCellNum){
           df <- df %>%
             group_by(
@@ -193,7 +193,7 @@ filteringEphysServer <- function(
         return(df)
       }
       
-      filterByTime <- function(df){
+      filterByTimeShiny <- function(df){
         if(input$filterBySacHr){
           df <- df %>%
             filter(
@@ -213,9 +213,9 @@ filteringEphysServer <- function(
       
       df_react <- reactive({
         df <- df() %>%
-          filterByPassives() %>%
-          filterByCellNum() %>%
-          filterByTime()
+          filterByPassivesShiny() %>%
+          filterByCellNumShiny() %>%
+          filterByTimeShiny()
         
         return(df)
       })

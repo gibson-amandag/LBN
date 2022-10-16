@@ -32,6 +32,7 @@ getStressTrtNumbers <- function(df){
 cortAnova <- function(
   df,
   byCycle = FALSE
+  , fontSize = 11
   ){
   anovaRes <- df %>%
     anova_test(
@@ -49,7 +50,7 @@ cortAnova <- function(
         within = time
       )
   }
-  flxTbl <- formatAnova(anovaRes)
+  flxTbl <- formatAnova(anovaRes, fontSize = fontSize)
   return(flxTbl)
   # return(anovaRes)
 }
@@ -100,7 +101,10 @@ formatAnova <- function(
   return(flxTbl)
 }
 
-formatAdjAnova <- function(anovaDF){
+formatAdjAnova <- function(
+    anovaDF
+    , fontSize = 11
+  ){
   flxTbl <- anovaDF %>%
     get_anova_table() %>%
     as_tibble() %>% # replaced as_data_frame()
@@ -125,7 +129,7 @@ formatAdjAnova <- function(anovaDF){
       i = ~ `p.adj<.05` == "*"
     ) %>%
     fontsize(
-      size = 11
+      size = fontSize
     )
   return(flxTbl)
 }

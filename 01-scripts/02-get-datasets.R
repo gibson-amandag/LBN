@@ -363,6 +363,8 @@ Demo_dam_for_offspring <- Demo_dam %>%
     sire, 
     Litter_size_startPara, 
     Litter_size_endPara,
+    Pups_through_wean,
+    Sac_or_stop,
     P5_ZT12_Duration:P6_ZT4_Avg_dur_on_nest
   )
 

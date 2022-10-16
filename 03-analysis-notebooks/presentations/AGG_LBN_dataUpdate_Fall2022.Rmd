@@ -11,36 +11,174 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 ```{r include=FALSE}
 source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/05-make-LBN-plots.R")
+source("./01-scripts/06-make-LBN-ANOVAs.R")
 ```
 
 ```{r}
 doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
 ```
 
+# Set-up
 ```{r}
-litterNum_label <- c(
-  "1" = "first litter",
-  "2" = "second litter"
-)
-
-facetForLitterNum <- facet_grid(
-    cols = vars(litterNum),
-    labeller = labeller(
-      litterNum = litterNum_label
-    )
-  )
-
 figureNum <- 1
 
-pptBaseName <- function(figNum) {
-  baseName = paste0(figNum, "_")
-  return(baseName)
-}
+pptBaseName <- makeBaseNameFunc("")
 
 plotFolder <- file.path(plotOutputFolder, "LBN_Fall2022")
-subFolder <- "LBN_Fall2022"
 
-imgType <-"PNG"
+imgType <-"png"
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotFolder
+  , compType = currentCompType
+)
+
+exportFullPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 11.5
+  #   , height = 5
+  # )
+}
+
+exportHalfPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 5.67
+  #   , height = 5
+  # )
+}
+
+exportThirdPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 3.6
+  #   , height = 5
+  # )
+}
+
+exportQuarterPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 3.2
+  #   , height = 5
+  # )
+}
+
+editableImgs <- TRUE
+pptAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptUneditAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = FALSE
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphs <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddFourGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , plot4
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_fourGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    plot4,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddThreeGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_threeGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
 ```
 
 ```{r}
@@ -53,9 +191,14 @@ ppt <- ph_with(
   location = ph_location_label("Title 1")
 )
 
-savePPT <- function(){
-  print(ppt, target = file.path(plotFolder, paste0("AGG_LBN_data_", Sys.Date(), ".pptx")))
-}
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "AGG_LBN_data"
+  , addDate = TRUE
+)
 ```
 
 # Cohort Information
@@ -166,17 +309,6 @@ ppt <- addSlide_text(
 )
 ```
 
-```{r}
-cohorts <- c(2, 4, 6, 7, 8, 9)
-dataFilter <- function(df){
-  df %>%
-    filter(
-      Litter_size_startPara >= 5,
-      cohort %in% cohorts
-    )
-}
-```
-
 # Dam Behavior
 
 ## ZT1 and ZT15
@@ -205,165 +337,31 @@ ppt <- addSlide_text(
 )
 ```
 
-```{r}
-# behaviorTimeHours = c(12, 14, 16, 18, 20, 22, 0, 2, 4)
-behaviorTimeHours = c(1, 15)
-dam_behavior_filtered <- dam_behavior %>%
-  dataFilter() %>%
-  filter(
-    time %in% behaviorTimeHours
-  ) %>%
-  mutate(
-    firstDay = ifelse(
-      damID == "D015", 
-      FALSE, 
-      ifelse(
-        (cohort == 2 | cohort == 4 | cohort == 6), 
-        TRUE, 
-        ifelse(
-          damID == "D051-01",
-          TRUE,
-          FALSE
-        )
-      )
-    )
-  )
-```
-
-```{r}
-# install.packages("lemon")
-library(lemon)
-```
-
 ### First litters
 
-```{r include=FALSE}
-behaviorOverTime <- dam_behavior_filtered %>%
-  filter(
-    litterNum == 1
-  ) %>%
-  behavior_overTime_days(
-    yVar = Num_exits,
-    yLab = "# of exits / hour",
-    fontSize = 16,
-    dotSize = 3,
-    dotSize_byFirstDay = FALSE,
-    lineSize = 0.75
-  )
-plot <- behaviorOverTime +
-  # facet_wrap(
-  #   ~ earlyLifeTrt,
-  #   ncol = 2,
-  #   labeller = labeller(
-  #     litterNum = litterNum_label
-  #   ),
-  #   scales = "free"
-  # )+
-  theme(
-    legend.position = "bottom"
-    # , axis.title.x = element_blank()
-  ) +
-  guides(
-    fill = "none"
-    , linetype = "none"
-  )+
-  labs(
-    x = "ZT hour"
-  ) +
-  expand_limits(y = 70)#+
-  # expand_limits(x = c(as_datetime(ymd_h("2000-01-4 15")), as_datetime(ymd_h("2000-01-11 1"))))
+```{r}
+damBehavior_plot_days_1stL
 
 fileBaseName <- "damBehavior_firstLitter"
-thisWidth = 11.5
-thisHeight = 5
-thisUnits = "in"
-
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-)
-```
-
-```{r echo=FALSE}
-plot
-ppt <- addSlide_oneGraph(
-  ppt,
-  "Effect of LBN on naive dam behavior over time",
-  plot
-)
+slideTitle <- "Effect of LBN on naive dam behavior over time"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
 ```
 
 ### Second litters
 
-```{r include=FALSE}
-behaviorOverTime <- dam_behavior_filtered %>%
-  filter(
-    litterNum == 2
-  ) %>%
-  behavior_overTime_days(
-    yVar = Num_exits,
-    yLab = "# of exits / hour",
-    fontSize = 16,
-    dotSize = 3,
-    dotSize_byFirstDay = FALSE,
-    lineSize = 0.75,
-    addTriangleForMean = TRUE
-  )
-plot <- behaviorOverTime +
-  # facet_wrap(
-  #   ~ earlyLifeTrt,
-  #   ncol = 2,
-  #   labeller = labeller(
-  #     litterNum = litterNum_label
-  #   ),
-  #   scales = "free"
-  # )+
-  theme(
-    legend.position = "bottom"
-    # , axis.title.x = element_blank()
-  ) +
-  guides(
-    fill = "none"
-    , linetype = "none"
-  )+
-  labs(
-    x = "ZT hour"
-  ) +
-  expand_limits(y = 70)#+
-  # expand_limits(x = c(as_datetime(ymd_h("2000-01-4 15")), as_datetime(ymd_h("2000-01-11 1"))))
+```{r}
+damBehavior_plot_days_2ndL
 
 fileBaseName <- "damBehavior_secondLitter"
-thisWidth = 11.5
-thisHeight = 5
-thisUnits = "in"
-
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-)
+slideTitle <- "Effect of LBN on experienced dam behavior over time"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
 ```
 
-```{r echo=FALSE}
-plot
-ppt <- addSlide_oneGraph(
-  ppt,
-  "Effect of LBN on experienced dam behavior over time",
-  plot
-)
+```{r}
+# 1 -> 2
+figureNum <- figureNum + 1
 ```
 
 ## P5-P6 analysis
@@ -389,180 +387,27 @@ ppt <- addSlide_text(
 )
 ```
 
-```{r}
-dam_behavior_filtered <- dam_behavior %>%
-  dataFilter() %>%
-  filter(
-    PND %in% c(5, 6),
-    ! (PND == 5 & time == 1),
-    ! (PND == 6 & time == 15)
-    # ,time %in% behaviorTimeHours
-  ) %>%
-  mutate(
-    firstDay = ifelse(
-      damID == "D015", 
-      FALSE, 
-      ifelse(
-        (cohort == 2 | cohort == 4 | cohort == 6), 
-        TRUE, 
-        ifelse(
-          damID == "D051-01",
-          TRUE,
-          FALSE
-        )
-      )
-    )
-  )
-```
-
 ### First litters
 
 ```{r}
-behaviorOverTime <- dam_behavior_filtered %>%
-  filter(
-    litterNum == 1
-  ) %>%
-  behavior_overTime_days(
-    yVar = Num_exits,
-    yLab = "# of exits / hour",
-    fontSize = 16,
-    dotSize = 3,
-    dotSize_byFirstDay = FALSE,
-    lineSize = 0.75,
-    addTriangleForMean = TRUE,
-    redMean = TRUE
-  )
-plot <- behaviorOverTime +
-  facet_wrap(
-    ~ earlyLifeTrt,
-    ncol = 2,
-    labeller = labeller(
-      litterNum = litterNum_label
-    ),
-    scales = "free"
-  )+
-  theme(
-    legend.position = "bottom"
-    # , axis.title.x = element_blank()
-  ) +
-  guides(
-    fill = "none"
-    , linetype = "none"
-  )+
-  labs(
-    x = "ZT hour"
-  ) +
-  expand_limits(y = 70) + 
-  scale_x_datetime(
-    breaks = c(
-        as_datetime(ymd_h("2000-01-05 14")),
-        as_datetime(ymd_h("2000-01-05 19")),
-        as_datetime(ymd_h("2000-01-06 0")),
-        as_datetime(ymd_h("2000-01-06 4"))
-      ), 
-    date_labels = "%d\n%H"
-  )
+damBehavior_plot_time_1stL
 
 fileBaseName <- "damBehavior_firstLitter_all"
-thisWidth = 11.5
-thisHeight = 5
-thisUnits = "in"
+slideTitle <- "Effect of LBN on naive dam behavior P5-P6"
 
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-)
-```
-
-```{r echo=FALSE}
-plot 
-ppt <- addSlide_oneGraph(
-  ppt,
-  "Effect of LBN on naive dam behavior P5-P6",
-  plot
-)
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
 ```
 
 ### Second litters
 
 ```{r}
-behaviorOverTime <- dam_behavior_filtered %>%
-  filter(
-    litterNum == 2
-  ) %>%
-  behavior_overTime_days(
-    yVar = Num_exits,
-    yLab = "# of exits / hour",
-    fontSize = 16,
-    dotSize = 3,
-    dotSize_byFirstDay = FALSE,
-    lineSize = 0.75,
-    addTriangleForMean = TRUE,
-    redMean = TRUE
-  )
-plot <- behaviorOverTime +
-  facet_wrap(
-    ~ earlyLifeTrt,
-    ncol = 2,
-    labeller = labeller(
-      litterNum = litterNum_label
-    ),
-    scales = "free"
-  )+
-  theme(
-    legend.position = "bottom"
-    # , axis.title.x = element_blank()
-  ) +
-  guides(
-    fill = "none"
-    , linetype = "none"
-  )+
-  labs(
-    x = "ZT hour"
-  ) +
-  expand_limits(y = 70) + 
-  scale_x_datetime(
-    breaks = c(
-        as_datetime(ymd_h("2000-01-05 14")),
-        as_datetime(ymd_h("2000-01-05 19")),
-        as_datetime(ymd_h("2000-01-06 0")),
-        as_datetime(ymd_h("2000-01-06 4"))
-      ), 
-    date_labels = "%d\n%H"
-  )
+damBehavior_plot_time_2ndL
 
 fileBaseName <- "damBehavior_secondLitter_all"
-thisWidth = 11.5
-thisHeight = 5
-thisUnits = "in"
-
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-)
-```
-
-```{r echo=FALSE}
-plot
-ppt <- addSlide_oneGraph(
-  ppt,
-  "Effect of LBN on experienced dam behavior P5-P6",
-  plot
-)
+slideTitle <- "Effect of LBN on experienced dam behavior P5-P6"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
 ```
 
 ## ANOVA
@@ -631,275 +476,59 @@ dam_behavior_filtered %>%
 ```
 
 ```{r}
-# 1 -> 2
+# 2 -> 3
 figureNum <- figureNum + 1
 ```
 
 # Dam Corticosterone
 
 ```{r}
-P11_cortDams <- Demo_dam %>%
-  dataFilter() %>%
-  filter(
-    !is.na(Cort_dam_P11)
-  )
-
-plot <- P11_cortDams %>%
-  scatterPlotLBN(
-    yVar = Cort_dam_P11,
-    yLab = "corticosterone (ng/mL)",
-    textSize = 16,
-    dotSize = 3,
-    zoom_y = TRUE,
-    ymin = 0,
-    ymax = 120
-  ) + 
-  facetForLitterNum
-
-imgType = "png"
-thisWidth = 11
-thisHeight = 5.5
-thisUnits = "in"
+damCort_plot
 
 fileBaseName = "DamCort_P11"
+slideTitle <- "Effect of LBN on dam corticosterone on P11"
 
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = plot,
-  fileType = imgType,
-  filePath = plotFolder,
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-
-
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
 ```
 
-```{r echo=FALSE}
-plot
-ppt <- addSlide_oneGraph(
-  ppt,
-  "Effect of LBN on dam corticosterone on P11",
-  plot
-)
-```
-
-```{r echo=FALSE}
+```{r}
 ppt <- addSlide_oneTable(
   ppt,
   "Effect of LBN on dam corticosterone on P11",
-  P11_cortDams %>%
-  anova_test(
-    dv = Cort_dam_P11,
-    between = c(litterNum, earlyLifeTrt)
-  )
+  damCortANOVA
 )
 ```
 
 ```{r}
-# 2 -> 3
+# 3 -> 4
 figureNum <- figureNum + 1
 ```
 
 # Body mass
 
-```{r include=FALSE}
-massDF <- Mass_off %>%
-  dataFilter()
-
-massDF
-```
-
 ## First litter
 
 ```{r}
-thisGroupByDam = TRUE
-facetBySex = TRUE
-useLineType = FALSE
-individualLines = TRUE
-meanLines = TRUE
-zoom_x = FALSE
-zoom_x_min = 0
-zoom_x_max = 21
-zoom_y = TRUE
-zoom_y_min = 0
-zoom_y_max = 35
-indivAlpha = .3
-meanAlpha = 1
-errorBarAlpha = 1
-fontSize = 16
-STDColor = "#4D4D4D"
-LBNColor = "#008B8B"
+mass_plot_1stL
 
 fileBaseName = "mass_litter1"
-imgType = "png"
-thisWidth = 11.5
-thisHeight = 5
-thisUnits = "in"
+slideTitle <- "Effect of LBN on body mass in first litter offspring"
 
-df <- massDF %>%
-  filter(
-    litterNum == 1
-  )
-
-groupVar <- ifelse(thisGroupByDam, expr(damID), expr(mouseID))
-
-plot <- df %>%
-  plot_mass_lines(
-    groupByDam = thisGroupByDam,
-    facetBySex = facetBySex,
-    useLineType = useLineType, # TRUE/FALSE
-    lineTypeVar = earlyLifeTrt,
-    lineGroupVar = {{ groupVar }},
-    xtitle = "postnatal day", #x axis label
-    ytitle = "mass (g)", #y axis label
-    title = NULL, # plot title
-    individualLines = individualLines, # plot individual lines
-    meanLines = meanLines, # plot mean lines with SE
-    zoom_x = zoom_x, # Zoom to part of x axis
-    xmin = zoom_x_min,
-    xmax = zoom_x_max,
-    zoom_y = zoom_y, # Zoom to part of y axis
-    ymin = zoom_y_min,
-    ymax = zoom_y_max,
-    indivLineAlpha = indivAlpha,
-    indivLineSize = 0.8,
-    errorBarWidth = 0,
-    meanLineSize = 1.4,
-    meanAlpha = meanAlpha,
-    errorBarSize = 1,
-    # errorBarColor = "grey10",
-    errorBarAlpha = errorBarAlpha,
-    textSize = fontSize,
-    axisSize = 0.5,
-    # legendPosition = "bottom",
-    legendPosition = c(0.85, 0.2),
-    STDColor = STDColor,
-    LBNColor = LBNColor
-  ) +
-  # facet_wrap(
-  #   ~ damStrain
-  # ) +
-  theme(
-    legend.key = element_rect(fill = NA)
-  )
-
-
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = plot,
-  fileType = imgType,
-  filePath = plotFolder,
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-```
-
-```{r echo=FALSE}
-plot
-ppt <- addSlide_oneGraph(
-  ppt,
-  "Effect of LBN on body mass for first litter offspring",
-  plot
-)
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
 ```
 
 ## Second litter
 
 ```{r}
+mass_plot_2ndL
+
 fileBaseName = "mass_litter2"
-imgType = "png"
-thisWidth = 11.5
-thisHeight = 5
-thisUnits = "in"
+slideTitle <- "Effect of LBN on body mass in second litter offspring"
 
-df <- massDF %>%
-  filter(
-    litterNum == 2
-  )
-
-groupVar <- ifelse(thisGroupByDam, expr(damID), expr(mouseID))
-
-plot <- df %>%
-  plot_mass_lines(
-    groupByDam = thisGroupByDam,
-    facetBySex = facetBySex,
-    useLineType = useLineType, # TRUE/FALSE
-    lineTypeVar = earlyLifeTrt,
-    lineGroupVar = {{ groupVar }},
-    xtitle = "postnatal day", #x axis label
-    ytitle = "mass (g)", #y axis label
-    title = NULL, # plot title
-    individualLines = individualLines, # plot individual lines
-    meanLines = meanLines, # plot mean lines with SE
-    zoom_x = zoom_x, # Zoom to part of x axis
-    xmin = zoom_x_min,
-    xmax = zoom_x_max,
-    zoom_y = zoom_y, # Zoom to part of y axis
-    ymin = zoom_y_min,
-    ymax = zoom_y_max,
-    indivLineAlpha = indivAlpha,
-    indivLineSize = 0.8,
-    errorBarWidth = 0,
-    meanLineSize = 1.4,
-    meanAlpha = meanAlpha,
-    errorBarSize = 1,
-    # errorBarColor = "grey10",
-    errorBarAlpha = errorBarAlpha,
-    textSize = fontSize,
-    axisSize = 0.5,
-    # legendPosition = "bottom",
-    legendPosition = c(0.85, 0.2),
-    STDColor = STDColor,
-    LBNColor = LBNColor
-  ) +
-  # facet_wrap(
-  #   ~ damStrain
-  # ) +
-  theme(
-    legend.key = element_rect(fill = NA)
-  )
-
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = plot,
-  fileType = imgType,
-  filePath = plotFolder,
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-```
-
-```{r echo=FALSE}
-plot
-ppt <- addSlide_oneGraph(
-  ppt,
-  "Effect of LBN on body mass for second litter offspring",
-  plot
-)
-```
-
-```{r}
-massDF_long <- massDF %>%
-  makeOffMassLong()
-
-massDF_byDam <- massDF %>%
-    getAvgByDam(bySex = facetBySex)
-
-massDF_byDam_long <- massDF_byDam %>%
-  makeOffMassLong()
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
 ```
 
 ## Linear mixed effects model
@@ -949,7 +578,7 @@ library("emmeans")
 ```{r}
 preWeanMass_mod <- lmer(
   mass ~ earlyLifeTrt*sex*day + Litter_size + litterNum + (1 | damID),
-  data = massDF_long %>% 
+  data = mass_long %>% 
     mutate(Litter_size = as.integer(Litter_size)) %>% 
     filter(
       day > 4,
@@ -1013,7 +642,7 @@ ppt <- ppt %>%
 ```{r}
 postWeanMass_mod <- lmer(
   mass ~ earlyLifeTrt*sex*day + Litter_size + litterNum + (1 | damID),
-  data = massDF_long %>% 
+  data = mass_long %>% 
     mutate(Litter_size = as.integer(Litter_size)) %>% 
     filter(
       day > 21,
@@ -1054,7 +683,7 @@ There are no differences by early-life treatment at this age
 ```{r}
 adultMass_mod <- lmer(
   mass ~ earlyLifeTrt*sex*day + Litter_size + litterNum + (1 | damID),
-  data = massDF_long %>% 
+  data = mass_long %>% 
     mutate(Litter_size = as.integer(Litter_size)) %>% 
     filter(
       day > 35
@@ -1092,165 +721,28 @@ ppt <- addSlide_text(
 ```
 
 ```{r}
-# 3 -> 4
+# 4 -> 5
 figureNum <- figureNum + 1
 ```
 
 # Maturation
 
-```{r}
-maturationFiltered <- Maturation_off %>%
-  dataFilter()
-
-df_females <- maturationFiltered %>%
-  filter(
-    sex == "F"
-  ) %>%
-  getAvgByDam()
-
-df_males <- maturationFiltered %>%
-  filter(
-    sex == "M"
-  ) %>%
-  getAvgByDam()
-```
-
-```{r}
-imgType = "png"
-thisWidth = 4
-thisHeight = 5.5
-thisUnits = "in"
-fontSize = 16
-thisDotSize = 3
-```
-
-```{r}
-VO_age_plot <- df_females %>%
-  scatterPlotLBN(yVar = VO_age, "age at vaginal opening (days)", textSize = fontSize, dotSize = thisDotSize)
-max_VO_age <- df_females$VO_age %>% max(na.rm = TRUE)
-```
-
-```{r}
-VO_mass_plot <- df_females %>%
-  scatterPlotLBN(yVar = VO_mass, "mass at vaginal opening (g)", textSize = fontSize, dotSize = thisDotSize)
-max_VO_mass <- df_females$VO_mass %>% max(na.rm = TRUE)
-```
-
-```{r}
-Estrus_age_plot <- df_females %>%
-  scatterPlotLBN(yVar = Estrus_age, "age at first estrus (days)", textSize = fontSize, dotSize = thisDotSize)
-max_estrus_age <- df_females$Estrus_age %>% max(na.rm = TRUE)
-```
-
-```{r}
-Estrus_mass_plot <- df_females %>%
-  scatterPlotLBN(yVar = Estrus_mass, "mass at first estrus (g)", textSize = fontSize, dotSize = thisDotSize)
-max_estrus_mass <- df_females$Estrus_mass %>% max(na.rm = TRUE)
-```
-
-```{r}
-PreputialSep_age_plot <- df_males %>%
-  scatterPlotLBN(yVar = PreputialSep_age, "age at preputial sep. (days)", textSize = fontSize, dotSize = thisDotSize)
-max_PPS_age <- df_males$PreputialSep_age %>% max(na.rm = TRUE)
-```
-
-```{r}
-PreputialSep_mass_plot <- df_males %>%
-  scatterPlotLBN(yVar = PreputialSep_mass, "mass at preputial sep. (g)", textSize = fontSize, dotSize = thisDotSize)
-max_PPS_mass <- df_males$PreputialSep_mass %>% max(na.rm = TRUE)
-```
-
-## ANOVAs
-```{r}
-VO_age_ANOVA <- df_females %>%
-  anova_test(
-    dv = VO_age,
-    between = c(litterNum, earlyLifeTrt)
-  )
-
-Estrus_age_ANOVA <- df_females %>%
-  anova_test(
-    dv = Estrus_age,
-    between = c(litterNum, earlyLifeTrt)
-  )
-
-
-PreputialSep_age_ANOVA <- df_males %>%
-  anova_test(
-    dv = PreputialSep_age,
-    between = c(litterNum, earlyLifeTrt)
-  )
-
-
-VO_mass_ANOVA <- df_females %>%
-  anova_test(
-    dv = VO_mass,
-    between = c(litterNum, earlyLifeTrt)
-  )
-
-
-Estrus_mass_ANOVA <- df_females %>%
-  anova_test(
-    dv = Estrus_mass,
-    between = c(litterNum, earlyLifeTrt)
-  )
-
-
-PreputialSep_mass_ANOVA <- df_males %>%
-  anova_test(
-    dv = PreputialSep_mass,
-    between = c(litterNum, earlyLifeTrt)
-  )
-```
-
-
 ## VO
 
 ```{r}
-max_age <- max(max_VO_age, max_estrus_age, max_PPS_age, na.rm = TRUE) + 3
-max_mass <- max(max_VO_mass, max_estrus_mass, max_PPS_mass, na.rm = TRUE) + 3
+VO_age_plot
 
 fileBaseName = "VO_age_litterNum"
-plot = VO_age_plot + expand_limits(y = max_age) + facetForLitterNum
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
+exportHalfPPTSlide()
+
+VO_mass_plot
 
 fileBaseName = "VO_mass_litterNum"
-massPlot = VO_mass_plot + expand_limits(y = max_mass) + facetForLitterNum
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = massPlot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-```
+exportHalfPPTSlide()
 
-```{r}
-plot
-massPlot
+slideTitle <- "Effect of LBN on vaginal opening"
 
-ppt <- addSlide_twoGraph(
-  ppt,
-  "Vaginal opening",
-  plot,
-  massPlot
-)
+ppt <- pptAddTwoGraphs(VO_age_plot, VO_mass_plot)
 
 VO_age_ANOVA
 VO_mass_ANOVA
@@ -1269,51 +761,22 @@ ppt <- addSlide_oneTable(
 )
 ```
 
-
-### First Estrus
+## First Estrus
 
 ```{r}
-fileBaseName = "Estrous_age_litterNum"
-plot = Estrus_age_plot + expand_limits(y = max_age) + facetForLitterNum
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
+Estrus_age_plot
+
+fileBaseName = "Estrus_age_litterNum"
+exportHalfPPTSlide()
+
+Estrus_mass_plot
 
 fileBaseName = "Estrus_mass_litterNum"
-massPlot = Estrus_mass_plot + expand_limits(y = max_mass) + facetForLitterNum
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = massPlot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-```
+exportHalfPPTSlide()
 
-```{r}
-plot
-massPlot
+slideTitle <- "Effect of LBN on first estrus"
 
-ppt <- addSlide_twoGraph(
-  ppt,
-  "First estrus",
-  plot,
-  massPlot
-)
+ppt <- pptAddTwoGraphs(Estrus_age_plot, Estrus_mass_plot)
 
 Estrus_age_ANOVA
 Estrus_mass_ANOVA
@@ -1333,50 +796,22 @@ ppt <- addSlide_oneTable(
 ```
 
 
-### Preputial Separation
+## Preputial Separation
 
 ```{r}
+PreputialSep_age_plot
+
 fileBaseName = "PreputialSep_age_litterNum"
-plot = PreputialSep_age_plot + expand_limits(y = max_age) + facetForLitterNum
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
+exportHalfPPTSlide()
+
+PreputialSep_mass_plot
 
 fileBaseName = "PreputialSep_mass_litterNum"
-massPlot = PreputialSep_mass_plot + expand_limits(y = max_mass) + facetForLitterNum
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = massPlot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-```
+exportHalfPPTSlide()
 
-```{r}
-plot
-massPlot
+slideTitle <- "Effect of LBN on preputial separation"
 
-ppt <- addSlide_twoGraph(
-  ppt,
-  "Vaginal opening",
-  plot,
-  massPlot
-)
+ppt <- pptAddTwoGraphs(PreputialSep_age_plot, PreputialSep_mass_plot)
 
 PreputialSep_age_ANOVA
 PreputialSep_mass_ANOVA
@@ -1396,568 +831,138 @@ ppt <- addSlide_oneTable(
 ```
 
 ```{r}
-# 4 -> 5
+# 5 -> 6
 figureNum <- figureNum + 1
 ```
 
 ## Cumulative Frequency
 
+### First litter
 ```{r}
-temp_cumFreq_geom <- function(
-  zoom_x = FALSE, # Zoom to part of x axis
-  xmin = NULL,
-  xmax = NULL,
-  zoom_y = FALSE, # Zoom to part of y axis
-  ymin = NULL,
-  ymax = NULL,
-  textSize = 11,
-  lineSize = 2
-) {
-  list(
-    stat_ecdf(
-      size = lineSize
-      , geom = "line"
-      , pad = FALSE
-    ),
-    stat_ecdf(
-      geom = "point"
-      , pad = FALSE
-      ),
-    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}),
-    textTheme(size = textSize),
-    boxTheme()
-  )
-}
+VO_cumFreq_plot_1stL
+fileBaseName <- "VO_freq_plot_1stL"
 
-temp_cumFreq_plot <- function(
-  df,
-  phenoVar,
-  phenotypeName,
-  zoom_x = FALSE, # Zoom to part of x axis
-  xmin = NULL,
-  xmax = NULL,
-  zoom_y = FALSE, # Zoom to part of y axis
-  ymin = NULL,
-  ymax = NULL,
-  textSize = 11,
-  lineSize = 1,
-  STDColor = "grey30",
-  LBNColor = "cyan4"
-) {
-  df %>%
-    filter(!is.na({{ phenoVar }})) %>%
-    ggplot(
-      aes(
-        {{ phenoVar }},
-        color = earlyLifeTrt
-      )
-    ) +
-    expand_limits(y = 0, x = 21) +
-    temp_cumFreq_geom(
-      zoom_x,
-      xmin,
-      xmax,
-      zoom_y,
-      ymin,
-      ymax,
-      textSize,
-      lineSize
-    ) +
-    scale_y_continuous(
-      labels = scales::percent
-    ) +
-    # scale_x_continuous(
-    #   breaks = 
-    # )
-    earlyLifeColor(STDColor = STDColor, LBNColor = LBNColor) +
-    labs(
-      y = paste("cumulative % of", phenotypeName),
-      x = "age (days)"
-    ) + 
-    theme(
-      legend.key = element_rect(fill = NA),
-      legend.position = c(0.8, 0.2)
-    )
-}
+exportThirdPPTSlide()
+
+Estrus_cumFreq_plot_1stL
+fileBaseName <- "Estrus_freq_plot_1stL"
+
+exportThirdPPTSlide()
+
+PreputialSep_cumFreq_plot_1stL
+fileBaseName <- "PreputialSep_freq_plot_1stL"
+
+exportThirdPPTSlide()
+
+slideTitle <- "Cumuluative frequency plots - first litters"
+
+ppt <- pptAddThreeGraphs(
+  VO_cumFreq_plot_1stL
+  , Estrus_cumFreq_plot_1stL
+  , PreputialSep_cumFreq_plot_1stL
+)
+
 ```
 
-### First Litter
+### Second litter
+```{r}
+VO_cumFreq_plot_2ndL
+fileBaseName <- "VO_freq_plot_2ndL"
+
+exportThirdPPTSlide()
+
+Estrus_cumFreq_plot_2ndL
+fileBaseName <- "Estrus_freq_plot_2ndL"
+
+exportThirdPPTSlide()
+
+PreputialSep_cumFreq_plot_2ndL
+fileBaseName <- "PreputialSep_freq_plot_2ndL"
+
+exportThirdPPTSlide()
+
+slideTitle <- "Cumuluative frequency plots - second litters"
+
+ppt <- pptAddThreeGraphs(
+  VO_cumFreq_plot_2ndL
+  , Estrus_cumFreq_plot_2ndL
+  , PreputialSep_cumFreq_plot_2ndL
+)
+
+```
 
 ```{r}
-thisLitterNum <- 1
-
-VO_freqPlot <- df_females %>%
+maturationFiltered %>%
+  anova_test(
+    dv = VO_age,
+    between = c(earlyLifeTrt, litterNum)
+  )
+maturation_byDam_f %>%
   filter(
-    litterNum == thisLitterNum
+    cohort != 9
   ) %>%
-  temp_cumFreq_plot(
-    VO_age,
-    "vaginal opening",
-    zoom_x = TRUE,
-    xmin = 25,
-    xmax = max_age,
-    textSize = 16
-  ) #+ 
-  # facetForLitterNum
-
-VO_freqPlot
-Estrus_freqPlot <- df_females %>%
-  filter(
-    litterNum == thisLitterNum
-  ) %>%
-  temp_cumFreq_plot(
-    Estrus_age,
-    "first estrus",
-    zoom_x = TRUE,
-    xmin = 25,
-    xmax = max_age,
-    textSize = 16
-  ) #+ 
-  # facetForLitterNum
-
-Estrus_freqPlot
-PreputialSep_freqPlot <- df_males %>%
-  filter(
-    litterNum == thisLitterNum
-  ) %>%
-  temp_cumFreq_plot(
-    PreputialSep_age,
-    "preputial separation",
-    zoom_x = TRUE,
-    xmin = 25,
-    xmax = max_age,
-    textSize = 16
-  ) #+ 
-  # facetForLitterNum
-
-PreputialSep_freqPlot
-
-flexSave(
-  baseName = "VO_freq_plot",
-  thisFilePrefix = pptBaseName(paste0("_extra_", thisLitterNum)),
-  plot = VO_freqPlot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-flexSave(
-  baseName = "Estrus_freq_plot",
-  thisFilePrefix = pptBaseName(paste0("_extra_", thisLitterNum)),
-  plot = Estrus_freqPlot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-flexSave(
-  baseName = "PPS_freq_plot",
-  thisFilePrefix = pptBaseName(paste0("_extra_", thisLitterNum)),
-  plot = PreputialSep_freqPlot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-```
-
-```{r}
-VO_freqPlot
-Estrus_freqPlot
-PreputialSep_freqPlot
-
-ppt <- addSlide_threeGraph(
-  ppt,
-  "Cumuluative frequency plots - first litters",
-  VO_freqPlot,
-  Estrus_freqPlot,
-  PreputialSep_freqPlot
-)
-```
-
-
-### Second Litter
-
-```{r}
-thisLitterNum <- 2
-
-VO_freqPlot2 <- df_females %>%
-  filter(
-    litterNum == thisLitterNum
-  )%>%
-  temp_cumFreq_plot(
-    VO_age,
-    "vaginal opening",
-    zoom_x = TRUE,
-    xmin = 25,
-    xmax = max_age,
-    textSize = 16
-  ) #+ 
-  # facetForLitterNum
-
-Estrus_freqPlot2 <- df_females %>%
-  filter(
-    litterNum == thisLitterNum
-  ) %>%
-  temp_cumFreq_plot(
-    Estrus_age,
-    "first estrus",
-    zoom_x = TRUE,
-    xmin = 25,
-    xmax = max_age,
-    textSize = 16
-  ) #+ 
-  # facetForLitterNum
-
-PreputialSep_freqPlot2 <- df_males %>%
-  filter(
-    litterNum == thisLitterNum
-  ) %>%
-  temp_cumFreq_plot(
-    PreputialSep_age,
-    "preputial separation",
-    zoom_x = TRUE,
-    xmin = 25,
-    xmax = max_age,
-    textSize = 16
-  ) #+ 
-  # facetForLitterNum
-
-flexSave(
-  baseName = "VO_freq_plot",
-  thisFilePrefix = pptBaseName(paste0("_extra_", thisLitterNum)),
-  plot = VO_freqPlot2,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-flexSave(
-  baseName = "Estrus_freq_plot",
-  thisFilePrefix = pptBaseName(paste0("_extra_", thisLitterNum)),
-  plot = Estrus_freqPlot2,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-flexSave(
-  baseName = "PPS_freq_plot",
-  thisFilePrefix = pptBaseName(paste0("_extra_", thisLitterNum)),
-  plot = PreputialSep_freqPlot2,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-```
-
-```{r}
-VO_freqPlot2
-Estrus_freqPlot2
-PreputialSep_freqPlot2
-
-ppt <- addSlide_threeGraph(
-  ppt,
-  "Cumuluative frequency plots - second litters",
-  VO_freqPlot2,
-  Estrus_freqPlot2,
-  PreputialSep_freqPlot2
-)
-```
-
-
-# Cycles
-
-```{r}
-cycles_filtered <- Cycles_off %>%
-  dataFilter()
-```
-
-
-## First litters
-```{r}
-cycles_1stLitter <- cycles_filtered %>%
-  filter(
-    litterNum == 1,
-    cohort == 2 | cohort == 7 | cohort == 9
+  anova_test(
+    dv = VO_age,
+    between = c(earlyLifeTrt, litterNum)
   )
-
-cyclesLong_1stLitter <- makeCyclesLong(cycles_1stLitter)
-cyclesPerc_long_1stLitter <- makeCyclesPercLong(cycles_1stLitter)
 ```
-
-### Representative
-```{r}
-STDMice <- cycles_1stLitter %>%
-  filter(
-    earlyLifeTrt == "STD"
-  )
-STDtoUse <- STDMice[sample(nrow(STDMice))[1:6], ] %>% makeCyclesLong()
-
-LBNMice <- cycles_1stLitter %>%
-  filter(
-    earlyLifeTrt == "LBN"
-  )
-LBNtoUse <- LBNMice[sample(nrow(LBNMice))[1:6], ] %>% makeCyclesLong()
-
-cycles_1stLitter_STD_plot <- plotCycleTraces(
-  STDtoUse, 
-  colorValues = c("grey30", "cyan4"),
-  fontSize = 16,
-  removeFacets = TRUE,
-  ncol = 2,
-  nrow = 3
-  ) + theme(
-    # axis.text.x = element_text(size = 16)
-    panel.border = element_rect(color = "lightgrey", fill = NA)
-  )
-cycles_1stLitter_LBN_plot <- plotCycleTraces(
-  LBNtoUse,
-  colorValues = c("grey30", "cyan4"),
-  fontSize = 16,
-  removeFacets = TRUE,
-  ncol = 2,
-  nrow = 3
-  )+ theme(
-    # axis.text.x = element_text(size = 16)
-    panel.border = element_rect(color = "lightgrey", fill = NA)
-  )
-
-STD_BaseName = "cycles_1stLitter_STD"
-LBN_BaseName = "cycles_1stLitter_LBN"
-
-thisWidth = 4
-thisHeight = 5.5
-
-flexSave(
-  baseName = STD_BaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = cycles_1stLitter_STD_plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, "NGP"),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-flexSave(
-  baseName = LBN_BaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = cycles_1stLitter_LBN_plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, "NGP"),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-```
-
-```{r}
-cycles_1stLitter_STD_plot
-cycles_1stLitter_LBN_plot
-
-ppt <- addSlide_twoGraph(
-  ppt,
-  "Example cycles for first litter offspring",
-  cycles_1stLitter_STD_plot,
-  cycles_1stLitter_LBN_plot
-)
-```
-
-
-### Percent days in stage
-```{r}
-plot <- plotCyclesPercent(cyclesPerc_long_1stLitter, fontSize = 16, dotSize = 2.5)
-
-fileBaseName <- "cycles_1stLitter_percDaysStage"
-
-thisWidth = 4.65
-thisHeight = 4.62
-
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, "NGP"),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-```
-
-```{r}
-plot
-ppt <- addSlide_oneGraph(
-  ppt,
-  "LBN does not affect days spent in each cycle stage for first litter offspring",
-  plot
-)
-```
-
-
-```{r}
-# 5 -> 6
-figureNum <- figureNum + 1
-# figureNum <- 6
-```
-
-## Second litters
-```{r}
-cycles_2ndLitter <- cycles_filtered %>%
-  filter(
-    litterNum == 2,
-    cohort == 4 | cohort == 6
-  )
-
-cyclesLong_2ndLitter <- makeCyclesLong(cycles_2ndLitter)
-cyclesPerc_long_2ndLitter <- makeCyclesPercLong(cycles_2ndLitter)
-```
-
-### Representative
-```{r}
-STDMice <- cycles_2ndLitter %>%
-  filter(
-    earlyLifeTrt == "STD"
-  )
-STDtoUse <- STDMice[sample(nrow(STDMice))[1:6], ] %>% makeCyclesLong()
-
-LBNMice <- cycles_2ndLitter %>%
-  filter(
-    earlyLifeTrt == "LBN"
-  )
-LBNtoUse <- LBNMice[sample(nrow(LBNMice))[1:6], ] %>% makeCyclesLong()
-
-cycles_2ndLitter_STD_plot <- plotCycleTraces(
-  STDtoUse, 
-  colorValues = c("grey30", "cyan4"),
-  fontSize = 16,
-  removeFacets = TRUE,
-  ncol = 2,
-  nrow = 3
-  ) + theme(
-    # axis.text.x = element_text(size = 16)
-    panel.border = element_rect(color = "lightgrey", fill = NA)
-  )
-cycles_2ndLitter_LBN_plot <- plotCycleTraces(
-  LBNtoUse,
-  colorValues = c("grey30", "cyan4"),
-  fontSize = 16,
-  removeFacets = TRUE,
-  ncol = 2,
-  nrow = 3
-  )+ theme(
-    # axis.text.x = element_text(size = 16)
-    panel.border = element_rect(color = "lightgrey", fill = NA)
-  )
-
-STD_BaseName = "cycles_2ndLitter_STD"
-LBN_BaseName = "cycles_2ndLitter_LBN"
-
-thisWidth = 4
-thisHeight = 5.5
-
-flexSave(
-  baseName = STD_BaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = cycles_2ndLitter_STD_plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, "NGP"),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-flexSave(
-  baseName = LBN_BaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = cycles_2ndLitter_LBN_plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, "NGP"),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-```
-
-```{r}
-cycles_2ndLitter_STD_plot
-cycles_2ndLitter_LBN_plot
-
-ppt <- addSlide_twoGraph(
-  ppt,
-  "Example cycles for second litter offspring",
-  cycles_2ndLitter_STD_plot,
-  cycles_2ndLitter_LBN_plot
-)
-```
-
-### Percent days in stage
-```{r}
-plot <- plotCyclesPercent(cyclesPerc_long_2ndLitter, fontSize = 16, dotSize = 2.5)
-
-fileBaseName <- "cycles_2ndLitter_percDaysStage"
-
-thisWidth = 4.65
-thisHeight = 4.62
-
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = pptBaseName(figureNum),
-  plot = plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, "NGP"),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-```
-
-```{r}
-plot
-ppt <- addSlide_oneGraph(
-  ppt,
-  "LBN does not affect days spent in each cycle stage for second litter offspring",
-  plot
-)
-```
-
-
 
 ```{r}
 # 6 -> 7
 figureNum <- figureNum + 1
-# figureNum <- 7
 ```
+# Cycles
+
+## First litters
+
+```{r}
+repCycles_STD_1stL
+fileBaseName <- "repCycles_STD_1stL"
+exportThirdPPTSlide()
+
+repCycles_LBN_1stL
+fileBaseName <- "repCycles_LBN_1stL"
+exportThirdPPTSlide()
+
+percDaysStage_1stL
+fileBaseName <- "percDaysStage_1stL"
+exportThirdPPTSlide()
+
+slideTitle <- "Cycles (P70-90) of first litter offspring"
+ppt <- addSlide_DemoCycles(
+  ppt,
+  slideTitle,
+  repCycles_STD_1stL,
+  repCycles_LBN_1stL,
+  percDaysStage_1stL
+)
+```
+
+## Second litters
+
+```{r}
+repCycles_STD_2ndL
+fileBaseName <- "repCycles_STD_2ndL"
+exportThirdPPTSlide()
+
+repCycles_LBN_2ndL
+fileBaseName <- "repCycles_LBN_2ndL"
+exportThirdPPTSlide()
+
+percDaysStage_2ndL
+fileBaseName <- "percDaysStage_2ndL"
+exportThirdPPTSlide()
+
+slideTitle <- "Cycles (P70-90) of second litter offspring"
+ppt <- addSlide_DemoCycles(
+  ppt,
+  slideTitle,
+  repCycles_STD_2ndL,
+  repCycles_LBN_2ndL,
+  percDaysStage_2ndL
+)
+```
+
 
 ```{r}
 # 7 -> 8
@@ -1965,10 +970,340 @@ figureNum <- figureNum + 1
 # figureNum <- 8
 ```
 
+# Uterine mass
+
 ```{r}
-# 9 -> 10
-figureNum <- figureNum + 1
-# figureNum <- 10
+uterineMassByGroup_byStage_bothL
+
+fileBaseName <- "uterineMassByGroup_byStage_bothL"
+exportFullPPTSlide()
+
+slideTitle <- "Uterine mass distribution by cycle stage and treatment"
+ppt <- pptAddOneGraph()
 ```
 
+```{r}
+uterineMassByGroup_byStage_1stL
+
+fileBaseName <- "uterineMassByGroup_byStage_1stL"
+exportFullPPTSlide()
+
+slideTitle <- "Uterine mass distribution by cycle stage and treatment - first litter successes"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+uterineMassByGroup_byStage_2ndL
+
+fileBaseName <- "uterineMassByGroup_byStage_2ndL"
+exportFullPPTSlide()
+
+slideTitle <- "Uterine mass distribution by cycle stage and treatment - second litter successes"
+ppt <- pptAddOneGraph()
+```
+
+
+```{r}
+# 8 -> 9
+figureNum <- figureNum + 1
+# figureNum <- 9
+```
+
+# Corticosterone Response to ALPS
+
+## Plots
+
+### Males
+```{r}
+maleCortPlot
+fileBaseName <- "maleCortPlot"
+exportFullPPTSlide()
+slideTitle <- "Effect of LBN on ALPS response in males"
+ppt <- pptAddOneGraph()
+
+maleCortPlot_1stL
+fileBaseName <- "maleCortPlot_1stL"
+exportFullPPTSlide()
+slideTitle <- "Effect of LBN on ALPS response in first litter males"
+ppt <- pptAddOneGraph()
+
+maleCortPlot_2ndL
+fileBaseName <- "maleCortPlot_2ndL"
+exportFullPPTSlide()
+slideTitle <- "Effect of LBN on ALPS response in second litter males"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+maleCort_3wayANOVA
+ppt <- addSlide_oneTable(
+  ppt,
+  "Males - 3way ANOVA of early-life trt x adult trt x time",
+  maleCort_3wayANOVA,
+  dontFormat = TRUE
+)
+```
+
+### Females
+```{r}
+diCortPlot
+fileBaseName <- "diCortPlot"
+exportFullPPTSlide()
+slideTitle <- "Effect of LBN on ALPS response in diestrous mice"
+ppt <- pptAddOneGraph()
+
+diCortPlot_1stL
+fileBaseName <- "diCortPlot_1stL"
+exportFullPPTSlide()
+slideTitle <- "Effect of LBN on ALPS response in first litter diestrous mice"
+ppt <- pptAddOneGraph()
+
+diCortPlot_2ndL
+fileBaseName <- "diCortPlot_2ndL"
+exportFullPPTSlide()
+slideTitle <- "Effect of LBN on ALPS response in second litter diestrous mice"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+proCortPlot
+fileBaseName <- "proCortPlot"
+exportFullPPTSlide()
+slideTitle <- "Effect of LBN on ALPS response in proestrous mice"
+ppt <- pptAddOneGraph()
+
+proCortPlot_1stL
+fileBaseName <- "proCortPlot_1stL"
+exportFullPPTSlide()
+slideTitle <- "Effect of LBN on ALPS response in first litter proestrous mice"
+ppt <- pptAddOneGraph()
+
+proCortPlot_2ndL
+fileBaseName <- "proCortPlot_2ndL"
+exportFullPPTSlide()
+slideTitle <- "Effect of LBN on ALPS response in second litter proestrous mice"
+ppt <- pptAddOneGraph()
+```
+
+#### ANOVAs
+
+4-way ANOVA - LBN x ALPS x Cycle Stage x Time
+
+```{r}
+cort4wayANOVA
+ppt <- addSlide_oneTable(
+  ppt,
+  "Females - 4way ANOVA of early-life trt x adult trt x time x stage",
+  cort4wayANOVA,
+  dontFormat = TRUE
+)
+```
+
+
+There is a significant 4-way interaction, so do the 3-way interaction of 
+LBN x ALPS x Time for each cycle stage. Correct for two comparisons
+
+```{r}
+
+cort3way_byCycle
+
+ppt <- addSlide_oneTable(
+  ppt,
+  "LBN diestrous mice with respond differently to CON vs ALPS than than STD diestrous",
+  cort3way_byCycle,
+  dontFormat = TRUE
+)
+```
+
+For diestrous mice, there is a 3-way interaction of LBN x ALPS x time
+
+For proestrous mice, there is a 2-way interaction of ALPS x time
+
+
+Follow-up the diestrous mice with a 2-way interaction between 
+LBN x ALPS at each time. Adjust the p-values for two levels of time
+
+```{r}
+diCort2way_byTime
+ppt <- addSlide_oneTable(
+  ppt,
+  "Early-life and adult trt interact to affect post-trt cort values in diestrous mice",
+  diCort2way_byTime,
+  dontFormat = TRUE
+)
+```
+
+
+At the end of the paradigm, there is an interaction between LBN and ALPS for
+the diestrous mice. This means that LBN changes the way that the mice
+respond to the ALPS paradigm in diestrous mice.
+
+
+
+For the diestrous mice at the end of the paradigm, group by adult treatment
+and see if the early-life mice are significantly different.
+Adjust for making two treatment comparisons
+
+```{r}
+
+diCortPost_byALPS
+
+ppt <- addSlide_oneTable(
+  ppt,
+  "STD and LBN diestrous mice differ in cort after ALPS trt",
+  diCortPost_byALPS,
+  dontFormat = TRUE
+)
+```
+
+For the proestrous mice, follow up the ALPS x time interaction.
+
+Group by time, see if there is an effect of ALPS
+
+```{r}
+proCort_byTime
+ppt <- addSlide_oneTable(
+  ppt,
+  "ALPS proestrous mice have higher post-trt cort than CON mice",
+  diCortPost_byALPS,
+  dontFormat = TRUE
+)
+```
+
+
+# LH response to ALPS
+```{r}
+LHplot_pro_bothL
+
+fileBaseName <- "proLHresponse_bothL"
+exportFullPPTSlide()
+
+slideTitle <- "Effect of LBN and ALPS on proestrous LH release"
+ppt <- pptAddOneGraph()
+
+
+LHplot_pro_bothL_zoom
+fileBaseName <- "proLHresponse_bothL_zoom"
+exportFullPPTSlide()
+
+slideTitle <- "Effect of LBN and ALPS on proestrous LH release"
+ppt <- pptUneditAddOneGraph()
+```
+
+## First litter
+```{r}
+LHplot_pro_1stL
+
+fileBaseName <- "proLHresponse_1stL"
+exportFullPPTSlide()
+
+slideTitle <- "Effect of LBN and ALPS on proestrous LH release in first litters up to 2h before lights out"
+ppt <- pptAddOneGraph()
+
+
+LHplot_pro_1stL_zoom
+fileBaseName <- "proLHresponse_1stL_zoom"
+exportFullPPTSlide()
+
+slideTitle <- "Effect of LBN and ALPS on proestrous LH release in first litters up to 2h before lights out"
+ppt <- pptUneditAddOneGraph()
+```
+```{r}
+LHamp_1stL_plot
+
+fileBaseName <- "LHamp_1stL"
+exportFullPPTSlide()
+
+slideTitle <- "Effect of LBN and ALPS on max proestrous LH in first litters up to 2h before lights out"
+ppt <- pptAddOneGraph()
+```
+```{r}
+percSurgedPlot_1stL
+
+fileBaseName <- "LHsurged_1stL"
+exportFullPPTSlide()
+
+slideTitle <- "Percent of first litter mice with a detectable LH surge up to 2h before lights out"
+ppt <- pptAddOneGraph()
+```
+
+
+## Second litter
+```{r}
+LHplot_pro_2ndL
+
+fileBaseName <- "proLHresponse_2ndL"
+exportFullPPTSlide()
+
+slideTitle <- "Effect of LBN and ALPS on proestrous LH release in second litters out to 1h after lights out"
+ppt <- pptAddOneGraph()
+
+
+LHplot_pro_2ndL_zoom
+fileBaseName <- "proLHresponse_bothL_zoom"
+exportFullPPTSlide()
+
+slideTitle <- "Effect of LBN and ALPS on proestrous LH release in second litters out to 1h after lights out"
+ppt <- pptUneditAddOneGraph()
+```
+
+```{r}
+LHamp_2ndL_plot
+
+fileBaseName <- "LHamp_2ndL"
+exportFullPPTSlide()
+
+slideTitle <- "Effect of LBN and ALPS on max proestrous LH in second litters out to 1h after lights out"
+ppt <- pptAddOneGraph()
+```
+```{r}
+percSurgedPlot_2ndL
+
+fileBaseName <- "LHsurged_2ndL"
+exportFullPPTSlide()
+
+slideTitle <- "Percent of second litter mice with a detectable LH surge out to 1h after lights out"
+ppt <- pptAddOneGraph()
+```
+
+# GABA PSCs
+
+## Passives
+```{r}
+RinputPlot
+fileBaseName <- "Rinput"
+exportQuarterPPTSlide()
+
+
+RseriesPlot
+fileBaseName <- "Rseries"
+exportQuarterPPTSlide()
+
+newCap <- capacitancePlot +
+  facet_wrap(
+    ~earlyLifeTrt + adultTrt
+    , ncol = 4
+    , scales = "free_x"
+    , strip.position = "bottom"
+  ) +
+  theme(
+    axis.text.x = element_blank()
+  )
+fileBaseName <- "capacitance"
+exportQuarterPPTSlide()
+
+holdingCurrPlot
+fileBaseName <- "holdingCurr"
+exportQuarterPPTSlide()
+
+
+slideTitle <- "Passive properties for GABA recordings"
+ppt <- pptAddFourGraphs(
+  RseriesPlot
+  , RinputPlot
+  # , capacitancePlot
+  , newCap
+  , holdingCurrPlot
+)
+```
 

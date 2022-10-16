@@ -11,6 +11,7 @@ flexSave <- function(
   shinySettings = FALSE,
   ...
 ){
+  
   if(shinySettings){
     thisFileName <- baseName
     thisPath <- NULL

@@ -26,6 +26,10 @@ if(!require(colourpicker)) install.packages('colourpicker')
 if(!require(plater)) install.packages('plater')
 # if(!require(shinyFiles)) install.packages('shinyFiles')
 if(!require(tinytex))install.packages('tinytex')
+if(!require(lemon))install.packages('lemon')
+if(!require(rvg))install.packages('rvg')
+
+
 
 #### Load Libraries ##############################
 library(MASS)
@@ -54,6 +58,8 @@ library(colourpicker) # After shinyjs
 library(plater)
 library(tinytex)
 library(clock)
+library(lemon)
+library(rvg)
 select <- dplyr::select
 # Save a PDF - in ggsave, device = cairo_pdf on Windows
 # https://r-graphics.org/recipe-output-fonts-pdf - even when following these

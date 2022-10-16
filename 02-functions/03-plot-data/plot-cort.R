@@ -515,7 +515,7 @@ propSurgedPlotCombo <- function(
       #   aes(label = ..count..),
       #   stat = "count",
       #   vjust = 1.3,
-      #   colour = "darkgrey",
+      #   colour = "black",
       #   position = "fill"
       # )+
       labs(y = "proportion with LH surge") + 
@@ -530,6 +530,48 @@ propSurgedPlotCombo <- function(
       boxTheme()+
       rremove("legend") +
       rremove("xlab")
+  return(viz)
+}
+
+percSurgedPlot <- function(
+  df
+  , fontSize = 11
+  , labelFontSize = 10
+){
+  viz <- df %>%
+    ggplot(aes(x = comboTrt, fill = interaction(comboTrt, surged), color = interaction(comboTrt, surged)))+
+    geom_bar(position = "fill", color = "black") +
+    geom_text(aes(label = ..count..), stat = "count", vjust = 1.3, colour = "darkgrey", position = "fill", size=labelFontSize)+
+    labs(y = "% with LH surge") + 
+    scale_y_continuous(labels = scales::percent)+
+    # scale_color_manual(values = c("white", "white", "white", "white", "black", "black", "darkcyan", "darkcyan"))+
+    # scale_fill_manual(values = c("white", "white", "white", "white", "grey90", "black", "lightblue1", "darkcyan")) +
+    scale_color_manual(values = c(
+      "STD-CON.FALSE"="white",
+      "STD-ALPS.FALSE"="white",
+      "LBN-CON.FALSE"="white",
+      "LBN-ALPS.FALSE"="white",
+      "STD-CON.TRUE"="black",
+      "STD-ALPS.TRUE"="black",
+      "LBN-CON.TRUE"="black",
+      "LBN-ALPS.TRUE"="black"
+      )
+    )+
+    scale_fill_manual(values = c(
+      "STD-CON.FALSE"="white",
+      "STD-ALPS.FALSE"="white",
+      "LBN-CON.FALSE"="white",
+      "LBN-ALPS.FALSE"="white",
+      "STD-CON.TRUE"="grey90",
+      "STD-ALPS.TRUE"="black",
+      "LBN-CON.TRUE"="lightblue1",
+      "LBN-ALPS.TRUE"="darkcyan"
+      )
+    ) +
+    theme_pubr() +
+    textTheme(size = fontSize)+
+    boxTheme()+
+    rremove("legend")
   return(viz)
 }
 

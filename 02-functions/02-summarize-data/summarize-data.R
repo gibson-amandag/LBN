@@ -133,6 +133,11 @@ getMaxFromRepMeasures_plusOtherVal <- function(df, col, maxColName, groupingVar,
   return(df_max)
 }
 
+getMax <- function(df, col) {
+  max <- df[[col]] %>% max(na.rm = TRUE)
+  return(max)
+}
+
 # AgeInDays -------------------------------------------------------------
 
 #' Calculate age in days at a given date
