@@ -137,6 +137,9 @@ matVals <- getMaxMatVals(maturation_byDam_f, maturation_byDam_m)
 max_mass <- matVals$max_mass
 max_age <- matVals$max_age
 
+matVals_indiv <- getMaxMatVals(maturationFiltered, maturationFiltered)
+indivMaxAge <- matVals_indiv$max_age
+
 ## Vaginal opening ---------------------------------------------------------
 
 plotVOAge <- plotVaginalOpeningAgeFunc(
@@ -158,13 +161,13 @@ VO_mass_plot <- plotVOMass(maturation_byDam_f)+
 
 plotVOCumFreq_1stL <- plotVOAgeCumFreqFunc(
   c(1)
-  , maxAge = max_age
+  , maxAge = indivMaxAge
   , fontSize = textSize
 )
 
 plotVOCumFreq_2ndL <- plotVOAgeCumFreqFunc(
   c(2)
-  , maxAge = max_age
+  , maxAge = indivMaxAge
   , fontSize = textSize
 )
 
@@ -193,13 +196,13 @@ Estrus_mass_plot <- plotEstrusMass(maturation_byDam_f)+
 
 plotEstrusCumFreq_1stL <- plotEstrusAgeCumFreqFunc(
   c(1)
-  , maxAge = max_age
+  , maxAge = indivMaxAge
   , fontSize = textSize
 )
 
 plotEstrusCumFreq_2ndL <- plotEstrusAgeCumFreqFunc(
   c(2)
-  , maxAge = max_age
+  , maxAge = indivMaxAge
   , fontSize = textSize
 )
 
@@ -228,13 +231,13 @@ PreputialSep_mass_plot <- plotPreputialSepMass(maturation_byDam_m)+
 
 plotPreputialSepCumFreq_1stL <- plotPreputialSepAgeCumFreqFunc(
   c(1)
-  , maxAge = max_age
+  , maxAge = indivMaxAge
   , fontSize = textSize
 )
 
 plotPreputialSepCumFreq_2ndL <- plotPreputialSepAgeCumFreqFunc(
   c(2)
-  , maxAge = max_age
+  , maxAge = indivMaxAge
   , fontSize = textSize
 )
 
@@ -520,42 +523,36 @@ plotCapacitance <- plotCatVarFunc(
   expr(capacitance)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = TRUE
 )
 
 plotRseries <- plotCatVarFunc(
   expr(Rseries)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = TRUE
 )
 
 plotRinput <- plotCatVarFunc(
   expr(Rinput)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = TRUE
 )
 
 plotHoldingCurr <- plotCatVarFunc(
   expr(holdingCurrent)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = TRUE
 )
 
 plotGABAfreq <- plotCatVarFunc(
   expr(frequency)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = TRUE
 )
 
 plotGABAamp <- plotCatVarFunc(
   expr(relPeak)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = TRUE
 )
 
 capacitancePlot <- GABApscsFilteredFiring %>%

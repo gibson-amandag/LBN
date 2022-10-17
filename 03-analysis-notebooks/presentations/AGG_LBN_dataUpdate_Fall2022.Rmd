@@ -142,6 +142,25 @@ pptAddTwoGraphs <- function(
   return(officer_ppt)
 }
 
+pptAddGraphTable <- function(
+    plot
+    , table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_graphTable(
+    officer_ppt, 
+    title, 
+    plot, 
+    table,
+    makeEditable = editableImgs
+    , dontFormat = dontFormat
+    , textSize = textSize
+  )
+  return(officer_ppt)
+}
+
 pptAddFourGraphs <- function(
     plot1
     , plot2
@@ -1279,16 +1298,8 @@ RseriesPlot
 fileBaseName <- "Rseries"
 exportQuarterPPTSlide()
 
-newCap <- capacitancePlot +
-  facet_wrap(
-    ~earlyLifeTrt + adultTrt
-    , ncol = 4
-    , scales = "free_x"
-    , strip.position = "bottom"
-  ) +
-  theme(
-    axis.text.x = element_blank()
-  )
+capacitancePlot
+
 fileBaseName <- "capacitance"
 exportQuarterPPTSlide()
 
@@ -1301,9 +1312,66 @@ slideTitle <- "Passive properties for GABA recordings"
 ppt <- pptAddFourGraphs(
   RseriesPlot
   , RinputPlot
-  # , capacitancePlot
-  , newCap
+  , capacitancePlot
   , holdingCurrPlot
+)
+```
+
+```{r}
+RseriesANOVA
+
+slideTitle <- "Series resistance does not differ with LBN or ALPS"
+ppt <- pptAddGraphTable(
+  RseriesPlot
+  , RseriesANOVA
+)
+
+RinputANOVA
+
+slideTitle <- "LBN cells have a lower input resistance than STD cells"
+ppt <- pptAddGraphTable(
+  RinputPlot
+  , RinputANOVA
+)
+
+
+capacitanceANOVA
+slideTitle <- "Capacitance does not differ with LBN or ALPS"
+ppt <- pptAddGraphTable(
+  capacitancePlot
+  , capacitanceANOVA
+)
+
+
+holdingCurrANOVA
+slideTitle <- "There is a trend for lower holding current in LBN cells"
+ppt <- pptAddGraphTable(
+  holdingCurrPlot
+  , holdingCurrANOVA
+)
+```
+
+```{r}
+GABAfreqPlot
+fileBaseName <- "GABAfreqPlot"
+exportHalfPPTSlide()
+
+GABAfreqANOVA
+slideTitle <- "Frequency of GABA PSCs does not differ with early-life or adult treatment"
+ppt <- pptAddGraphTable(
+  GABAfreqPlot
+  , GABAfreqANOVA
+)
+
+GABAampPlot
+fileBaseName <- "GABAampPlot"
+exportHalfPPTSlide()
+
+GABAampANOVA
+slideTitle <- "Amplitude of GABA PSCs does not differ with early-life or adult treatment"
+ppt <- pptAddGraphTable(
+  GABAampPlot
+  , GABAampANOVA
 )
 ```
 

@@ -716,6 +716,7 @@ plotCatVarFunc <- function(
     , fontSize = 16
     , dotSize = 3
     , twoLineXLabs = FALSE
+    , useFacetLabels = TRUE
 ){
   yVar <- as.character(singleVar)
   yLabel <- getNiceName(yVar)
@@ -738,7 +739,7 @@ plotCatVarFunc <- function(
         , zoom_y = zoom_y
         , ymin = ymin
         , ymax = ymax
-      ) 
+      )
     
     if(twoLineXLabs){
       plot <- plot + scale_x_discrete(
@@ -749,6 +750,19 @@ plotCatVarFunc <- function(
           , "LBN-ALPS" = "LBN\nALPS"
           
         )
+      )
+    }
+    
+    if(useFacetLabels){
+      plot <- plot + facet_wrap(
+        ~earlyLifeTrt + adultTrt
+        , ncol = 4
+        , scales = "free_x"
+        , strip.position = "bottom"
+      ) +
+      theme(
+        axis.text.x = element_blank()
+        , strip.text = element_text(face = "plain")
       )
     }
     return(plot)

@@ -55,6 +55,49 @@ addSlide_twoGraph <- function(
   return(ppt)
 }
 
+addSlide_graphTable <- function(
+  ppt,
+  title,
+  plot,
+  table,
+  makeEditable = FALSE,
+  dontFormat = FALSE,
+  textSize = 16
+){
+  if(makeEditable){
+    plot <- dml(ggobj = plot)
+  }
+  
+  if(!dontFormat){
+    table <- table %>%
+      flextable() %>%
+      fontsize(size = textSize, part = "all") %>%
+      colformat_double(digits = 3) %>%
+      autofit()
+  } else { ## have to be careful here - needs to already by a flextable
+    table <- table %>%
+      autofit()
+  }
+  
+  ppt <- add_slide(ppt, "Two Content")
+  ppt <- ph_with(
+    ppt,
+    value = title,
+    location = ph_location_label("Title 1")
+  )
+  ppt <- ph_with(
+    ppt,
+    value = plot,
+    location = ph_location_label("Content Placeholder 2")
+  )
+  ppt <- ph_with(
+    ppt,
+    value = table,
+    location = ph_location_label("Content Placeholder 3")
+  )
+  return(ppt)
+}
+
 addSlide_threeGraph <- function(
   ppt,
   title,

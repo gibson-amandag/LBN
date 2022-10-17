@@ -170,3 +170,54 @@ proCort_byTime <- cortFilteredPro %>%
 
 maleCort_3wayANOVA <- cortFilteredMales %>%
   cortAnova(fontSize = textSize)
+
+
+# GABA PSCs ---------------------------------------------------------------
+
+doCapacitanceANOVA <- anovaComboTrtFunc(
+  expr(capacitance)
+  , fontSize = textSize
+)
+
+doRseriesANOVA <- anovaComboTrtFunc(
+  expr(Rseries)
+  , fontSize = textSize
+)
+
+doRinputANOVA <- anovaComboTrtFunc(
+  expr(Rinput)
+  , fontSize = textSize
+)
+
+doHoldingCurrANOVA <- anovaComboTrtFunc(
+  expr(holdingCurrent)
+  , fontSize = textSize
+)
+
+doFreqANOVA <- anovaComboTrtFunc(
+  expr(frequency)
+  , fontSize = textSize
+)
+
+doAmpANOVA <- anovaComboTrtFunc(
+  expr(relPeak)
+  , fontSize = textSize
+)
+
+capacitanceANOVA <- GABApscsFilteredFiring %>%
+  doCapacitanceANOVA()
+
+RseriesANOVA <- GABApscsFilteredFiring %>%
+  doRseriesANOVA()
+
+RinputANOVA <- GABApscsFilteredFiring %>%
+  doRinputANOVA()
+
+holdingCurrANOVA <- GABApscsFilteredFiring %>%
+  doHoldingCurrANOVA()
+
+GABAfreqANOVA <- GABApscsFilteredFiring %>%
+  doFreqANOVA()
+
+GABAampANOVA <- GABApscsFilteredFiring %>%
+  doAmpANOVA()
