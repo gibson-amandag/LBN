@@ -233,3 +233,83 @@ filterEphysFunc <- function(
   }
   return(filterFunc)
 }
+
+getComboTrtFResults <- function(df){
+  earlyLifeF <- getFText(df, "earlyLifeTrt")
+  adultF <- getFText(df, "adultTrt")
+  earlyLifeAdultF <- getFText(df, "earlyLifeTrt:adultTrt")
+  
+  paragraph <- paste0(
+    "Early-life trt: "
+    , earlyLifeF
+    # , "\n"
+    , "; "
+    , "adult trt: "
+    , adultF
+    # , "\n"
+    , "; "
+    , "early-life x adult trt: "
+    , earlyLifeAdultF
+  )
+  
+  return(
+    list(
+      earlyLifeF = earlyLifeF
+      , adultF = adultF
+      , earlyLifeAdultF = earlyLifeAdultF
+      , paragraph = paragraph
+    )
+  )
+}
+
+getTrtLitterFResults <- function(df, sepText = "\n"){
+  earlyLifeF <- getFText(df, "earlyLifeTrt")
+  litterF <- getFText(df, "litterNum")
+  earlyLifeLitterF <- getFText(df, "earlyLifeTrt:litterNum")
+  
+  paragraph <- paste0(
+    "Early-life trt: "
+    , earlyLifeF
+    , sepText
+    , "experience: "
+    , litterF
+    , sepText
+    , "early-life x experience: "
+    , earlyLifeLitterF
+  )
+  
+  return(
+    list(
+      earlyLifeF = earlyLifeF
+      , litterF = litterF
+      , earlyLifeLitterF = earlyLifeLitterF
+      , paragraph = paragraph
+    )
+  )
+}
+
+getMale3WayFResults <- function(df, sepText = "\n"){
+  earlyLifeAdultTimeF <- getFText(df, "earlyLifeTrt:adultTrt:time")
+  adultTrtTimeF <- getFText(df, "adultTrt:time")
+  earlyLifeTimeF <- getFText(df, "earlyLifeTrt:time")
+  
+  paragraph <- paste0(
+    "Early-life x adult x time: "
+    , earlyLifeAdultTimeF
+    , sepText
+    , "adult x time: "
+    , adultTrtTimeF
+    , sepText
+    , "early-life x time: "
+    , earlyLifeTimeF
+  )
+  
+  return(
+    list(
+      earlyLifeAdultTimeF = earlyLifeAdultTimeF
+      , adultTrtTimeF = adultTrtTimeF
+      , earlyLifeTimeF = earlyLifeTimeF
+      , paragraph = paragraph
+    )
+  )
+}

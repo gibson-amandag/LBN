@@ -6576,3 +6576,347 @@ GABApscs %>%
 ```
 
 
+
+```{r}
+
+getMaxFromRepMeasures_plusOtherVal <- function(df, col, maxColName, groupingVar, valCol, valAtMaxColName){
+  df_max <- df %>%
+    group_by( {{ groupingVar }} ) %>%
+    summarize(
+      {{ maxColName }} := max({{ col }}, na.rm = TRUE),
+      {{ valAtMaxColName }} := {{ valCol }}[which.max({{ col }})],
+      .groups = "drop"
+    )
+  return(df_max)
+}
+
+LH_off %>%
+  filter(
+    !time == 0
+  ) %>%
+  getMaxFromRepMeasures_plusOtherVal(LH, "maxLH", mouseID, time, "timeAtMax")
+  # group_by( mouseID ) %>%
+  # summarize(
+  #   maxLH = max(LH, na.rm = TRUE),
+  #   timeAtMax = time[which.max(LH)],
+  #   .groups = "drop"
+  # )
+```
+
+
+
+2022-09-29 - ZT15 and ZT1 times and dates (1h after light transitions) for Cohort 9
+```{r}
+damBehaveDates <- Demo_dam %>%
+  filter(
+    # Litter_size >= 5
+    cohort == 9
+  ) %>%
+  arrange(
+    cohort,
+    DOB
+  ) %>%
+  select(
+    damID
+    , cohort
+    , DOB
+  ) %>%
+  mutate(
+    P4_ZT15 = getZT_DateTime(DOB, PND = 4, ZT = 15)
+    , P4_ZT15_done = NA
+    , P4_ZT15_who = NA
+    , P4_ZT15_notes = NA,
+    P5_ZT1 = getZT_DateTime(DOB, PND = 5, ZT = 1)
+    , P5_ZT1_done = NA
+    , P5_ZT1_who = NA
+    , P5_ZT1_notes = NA,
+    P5_ZT15 = getZT_DateTime(DOB, PND = 5, ZT = 15)
+    , P5_ZT15_done = NA
+    , P5_ZT15_who = NA
+    , P5_ZT15_notes = NA,
+    P6_ZT1 = getZT_DateTime(DOB, PND = 6, ZT = 1)
+    , P6_ZT1_done = NA
+    , P6_ZT1_who = NA
+    , P6_ZT1_notes = NA,
+    P6_ZT15 = getZT_DateTime(DOB, PND = 6, ZT = 15)
+    , P6_ZT15_done = NA
+    , P6_ZT15_who = NA
+    , P6_ZT15_notes = NA,
+    P7_ZT1 = getZT_DateTime(DOB, PND = 7, ZT = 1)
+    , P7_ZT1_done = NA
+    , P7_ZT1_who = NA
+    , P7_ZT1_notes = NA,
+    P7_ZT15 = getZT_DateTime(DOB, PND = 7, ZT = 15)
+    , P7_ZT15_done = NA
+    , P7_ZT15_who = NA
+    , P7_ZT15_notes = NA,
+    P8_ZT1 = getZT_DateTime(DOB, PND = 8, ZT = 1)
+    , P8_ZT1_done = NA
+    , P8_ZT1_who = NA
+    , P8_ZT1_notes = NA,
+    P8_ZT15 = getZT_DateTime(DOB, PND = 8, ZT = 15)
+    , P8_ZT15_done = NA
+    , P8_ZT15_who = NA
+    , P8_ZT15_notes = NA,
+    P9_ZT1 = getZT_DateTime(DOB, PND = 9, ZT = 1)
+    , P9_ZT1_done = NA
+    , P9_ZT1_who = NA
+    , P9_ZT1_notes = NA,
+    P9_ZT15 = getZT_DateTime(DOB, PND = 9, ZT = 15)
+    , P9_ZT15_done = NA
+    , P9_ZT15_who = NA
+    , P9_ZT15_notes = NA,
+    P10_ZT1 = getZT_DateTime(DOB, PND = 10, ZT = 1)
+    , P10_ZT1_done = NA
+    , P10_ZT1_who = NA
+    , P10_ZT1_notes = NA,
+    P10_ZT15 = getZT_DateTime(DOB, PND = 10, ZT = 15)
+    , P10_ZT15_done = NA
+    , P10_ZT15_who = NA
+    , P10_ZT15_notes = NA,
+    P11_ZT1 = getZT_DateTime(DOB, PND = 11, ZT = 1)
+    , P11_ZT1_done = NA
+    , P11_ZT1_who = NA
+    , P11_ZT1_notes = NA
+  )
+
+damBehaveDates
+
+saveDFsToExcel(
+  "damBehaviorDates_ZT15_ZT1",
+  dates = damBehaveDates
+)
+```
+
+
+```{r}
+dam_behavior %>%
+  filterDamBehavior()
+```
+```{r}
+damBehaviorFiltered_ZTs
+```
+
+
+
+```{r}
+maturationFiltered %>%
+  select(
+    Litter_size
+  )
+
+filterLBNCohorts
+```
+
+```{r}
+maturation_byDam_f %>%
+  filter(
+    cohort == 9
+  ) %>%
+  select(
+    damID, earlyLifeTrt, Estrus_age, Estrus_mass
+  )
+```
+
+```{r}
+cortFiltered %>%
+  filter(
+    sex %in% c("M", "F")
+    , (sex == "M" | Sac_cycle %in% c("proestrus", "diestrus"))
+  )
+```
+
+```{r}
+testCortFilter <- filterCortFunc(
+  c("M", "F"), c("proestrus", "diestrus"), filterUterineMass = FALSE, adjMaxMin = TRUE
+)
+
+cortFiltered %>%
+  testCortFilter() %>%
+  select(
+    sex, Sac_cycle, ReproTract_mass, cort
+  ) %>%
+  filter(
+    cort < 1.95
+  )
+
+cortFilteredAll
+cortFiltered_M_DiPro %>%filter(ReproTract_mass < 125, ReproTract_mass > 100)
+cortFilteredMales
+cortFilteredFemales %>%filter(ReproTract_mass < 125, ReproTract_mass > 100)
+cortFilteredPro%>%filter(ReproTract_mass >100)
+cortFilteredDi%>%filter(ReproTract_mass <100)
+```
+
+
+```{r}
+filterByRSeries <- TRUE
+RseriesMin <- 0
+RseriesMax <- 20
+filterByRinput <- TRUE
+RinputMin <- 500
+RinputMax <- 1500
+filterByHoldingCurr <- FALSE
+holdingCurrMin <- -50
+holdingCurrMax <- 10
+filterByCapacitance <- TRUE
+capacitanceMin <- 5
+capacitanceMax <- 20
+GABApscsFiltered %>%
+  filterByPassives(
+        filterByRSeries = filterByRSeries
+        , RseriesMin = RseriesMin
+        , RseriesMax = RseriesMax
+        , filterByRinput = filterByRinput
+        , RinputMin = RinputMin
+        , RinputMax = RinputMax
+        , filterByHoldingCurr = filterByHoldingCurr
+        , holdingCurrMin =holdingCurrMin
+        , holdingCurrMax = holdingCurrMax
+        , filterByCapacitance = filterByCapacitance
+        , capacitanceMin = capacitanceMin
+        , capacitanceMax = capacitanceMax
+      )
+```
+
+```{r}
+testANOVA <- anovaComboTrtFunc(expr(capacitance), fontSize = 12)
+
+testANOVA(GABApscsFilteredFiring)
+
+GABApscsFilteredFiring %>%
+  select(
+    Rel
+  )
+```
+
+```{r}
+GABApscsFilteredFiring %>%
+  filter(
+    is.na(adultTrt)
+  )
+```
+
+```{r}
+df = damBehaviorFiltered_P5_P6
+  yVar = expr(Num_exits)
+  yLab = "# of exits / hour"
+  fontSize = 12
+  dotSize = 1.2
+  dotSize_byFirstDay = FALSE
+  lineSize = 1
+  dodgeVal = 0.4
+  addTriangleForMean = TRUE
+  redMean = TRUE
+  colorByDam = TRUE
+  lineAlpha = 0.4
+  showDots = FALSE
+
+  
+  viz <- df %>%
+    mutate(
+      dayTime = as_datetime(ymd_h(paste0(paste0("2000-01-", PND), paste0(" ", time)))),
+      .after = time
+    ) %>%
+    ggplot(
+      aes(
+        x = dayTime,
+        y = {{ yVar }},
+        fill = earlyLifeTrt
+      )
+    )
+  
+  viz
+  
+  if(colorByDam){
+    viz <- viz + geom_line(
+      alpha = lineAlpha,
+      aes(gropu = damID, color = damID),
+      position = position_dodge(0.4),
+      size = lineSize
+    )
+  } else {
+    viz <- viz + geom_line(
+      alpha = lineAlpha,
+      color = "black",
+      aes(group = damID, linetype = earlyLifeTrt),
+      position = position_dodge(0.4),
+      size = lineSize
+    )
+    
+  }
+  
+  if(showDots){
+    if(dotSize_byFirstDay){
+      viz <- viz + geom_point(
+        alpha = 1, 
+        aes(fill=earlyLifeTrt,group=damID, shape = firstDay), 
+        position = position_dodge(0.4),
+        size = dotSize
+      )+ scale_shape_manual(
+        values = c(21, 22)
+      )
+    } else {
+      viz <- viz + geom_point(
+        shape = 21,
+        alpha = 1, 
+        aes(fill=earlyLifeTrt,group=damID), 
+        position = position_dodge(0.4), 
+        size = dotSize
+      )
+    }
+  }
+  
+  if(addTriangleForMean){ # horizontal bar is too small to show up
+    if(redMean){
+      viz <- viz +
+        stat_summary(
+          geom = "point",
+          fun = mean,
+          shape = 16,
+          color = "red",
+          size = dotSize * .5
+        )
+    }else {
+      viz <- viz +
+        stat_summary(
+          geom = "point",
+          fun = mean,
+          shape = 24,
+          size = dotSize
+        )
+    }
+  }
+  
+  viz <- viz +
+    addMeanHorizontalBar(addLineType = FALSE)+
+    addMeanSE_vertBar() +
+    labs(y = yLab, linetype = "early life trt") +
+    earlyLifeFill() +
+  viz <- viz +
+    textTheme(
+      size = fontSize
+    )+
+    boxTheme() + 
+    scale_x_datetime(
+      breaks = c(
+        as_datetime(ymd_h("2000-01-04 15")),
+        as_datetime(ymd_h("2000-01-05 01")),
+        as_datetime(ymd_h("2000-01-05 15")),
+        as_datetime(ymd_h("2000-01-06 01")),
+        as_datetime(ymd_h("2000-01-06 15")),
+        as_datetime(ymd_h("2000-01-07 01")),
+        as_datetime(ymd_h("2000-01-07 15")),
+        as_datetime(ymd_h("2000-01-08 01")),
+        as_datetime(ymd_h("2000-01-08 15")),
+        as_datetime(ymd_h("2000-01-09 01")),
+        as_datetime(ymd_h("2000-01-09 15")),
+        as_datetime(ymd_h("2000-01-10 01")),
+        as_datetime(ymd_h("2000-01-10 15")),
+        as_datetime(ymd_h("2000-01-11 01"))
+      ), 
+      # date_labels = "PND%d\nZT%H"
+      date_labels = "%d\n%H"
+    )
+```
+

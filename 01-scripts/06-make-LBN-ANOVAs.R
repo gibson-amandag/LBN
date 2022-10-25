@@ -14,59 +14,115 @@ damBehaviorANOVA <- damBehaviorFiltered_P5_P6 %>%
 
 
 # Dam cort ----------------------------------------------------------------
+anovaTextSize <- 14
 
-damCortANOVA <- damFiltered %>%
-  filter(
-    !is.na(Cort_dam_P11)
-  ) %>%
-  anova_test(
-    dv = Cort_dam_P11,
-    between = c(litterNum, earlyLifeTrt)
-  )
+doDamCortANOVA <- anovaTrtLitterFunc(
+  expr(Cort_dam_P11),
+  idVar = damID, 
+  fontSize = anovaTextSize
+)
+
+damCortANOVAs <- damFiltered %>%
+  doDamCortANOVA()
+
+damCortANOVA <- damCortANOVAs$flxTbl
+damCortANOVA_df <- damCortANOVAs$anova
+damCortANOVA_text <- getTrtLitterFResults(damCortANOVA_df, sepText = "; ")
+damCortANOVA_par <- damCortANOVA_text$paragraph
 
 # Maturation --------------------------------------------------------------
 
-
-VO_age_ANOVA <- maturation_byDam_f %>%
-  anova_test(
-    dv = VO_age,
-    between = c(litterNum, earlyLifeTrt)
-  )
-
-Estrus_age_ANOVA <- maturation_byDam_f %>%
-  anova_test(
-    dv = Estrus_age,
-    between = c(litterNum, earlyLifeTrt)
-  )
-
-
-PreputialSep_age_ANOVA <- maturation_byDam_m %>%
-  anova_test(
-    dv = PreputialSep_age,
-    between = c(litterNum, earlyLifeTrt)
-  )
-
-
-VO_mass_ANOVA <- maturation_byDam_f %>%
-  anova_test(
-    dv = VO_mass,
-    between = c(litterNum, earlyLifeTrt)
-  )
-
-
-Estrus_mass_ANOVA <- maturation_byDam_f %>%
-  anova_test(
-    dv = Estrus_mass,
-    between = c(litterNum, earlyLifeTrt)
-  )
+doVO_ageANOVA <- anovaTrtLitterFunc(
+  expr(VO_age)
+  , idVar = damID
+  , fontSize = anovaTextSize
+)
+doVO_massANOVA <- anovaTrtLitterFunc(
+  expr(VO_mass)
+  , idVar = damID
+  , fontSize = anovaTextSize
+)
+doEstrus_ageANOVA <- anovaTrtLitterFunc(
+  expr(Estrus_age)
+  , idVar = damID
+  , fontSize = anovaTextSize
+)
+doEstrus_massANOVA <- anovaTrtLitterFunc(
+  expr(Estrus_mass)
+  , idVar = damID
+  , fontSize = anovaTextSize
+)
+doPreputialSep_ageANOVA <- anovaTrtLitterFunc(
+  expr(PreputialSep_age)
+  , idVar = damID
+  , fontSize = anovaTextSize
+)
+doPreputialSep_massANOVA <- anovaTrtLitterFunc(
+  expr(PreputialSep_mass)
+  , idVar = damID
+  , fontSize = anovaTextSize
+)
 
 
-PreputialSep_mass_ANOVA <- maturation_byDam_m %>%
-  anova_test(
-    dv = PreputialSep_mass,
-    between = c(litterNum, earlyLifeTrt)
-  )
+## VO_age ------------------------------------------------------------------
 
+
+VO_age_ANOVAs <- maturation_byDam_f %>%
+  doVO_ageANOVA()
+
+VO_age_ANOVA <- VO_age_ANOVAs$flxTbl
+VO_age_ANOVA_df <- VO_age_ANOVAs$anova
+VO_age_ANOVA_text <- getTrtLitterFResults(VO_age_ANOVA_df)
+VO_age_ANOVA_par <- VO_age_ANOVA_text$paragraph
+
+## Estrus_age ------------------------------------------------------------------
+
+Estrus_age_ANOVAs <- maturation_byDam_f %>%
+  doEstrus_ageANOVA()
+
+Estrus_age_ANOVA <- Estrus_age_ANOVAs$flxTbl
+Estrus_age_ANOVA_df <- Estrus_age_ANOVAs$anova
+Estrus_age_ANOVA_text <- getTrtLitterFResults(Estrus_age_ANOVA_df)
+Estrus_age_ANOVA_par <- Estrus_age_ANOVA_text$paragraph
+
+## Preputial_age ------------------------------------------------------------------
+
+PreputialSep_age_ANOVAs <- maturation_byDam_m %>%
+  doPreputialSep_ageANOVA()
+
+PreputialSep_age_ANOVA <- PreputialSep_age_ANOVAs$flxTbl
+PreputialSep_age_ANOVA_df <- PreputialSep_age_ANOVAs$anova
+PreputialSep_age_ANOVA_text <- getTrtLitterFResults(PreputialSep_age_ANOVA_df)
+PreputialSep_age_ANOVA_par <- PreputialSep_age_ANOVA_text$paragraph
+
+## VO_mass ------------------------------------------------------------------
+VO_mass_ANOVAs <- maturation_byDam_f %>%
+  doVO_massANOVA()
+
+VO_mass_ANOVA <- VO_mass_ANOVAs$flxTbl
+VO_mass_ANOVA_df <- VO_mass_ANOVAs$anova
+VO_mass_ANOVA_text <- getTrtLitterFResults(VO_mass_ANOVA_df)
+VO_mass_ANOVA_par <- VO_mass_ANOVA_text$paragraph
+
+## Estrus_mass ------------------------------------------------------------------
+
+Estrus_mass_ANOVAs <- maturation_byDam_f %>%
+  doEstrus_massANOVA()
+
+Estrus_mass_ANOVA <- Estrus_mass_ANOVAs$flxTbl
+Estrus_mass_ANOVA_df <- Estrus_mass_ANOVAs$anova
+Estrus_mass_ANOVA_text <- getTrtLitterFResults(Estrus_mass_ANOVA_df)
+Estrus_mass_ANOVA_par <- Estrus_mass_ANOVA_text$paragraph
+
+## PreputialSep_mass ------------------------------------------------------------------
+
+PreputialSep_mass_ANOVAs <- maturation_byDam_m %>%
+  doPreputialSep_massANOVA()
+
+PreputialSep_mass_ANOVA <- PreputialSep_mass_ANOVAs$flxTbl
+PreputialSep_mass_ANOVA_df <- PreputialSep_mass_ANOVAs$anova
+PreputialSep_mass_ANOVA_text <- getTrtLitterFResults(PreputialSep_mass_ANOVA_df)
+PreputialSep_mass_ANOVA_par <- PreputialSep_mass_ANOVA_text$paragraph
 
 # ALPS --------------------------------------------------------------------
 
@@ -75,11 +131,13 @@ PreputialSep_mass_ANOVA <- maturation_byDam_m %>%
 
 
 ### Females -----------------------------------------------------------------
+hValTable <- 0
 
 cort4wayANOVA <- cortFilteredFemales %>%
   cortAnova(
     byCycle = TRUE
     , fontSize = textSize
+    , addHVal = hValTable
   )
 
 #'There is a significant 4-way interaction, so do the 3-way interaction of 
@@ -101,7 +159,7 @@ cort3way_byCycle <- cortFilteredFemales %>%
     p.adj = p * 2 # doing two cycle stage comparisons
   ) %>%
   # adjust_pvalue(method = "bonferroni") %>%
-  formatAdjAnova(fontSize = textSize)
+  formatAdjAnova(fontSize = textSize, addHVal = hValTable)
 
 #' For diestrous mice, there is a 3-way interaction of LBN x ALPS x time
 #' For proestrous mice, there is a 2-way interaction of ALPS x time
@@ -123,7 +181,7 @@ diCort2way_byTime <- cortFilteredDi %>%
   mutate(
     p.adj = p * 2 # doing two time comparisons
   ) %>%
-  formatAdjAnova(fontSize = textSize)
+  formatAdjAnova(fontSize = textSize, addHVal = hValTable)
 
 #' At the end of the paradigm, there is an interaction between LBN and ALPS for
 #' the diestrous mice. This means that LBN changes the way that the mice
@@ -148,7 +206,7 @@ diCortPost_byALPS <- cortFilteredDi %>%
     between = c(earlyLifeTrt)
   ) %>%
   adjust_pvalue(method = "bonferroni") %>%
-  formatAdjAnova(fontSize = textSize)
+  formatAdjAnova(fontSize = textSize, addHVal = hValTable)
 
 #' For the proestrous mice, follow up the ALPS x time interaction.
 #' Group by time, see if there is an effect of ALPS
@@ -163,61 +221,105 @@ proCort_byTime <- cortFilteredPro %>%
     between = c(adultTrt)
   ) %>%
   adjust_pvalue(method = "bonferroni") %>%
-  formatAdjAnova(fontSize = textSize)
+  formatAdjAnova(fontSize = textSize, addHVal = hValTable)
 
 
 ### Males -------------------------------------------------------------------
 
-maleCort_3wayANOVA <- cortFilteredMales %>%
-  cortAnova(fontSize = textSize)
+maleCort_3wayANOVAs <- cortFilteredMales %>%
+  cortAnova_returnBoth(fontSize = textSize, addHVal = hValTable)
+
+maleCort_3wayANOVA <- maleCort_3wayANOVAs$flxTbl
+maleCort_3wayANOVA_df <- maleCort_3wayANOVAs$anova
+maleCort_3wayANOVA_text <- getMale3WayFResults(maleCort_3wayANOVA_df, sepText = "; ")
+maleCort_3wayANOVA_par <- maleCort_3wayANOVA_text$paragraph
 
 
 # GABA PSCs ---------------------------------------------------------------
 
+
+tableWVal <- 0.02
+
 doCapacitanceANOVA <- anovaComboTrtFunc(
   expr(capacitance)
-  , fontSize = textSize
+  , fontSize = anovaTextSize
+  , addWVal = tableWVal
 )
 
 doRseriesANOVA <- anovaComboTrtFunc(
   expr(Rseries)
-  , fontSize = textSize
+  , fontSize = anovaTextSize
+  , addWVal = tableWVal
 )
 
 doRinputANOVA <- anovaComboTrtFunc(
   expr(Rinput)
-  , fontSize = textSize
+  , fontSize = anovaTextSize
+  , addWVal = tableWVal
 )
 
 doHoldingCurrANOVA <- anovaComboTrtFunc(
   expr(holdingCurrent)
-  , fontSize = textSize
+  , fontSize = anovaTextSize
+  , addWVal = tableWVal
 )
 
 doFreqANOVA <- anovaComboTrtFunc(
   expr(frequency)
-  , fontSize = textSize
+  , fontSize = anovaTextSize
+  , addWVal = tableWVal
 )
 
 doAmpANOVA <- anovaComboTrtFunc(
   expr(relPeak)
-  , fontSize = textSize
+  , fontSize = anovaTextSize
+  , addWVal = tableWVal
 )
 
-capacitanceANOVA <- GABApscsFilteredFiring %>%
+capacitanceANOVAs <- GABApscsFilteredFiring %>%
   doCapacitanceANOVA()
 
-RseriesANOVA <- GABApscsFilteredFiring %>%
+capacitanceANOVA <- capacitanceANOVAs$flxTbl
+capacitanceANOVA_df <- capacitanceANOVAs$anova
+capacitanceANOVA_text <- getComboTrtFResults(capacitanceANOVA_df)
+capacitanceANOVA_par <- capacitanceANOVA_text$paragraph
+
+RseriesANOVAs <- GABApscsFilteredFiring %>%
   doRseriesANOVA()
 
-RinputANOVA <- GABApscsFilteredFiring %>%
+RseriesANOVA <- RseriesANOVAs$flxTbl
+RseriesANOVA_df <- RseriesANOVAs$anova
+RseriesANOVA_text <- getComboTrtFResults(RseriesANOVA_df)
+RseriesANOVA_par <- RseriesANOVA_text$paragraph
+
+RinputANOVAs <- GABApscsFilteredFiring %>%
   doRinputANOVA()
 
-holdingCurrANOVA <- GABApscsFilteredFiring %>%
+RinputANOVA <- RinputANOVAs$flxTbl
+RinputANOVA_df <- RinputANOVAs$anova
+RinputANOVA_text <- getComboTrtFResults(RinputANOVA_df)
+RinputANOVA_par <- RinputANOVA_text$paragraph
+
+holdingCurrANOVAs <- GABApscsFilteredFiring %>%
   doHoldingCurrANOVA()
 
-GABAfreqANOVA <- GABApscsFilteredFiring %>%
+holdingCurrANOVA <- holdingCurrANOVAs$flxTbl
+holdingCurrANOVA_df <- holdingCurrANOVAs$anova
+holdingCurrANOVA_text <- getComboTrtFResults(holdingCurrANOVA_df)
+holdingCurrANOVA_par <- holdingCurrANOVA_text$paragraph
+
+GABAfreqANOVAs <- GABApscsFilteredFiring %>%
   doFreqANOVA()
 
-GABAampANOVA <- GABApscsFilteredFiring %>%
+GABAfreqANOVA <- GABAfreqANOVAs$flxTbl
+GABAfreqANOVA_df <- GABAfreqANOVAs$anova
+GABAfreqANOVA_text <- getComboTrtFResults(GABAfreqANOVA_df)
+GABAfreqANOVA_par <- GABAfreqANOVA_text$paragraph
+
+GABAampANOVAs <- GABApscsFilteredFiring %>%
   doAmpANOVA()
+
+GABAampANOVA <- GABAampANOVAs$flxTbl
+GABAampANOVA_df <- GABAampANOVAs$anova
+GABAampANOVA_text <- getComboTrtFResults(GABAampANOVA_df)
+GABAampANOVA_par <- GABAampANOVA_text$paragraph

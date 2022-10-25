@@ -1,6 +1,19 @@
 # all ph_label can be read here
 # layout_properties(doc, layout = "Title and Content")
 
+
+addSlide_sectionHead <- function(
+    ppt,
+    title
+){
+  ppt <- add_slide(ppt, "Section Header")
+  ppt <- ph_with(
+    ppt,
+    value = title,
+    location = ph_location_label("Title 1")
+  )
+}
+
 addSlide_oneGraph <- function(
   ppt,
   title,
@@ -55,6 +68,36 @@ addSlide_twoGraph <- function(
   return(ppt)
 }
 
+addSlide_twoGraphMoreLeft <- function(
+  ppt,
+  title,
+  plot1,
+  plot2,
+  makeEditable = FALSE
+){
+  if(makeEditable){
+    plot1 <- dml(ggobj = plot1)
+    plot2 <- dml(ggobj = plot2)
+  }
+  ppt <- add_slide(ppt, "Two content more left")
+  ppt <- ph_with(
+    ppt,
+    value = title,
+    location = ph_location_label("Title 1")
+  )
+  ppt <- ph_with(
+    ppt,
+    value = plot1,
+    location = ph_location_label("Content Placeholder 2")
+  )
+  ppt <- ph_with(
+    ppt,
+    value = plot2,
+    location = ph_location_label("Content Placeholder 3")
+  )
+  return(ppt)
+}
+
 addSlide_graphTable <- function(
   ppt,
   title,
@@ -75,8 +118,8 @@ addSlide_graphTable <- function(
       colformat_double(digits = 3) %>%
       autofit()
   } else { ## have to be careful here - needs to already by a flextable
-    table <- table %>%
-      autofit()
+    # table <- table %>%
+    #   autofit()
   }
   
   ppt <- add_slide(ppt, "Two Content")
@@ -237,8 +280,8 @@ addSlide_oneTable <- function(
       colformat_double(digits = 3) %>%
       autofit()
   } else { ## have to be careful here - needs to already by a flextable
-    table <- table %>%
-      autofit()
+    # table <- table %>%
+    #   autofit()
   }
     
   
@@ -279,3 +322,42 @@ makeBullet <- function(theText, fontSize = 22)
       fp_text(font.size=fontSize)
     )
   )
+
+addStatsToBottom <- function(
+    ppt,
+    statsText,
+    fontSize = 14
+){
+  free_loc <- ph_location(
+    left = 0.92, top = 7, 
+    width = 11.5, height = 0.4)
+  
+  ppt <- ph_with(ppt, 
+                 fpar(statsText, fp_t = fp_text(font.size = fontSize)),
+                 location = free_loc )
+  return(ppt)
+}
+
+addTwoStatsToGraphs <- function(
+    ppt,
+    statsText1,
+    statsText2,
+    fontSize = 14
+){
+  free_loc1 <- ph_location(
+    left = 1.75, top = 5.7, 
+    width = 4.7, height = .82)
+  
+  ppt <- ph_with(ppt, 
+                 fpar(statsText1, fp_t = fp_text(font.size = fontSize)),
+                 location = free_loc1 )
+  
+  free_loc2 <- ph_location(
+    left = 7.5, top = 5.7, 
+    width = 4.7, height = .82)
+  
+  ppt <- ph_with(ppt, 
+                 fpar(statsText2, fp_t = fp_text(font.size = fontSize)),
+                 location = free_loc2 )
+  return(ppt)
+}

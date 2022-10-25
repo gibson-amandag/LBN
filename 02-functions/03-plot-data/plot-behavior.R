@@ -151,7 +151,10 @@ behavior_overTime_days <- function(
   lineSize = 1,
   dodgeVal = 0.4,
   addTriangleForMean = FALSE,
-  redMean = FALSE
+  redMean = FALSE,
+  colorByDam = FALSE,
+  lineAlpha = 0.4,
+  showDots = TRUE
 ){
   # dayTimeBreaks <- c()
   # days <- c(4:11)
@@ -173,32 +176,45 @@ behavior_overTime_days <- function(
         y = {{ yVar }},
         fill = earlyLifeTrt
       )
-    ) +
-    geom_line(
-      alpha = 0.4,
+    )
+  
+  if(colorByDam){
+    viz <- viz + geom_line(
+      alpha = lineAlpha,
+      aes(group = damID, color = damID),
+      position = position_dodge(0.4),
+      size = lineSize
+    )
+  } else {
+    viz <- viz + geom_line(
+      alpha = lineAlpha,
       color = "black",
       aes(group = damID, linetype = earlyLifeTrt),
       position = position_dodge(0.4),
       size = lineSize
     )
+    
+  }
   
-  if(dotSize_byFirstDay){
-    viz <- viz + geom_point(
-      alpha = 1, 
-      aes(fill=earlyLifeTrt,group=damID, shape = firstDay), 
-      position = position_dodge(0.4),
-      size = dotSize
-    )+ scale_shape_manual(
-      values = c(21, 22)
-    )
-  } else {
-    viz <- viz + geom_point(
-      shape = 21,
-      alpha = 1, 
-      aes(fill=earlyLifeTrt,group=damID), 
-      position = position_dodge(0.4), 
-      size = dotSize
-    )
+  if(showDots){
+    if(dotSize_byFirstDay){
+      viz <- viz + geom_point(
+        alpha = 1, 
+        aes(fill=earlyLifeTrt,group=damID, shape = firstDay), 
+        position = position_dodge(0.4),
+        size = dotSize
+      )+ scale_shape_manual(
+        values = c(21, 22)
+      )
+    } else {
+      viz <- viz + geom_point(
+        shape = 21,
+        alpha = 1, 
+        aes(fill=earlyLifeTrt,group=damID), 
+        position = position_dodge(0.4), 
+        size = dotSize
+      )
+    }
   }
   
   if(addTriangleForMean){ # horizontal bar is too small to show up

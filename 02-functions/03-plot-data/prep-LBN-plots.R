@@ -88,6 +88,11 @@ plotDamBehavior_daysFunc <- function(
     , facetInfo = facetForLBN
     , addTriangleForMean = FALSE
     , redMean = FALSE
+    , colorByDam = FALSE
+    , lineAlpha = 0.4
+    , showDots = TRUE
+    , removeLegend = FALSE
+    , addDarkBox = FALSE # currently, only P5-6
 ){
   plotFunc <- function(df){
     plot <- df %>%
@@ -102,11 +107,14 @@ plotDamBehavior_daysFunc <- function(
         dotSize_byFirstDay = FALSE,
         lineSize = lineSize,
         addTriangleForMean = addTriangleForMean,
-        redMean = redMean
+        redMean = redMean,
+        colorByDam = colorByDam,
+        lineAlpha = lineAlpha,
+        showDots = showDots,
       ) +
       theme(legend.position = "bottom") +
       labs(
-        x = "ZT hour"
+        x = "PND\nZT hour"
       )
     
     if(facet){
@@ -116,6 +124,24 @@ plotDamBehavior_daysFunc <- function(
           fill = "none"
           , linetype = "none"
         )
+    }
+    
+    if(removeLegend){
+      plot <- plot + theme(legend.position = "none")
+    }
+    
+    if(addDarkBox){
+      plot$layers <- c(
+        geom_rect(
+          xmin = as_datetime(ymd_hm("2000-01-05 13:55"))
+          , xmax = as_datetime(ymd_hm("2000-01-05 23:55"))
+          , ymin = -Inf
+          , ymax = Inf
+          , fill = "grey90"
+          , alpha = 0.1
+        )
+        , plot$layers
+      )
     }
     
     return(plot)
@@ -693,6 +719,7 @@ plotPercSurgedFunc <- function(
     litterNums
     , fontSize = 16
     , labelFontSize = 10
+    , twoLineXLabs = TRUE
 ){
   plotFunc <- function(df){
     plot <- df %>%
@@ -702,7 +729,23 @@ plotPercSurgedFunc <- function(
       percSurgedPlot(
         fontSize = fontSize
         , labelFontSize = labelFontSize
+      ) +
+      theme(
+        axis.title.x = element_blank()
       )
+    
+    if(twoLineXLabs){
+      plot <- plot + scale_x_discrete(
+        labels = c(
+          "STD-CON" = "STD\nCON"
+          , "STD-ALPS" = "STD\nALPS"
+          , "LBN-CON" = "LBN\nCON"
+          , "LBN-ALPS" = "LBN\nALPS"
+          
+        )
+      )
+    }
+    
     return(plot)
   }
   return(plotFunc)

@@ -59,3 +59,16 @@ makeExprCharacter <- function (var){
 }
 
 
+getValWhereOtherValTrue <- function(
+    df
+    , matchCol
+    , matchVal
+    , valCol
+){
+  matchColText <- as.character(matchCol)
+  valColText <- as.character(valCol)
+  val <- df[[valColText]][which(df[matchColText] == matchVal)]
+  return(val)
+}
+
+

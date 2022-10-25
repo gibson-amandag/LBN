@@ -1,0 +1,914 @@
+---
+title: "AGG Comittee Meeting 2022-11-01"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/05-make-LBN-plots.R")
+source("./01-scripts/06-make-LBN-ANOVAs.R")
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+# Set-up
+```{r}
+figureNum <- 1
+
+pptBaseName <- makeBaseNameFunc("")
+
+plotFolder <- file.path(plotOutputFolder, "2022-11-01")
+
+imgType <-"png"
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotFolder
+  , compType = currentCompType
+)
+
+exportFullPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 11.5
+  #   , height = 5
+  # )
+}
+
+exportHalfPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 5.67
+  #   , height = 5
+  # )
+}
+
+exportThirdPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 3.6
+  #   , height = 5
+  # )
+}
+
+exportQuarterPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 3.2
+  #   , height = 5
+  # )
+}
+
+editableImgs <- TRUE
+pptAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptUneditAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = FALSE
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphs <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphsMoreLeft <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraphMoreLeft(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddGraphTable <- function(
+    plot
+    , table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_graphTable(
+    officer_ppt, 
+    title, 
+    plot, 
+    table,
+    makeEditable = editableImgs
+    , dontFormat = dontFormat
+    , textSize = textSize
+  )
+  return(officer_ppt)
+}
+
+pptAddFourGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , plot4
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_fourGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    plot4,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddThreeGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_threeGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddStats <- function(
+    statsText
+    , officer_ppt = ppt
+){
+  officer_ppt <- addStatsToBottom(
+    officer_ppt,
+    statsText
+  )
+}
+
+pptAddTwoStats <- function(
+    statsText1
+    , statsText2
+    , officer_ppt = ppt
+){
+  officer_ppt <- addTwoStatsToGraphs(
+    officer_ppt,
+    statsText1,
+    statsText2
+  )
+}
+
+pptAddSectionHead <- function(
+    title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_sectionHead(
+    officer_ppt
+    , title
+  )
+}
+```
+
+```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("genericPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+# layout_properties(ppt, layout="Title Slide")
+
+subText <- "Amanda Gibson\nCommittee Meeting\nNovember 1, 2022"
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "AGG_committeeMeeting_2022-11-01"
+  , addDate = TRUE
+)
+```
+
+```{r}
+ppt <- pptAddSectionHead("Limited bedding and nesting")
+```
+
+# Dam Behavior
+
+## P5-P6 analysis
+
+I've analyzed additional times for P5-P6 analysis across cohorts 2, 4, 6, 7, 8
+
+### First litters
+
+```{r}
+damBehavior_plot_indivLines_time_1stL_no9
+
+fileBaseName <- "damBehavior_firstLitter_no9"
+slideTitle <- "Effect of LBN on primiparous dam behavior on P5-P6"
+
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+### Second litters
+
+```{r}
+damBehavior_plot_indivLines_time_2ndL_no9
+
+fileBaseName <- "damBehavior_secondLitter_all"
+slideTitle <- "Effect of LBN on multiparous dam behavior on P5-P6"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+## ZT1 and ZT15
+
+Based on feedback from Jessica Bolton, they analyze starting 1h after light transitions.
+
+For Cohort 9, we have video monitoring for the full P4-P11 period
+
+```{r}
+damBehavior_plot_days_1stL_cohort9
+
+fileBaseName <- "damBehavior_firstLitter"
+slideTitle <- "Effect of LBN on primiparous dam behavior from P4-P11"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+figureNum <- figureNum + 1
+```
+
+
+# Dam Corticosterone
+
+```{r}
+damCort_plot
+
+fileBaseName = "DamCort_P11"
+slideTitle <- "Effect of LBN on dam corticosterone on P11"
+
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+
+ppt <- pptAddStats(damCortANOVA_par)
+```
+
+```{r}
+figureNum <- figureNum + 1
+```
+
+# Body mass
+
+## First litter
+
+```{r}
+mass_plot_1stL
+
+fileBaseName = "mass_litter1"
+slideTitle <- "Effect of LBN on body mass in first litter offspring"
+
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+## Second litter
+
+```{r}
+mass_plot_2ndL
+
+fileBaseName = "mass_litter2"
+slideTitle <- "Effect of LBN on body mass in second litter offspring"
+
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+figureNum <- figureNum + 1
+```
+
+# Maturation
+
+```{r}
+ppt <- pptAddSectionHead("Offspring maturation")
+```
+
+
+## VO
+
+```{r}
+VO_age_plot
+
+fileBaseName = "VO_age_litterNum"
+exportHalfPPTSlide()
+
+VO_mass_plot
+
+fileBaseName = "VO_mass_litterNum"
+exportHalfPPTSlide()
+
+slideTitle <- "LBN did not alter age or mass at vaginal opening"
+
+ppt <- pptAddTwoGraphs(VO_age_plot, VO_mass_plot)
+
+ppt <- pptAddTwoStats(
+  VO_age_ANOVA_par
+  , VO_mass_ANOVA_par
+)
+```
+
+## First Estrus
+
+```{r}
+Estrus_age_plot
+
+fileBaseName = "Estrus_age_litterNum"
+exportHalfPPTSlide()
+
+Estrus_mass_plot
+
+fileBaseName = "Estrus_mass_litterNum"
+exportHalfPPTSlide()
+
+slideTitle <- "LBN did not alter age or mass at first estrus"
+
+ppt <- pptAddTwoGraphs(Estrus_age_plot, Estrus_mass_plot)
+
+ppt <- pptAddTwoStats(
+  Estrus_age_ANOVA_par
+  , Estrus_mass_ANOVA_par
+)
+
+```
+
+
+## Preputial Separation
+
+```{r}
+PreputialSep_age_plot
+
+fileBaseName = "PreputialSep_age_litterNum"
+exportHalfPPTSlide()
+
+PreputialSep_mass_plot
+
+fileBaseName = "PreputialSep_mass_litterNum"
+exportHalfPPTSlide()
+
+slideTitle <- "Preputial separation was delayed in LBN LBN mice"
+
+ppt <- pptAddTwoGraphs(PreputialSep_age_plot, PreputialSep_mass_plot)
+
+PreputialSep_age_ANOVA
+PreputialSep_mass_ANOVA
+
+ppt <- pptAddTwoStats(
+  PreputialSep_age_ANOVA_par
+  , PreputialSep_mass_ANOVA_par
+)
+```
+
+```{r}
+figureNum <- figureNum + 1
+```
+
+## Cumulative Frequency
+
+### First litter
+```{r eval=FALSE, include=FALSE}
+VO_cumFreq_plot_1stL
+fileBaseName <- "VO_freq_plot_1stL"
+
+exportThirdPPTSlide()
+
+Estrus_cumFreq_plot_1stL
+fileBaseName <- "Estrus_freq_plot_1stL"
+
+exportThirdPPTSlide()
+
+PreputialSep_cumFreq_plot_1stL
+fileBaseName <- "PreputialSep_freq_plot_1stL"
+
+exportThirdPPTSlide()
+
+slideTitle <- "Cumuluative frequency plots - first litters"
+
+ppt <- pptAddThreeGraphs(
+  VO_cumFreq_plot_1stL
+  , Estrus_cumFreq_plot_1stL
+  , PreputialSep_cumFreq_plot_1stL
+)
+
+```
+
+### Second litter
+```{r eval=FALSE, include=FALSE}
+VO_cumFreq_plot_2ndL
+fileBaseName <- "VO_freq_plot_2ndL"
+
+exportThirdPPTSlide()
+
+Estrus_cumFreq_plot_2ndL
+fileBaseName <- "Estrus_freq_plot_2ndL"
+
+exportThirdPPTSlide()
+
+PreputialSep_cumFreq_plot_2ndL
+fileBaseName <- "PreputialSep_freq_plot_2ndL"
+
+exportThirdPPTSlide()
+
+slideTitle <- "Cumuluative frequency plots - second litters"
+
+ppt <- pptAddThreeGraphs(
+  VO_cumFreq_plot_2ndL
+  , Estrus_cumFreq_plot_2ndL
+  , PreputialSep_cumFreq_plot_2ndL
+)
+
+```
+
+
+```{r eval=FALSE, include=FALSE}
+figureNum <- figureNum + 1
+```
+
+# Cycles
+
+```{r}
+ppt <- pptAddSectionHead("Estrous cycles")
+```
+
+## First litters
+
+```{r}
+repCycles_STD_1stL
+fileBaseName <- "repCycles_STD_1stL"
+exportThirdPPTSlide()
+
+repCycles_LBN_1stL
+fileBaseName <- "repCycles_LBN_1stL"
+exportThirdPPTSlide()
+
+percDaysStage_1stL
+fileBaseName <- "percDaysStage_1stL"
+exportThirdPPTSlide()
+
+slideTitle <- "Cycles (P70-90) of first litter offspring"
+ppt <- addSlide_DemoCycles(
+  ppt,
+  slideTitle,
+  repCycles_STD_1stL,
+  repCycles_LBN_1stL,
+  percDaysStage_1stL
+)
+```
+
+## Second litters
+
+```{r}
+repCycles_STD_2ndL
+fileBaseName <- "repCycles_STD_2ndL"
+exportThirdPPTSlide()
+
+repCycles_LBN_2ndL
+fileBaseName <- "repCycles_LBN_2ndL"
+exportThirdPPTSlide()
+
+percDaysStage_2ndL
+fileBaseName <- "percDaysStage_2ndL"
+exportThirdPPTSlide()
+
+slideTitle <- "Cycles (P70-90) of second litter offspring"
+ppt <- addSlide_DemoCycles(
+  ppt,
+  slideTitle,
+  repCycles_STD_2ndL,
+  repCycles_LBN_2ndL,
+  percDaysStage_2ndL
+)
+```
+
+
+```{r}
+figureNum <- figureNum + 1
+```
+
+
+# Corticosterone Response to ALPS
+
+```{r}
+ppt <- pptAddSectionHead("Response to adult stress")
+```
+
+## Plots
+
+### Males
+```{r}
+maleCortPlot
+fileBaseName <- "maleCortPlot"
+exportFullPPTSlide()
+slideTitle <- "LBN did not alter response to ALPS in males"
+ppt <- pptAddOneGraph()
+
+ppt <- pptAddStats(maleCort_3wayANOVA_par)
+```
+
+### Females
+
+##### Uterine mass
+
+```{r}
+uterineMassByGroup_byStage_bothL
+
+fileBaseName <- "uterineMassByGroup_byStage_bothL"
+exportFullPPTSlide()
+
+slideTitle <- "Uterine mass distribution by cycle stage and treatment"
+ppt <- pptAddOneGraph()
+```
+
+```{r eval=FALSE, include=FALSE}
+uterineMassByGroup_byStage_1stL
+
+fileBaseName <- "uterineMassByGroup_byStage_1stL"
+exportFullPPTSlide()
+
+slideTitle <- "Uterine mass distribution by cycle stage and treatment - first litter successes"
+ppt <- pptAddOneGraph()
+```
+
+```{r eval=FALSE, include=FALSE}
+uterineMassByGroup_byStage_2ndL
+
+fileBaseName <- "uterineMassByGroup_byStage_2ndL"
+exportFullPPTSlide()
+
+slideTitle <- "Uterine mass distribution by cycle stage and treatment - second litter successes"
+ppt <- pptAddOneGraph()
+```
+
+
+```{r}
+diCortPlot
+fileBaseName <- "diCortPlot"
+exportFullPPTSlide()
+slideTitle <- "LBN-ALPS mice have a higher corticosterone response than STD-ALPS on diestrus"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+proCortPlot
+fileBaseName <- "proCortPlot"
+exportFullPPTSlide()
+slideTitle <- "LBN did not alter response to ALPS on proestrus"
+ppt <- pptAddOneGraph()
+```
+
+#### ANOVAs
+
+4-way ANOVA - LBN x ALPS x Cycle Stage x Time
+
+```{r}
+cort4wayANOVA
+# ppt <- addSlide_oneTable(
+#   ppt,
+#   "Females - 4way ANOVA of early-life trt x adult trt x time x stage",
+#   cort4wayANOVA,
+#   dontFormat = TRUE
+# )
+```
+
+
+
+There is a significant 4-way interaction, so do the 3-way interaction of 
+LBN x ALPS x Time for each cycle stage. Correct for two comparisons
+
+```{r}
+
+cort3way_byCycle
+
+# ppt <- addSlide_oneTable(
+#   ppt,
+#   "LBN diestrous mice with respond differently to CON vs ALPS than than STD diestrous",
+#   cort3way_byCycle,
+#   dontFormat = TRUE
+# )
+```
+
+For diestrous mice, there is a 3-way interaction of LBN x ALPS x time
+
+For proestrous mice, there is a 2-way interaction of ALPS x time
+
+
+Follow-up the diestrous mice with a 2-way interaction between 
+LBN x ALPS at each time. Adjust the p-values for two levels of time
+
+```{r}
+diCort2way_byTime
+# ppt <- addSlide_oneTable(
+#   ppt,
+#   "Early-life and adult trt interact to affect post-trt cort values in diestrous mice",
+#   diCort2way_byTime,
+#   dontFormat = TRUE
+# )
+```
+
+
+At the end of the paradigm, there is an interaction between LBN and ALPS for
+the diestrous mice. This means that LBN changes the way that the mice
+respond to the ALPS paradigm in diestrous mice.
+
+
+
+For the diestrous mice at the end of the paradigm, group by adult treatment
+and see if the early-life mice are significantly different.
+Adjust for making two treatment comparisons
+
+```{r}
+
+diCortPost_byALPS
+
+# ppt <- addSlide_oneTable(
+#   ppt,
+#   "STD and LBN diestrous mice differ in cort after ALPS trt",
+#   diCortPost_byALPS,
+#   dontFormat = TRUE
+# )
+```
+
+For the proestrous mice, follow up the ALPS x time interaction.
+
+Group by time, see if there is an effect of ALPS
+
+```{r}
+proCort_byTime
+# ppt <- addSlide_oneTable(
+#   ppt,
+#   "ALPS proestrous mice have higher post-trt cort than CON mice",
+#   proCort_byTime,
+#   dontFormat = TRUE
+# )
+```
+
+
+# LH response to ALPS
+
+## Second litter
+```{r}
+LHplot_pro_2ndL
+
+fileBaseName <- "proLHresponse_2ndL"
+exportFullPPTSlide()
+
+slideTitle <- "Effect of LBN and ALPS on proestrous LH release in second litters"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+LHamp_2ndL_plot
+
+fileBaseName <- "LHamp_2ndL"
+exportFullPPTSlide()
+
+
+fileBaseName <- "LHamp_2ndL_half"
+exportHalfPPTSlide()
+```
+
+```{r}
+percSurgedPlot_2ndL
+
+fileBaseName <- "LHsurged_2ndL"
+exportHalfPPTSlide()
+
+slideTitle <- "More second litter LBN-ALPS mice exhibited an LH surge than STD-ALPS mice"
+ppt <- pptAddTwoGraphsMoreLeft(
+  LHamp_2ndL_plot
+  , percSurgedPlot_2ndL
+)
+```
+
+
+## First litter
+```{r}
+LHplot_pro_1stL
+
+fileBaseName <- "proLHresponse_1stL"
+exportFullPPTSlide()
+
+slideTitle <- "Effect of LBN and ALPS on proestrous LH release in first litters up to 2h before lights out"
+ppt <- pptAddOneGraph()
+```
+```{r}
+LHamp_1stL_plot
+
+fileBaseName <- "LHamp_1stL"
+exportFullPPTSlide()
+fileBaseName <- "LHamp_1stL_half"
+exportHalfPPTSlide()
+```
+```{r}
+percSurgedPlot_1stL
+
+fileBaseName <- "LHsurged_1stL"
+exportHalfPPTSlide()
+
+slideTitle <- "LBN may be delaying the start of the LH surge"
+ppt <- pptAddTwoGraphsMoreLeft(
+  LHamp_1stL_plot
+  , percSurgedPlot_1stL
+)
+```
+
+
+
+# GABA PSCs
+
+```{r}
+ppt <- pptAddSectionHead("GABA PSCs to GnRH neurons on proestrus")
+```
+
+## Passives
+```{r}
+RinputPlot
+fileBaseName <- "Rinput"
+exportQuarterPPTSlide()
+
+
+RseriesPlot
+fileBaseName <- "Rseries"
+exportQuarterPPTSlide()
+
+capacitancePlot
+
+fileBaseName <- "capacitance"
+exportQuarterPPTSlide()
+
+holdingCurrPlot
+fileBaseName <- "holdingCurr"
+exportQuarterPPTSlide()
+
+
+slideTitle <- "Passive properties for GABA recordings"
+ppt <- pptAddFourGraphs(
+  RseriesPlot
+  , RinputPlot
+  , capacitancePlot
+  , holdingCurrPlot
+)
+```
+
+```{r}
+RseriesANOVA
+
+slideTitle <- "Series resistance does not differ with LBN or ALPS"
+ppt <- pptAddOneGraph(
+  plot = RseriesPlot
+)
+
+ppt <- pptAddStats(RseriesANOVA_par)
+
+RinputANOVA
+
+slideTitle <- "LBN cells have a lower input resistance than STD cells"
+ppt <- pptAddOneGraph(
+  plot = RinputPlot
+)
+
+ppt <- pptAddStats(RinputANOVA_par)
+
+
+capacitanceANOVA
+slideTitle <- "Capacitance does not differ with LBN or ALPS"
+ppt <- pptAddOneGraph(
+  plot = capacitancePlot
+) 
+
+ppt <- pptAddStats(capacitanceANOVA_par)
+
+holdingCurrANOVA
+slideTitle <- "There is a trend for lower holding current in LBN cells"
+ppt <- pptAddOneGraph(
+  plot = holdingCurrPlot
+)
+
+ppt <- pptAddStats(holdingCurrANOVA_par)
+```
+
+```{r}
+GABAfreqPlot
+fileBaseName <- "GABAfreqPlot"
+exportFullPPTSlide()
+
+GABAfreqANOVA
+
+slideTitle <- "Frequency of GABA PSCs does not differ with early-life or adult treatment"
+ppt <- pptAddOneGraph(
+  plot = GABAfreqPlot
+)
+
+ppt <- pptAddStats(GABAfreqANOVA_par)
+
+GABAampPlot
+fileBaseName <- "GABAampPlot"
+exportFullPPTSlide()
+
+GABAampANOVA
+slideTitle <- "Amplitude of GABA PSCs does not differ with early-life or adult treatment"
+ppt <- pptAddOneGraph(
+  plot = GABAampPlot
+)
+
+ppt <- pptAddStats(GABAampANOVA_par)
+```
+
+
+
+
