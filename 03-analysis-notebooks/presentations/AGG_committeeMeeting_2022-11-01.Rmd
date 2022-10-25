@@ -327,7 +327,7 @@ figureNum <- figureNum + 1
 
 # Dam Corticosterone
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 damCort_plot
 
 fileBaseName = "DamCort_P11"
@@ -339,7 +339,7 @@ ppt <- pptAddOneGraph()
 ppt <- pptAddStats(damCortANOVA_par)
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 figureNum <- figureNum + 1
 ```
 
@@ -347,7 +347,7 @@ figureNum <- figureNum + 1
 
 ## First litter
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 mass_plot_1stL
 
 fileBaseName = "mass_litter1"
@@ -359,7 +359,7 @@ ppt <- pptAddOneGraph()
 
 ## Second litter
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 mass_plot_2ndL
 
 fileBaseName = "mass_litter2"
@@ -369,7 +369,7 @@ exportFullPPTSlide()
 ppt <- pptAddOneGraph()
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 figureNum <- figureNum + 1
 ```
 
