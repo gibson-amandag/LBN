@@ -703,6 +703,7 @@ plotSurgeAmpFunc <- function(
       plotLHAmp_comboTrt(
         surgeMin = surgeMin
         , textSize = fontSize
+        , dotSize = dotSize
         , angleX = angleX
         , addSurgeMinLine = addSurgeMinLine
       ) + 

@@ -807,6 +807,30 @@ ppt <- pptAddTwoGraphsMoreLeft(
 )
 ```
 
+# Cort administration
+
+```{r}
+source(file.path(scriptsFolder, "cortAdmin-get-datasets.R"))
+source(file.path(scriptsFolder, "07-make-cortAdmin-plots.R"))
+
+```
+
+```{r}
+BD_ALPS_plot
+fileBaseName <- "BD_ALPS_plot"
+exportFullPPTSlide()
+
+slideTitle <- "ALPS increases corticosterone - add BD pic"
+ppt <- pptAddOneGraph()
+```
+```{r}
+BD_comboNutALPS_plot
+fileBaseName <- "BD_comboNutALPS_plot"
+exportFullPPTSlide()
+
+slideTitle <- "Feeding corticosterone recapitulates its pattern during ALPS - add BD pic"
+ppt <- pptAddOneGraph()
+```
 
 
 # GABA PSCs
@@ -908,6 +932,7 @@ ppt <- pptAddOneGraph(
 
 ppt <- pptAddStats(GABAampANOVA_par)
 ```
+
 
 
 

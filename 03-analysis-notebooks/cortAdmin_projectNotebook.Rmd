@@ -35,6 +35,9 @@ BD_offspringInfo %>%
   createOvulationPPT(
     addToName = "BD"
     , useVar = Sampling_date
+    , sortByCycle = FALSE
+    , sortByLH = FALSE
+    , sortByDate = TRUE
     )
 ```
 
