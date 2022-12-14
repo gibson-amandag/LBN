@@ -133,17 +133,20 @@ PreputialSep_mass_ANOVA_par <- PreputialSep_mass_ANOVA_text$paragraph
 ### Females -----------------------------------------------------------------
 hValTable <- 0
 
-cort4wayANOVA <- cortFilteredFemales %>%
-  cortAnova(
+cort4wayANOVAs <- cortFilteredFemales %>%
+  cortAnova_returnBoth(
     byCycle = TRUE
     , fontSize = textSize
     , addHVal = hValTable
   )
 
+cort4wayANOVA <- cort4wayANOVAs$flxTbl
+cort4wayANOVA_df <- cort4wayANOVAs$anova
+
 #'There is a significant 4-way interaction, so do the 3-way interaction of 
 #'LBN x ALPS x Time for each cycle stage. Correct for two comparisons
 
-cort3way_byCycle <- cortFilteredFemales %>%
+cort3way_byCycle_df <- cortFilteredFemales %>%
   group_by(
     Sac_cycle
   ) %>%
@@ -157,7 +160,9 @@ cort3way_byCycle <- cortFilteredFemales %>%
   as_tibble() %>%
   mutate(
     p.adj = p * 2 # doing two cycle stage comparisons
-  ) %>%
+  )
+
+cort3way_byCycle <- cort3way_byCycle_df %>%
   # adjust_pvalue(method = "bonferroni") %>%
   formatAdjAnova(fontSize = textSize, addHVal = hValTable)
 
@@ -167,7 +172,7 @@ cort3way_byCycle <- cortFilteredFemales %>%
 #' Follow-up the diestrous mice with a 2-way interaction between 
 #' LBN x ALPS at each time. Adjust the p-values for two levels of time
 
-diCort2way_byTime <- cortFilteredDi %>%
+diCort2way_byTime_df <- cortFilteredDi %>%
   group_by(
     time
   ) %>%
@@ -180,7 +185,9 @@ diCort2way_byTime <- cortFilteredDi %>%
   as_tibble() %>%
   mutate(
     p.adj = p * 2 # doing two time comparisons
-  ) %>%
+  )
+
+diCort2way_byTime <- diCort2way_byTime_df %>%
   formatAdjAnova(fontSize = textSize, addHVal = hValTable)
 
 #' At the end of the paradigm, there is an interaction between LBN and ALPS for
@@ -193,7 +200,7 @@ diCort2way_byTime <- cortFilteredDi %>%
 #' and see if the early-life mice are significantly different.
 #' Adjust for making two treatment comparisons
 
-diCortPost_byALPS <- cortFilteredDi %>%
+diCortPost_byALPS_df <- cortFilteredDi %>%
   filter(
     time == 5
   ) %>%
@@ -206,12 +213,15 @@ diCortPost_byALPS <- cortFilteredDi %>%
     between = c(earlyLifeTrt)
   ) %>%
   adjust_pvalue(method = "bonferroni") %>%
+  as_tibble()
+
+diCortPost_byALPS <- diCortPost_byALPS_df %>%
   formatAdjAnova(fontSize = textSize, addHVal = hValTable)
 
 #' For the proestrous mice, follow up the ALPS x time interaction.
 #' Group by time, see if there is an effect of ALPS
 
-proCort_byTime <- cortFilteredPro %>%
+proCort_byTime_df <- cortFilteredPro %>%
   group_by(
     time
   ) %>%
@@ -221,6 +231,9 @@ proCort_byTime <- cortFilteredPro %>%
     between = c(adultTrt)
   ) %>%
   adjust_pvalue(method = "bonferroni") %>%
+  as_tibble()
+
+proCort_byTime <- proCort_byTime_df %>%
   formatAdjAnova(fontSize = textSize, addHVal = hValTable)
 
 

@@ -1,0 +1,18 @@
+---
+title: "CRH-Cre x L10a"
+output: html_notebook
+---
+
+
+```{r include=FALSE}
+# If can't find it, be sure that the directory is the project directory
+# Arrow between notebook and settings gear -> Knit directory
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+```
+
+```{r}
+addIm
+```
+
+

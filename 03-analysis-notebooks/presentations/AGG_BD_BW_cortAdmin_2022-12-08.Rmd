@@ -1,0 +1,405 @@
+---
+title: "AGG Comittee Meeting 2022-11-01"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "cortAdmin-get-datasets.R"))
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+# Set-up
+```{r}
+figureNum <- 1
+
+pptBaseName <- makeBaseNameFunc("")
+
+plotFolder <- file.path(plotOutputFolder, "cortAdmin")
+
+imgType <-"png"
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotFolder
+  , compType = currentCompType
+)
+
+exportFullPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 11.5
+  #   , height = 5
+  # )
+}
+
+exportHalfPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 5.67
+  #   , height = 5
+  # )
+}
+
+exportThirdPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 3.6
+  #   , height = 5
+  # )
+}
+
+exportQuarterPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 3.2
+  #   , height = 5
+  # )
+}
+
+editableImgs <- TRUE
+pptAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptUneditAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = FALSE
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphs <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphsMoreLeft <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraphMoreLeft(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddGraphTable <- function(
+    plot
+    , table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_graphTable(
+    officer_ppt, 
+    title, 
+    plot, 
+    table,
+    makeEditable = editableImgs
+    , dontFormat = dontFormat
+    , textSize = textSize
+  )
+  return(officer_ppt)
+}
+
+pptAddFourGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , plot4
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_fourGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    plot4,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddThreeGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_threeGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddStats <- function(
+    statsText
+    , officer_ppt = ppt
+){
+  officer_ppt <- addStatsToBottom(
+    officer_ppt,
+    statsText
+  )
+}
+
+pptAddTwoStats <- function(
+    statsText1
+    , statsText2
+    , officer_ppt = ppt
+){
+  officer_ppt <- addTwoStatsToGraphs(
+    officer_ppt,
+    statsText1,
+    statsText2
+  )
+}
+
+pptAddSectionHead <- function(
+    title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_sectionHead(
+    officer_ppt
+    , title
+  )
+}
+```
+
+```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("genericPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+# layout_properties(ppt, layout="Title Slide")
+
+subText <- "Oral Corticosterone Administration\nDecember 8, 2022"
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "AGG_BW_BD_cortAdmin"
+  , addDate = TRUE
+)
+```
+
+# Cort plot
+
+```{r}
+cortAdminCortPlot <- BD_cort %>%
+  filter(
+    time %in% c(0, 5)
+    , is.na(exclude) | exclude == FALSE
+  ) %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 16,
+    groupVar = dosage, # group by the dosage; this is why it needs to be a factor
+    lineTypeGuide = c("solid", "dotted"),
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 500,
+    ymin = 0
+  ) +
+  facet_wrap(
+    ~ dosage,
+    labeller = labeller(dosage = c("0" = "0mg/kg", "2" = "2mg/kg"))
+  ) +
+  # labs(
+  #   x = "time since 1st administration (h)" # add a title to the x axis
+  # ) + 
+  theme(
+    legend.position = "none"
+  )  + 
+  dosageFillShape()
+cortAdminCortPlot
+
+fileBaseName <- "cortAdminCortPlot"
+slideTitle <- "Oral corticosterone administration increases afternoon serum corticosterone levels"
+
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+# Cort mean summary
+
+```{r}
+cortAdminMeans <- BD_cort %>%
+  filter(
+    time %in% c(0, 5)
+    , is.na(exclude) | exclude == FALSE
+  ) %>%
+  group_by(
+    dosage,
+    time
+  ) %>%
+  meanSummary(cort)
+
+cortAdminMeans
+
+ppt <- addSlide_oneTable(
+  ppt,
+  "Oral corticosterone administration increases afternoon serum corticosterone levels",
+  cortAdminMeans,
+  dontFormat = FALSE
+)
+
+
+```
+
+# Cort ANOVA
+
+```{r}
+cortAdminANOVA_tbl <- BD_cort %>%
+  filter(
+    time %in% c(0, 5)
+    , is.na(exclude) | exclude == FALSE
+  ) %>%
+  anova_test(
+    dv = cort,
+    between = dosage,
+    within = time,
+    wid = mouseID
+  ) 
+
+cortAdminANOVA <- cortAdminANOVA_tbl %>%
+  formatAnova()
+
+cortAdminANOVA
+
+ppt <- addSlide_oneTable(
+  ppt,
+  "Oral corticosterone administration increases afternoon serum corticosterone levels",
+  cortAdminANOVA,
+  dontFormat = TRUE
+)
+
+cortAdminANOVA_tbl %>%
+  getFText("dosage:time")
+
+cortAdminANOVAPostHoc_tbl <- BD_cort %>%
+  filter(
+    time %in% c(0, 5)
+    , is.na(exclude) | exclude == FALSE
+  ) %>%
+  group_by(
+    time
+  ) %>%
+  anova_test(
+    dv = cort,
+    between = dosage
+  ) %>%
+  adjust_pvalue(method = "bonferroni")
+
+cortAdminANOVAPostHoc <- cortAdminANOVAPostHoc_tbl %>%
+  formatAdjAnova()
+
+cortAdminANOVAPostHoc
+
+cortAdminANOVAPostHoc_tbl %>%
+  as_tibble () %>%
+  filter(
+    time == 0
+  ) %>%
+  getFText("dosage", doAdj = TRUE)
+
+cortAdminANOVAPostHoc_tbl %>%
+  as_tibble () %>%
+  filter(
+    time == 5
+  ) %>%
+  getFText("dosage", doAdj = TRUE)
+
+ppt <- addSlide_oneTable(
+  ppt,
+  "Oral corticosterone administration increases afternoon serum corticosterone levels",
+  cortAdminANOVAPostHoc,
+  dontFormat = TRUE
+)
+```

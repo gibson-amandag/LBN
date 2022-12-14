@@ -143,3 +143,6 @@ functionFiles <- list.files(
 
 sapply(functionFiles, source)
 
+# Dam images folder
+damImgsFolder <- normalizePath(Sys.getenv("DAM_IMG_FOLDER"))
+

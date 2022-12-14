@@ -26,7 +26,7 @@ figureNum <- 1
 
 pptBaseName <- makeBaseNameFunc("")
 
-plotFolder <- file.path(plotOutputFolder, "2022-11-01")
+plotFolder <- file.path(plotOutputFolder, "2022-12-07")
 
 imgType <-"png"
 
@@ -42,14 +42,14 @@ exportFullPPTSlide <- function(
     , baseName = fileBaseName
     , figNum = figureNum
 ){
-  # exportImg(
-  #   plot = plot
-  #   , fileBaseName = baseName
-  #   , figNum = figNum
-  #   , units = "in"
-  #   , width = 11.5
-  #   , height = 5
-  # )
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 11.5
+    , height = 5
+  )
 }
 
 exportHalfPPTSlide <- function(
@@ -600,6 +600,7 @@ ppt <- pptAddOneGraph()
 ppt <- pptAddStats(maleCort_3wayANOVA_par)
 ```
 
+
 ### Females
 
 ##### Uterine mass
@@ -663,6 +664,8 @@ cort4wayANOVA
 #   cort4wayANOVA,
 #   dontFormat = TRUE
 # )
+
+getFText(cort4wayANOVA_df, "earlyLifeTrt:adultTrt:Sac_cycle:time")
 ```
 
 
@@ -680,6 +683,24 @@ cort3way_byCycle
 #   cort3way_byCycle,
 #   dontFormat = TRUE
 # )
+
+cort3way_byCycle_df %>%
+  filter(
+    Sac_cycle == "diestrus"
+  ) %>%
+  getFText(
+    "earlyLifeTrt:adultTrt:time",
+    doAdj = TRUE
+  )
+
+cort3way_byCycle_df %>%
+  filter(
+    Sac_cycle == "proestrus"
+  ) %>%
+  getFText(
+    "adultTrt:time",
+    doAdj = TRUE
+  )
 ```
 
 For diestrous mice, there is a 3-way interaction of LBN x ALPS x time
@@ -698,6 +719,15 @@ diCort2way_byTime
 #   diCort2way_byTime,
 #   dontFormat = TRUE
 # )
+
+diCort2way_byTime_df %>%
+  filter(
+    time == 5
+  ) %>%
+  getFText(
+    "earlyLifeTrt:adultTrt"
+    , doAdj = TRUE
+  )
 ```
 
 
@@ -721,6 +751,23 @@ diCortPost_byALPS
 #   diCortPost_byALPS,
 #   dontFormat = TRUE
 # )
+
+diCortPost_byALPS_df %>%
+  filter(
+    adultTrt == "ALPS"
+  ) %>%
+  getFText(
+    "earlyLifeTrt",
+    doAdj = TRUE
+  )
+diCortPost_byALPS_df %>%
+  filter(
+    adultTrt == "CON"
+  ) %>%
+  getFText(
+    "earlyLifeTrt",
+    doAdj = TRUE
+  )
 ```
 
 For the proestrous mice, follow up the ALPS x time interaction.
@@ -735,6 +782,15 @@ proCort_byTime
 #   proCort_byTime,
 #   dontFormat = TRUE
 # )
+
+proCort_byTime_df %>%
+  filter(
+    time == "5"
+  ) %>%
+  getFText(
+    "adultTrt"
+    , doAdj = TRUE
+  )
 ```
 
 

@@ -6,67 +6,15 @@ output: html_notebook
 ```{r include=FALSE}
 source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
-source(file.path(scriptsFolder, "08-load-CRH-opto-data.R"))
 ```
 
 ```{r}
-optoRemainingFemaleTriples %>%
-  createRemainingPPT(
-    cyclesDF = optoCycles
-    , useVar = recordingDate
-    , addToName = "opto"
-  )
-
-optoRemainingFemaleTriples %>%
-  filter(
-    mouseID == "CRH-GFP2-Chr-44"
-  )
+subFolder <- "2022-09-19_ephys"
 ```
-```{r}
-optoRemainingFemaleTriples %>% 
-  select(
-    mouseID
-    , cycleID
-  )
-
-optoRemainingFemaleTriples %>%
-  getMouseInfoForSlicing("CRH-hrGFP-Chr-25")
-optoRemainingFemaleTriples %>%
-  getMouseInfoForSlicing("CRH-hrGFP-Chr-13")
-optoRemainingFemaleTriples %>%
-  getMouseInfoForSlicing("CRH-GFP2-Chr-1")
-optoRemainingFemaleTriples %>%
-  getMouseInfoForSlicing("CRH-GFP2-Chr-8")
-optoRemainingFemaleTriples %>%
-  getMouseInfoForSlicing("CRH-hrGFP-Chr-11")
-
-
-```
-
-```{r}
-optoSampledFemaleTriples %>%
-  createSamplingPPT(
-    cyclesDF = optoCycles
-    , useVar = recordingDate
-    , addToName = "opto"
-  )
-```
-
-
-```{r}
-subFolder <- "2022-11-01"
-```
-
 
 ```{r}
 optoOutput
 ```
-
-```{r}
-
-```
-
-# functions
 
 ```{r}
 optoFidelityPlot <- function(
@@ -76,10 +24,9 @@ optoFidelityPlot <- function(
   xVar = redFreq,
   thisXTitle = "frequency (Hz)"
 ){
-  ytitle <- "% stims with evoked event(s)"
+  ytitle <- "(# events / # stims) * 100"
   title <- NULL
   individualLines <- FALSE
-  lineGroupVar <- expr(cellID)
   meanLines <- TRUE
   zoom_x <- FALSE
   xmin <- NULL
@@ -93,7 +40,7 @@ optoFidelityPlot <- function(
   meanAlpha <- 1
   meanLineSize <- 1
   errorBarSize <- 0.5
-  errorBarAlpha <- 0
+  errorBarAlpha <- 1
   textSize <- 16
   axisSize <- 1
   
@@ -127,12 +74,8 @@ optoFidelityPlot <- function(
         textSize = textSize,
         axisSize = axisSize
       ) +
-    # )
-    # geom_point()
-    geom_line(aes(group = interaction(cellID, {{ lineTypeVar}})), alpha = 0.35)
+    geom_point()
 }
-
-
 optoFidelityPlot_lineAndShape <- function(
   df,
   lineTypeVar,
@@ -142,7 +85,7 @@ optoFidelityPlot_lineAndShape <- function(
   thisXTitle = "frequency (Hz)",
   individ = TRUE
 ){
-  ytitle <- "% stims with evoked event(s)"
+  ytitle <- "(# events / # stims) * 100"
   title <- NULL
   individualLines <- individ
   meanLines <- TRUE
@@ -210,263 +153,6 @@ CRH_opto_all <- optoOutput %>%
 
 CRH_opto_all
 ```
-
-# PVN
-
-```{r}
-cells = c(
-  "20220712a",
-  "20220907f",
-  "20220911c",
-  "20220914c"
-)
-CRH_PVN_cells <- CRH_opto_all %>%
-  filter(
-    cellID %in% cells
-  )
-
-CRH_opto <- CRH_PVN_cells
-```
-
-
-```{r}
-getAvgByCellStim <- function(df){
-  avgDF <- df %>%
-    group_by(
-    cellID
-    , redDur
-    , redFreq
-    , redNumStims
-  ) %>%
-  summarise(
-    across(
-      where(is.numeric),
-      ~ mean(.x, na.rm = TRUE)
-    ),
-    .groups = "drop"
-  )
-  return(avgDF)
-}
-```
-
-## Pulse Duration
-
-```{r}
-plot <- CRH_opto %>%
-  filter(
-    redNumStims == 30,
-    redAmp == 0 | redAmp == 1
-    , redDur %in% c(0.001, 0.002, 0.005)
-  ) %>%
-  getAvgByCellStim() %>%
-  mutate(
-    redDur = redDur * 1000
-  ) %>%
-  makeFactors(
-    redDur
-  ) %>%
-  optoFidelityPlot(
-    redDur,
-    TRUE
-  ) +
-  labs(
-    linetype = "duration (ms)"
-    , color = "duration (ms)"
-  )
-plot
-
-fileBaseName = paste0("CRH_opto_PVN_Dur")
-imgType = "png"
-thisWidth = 11
-thisHeight = 5.5
-thisUnits = "in"
-
-
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = NULL,
-  plot = plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-```
-
-## stimulus train duration
-
-```{r}
-totalStimDurSeries <- c(
-  "20220907fg1s28sw1t1"
-  , "20220907fg1s29sw1t1"
-  , "20220907fg1s30sw1t1"
-  , "20220907fg1s32sw1t1"
-  , "20220907fg1s33sw1t1"
-  , "20220907fg1s34sw1t1"
-  , "20220907fg1s36sw1t1"
-  , "20220907fg1s37sw1t1"
-  , "20220907fg1s38sw1t1"
-  , "20220911cg1s39sw1t1"
-  , "20220911cg1s40sw1t1"
-  , "20220911cg1s41sw1t1"
-  , "20220911cg1s43sw1t1"
-  , "20220911cg1s44sw1t1"
-  , "20220911cg1s45sw1t1"
-  , "20220911cg1s47sw1t1"
-  , "20220911cg1s48sw1t1"
-  , "20220911cg1s49sw1t1"
-  , "20220914cg1s47sw1t1"
-  , "20220914cg1s48sw1t1"
-  , "20220914cg1s49sw1t1"
-  # , "20220914cg1s51sw1t1" // different pulse durations
-  # , "20220914cg1s52sw1t1"
-  # , "20220914cg1s53sw1t1"
-  # , "20220914cg1s84sw1t1"
-  # , "20220914cg1s85sw1t1"
-  # , "20220914cg1s86sw1t1"
-  )
-plot <- CRH_opto %>%
-  filter(
-    seriesName %in% totalStimDurSeries
-  ) %>%
-  mutate(
-    duration = floor(duration)
-  ) %>%
-  makeFactors(
-    redFreq
-  ) %>%
-  optoFidelityPlot(
-    redFreq,
-    TRUE,
-    duration,
-    "total duration (s)"
-  ) +
-  labs(
-    linetype = "freq (Hz)"
-    , color = "freq (Hz)"
-  )
-plot
-
-fileBaseName = paste0("CRH_opto_PVN_variedDur")
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = NULL,
-  plot = plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-```
-
-## Constant blue test
-
-```{r}
-constBlueTestSeries <- c(
-  "20220907fg1s40sw1t1"
-  , "20220907fg1s41sw1t1"
-  , "20220907fg1s42sw1t1"
-  , "20220907fg1s43sw1t1"
-  , "20220907fg1s44sw1t1"
-  , "20220907fg1s45sw1t1"
-  , "20220907fg1s46sw1t1"
-  , "20220907fg1s47sw1t1"
-  , "20220907fg1s48sw1t1"
-  , "20220907fg1s49sw1t1"
-  , "20220907fg1s50sw1t1"
-  , "20220907fg1s51sw1t1"
-  , "20220911cg1s51sw1t1"
-  , "20220911cg1s52sw1t1"
-  , "20220911cg1s53sw1t1"
-  , "20220911cg1s54sw1t1"
-  , "20220911cg1s55sw1t1"
-  , "20220911cg1s56sw1t1"
-  , "20220911cg1s57sw1t1"
-  , "20220911cg1s58sw1t1"
-  , "20220911cg1s59sw1t1"
-  , "20220911cg1s60sw1t1"
-  , "20220911cg1s61sw1t1"
-  , "20220911cg1s62sw1t1"
-  ,"20220914cg1s71sw1t1"
-  , "20220914cg1s72sw1t1"
-  , "20220914cg1s73sw1t1"
-  , "20220914cg1s74sw1t1"
-  , "20220914cg1s75sw1t1"
-  , "20220914cg1s76sw1t1"
-  , "20220914cg1s77sw1t1"
-  , "20220914cg1s78sw1t1"
-  , "20220914cg1s79sw1t1"
-  , "20220914cg1s80sw1t1"
-  , "20220914cg1s81sw1t1"
-  , "20220914cg1s82sw1t1"
-  )
-
-sumTimeConstBlue <- CRH_opto %>%
-  filter(
-    pgfLabel == "ConstBlue_IntDur"
-  ) %>%
-  mutate(
-    constBlueTime = sumTime
-  )
-
-plot <- CRH_opto %>%
-  filter(
-    seriesName %in% constBlueTestSeries
-  ) %>%
-  left_join(
-    sumTimeConstBlue %>%
-      select(
-        cellID,
-        constBlueTime
-      ),
-    by = "cellID"
-  ) %>%
-  mutate(
-    beforeAfter = ifelse(
-      sumTime < constBlueTime,
-      "before",
-      "after"
-    ),
-    beforeAfter = factor(beforeAfter, levels = c("before" ="before", "after" = "after"))
-  ) %>%
-  makeFactors(
-    redFreq
-  ) %>%
-  filter(
-    !is.na(redFreq)
-  ) %>%
-  optoFidelityPlot(
-    redFreq,
-    TRUE,
-    beforeAfter,
-    "before and after 30s constant blue stim"
-  )+labs(
-    linetype = "freq (Hz)"
-    , color = "freq (Hz)"
-  )
-plot
-
-fileBaseName = paste0("CRH_opto_PVN_constBlue")
-flexSave(
-  baseName = fileBaseName,
-  thisFilePrefix = NULL,
-  plot = plot,
-  fileType = imgType,
-  filePath = file.path(plotOutputFolder, subFolder),
-  width = thisWidth,
-  height = thisHeight,
-  units = thisUnits,
-  compType = currentCompType,
-  shinySettings = FALSE
-)
-```
-
 
 ## 20220712a 
 
@@ -1054,10 +740,6 @@ plot <- CRH_opto %>%
   optoFidelityPlot(
     redDur,
     TRUE
-  ) +
-  labs(
-    linetype = "duration (ms)"
-    , color = "duration (ms)"
   )
 plot
 

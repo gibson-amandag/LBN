@@ -149,6 +149,11 @@ formatAdjAnova <- function(
 }
 
 
+getPAdjVal <- function(df, effectName){
+  val <- getValWhereOtherValTrue(df, "Effect", effectName, "p.adj")
+  return(val)
+}
+
 getPVal <- function(df, effectName){
   val <- getValWhereOtherValTrue(df, "Effect", effectName, "p")
   return(val)
@@ -169,9 +174,13 @@ getDFdVal <- function(df, effectName){
   return(val)
 }
 
-getFText <- function(df, effectName){
+getFText <- function(df, effectName, doAdj = FALSE){
   Fval <- getFVal(df, effectName)
-  pVal <- getPVal(df, effectName)
+  if(!doAdj){
+    pVal <- getPVal(df, effectName)
+  } else {
+    pVal <- getPAdjVal(df, effectName)
+  }
   if(pVal < 0.001){
     pValText <-  "<0.001"
   }else {

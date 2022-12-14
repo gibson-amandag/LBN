@@ -154,7 +154,8 @@ behavior_overTime_days <- function(
   redMean = FALSE,
   colorByDam = FALSE,
   lineAlpha = 0.4,
-  showDots = TRUE
+  showDots = TRUE,
+  addVertError = TRUE
 ){
   # dayTimeBreaks <- c()
   # days <- c(4:11)
@@ -238,9 +239,12 @@ behavior_overTime_days <- function(
     }
   }
   
+  if(addVertError){
+    viz <- viz + addMeanSE_vertBar()
+  }
+  
   viz <- viz +
     addMeanHorizontalBar(addLineType = FALSE)+
-    addMeanSE_vertBar() +
     labs(y = yLab, linetype = "early life trt") +
     earlyLifeFill() +
     textTheme(

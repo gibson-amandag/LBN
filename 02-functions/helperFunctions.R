@@ -34,6 +34,15 @@ selectIfExists <- function(
 #     mouseID
 #   )
 
+selectAllIfExist <- function(
+    df,
+    colVars #c()
+){
+  df %>%
+    select(
+      any_of(colVars)
+    )
+}
 
 
 #' Demonstrate one approach to getting the name of an unquoted expression
@@ -71,4 +80,20 @@ getValWhereOtherValTrue <- function(
   return(val)
 }
 
+getMouseInfoForSlicing <- function(df, thisMouseID){
+  df %>%
+    filter(
+      mouseID == thisMouseID
+    ) %>%
+    selectAllIfExist(c(
+      "mouseID"
+      , "strain"
+      , "damID"
+      , "sire"
+      , "weanCage"
+      , "damCage"
+      , "DOB"
+      , "sex"
+    ))
+}
 

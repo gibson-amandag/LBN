@@ -521,7 +521,8 @@ addSamplingSlidesFromDFGen <- function(
   includeUterus = TRUE,
   includeNextDay = FALSE,
   includeNotes = FALSE,
-  notesVar = notes
+  notesVar = notes,
+  IDVar = cycleID
 ){
   print("addSamplingSlidesFromDF")
   cyclingDF_long <- cyclingDF %>%
@@ -532,7 +533,8 @@ addSamplingSlidesFromDFGen <- function(
   
   samplingDF <- samplingDF %>%
     mutate(
-      samplingTrtVar = {{ trtVar }}
+      samplingTrtVar = {{ trtVar }},
+      IDVar = {{ IDVar }}
     )
   
   var <- enquo(notesVar)
@@ -574,7 +576,7 @@ addSamplingSlidesFromDFGen <- function(
   pwalk(
     list(
       MouseID = samplingDF$mouseID,
-      cycleID = samplingDF$cycleID,
+      cycleID = samplingDF$IDVar,
       maxLH = samplingDF$maxLH,
       uterineMass = samplingDF$ReproTract_mass,
       # trt = samplingDF %>% select({{trtVar}}), ## this doesn't work for whatever reason - gives the whole list of them, not just the one, leads to rep of first trt
@@ -608,6 +610,7 @@ createRemainingPPT <- function(
   outPath = file.path(reportOutputFolder, "remainingPPTs"),
   addToName = "",
   includeYesterday = FALSE
+  , IDVar = cycleID
 ){
   if(includeYesterday){
     addDay <- 1
@@ -620,6 +623,7 @@ createRemainingPPT <- function(
     ) %>%
     addImgRegExCols_forDate(
       date = thisDate
+      , numIDVar = {{ IDVar }}
     ) %>%
     addGenSamplingImgFilePaths(
       includeUterus = FALSE
@@ -643,6 +647,8 @@ createRemainingPPT <- function(
         mouseID %in% remainingDF$mouseID
       ),
     includeUterus = FALSE
+    , trtVar = {{ trtVar }}
+    , IDVar = {{ IDVar }}
   )
 
   print(samplingPPT, target = file.path(reportOutputFolder, "remainingPPTs", paste0("remaining_", addToName, "_", thisDate, ".pptx")))
@@ -725,6 +731,75 @@ createOvulationPPT <- function(
     slideVersion = slideVersion,
     includeNotes = TRUE,
     notesVar = comboNotes
+  )
+
+  print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", addToName, "_", Sys.Date(), ".pptx")))
+  return(samplingDF)
+}
+
+createSamplingPPT <- function(
+  df,
+  cyclesDF = BD_cycles,
+  trtVar = comboTrt,
+  useVar = Sampling_date,
+  outPath = file.path(reportOutputFolder, "samplingPPTs"),
+  addToName = "",
+  slideVersion = 2,
+  sortByCycle = FALSE,
+  sortByLH = TRUE,
+  sortByDate = FALSE,
+  IDVar = cycleID
+){
+  if(!"maxLH" %in% names(df)){
+    df <- df %>%
+      mutate(
+        maxLH = NA
+      )
+  }
+  samplingDF <- df %>%
+    filter(
+      !is.na({{ useVar }})
+    ) %>%
+    calcAgeInDays(
+      ageAtDateVar = {{ useVar }}
+    ) %>%
+    addImgRegExColsForSamplingDF(
+      arrangeByCycle = sortByCycle,
+      arrangeByLH = sortByLH,
+      numIDVar = {{ IDVar }},
+      dateVar = {{ useVar }},
+      ageVar = AgeInDays,
+      includeUterus = FALSE,
+      includeNextDay = TRUE
+    ) %>%
+    addGenSamplingImgFilePaths(
+      includeUterus = FALSE
+      , includeNextDay = TRUE
+    ) %>%
+    arrange(
+      {{ trtVar }},
+      maxLH,
+      if(sortByDate) {{ useVar }}
+    )
+  
+  samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+  samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
+  samplingPPT <- ph_with(
+    samplingPPT,
+    value = paste("Sampled mice as of", Sys.Date()),
+    location = ph_location_label("Title 1")
+  )
+  addSamplingSlidesFromDFGen(
+    samplingDF,
+    samplingPPT = samplingPPT,
+    cyclingDF = cyclesDF %>%
+      filter(
+        mouseID %in% samplingDF$mouseID
+      ),
+    includeUterus = TRUE,
+    includeNextDay = FALSE,
+    slideVersion = slideVersion,
+    includeNotes = FALSE
   )
 
   print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", addToName, "_", Sys.Date(), ".pptx")))

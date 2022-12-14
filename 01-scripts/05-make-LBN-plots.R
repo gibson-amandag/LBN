@@ -14,7 +14,14 @@ plotDamBehavior_days_1stL <- plotDamBehavior_daysFunc(
   c(1),
   fontSize = textSize,
   dotSize = dotSize,
-  facet = FALSE
+  facet = TRUE,
+  facetInfo = facetForLBN,
+  addTriangleForMean = FALSE,
+  redMean = FALSE,
+  colorByDam = TRUE,
+  showDots = FALSE,
+  removeLegend = TRUE,
+  addVertErrorBars = FALSE
 )
 
 damBehavior_plot_days_1stL <- plotDamBehavior_days_1stL(damBehaviorFiltered_ZTs)+

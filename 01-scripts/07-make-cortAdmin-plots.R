@@ -24,7 +24,7 @@ BD_comboNutALPS_plot <- BD_comboNutALPS %>%
     lineTypeGuide = "",
     positionDodge = 0.2, #this controls the spread of the data visually
     zoom_y = TRUE,
-    ymax = 500,
+    ymax = 1000,
     ymin = 0
   ) +
   labs(
@@ -100,7 +100,7 @@ BD_ALPS_plot <- BD_comboNutALPS %>%
     lineTypeGuide = "",
     positionDodge = 0.2, #this controls the spread of the data visually
     zoom_y = TRUE,
-    ymax = 500,
+    ymax = 1000,
     ymin = 0
   ) +
   # facet_wrap(

@@ -26,7 +26,7 @@ JL_allInfo %>%
     is.na(sacDateOff),
     is.na(Sac_date),
     DOB >= as.Date("2022-01-01"),
-    cycleID >= 44 & cycleID <=71
+    cycleID >= 44 & cycleID <=84
   ) %>%
    unite(
     comboTrt,

@@ -11,6 +11,25 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 ```{r include=FALSE}
 source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
+source(file.path(scriptsFolder, "04-filter-datasets.R"))
+```
+
+# Cohort 9 remaining
+```{r}
+LBN_data %>%
+  filter(
+    cohort == 9
+    , sex == "F"
+    , is.na(Sac_or_stop)
+    , DOB < (Sys.Date() - 90)
+  ) %>%
+  createRemainingPPT(
+    addToName = "LBN" 
+    , includeYesterday = FALSE
+    , cyclesDF = cyclesFiltered
+    , IDVar = num_ID
+    , trtVar = earlyLifeTrt
+    )
 ```
 
 ```{r}

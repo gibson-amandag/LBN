@@ -6606,11 +6606,13 @@ LH_off %>%
 
 
 2022-09-29 - ZT15 and ZT1 times and dates (1h after light transitions) for Cohort 9
+Editted 2022-12-07 to add ZT19
 ```{r}
 damBehaveDates <- Demo_dam %>%
   filter(
-    # Litter_size >= 5
-    cohort == 9
+    Litter_size >= 5
+    , cohort == 9
+    , is.na(Sac_or_stop)
   ) %>%
   arrange(
     cohort,
@@ -6626,6 +6628,10 @@ damBehaveDates <- Demo_dam %>%
     , P4_ZT15_done = NA
     , P4_ZT15_who = NA
     , P4_ZT15_notes = NA,
+    P4_ZT19 = getZT_DateTime(DOB, PND = 4, ZT = 19)
+    , P4_ZT19_done = NA
+    , P4_ZT19_who = NA
+    , P4_ZT19_notes = NA,
     P5_ZT1 = getZT_DateTime(DOB, PND = 5, ZT = 1)
     , P5_ZT1_done = NA
     , P5_ZT1_who = NA
@@ -6634,6 +6640,10 @@ damBehaveDates <- Demo_dam %>%
     , P5_ZT15_done = NA
     , P5_ZT15_who = NA
     , P5_ZT15_notes = NA,
+    P5_ZT19 = getZT_DateTime(DOB, PND = 5, ZT = 19)
+    , P5_ZT19_done = NA
+    , P5_ZT19_who = NA
+    , P5_ZT19_notes = NA,
     P6_ZT1 = getZT_DateTime(DOB, PND = 6, ZT = 1)
     , P6_ZT1_done = NA
     , P6_ZT1_who = NA
@@ -6642,6 +6652,10 @@ damBehaveDates <- Demo_dam %>%
     , P6_ZT15_done = NA
     , P6_ZT15_who = NA
     , P6_ZT15_notes = NA,
+    P6_ZT19 = getZT_DateTime(DOB, PND = 6, ZT = 19)
+    , P6_ZT19_done = NA
+    , P6_ZT19_who = NA
+    , P6_ZT19_notes = NA,
     P7_ZT1 = getZT_DateTime(DOB, PND = 7, ZT = 1)
     , P7_ZT1_done = NA
     , P7_ZT1_who = NA
@@ -6650,6 +6664,10 @@ damBehaveDates <- Demo_dam %>%
     , P7_ZT15_done = NA
     , P7_ZT15_who = NA
     , P7_ZT15_notes = NA,
+    P7_ZT19 = getZT_DateTime(DOB, PND = 7, ZT = 19)
+    , P7_ZT19_done = NA
+    , P7_ZT19_who = NA
+    , P7_ZT19_notes = NA,
     P8_ZT1 = getZT_DateTime(DOB, PND = 8, ZT = 1)
     , P8_ZT1_done = NA
     , P8_ZT1_who = NA
@@ -6658,6 +6676,10 @@ damBehaveDates <- Demo_dam %>%
     , P8_ZT15_done = NA
     , P8_ZT15_who = NA
     , P8_ZT15_notes = NA,
+    P8_ZT19 = getZT_DateTime(DOB, PND = 8, ZT = 19)
+    , P8_ZT19_done = NA
+    , P8_ZT19_who = NA
+    , P8_ZT19_notes = NA,
     P9_ZT1 = getZT_DateTime(DOB, PND = 9, ZT = 1)
     , P9_ZT1_done = NA
     , P9_ZT1_who = NA
@@ -6666,6 +6688,10 @@ damBehaveDates <- Demo_dam %>%
     , P9_ZT15_done = NA
     , P9_ZT15_who = NA
     , P9_ZT15_notes = NA,
+    P9_ZT19 = getZT_DateTime(DOB, PND = 9, ZT = 19)
+    , P9_ZT19_done = NA
+    , P9_ZT19_who = NA
+    , P9_ZT19_notes = NA,
     P10_ZT1 = getZT_DateTime(DOB, PND = 10, ZT = 1)
     , P10_ZT1_done = NA
     , P10_ZT1_who = NA
@@ -6674,6 +6700,10 @@ damBehaveDates <- Demo_dam %>%
     , P10_ZT15_done = NA
     , P10_ZT15_who = NA
     , P10_ZT15_notes = NA,
+    P10_ZT19 = getZT_DateTime(DOB, PND = 10, ZT = 19)
+    , P10_ZT19_done = NA
+    , P10_ZT19_who = NA
+    , P10_ZT19_notes = NA,
     P11_ZT1 = getZT_DateTime(DOB, PND = 11, ZT = 1)
     , P11_ZT1_done = NA
     , P11_ZT1_who = NA
@@ -6683,7 +6713,7 @@ damBehaveDates <- Demo_dam %>%
 damBehaveDates
 
 saveDFsToExcel(
-  "damBehaviorDates_ZT15_ZT1",
+  "damBehaviorDates_ZT15_ZT19_ZT1",
   dates = damBehaveDates
 )
 ```
@@ -6918,5 +6948,129 @@ df = damBehaviorFiltered_P5_P6
       # date_labels = "PND%d\nZT%H"
       date_labels = "%d\n%H"
     )
+```
+
+
+```{r}
+cortMeansFemales <- cortFilteredFemales %>%
+  group_by(
+    Sac_cycle, earlyLifeTrt, adultTrt, time
+  ) %>%
+  meanSummary(cort)
+  saveDFsToExcel(
+    "cortReponse"
+    , "cortMeansFemales" = cortMeansFemales
+  )
+```
+
+
+# 2022-11-06 - Litter numbers and offspring
+```{r}
+acuteStressFilteredFemales %>%
+  group_by(earlyLifeTrt)%>%
+    select(
+      mouseID,
+      damID,
+      earlyLifeTrt
+    ) %>%
+    summarise(
+      numMice = length(unique(mouseID)),
+      numLitters = length(unique(damID)),
+      .groups = "drop"
+    )
+
+
+acuteStressFilteredFemales %>%
+  group_by(damID) %>%
+  select(
+    
+  )
+  summarize(
+    
+  )
+```
+
+```{r}
+cohort9_females <- LBN_data %>%
+  filter(
+    sex == "F"
+    , cohort == 9
+    , is.na(Sac_stop_off)
+  ) %>%
+  select(
+    mouseID
+    , damID
+    , DOB
+    , earlyLifeTrt
+  ) %>%
+  mutate(
+    PND91 = DOB + 91
+  )
+
+saveDFsToExcel(
+  "cohort9"
+  , cohort9 = cohort9_females
+)
+```
+
+```{r}
+breeding_cohort9 <- Demo_dam %>%
+  filter(
+    breedDate > as_date("2022-10-01")
+    , is.na(DOB) | DOB > as_date("2022-10-30")
+  ) %>%
+  select(
+    damID
+    , breedDate
+    , DOB
+  ) %>%
+  add_row(
+    breedDate = c(
+      as_date("2022-11-11")
+      , as_date("2022-11-18")
+      , as_date("2022-11-23")
+      , as_date("2022-12-02")
+      , as_date("2022-12-09")
+      , as_date("2022-12-16")
+    )
+  ) %>%
+  arrange(
+    DOB, breedDate
+  ) %>%
+  mutate(
+    DOB_est = breedDate + 21
+    , .after = breedDate
+  ) %>%
+  mutate(
+    PND4 = as_date(ifelse(!is.na(DOB), DOB + 4, DOB_est + 4))
+    , PND11 = as_date(ifelse(!is.na(DOB), DOB + 11, DOB_est + 11))
+    , PND21 = as_date(ifelse(!is.na(DOB), DOB + 21, DOB_est + 21))
+    , PND70 = as_date(ifelse(!is.na(DOB), DOB + 70, DOB_est + 70))
+    , PND91 = as_date(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
+  )
+
+saveDFsToExcel(
+  "cohort9breeding"
+  , cohort9 = breeding_cohort9
+)
+```
+
+
+```{r}
+Demo_dam %>%
+  filter(
+    is.na(Cort_dam_P11) & is.na(Cort_dam_P21)
+    , !is.na(earlyLifeTrt)
+    , cohort %in% c(2, 4, 6, 7, 8, 9)
+  ) %>%
+  select(
+    damID,
+    Cort_dam_P11,
+    Cort_dam_P21
+  )
+```
+
+```{r}
+
 ```
 

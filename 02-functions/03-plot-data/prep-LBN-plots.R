@@ -93,6 +93,7 @@ plotDamBehavior_daysFunc <- function(
     , showDots = TRUE
     , removeLegend = FALSE
     , addDarkBox = FALSE # currently, only P5-6
+    , addVertErrorBars = TRUE
 ){
   plotFunc <- function(df){
     plot <- df %>%
@@ -111,6 +112,7 @@ plotDamBehavior_daysFunc <- function(
         colorByDam = colorByDam,
         lineAlpha = lineAlpha,
         showDots = showDots,
+        addVertError = addVertErrorBars
       ) +
       theme(legend.position = "bottom") +
       labs(
@@ -546,13 +548,14 @@ plotCortFunc <- function(
     litterNums
     , zoom_y = TRUE
     , ymin = 0
-    , ymax = 550
+    , ymax = 1025 # changed 2022-12-07
     , zoom_x = TRUE
     , xmin = -2
     , xmax = 7
     , fontSize = 16
     , dotSize = 3
-    , breaks = c(0, 100, 200, 300, 400, 500)
+    , breaks = c(0, 200, 400, 600, 800, 1000)
+    # , breaks = c(0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000)
     , yUnitsNewLine = FALSE
 ){
   plotFunc <- function(df){

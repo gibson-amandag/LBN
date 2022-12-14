@@ -34,6 +34,7 @@ BD_offspringInfo %>%
   ) %>%
   createOvulationPPT(
     addToName = "BD"
+    , cyclesDF = BD_cycles
     , useVar = Sampling_date
     , sortByCycle = FALSE
     , sortByLH = FALSE
@@ -300,5 +301,61 @@ BD_comboNutALPS %>%
   )
 
 
+```
+
+
+```{r}
+BD_cort %>%
+  filter(
+    time %in% c(0, 5)
+    , is.na(exclude) | exclude == FALSE
+  ) %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 16,
+    groupVar = dosage, # group by the dosage; this is why it needs to be a factor
+    lineTypeGuide = c("solid", "dotted"),
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 500,
+    ymin = 0
+  ) +
+  facet_wrap(
+    ~ dosage,
+    labeller = labeller(dosage = c("0" = "0mg/kg", "2" = "2mg/kg"))
+  ) +
+  # labs(
+  #   x = "time since 1st administration (h)" # add a title to the x axis
+  # ) + 
+  theme(
+    legend.position = "none"
+  )  + 
+  dosageFillShape()
+```
+
+```{r}
+BD_cort %>%
+  filter(
+    time %in% c(0, 5)
+    , is.na(exclude) | exclude == FALSE
+  ) %>%
+  anova_test(
+    dv = cort,
+    between = dosage,
+    within = time,
+    wid = mouseID
+  ) %>%
+  formatAnova()
+
+BD_cort %>%
+  filter(
+    time %in% c(0, 5)
+    , is.na(exclude) | exclude == FALSE
+  ) %>%
+  group_by(
+    dosage,
+    time
+  ) %>%
+  meanSummary(cort)
 ```
 
