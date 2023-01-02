@@ -1,6 +1,7 @@
 cohorts <- c(2, 4, 6, 7, 8, 9)
 minLitterSize <- 5
 damBehaviorTimes <- c(1, 15, 19)
+surgeMin <- 3
 
 # This is a function that creates another function - makes it clearer what
 # is being done for the filtering

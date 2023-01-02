@@ -1,0 +1,223 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+```
+
+
+```{r}
+ZTs = c(0:23)
+mins = c(0, 15, 30, 45)
+
+damsDOB <- damFiltered %>%
+  select(
+    damID,
+    DOB,
+    Camera_number,
+    earlyLifeTrt,
+    cohort,
+    litterNum
+  ) %>%
+  rename(
+    Camera = Camera_number
+  ) %>%
+  mutate(
+    Camera_number = case_when(
+      Camera == "Right" ~ 5,
+      Camera == "Right - Mac Air" ~ 5,
+      Camera == "Left - MacBook Pro" ~ 6,
+      Camera == "Mac Book Pro (right)" ~ 2,
+      Camera == "Mac Book Air - (now left)" ~ 1,
+      Camera == "1 - MacBook Air " ~ 1,
+      Camera == "1 - MacBook Air" ~ 1,
+      Camera == "2 - MacBook Pro" ~ 2,
+      Camera == "3 - Dispo Mac" ~ 3,
+      Camera == "4 - Beth Pro" ~ 4,
+      TRUE ~ NaN
+    )
+  ) %>%
+  select (
+    -Camera
+  )
+
+damsDOB
+```
+
+
+```{r}
+getImgsDF <- function(
+    damsDOB,
+    PNDs,
+    ZTs = c(0:23),
+    mins = c(0, 15, 30, 45),
+    imgsFolder = damImgsFolder
+){
+  damsImgs <- damsDOB
+
+  for(PND in PNDs){
+    for(ZT in ZTs){
+      for(min in mins){
+        colName = paste0(
+          "PND",
+          sprintf("%02d", as.integer(PND)),
+          "_ZT",
+          sprintf("%02d", as.integer(ZT)),
+          "_min",
+          sprintf("%02d", as.integer(min))
+        )
+        damsImgs <- damsImgs %>%
+          mutate(
+            "{colName}":=NA
+          )
+      }
+    }
+  }
+  
+  damsImgs_long <- damsImgs %>%
+    pivot_longer(
+      cols = starts_with("PND"),
+      names_to = c("PND", "ZT", "minute"),
+      names_pattern = "PND(.*)_ZT(.*)_min(.*)"
+    ) %>%
+    mutate(
+      PND = as.numeric(PND),
+      ZT = as.numeric(ZT),
+      min = as.numeric(min)
+    ) %>%
+    select(
+      -value
+    )
+  
+  damsImgs_long
+  
+  imgsDF <- damsImgs_long %>%
+    rowwise() %>%
+    mutate(
+      imgDate = getZTDate(getZT_DateTime(DOB, PND, ZT)),
+      imgTime = getZTHour(getZT_DateTime(DOB, PND, ZT)),
+      imgMatchString = paste0(
+        damID,
+        "_",
+        imgDate,
+        "_",
+        sprintf("%02d", as.integer(ZT)),
+        "*",
+        sprintf("%02d", as.integer(min)),
+        "min.png"
+      ),
+      imgRegEx = getStillRegEx(damID, DOB, PND, ZT, min),
+      imgPath = findMatchingFile(
+        imgsFolder,
+        imgRegEx,
+        damID,
+        date = paste(PND, ZT, min)
+      ),
+      imgName = ifelse(!is.na(imgPath), basename(imgPath), NA)
+    ) %>%
+    filter(
+      !is.na(imgName)
+    )
+  
+  return(imgsDF)
+}
+```
+
+
+# PND 4
+
+```{r}
+PNDs = c(4)
+
+
+P4_imgs <- getImgsDF(damsDOB, PNDs)
+
+P4_imgs
+saveDFsToExcel(
+  "P4_imgs",
+  "P4" = P4_imgs
+)
+```
+
+# PND 5
+
+```{r}
+PNDs = c(5)
+
+damsImgs <- damsDOB
+
+for(PND in PNDs){
+  for(ZT in ZTs){
+    for(min in mins){
+      colName = paste0(
+        "PND",
+        sprintf("%02d", as.integer(PND)),
+        "_ZT",
+        sprintf("%02d", as.integer(ZT)),
+        "_min",
+        sprintf("%02d", as.integer(min))
+      )
+      damsImgs <- damsImgs %>%
+        mutate(
+          "{colName}":=NA
+        )
+    }
+  }
+}
+
+damsImgs_long <- damsImgs %>%
+  pivot_longer(
+    cols = starts_with("PND"),
+    names_to = c("PND", "ZT", "min"),
+    names_pattern = "PND(.*)_ZT(.*)_min(.*)"
+  ) %>%
+  mutate(
+    PND = as.numeric(PND),
+    ZT = as.numeric(ZT),
+    min = as.numeric(min)
+  ) %>%
+  select(
+    -value
+  )
+
+damsImgs_long
+
+P5_imgs <- damsImgs_long %>%
+  rowwise() %>%
+  mutate(
+    imgDate = getZTDate(getZT_DateTime(DOB, PND, ZT)),
+    imgTime = getZTHour(getZT_DateTime(DOB, PND, ZT)),
+    imgMatchString = paste0(
+      damID,
+      "_",
+      imgDate,
+      "_",
+      sprintf("%02d", as.integer(ZT)),
+      "*",
+      sprintf("%02d", as.integer(min)),
+      "min.png"
+    ),
+    imgRegEx = getStillRegEx(damID, DOB, PND, ZT, min),
+    imgPath = findMatchingFile(
+      damImgsFolder,
+      imgRegEx,
+      damID,
+      date = paste(PND, ZT, min)
+    ),
+    imgName = ifelse(!is.na(imgPath), basename(imgPath), NA)
+  ) %>%
+  filter(
+    !is.na(imgName)
+  )
+
+P5_imgs
+```
+

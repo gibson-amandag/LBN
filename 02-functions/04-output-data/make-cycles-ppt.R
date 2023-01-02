@@ -148,7 +148,7 @@ findMatchingFile <- function(
     perl = T
   )
   if(length(foundPaths) == 0){
-    print(paste0("no file found ", MouseID, " ", type, "date ", date))
+    # print(paste0("no file found ", MouseID, " ", type, "date ", date))
   } else if(length(foundPaths) > 1){
     print(paste0("multiple files found ", MouseID, " ", type))
     print(foundPaths)

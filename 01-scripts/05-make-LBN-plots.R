@@ -475,8 +475,6 @@ uterineMassByGroup_byStage_2ndL <- acuteStressFilteredFemales %>%
 
 ## LH ----------------------------------------------------------------------
 
-surgeMin <- 3
-
 plotLH_bothL <- plotLHFunc(
   c(1, 2)
   , fontSize = textSize
