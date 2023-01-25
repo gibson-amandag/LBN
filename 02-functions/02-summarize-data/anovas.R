@@ -61,6 +61,38 @@ anovaTrtLitterFunc <- function(
   return(anovaFunc)
 }
 
+anovaDayTrtLitterFunc <- function(
+  dvCol #expr()
+  , idVar = expr(mouseID)
+  , fontSize = 11
+  , addWVal = 0.1
+  , addHVal = 0.1
+){
+  anovaFunc <- function(df){
+    anova <- df %>%
+      filter(
+        !is.na(!! dvCol )
+        , !is.na(earlyLifeTrt)
+        , !is.na(litterNum)
+      ) %>%
+      anova_test(
+        dv = {{ dvCol }}
+        , wid = {{ idVar }}
+        , between = c(earlyLifeTrt, litterNum)
+        , within = day
+        
+      )
+    flxTbl <- formatAnova(anova, fontSize = fontSize, addWVal = addWVal, addHVal = addHVal)
+    return(list(
+      anova = anova %>% get_anova_table() %>% # added 2021-10-23
+        as_tibble() # replaced as_data_frame()
+      , flxTbl = flxTbl
+      )
+    )
+  }
+  return(anovaFunc)
+}
+
 #' Format LBN x ALPS stress anova output
 #' 
 #' takes the rstatix::anova_test() output and makes it a dataframe, then mutates to make the following changes:

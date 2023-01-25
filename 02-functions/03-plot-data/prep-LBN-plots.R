@@ -152,6 +152,61 @@ plotDamBehavior_daysFunc <- function(
 }
 
 
+# Dam Mass ----------------------------------------------------------
+
+plotDamMass_func <- function(
+    litterNums # as c()
+    , fontSize = 16
+    , zoom_x = TRUE
+    , zoom_x_min = 0
+    , zoom_x_max = 21
+    , zoom_y = TRUE
+    , zoom_y_min = 0
+    , zoom_y_max = 40
+){
+  plotFunc <- function(df){
+    plot <- df %>%
+      filter(
+        litterNum %in% litterNums
+      ) %>%
+      plot_dam_mass_lines(
+        useLineType = FALSE, # TRUE/FALSE
+        lineTypeVar = earlyLifeTrt,
+        lineGroupVar = damID,
+        xtitle = "postnatal day", #x axis label
+        ytitle = "mass (g)", #y axis label
+        title = NULL, # plot title
+        individualLines = TRUE, # plot individual lines
+        meanLines = TRUE, # plot mean lines with SE
+        zoom_x = zoom_x, # Zoom to part of x axis
+        xmin = zoom_x_min,
+        xmax = zoom_x_max,
+        zoom_y = zoom_y, # Zoom to part of y axis
+        ymin = zoom_y_min,
+        ymax = zoom_y_max,
+        indivLineAlpha = .3,
+        indivLineSize = 0.8,
+        errorBarWidth = 0,
+        meanLineSize = 1.4,
+        meanAlpha = 1,
+        errorBarSize = 1,
+        # errorBarColor = "grey10",
+        errorBarAlpha = 1,
+        textSize = fontSize,
+        axisSize = 0.5,
+        # legendPosition = "bottom",
+        legendPosition = c(0.85, 0.2),
+        STDColor = "#4D4D4D",
+        LBNColor = "#008B8B"
+      ) +
+      theme(
+        legend.key = element_rect(fill = NA)
+      )
+      
+    return(plot)
+  }
+  return(plotFunc)
+}
 # Offspring Mass ----------------------------------------------------------
 
 plotOffspringMass <- function(

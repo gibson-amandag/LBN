@@ -632,6 +632,138 @@ plotLHAmp <- function(
   return(plot)
 }
 
+plotLHAmp_dosage <- function(
+  df, 
+  surgeMin, 
+  textSize = 11, 
+  dotSize = 2
+){
+  plot <- df %>%
+    mutate(
+      surgeStatus = 
+        case_when(
+          dosage == "0" & maxLH > surgeMin ~ "0 mg/kg surge",
+          dosage == "0" & maxLH <= surgeMin ~ "0 mg/kg no surge",
+          dosage == "2" & maxLH > surgeMin ~ "2 mg/kg surge",
+          TRUE ~ "2 mg/kg no surge"
+        )
+    ) %>%
+    mutate(
+      surgeStatus = factor(surgeStatus, levels = c(
+        "0 mg/kg surge"
+        , "0 mg/kg no surge"
+        , "2 mg/kg surge"
+        , "2 mg/kg no surge"
+      ))
+    ) %>%
+    ggplot(
+      aes(
+        x = surgeStatus,
+        y = maxLH,
+        fill = dosage,
+        shape = dosage
+      )
+    ) +
+    geom_point(
+      alpha = 1,
+      position = position_dodge2(0.4),
+      size = dotSize,
+      # shape = 21,
+      color = "black"
+    )+
+    addMeanHorizontalBar(
+      width = 0.85, 
+      addLineType = FALSE
+    ) +
+    addMeanSE_vertBar()+
+    dosageFillShape()+
+    boxTheme()+
+    textTheme(textSize) +
+    ylab("LH (ng/mL)")+
+    scale_x_discrete(
+      labels = c(
+        "0 mg/kg \nsurge"
+        , "0 mg/kg\nno surge"
+        , "2 mg/kg \nsurge"
+        , "2 mg/kg\nno surge"
+      )
+    )+
+    theme(
+      legend.position = "none",
+      axis.title.x = element_blank(),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)
+    )
+  return(plot)
+}
+
+plotLHTime_dosage <- function(
+  df, 
+  surgeMin, 
+  textSize = 11, 
+  dotSize = 2
+){
+  plot <- df %>%
+    mutate(
+      surgeStatus = 
+        case_when(
+          dosage == "0" & maxLH > surgeMin ~ "0 mg/kg surge",
+          dosage == "0" & maxLH <= surgeMin ~ "0 mg/kg no surge",
+          dosage == "2" & maxLH > surgeMin ~ "2 mg/kg surge",
+          TRUE ~ "2 mg/kg no surge"
+        )
+    ) %>%
+    mutate(
+      surgeStatus = factor(surgeStatus, levels = c(
+        "0 mg/kg surge"
+        , "0 mg/kg no surge"
+        , "2 mg/kg surge"
+        , "2 mg/kg no surge"
+      ))
+    ) %>%
+    ggplot(
+      aes(
+        x = surgeStatus,
+        y = timeAtMax,
+        fill = dosage,
+        shape = dosage
+      )
+    ) +
+    geom_point(
+      alpha = 1,
+      position = position_dodge2(0.4),
+      size = dotSize,
+      # shape = 21,
+      color = "black"
+    )+
+    addMeanHorizontalBar(
+      width = 0.85, 
+      addLineType = FALSE
+    ) +
+    addMeanSE_vertBar()+
+    dosageFillShape()+
+    boxTheme()+
+    textTheme(textSize) +
+    ylab("time at maximum LH\n(hr) relative to lights out")+
+    scale_x_discrete(
+      labels = c(
+        "0 mg/kg \nsurge"
+        , "0 mg/kg\nno surge"
+        , "2 mg/kg \nsurge"
+        , "2 mg/kg\nno surge"
+      )
+    )+
+    theme(
+      legend.position = "none",
+      axis.title.x = element_blank(),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)
+    ) + 
+    scale_y_continuous(
+      breaks = c(5, 5.5, 6.5, 7.5, 8.5),
+      labels = c(-2.5, -2, -1, 0, 1)
+    )
+  return(plot)
+}
+
 
 plotLHAmp_comboTrt <- function(
   df, 

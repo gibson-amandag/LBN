@@ -25,7 +25,8 @@ damsDOB <- damFiltered %>%
     Camera_number,
     earlyLifeTrt,
     cohort,
-    litterNum
+    litterNum,
+    Litter_size
   ) %>%
   rename(
     Camera = Camera_number
@@ -47,9 +48,22 @@ damsDOB <- damFiltered %>%
   ) %>%
   select (
     -Camera
+  ) %>%
+  rename(
+    camera = Camera_number,
+    litterSize = Litter_size
+  ) %>%
+  relocate(
+    camera,
+    .before = litterSize
   )
 
 damsDOB
+
+saveDFsToExcel(
+  "damsInfo",
+  "damsInfo" = damsDOB
+)
 ```
 
 
@@ -91,7 +105,7 @@ getImgsDF <- function(
     mutate(
       PND = as.numeric(PND),
       ZT = as.numeric(ZT),
-      min = as.numeric(min)
+      minute = as.numeric(minute)
     ) %>%
     select(
       -value
@@ -109,17 +123,17 @@ getImgsDF <- function(
         "_",
         imgDate,
         "_",
-        sprintf("%02d", as.integer(ZT)),
+        sprintf("%02d", as.integer(imgTime)),
         "*",
-        sprintf("%02d", as.integer(min)),
+        sprintf("%02d", as.integer(minute)),
         "min.png"
       ),
-      imgRegEx = getStillRegEx(damID, DOB, PND, ZT, min),
+      imgRegEx = getStillRegEx(damID, DOB, PND, ZT, minute),
       imgPath = findMatchingFile(
         imgsFolder,
         imgRegEx,
         damID,
-        date = paste(PND, ZT, min)
+        date = paste(PND, ZT, minute)
       ),
       imgName = ifelse(!is.na(imgPath), basename(imgPath), NA)
     ) %>%
@@ -135,8 +149,8 @@ getImgsDF <- function(
 # PND 4
 
 ```{r}
+ptm <- proc.time()
 PNDs = c(4)
-
 
 P4_imgs <- getImgsDF(damsDOB, PNDs)
 
@@ -145,6 +159,8 @@ saveDFsToExcel(
   "P4_imgs",
   "P4" = P4_imgs
 )
+remove(P4_imgs)
+proc.time() - ptm
 ```
 
 # PND 5
@@ -152,45 +168,282 @@ saveDFsToExcel(
 ```{r}
 PNDs = c(5)
 
-damsImgs <- damsDOB
+P5_imgs <- getImgsDF(damsDOB, PNDs)
 
-for(PND in PNDs){
-  for(ZT in ZTs){
-    for(min in mins){
-      colName = paste0(
-        "PND",
-        sprintf("%02d", as.integer(PND)),
-        "_ZT",
-        sprintf("%02d", as.integer(ZT)),
-        "_min",
-        sprintf("%02d", as.integer(min))
-      )
-      damsImgs <- damsImgs %>%
-        mutate(
-          "{colName}":=NA
-        )
-    }
+P5_imgs
+saveDFsToExcel(
+  "P5_imgs",
+  "P5" = P5_imgs
+)
+remove(P5_imgs)
+```
+
+# PND 6
+
+```{r}
+PNDs = c(6)
+
+P6_imgs <- getImgsDF(damsDOB, PNDs)
+
+P6_imgs
+saveDFsToExcel(
+  "P6_imgs",
+  "P6" = P6_imgs
+)
+remove(P6_imgs)
+```
+
+# PND 7
+
+```{r}
+PNDs = c(7)
+
+P7_imgs <- getImgsDF(damsDOB %>% filter(cohort == 9), PNDs)
+
+P7_imgs
+saveDFsToExcel(
+  "P7_imgs",
+  "P7" = P7_imgs
+)
+remove(P7_imgs)
+```
+
+# PND 8
+
+```{r}
+PNDs = c(8)
+
+P8_imgs <- getImgsDF(damsDOB %>% filter(cohort == 9), PNDs)
+
+P8_imgs
+saveDFsToExcel(
+  "P8_imgs",
+  "P8" = P8_imgs
+)
+remove(P8_imgs)
+```
+
+# PND 9
+
+```{r}
+PNDs = c(9)
+
+P9_imgs <- getImgsDF(damsDOB %>% filter(cohort == 9), PNDs)
+
+P9_imgs
+saveDFsToExcel(
+  "P9_imgs",
+  "P9" = P9_imgs
+)
+remove(P9_imgs)
+```
+
+# PND 10
+
+```{r}
+PNDs = c(10)
+
+P10_imgs <- getImgsDF(damsDOB %>% filter(cohort == 9), PNDs)
+
+P10_imgs
+saveDFsToExcel(
+  "P10_imgs",
+  "P10" = P10_imgs
+)
+remove(P10_imgs)
+```
+
+# PND 11
+
+```{r}
+PNDs = c(11)
+
+P11_imgs <- getImgsDF(damsDOB %>% filter(cohort == 9), PNDs)
+
+P11_imgs
+saveDFsToExcel(
+  "P11_imgs",
+  "P11" = P11_imgs
+)
+remove(P11_imgs)
+```
+
+# D062 - Images were initially labeled as test, get the files for the relabeled ones
+
+```{r}
+PNDs = c(4)
+
+D062_imgs <- getImgsDF(damsDOB %>% filter(damID == "D062-01"), PNDs, ZTs = c(4:13))
+
+D062_imgs
+saveDFsToExcel(
+  "D062_imgs",
+  "D062" = D062_imgs
+)
+remove(D062_imgs)
+```
+# D029 - P5, ZT14, only have first two images exported initially
+
+```{r}
+PNDs = c(5)
+
+D029_imgs <- getImgsDF(damsDOB %>% filter(damID == "D029-02"), PNDs, ZTs = c(14))
+
+D029_imgs
+saveDFsToExcel(
+  "D029_imgs",
+  "D029" = D029_imgs
+)
+remove(D029_imgs)
+```
+
+# D035 - P5, ZT21, need to add min 45
+
+```{r}
+PNDs = c(5)
+
+D035_imgs <- getImgsDF(damsDOB %>% filter(damID == "D035-02"), PNDs, ZTs = c(21), mins = c(45))
+
+D035_imgs
+saveDFsToExcel(
+  "D035_imgs",
+  "D035" = D035_imgs
+)
+remove(D035_imgs)
+```
+
+# D051 - P5, ZT7, need to add min 30, 45
+File was split, had to modify the times to get the appropriate output
+
+```{r}
+PNDs = c(5)
+
+D051_imgs <- getImgsDF(damsDOB %>% filter(damID == "D051-01"), PNDs, ZTs = c(7), mins = c(30, 45))
+
+D051_imgs
+saveDFsToExcel(
+  "D051_imgs",
+  "D051" = D051_imgs
+)
+remove(D051_imgs)
+```
+
+# D069 - P10, ZT23, need to add min 30, 45
+File was split, had to modify the times to get the appropriate output
+
+```{r}
+PNDs = c(10)
+
+D069_imgs <- getImgsDF(damsDOB %>% filter(damID == "D069-01"), PNDs, ZTs = c(23), mins = c(30, 45))
+
+D069_imgs
+saveDFsToExcel(
+  "D069_imgs",
+  "D069" = D069_imgs
+)
+remove(D069_imgs)
+```
+
+# D087
+
+```{r}
+PNDs = c(4:11)
+
+D087_imgs <- getImgsDF(damsDOB %>% filter(damID == "D087-01"), PNDs)
+
+D087_imgs
+saveDFsToExcel(
+  "D087_imgs",
+  "D087" = D087_imgs
+)
+remove(D087_imgs)
+```
+
+# Move incorrect Dam Images
+```{r}
+LBN_imgDelete <- loadExcelSheet_fromFile(file.path(dataFolder, "AGG_LBN_deleteDamImgs_2023-01-12.xlsx"), "Sheet1")
+LBN_imgDelete
+
+damImgsFolder
+
+moveDamImgFile <- function(thisDamID, fileName, imgsFolder = damImgsFolder){
+  currentLoc = file.path(imgsFolder, thisDamID)
+  newLoc = file.path(imgsFolder, "movedImgs", thisDamID)
+  newLocExists = dir_exists(newLoc)
+  if(!newLocExists){
+    dir_create(newLoc) # dir_create should ignore already existing directories, but just to be safe, check myself
   }
+  file_move(
+    file.path(currentLoc, fileName),
+    newLoc
+  )
 }
 
-damsImgs_long <- damsImgs %>%
-  pivot_longer(
-    cols = starts_with("PND"),
-    names_to = c("PND", "ZT", "min"),
-    names_pattern = "PND(.*)_ZT(.*)_min(.*)"
-  ) %>%
-  mutate(
-    PND = as.numeric(PND),
-    ZT = as.numeric(ZT),
-    min = as.numeric(min)
-  ) %>%
-  select(
-    -value
-  )
+mapply(moveDamImgFile, thisDam = LBN_imgDelete$damID, fileName = LBN_imgDelete$imgName)
+```
 
-damsImgs_long
+Find other matching files at these times
+Ran this until there weren't any more matching files
+```{r}
+moveImgsDF <- LBN_imgDelete %>%
+    rowwise() %>%
+    mutate(
+      imgRegEx = getStillRegEx(damID, DOB, PND, ZT, minute),
+      imgPath = findMatchingFile(
+        file.path(damImgsFolder, damID),
+        imgRegEx,
+        damID,
+        date = paste(PND, ZT, minute)
+      ),
+      imgName = ifelse(!is.na(imgPath), basename(imgPath), NA)
+    ) %>%
+    filter(
+      !is.na(imgName)
+    )
 
-P5_imgs <- damsImgs_long %>%
+moveImgsDF
+
+mapply(moveDamImgFile, thisDam = moveImgsDF$damID, fileName = basename(moveImgsDF$imgName))
+```
+
+# Move images that will be regenerated
+```{r}
+LBN_imgUpdate <- loadExcelSheet_fromFile(file.path(dataFolder, "AGG_LBN_updateImgs_2023-01-12.xlsx"), "Sheet1")
+LBN_imgUpdate
+```
+
+Find other matching files at these times
+Ran this until there weren't any more matching files
+```{r}
+moveImgsDF <- LBN_imgUpdate %>%
+    rowwise() %>%
+    mutate(
+      imgRegEx = getStillRegEx(damID, DOB, PND, ZT, minute),
+      imgPath = findMatchingFile(
+        file.path(damImgsFolder, damID),
+        imgRegEx,
+        damID,
+        date = paste(PND, ZT, minute)
+      ),
+      imgName = ifelse(!is.na(imgPath), basename(imgPath), NA)
+    ) %>%
+    filter(
+      !is.na(imgName)
+    )
+
+moveImgsDF
+
+mapply(moveDamImgFile, thisDam = moveImgsDF$damID, fileName = basename(moveImgsDF$imgName))
+```
+
+
+```{r}
+LBN_imgUpdate
+```
+
+
+```{r}
+imgsDF <- LBN_imgUpdate %>%
   rowwise() %>%
   mutate(
     imgDate = getZTDate(getZT_DateTime(DOB, PND, ZT)),
@@ -200,24 +453,165 @@ P5_imgs <- damsImgs_long %>%
       "_",
       imgDate,
       "_",
-      sprintf("%02d", as.integer(ZT)),
+      sprintf("%02d", as.integer(imgTime)),
       "*",
-      sprintf("%02d", as.integer(min)),
+      sprintf("%02d", as.integer(minute)),
       "min.png"
     ),
-    imgRegEx = getStillRegEx(damID, DOB, PND, ZT, min),
-    imgPath = findMatchingFile(
-      damImgsFolder,
-      imgRegEx,
-      damID,
-      date = paste(PND, ZT, min)
-    ),
-    imgName = ifelse(!is.na(imgPath), basename(imgPath), NA)
+    imgRegEx = getStillRegEx(damID, DOB, PND, ZT, minute),
+    imgPath = file.path(damImgsFolder, damID, imgName)
   ) %>%
-  filter(
-    !is.na(imgName)
+  mutate(
+    cohort = as_factor(cohort)
+  ) %>%
+  left_join(
+    damsDOB
+    , by = c("damID", "DOB", "cohort")
+  ) %>%
+  select(
+    damID,
+    DOB,
+    earlyLifeTrt,
+    cohort,
+    litterNum,
+    camera,
+    litterSize,
+    PND,
+    ZT,
+    minute,
+    imgDate,
+    imgTime,
+    imgRegEx,
+    imgPath,
+    imgName
+  )
+imgsDF
+
+saveDFsToExcel(
+  "updatedImgsPath",
+  "updatedImgs" = imgsDF
+)
+```
+
+
+# 2023-01-12
+Added scored dam frame information to R
+
+```{r}
+damFrames
+
+damFrames_byLightDark <- damFrames %>%
+  makeFactors(
+    c("PND", "lightDark") 
+  )%>%
+  group_by(
+    damID,
+    PND,
+    lightDark
+  ) %>%
+  summarize(
+    numForMouse = n(),
+    percTogether = sum(pupsTogether) / numForMouse * 100
+  ) %>%
+  left_join(
+    Demo_dam %>%
+      select(
+        damID,
+        earlyLifeTrt,
+        cohort,
+        Litter_size,
+        Camera_number
+      ), by = "damID"
   )
 
-P5_imgs
+damFrames_byPND <- damFrames %>%
+  makeFactors(
+    c("PND", "lightDark") 
+  )%>%
+  group_by(
+    damID,
+    PND
+  ) %>%
+  summarize(
+    numForMouse = n(),
+    percTogether = sum(pupsTogether) / numForMouse * 100
+    , .groups = "drop"
+  ) %>%
+  left_join(
+    Demo_dam %>%
+      select(
+        damID,
+        earlyLifeTrt,
+        cohort,
+        Litter_size,
+        Camera_number
+        , litterNum
+      ), by = "damID"
+  )
+
+
+plotPercTogetherP4_P11 <- damFrames_byPND %>%
+  plotDamFrame_days(
+    percTogether,
+    "% frames pups together",
+    addTriangleForMean = TRUE,
+    redMean = TRUE,
+    showDots = FALSE,
+    colorByDam = TRUE,
+    dotSize = 5
+  ) +
+  facet_wrap(
+    ~ earlyLifeTrt
+  ) +
+  ylim(c(0, 100))
+
+
+plotPercTogetherP4_P6 <- damFrames_byPND %>%
+  filter(
+    PND %in% c(4:6)
+  ) %>%
+  plotDamFrame_days(
+    percTogether,
+    "% frames pups together",
+    addTriangleForMean = TRUE,
+    redMean = TRUE,
+    showDots = FALSE,
+    colorByDam = TRUE,
+    dotSize = 5
+  ) +
+  facet_wrap(
+    ~ earlyLifeTrt
+  ) +
+  ylim(c(0, 100))
+
+plotPercTogetherP4_P6
+plotPercTogetherP4_P11
+
+flexSave(
+  baseName = "plotPercTogetherP4_P6",
+  plot = plotPercTogetherP4_P6,
+  fileType = "png",
+  units = "in",
+  width = 11.5,
+  height = 5
+)
+flexSave(
+  baseName = "plotPercTogetherP4_P11",
+  plot = plotPercTogetherP4_P11,
+  fileType = "png",
+  units = "in",
+  width = 11.5,
+  height = 5
+)
+
+
+```
+
+```{r}
+library('lmerTest')
+library('lme4')
+mod <- lmer(percTogether ~ earlyLifeTrt*PND + (1 | damID), data = damFrames_byPND)
+summary(mod)
+anova(mod)
 ```
 

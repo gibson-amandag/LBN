@@ -1,0 +1,144 @@
+---
+title: "LBN Female Use"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/05-make-LBN-plots.R")
+source("./01-scripts/06-make-LBN-ANOVAs.R")
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+```{r}
+LBN_females <- LBN_all %>%
+  filterLBNCohorts() %>%
+  filter(
+    sex == "F"
+  ) %>%
+  select(
+    mouseID,
+    damID,
+    sex,
+    cohort,
+    litterNum,
+    earlyLifeTrt,
+    adultTrt,
+    Sac_cycle,
+    ReproTract_mass,
+    Sac_hr,
+    Sac_stop_off
+    # , starts_with("LH_hr")
+  ) %>%
+  filter(
+    is.na(Sac_stop_off)
+  ) %>%
+  select(
+    -Sac_stop_off
+  )
+
+femaleUse <- LBN_females %>%
+  mutate(
+    adultDi = ifelse(
+      !is.na(Sac_cycle),
+      ifelse(Sac_cycle == "diestrus", TRUE, FALSE),
+      NA
+    ),
+    adultProLH = ifelse(
+      !is.na(Sac_cycle),
+      ifelse(Sac_cycle == "proestrus" & is.na(Sac_hr), TRUE, FALSE),
+      NA
+    ),
+    adultProEphys = ifelse(
+      !is.na(Sac_cycle),
+      ifelse(Sac_cycle == "proestrus" & !is.na(Sac_hr), TRUE, FALSE),
+      NA
+    ),
+    hitCycle = ifelse(
+      !is.na(Sac_cycle),
+      ifelse(
+        (Sac_cycle == "proestrus" & ReproTract_mass >= proUterineMin) |
+        (Sac_cycle == "diestrus" & ReproTract_mass <= diUterineMax),
+        TRUE,
+        FALSE
+      ),
+      NA
+    ),
+    otherUse = ifelse(
+      !is.na(Sac_hr) & is.na(Sac_cycle),
+      TRUE,
+      NA
+    )
+  ) %>%
+  arrange(
+    -adultDi,
+    -adultProLH,
+    -adultProEphys,
+    -hitCycle,
+    -otherUse,
+    earlyLifeTrt,
+    adultTrt,
+    litterNum,
+    mouseID
+  )
+
+diFemalesUse <- femaleUse %>%
+  filter(
+    adultDi == TRUE & hitCycle == TRUE
+  ) %>%
+  group_by(
+    earlyLifeTrt,
+    adultTrt,
+    litterNum
+  ) %>%
+  summarize(
+    count = n()
+    , .groups = "drop"
+  )
+
+proLHFemalesUse <- femaleUse %>%
+  filter(
+    adultProLH == TRUE & hitCycle == TRUE
+  ) %>%
+  group_by(
+    earlyLifeTrt,
+    adultTrt,
+    litterNum
+  ) %>%
+  summarize(
+    count = n()
+    , .groups = "drop"
+  )
+
+proEphysFemalesUse <- femaleUse %>%
+  filter(
+    adultProEphys == TRUE & hitCycle == TRUE
+  ) %>%
+  group_by(
+    earlyLifeTrt,
+    adultTrt,
+    litterNum
+  ) %>%
+  summarize(
+    count = n()
+    , .groups = "drop"
+  )
+
+saveUseInfoDFsToExcel(
+  "femaleUse",
+  "femaleUse" = femaleUse,
+  "diestrus" = diFemalesUse,
+  "proLH" = proLHFemalesUse,
+  "proEphys" = proEphysFemalesUse
+)
+```

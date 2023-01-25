@@ -161,7 +161,33 @@ dosageFillShape <- function(
     scale_shape_manual(
       "treatment", 
       values = c("0"=21,
-                 "2"=23))
+                 "2"=21))
+  )
+  return(layers)
+}
+
+dosageColor <- function(
+  color_0 = "black",
+  color_2 = "black"
+){
+  layers <- list(
+    scale_color_manual(
+      "treatment", 
+      values = c("0"=color_0, 
+                 "2"=color_2))
+  )
+  return(layers)
+}
+
+dosageFill <- function(
+  fill_0 = "white",
+  fill_2 = "black"
+){
+  layers <- list(
+    scale_fill_manual(
+      "treatment", 
+      values = c("0"=fill_0, 
+                 "2"=fill_2))
   )
   return(layers)
 }

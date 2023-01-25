@@ -30,6 +30,24 @@ damCortANOVA_df <- damCortANOVAs$anova
 damCortANOVA_text <- getTrtLitterFResults(damCortANOVA_df, sepText = "; ")
 damCortANOVA_par <- damCortANOVA_text$paragraph
 
+# Dam mass ----------------------------------------------------------------
+anovaTextSize <- 14
+
+doDamMassANOVA <- anovaDayTrtLitterFunc(
+  expr(mass),
+  idVar = damID, 
+  fontSize = anovaTextSize
+)
+
+damMassANOVAs <- damFiltered %>%
+  makeDamMassLong() %>%
+  doDamMassANOVA()
+
+damMassANOVA <- damMassANOVAs$flxTbl
+damMassANOVA_df <- damMassANOVAs$anova
+damMassANOVA_text <- getTrtLitterFResults(damMassANOVA_df, sepText = "; ")
+damMassANOVA_par <- damMassANOVA_text$paragraph
+
 # Maturation --------------------------------------------------------------
 
 doVO_ageANOVA <- anovaTrtLitterFunc(

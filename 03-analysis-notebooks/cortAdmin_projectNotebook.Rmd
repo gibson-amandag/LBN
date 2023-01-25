@@ -27,6 +27,7 @@ BD_offspringInfo %>%
     , useVar = Sampling_date
     )
 ```
+
 ```{r}
 BD_offspringInfo %>%
   filter(
@@ -42,9 +43,7 @@ BD_offspringInfo %>%
     )
 ```
 
-
 ```{r}
-
 saveDFsToExcel(
   "nutellaCortAdmin"
   , prefix = ""
@@ -55,19 +54,23 @@ saveDFsToExcel(
       oocytes1,
       oocytes2,
       notes,
+      Sac_stage,
+      Uterine_description,
       trust,
       starts_with("LH"),
-      maxLH
+      maxLH,
+      timeAtMax
     ) %>%
     arrange(
       -trust,
-      dosage
+      dosage,
+      maxLH
     )
 )
 
 ```
 ```{r}
-LHPlot_adultTrt(
+cortAdminLH_trust <- LHPlot_adultTrt(
   BD_LH %>% makeFactors(dosage) %>% filter(trust == TRUE, !is.na(LH)),
   trtVar = dosage,
   trtName = "doseage (mg/kg)",
@@ -79,10 +82,91 @@ LHPlot_adultTrt(
   trtColor = scale_color_manual(
     "dosage (mg/kg)",
     values = c("0" = "black", "2" = "black")
-  )
+  ),
+  fontSize = 16
+  , dotSize = 2.5
+  , zoom_y = TRUE
+  , ymin = 0
+  , ymax = 45
 ) + facet_wrap(
   ~ dosage,
   ncol = 2
+)
+
+cortAdminLH_dontTrust <- LHPlot_adultTrt(
+  BD_LH %>% makeFactors(dosage) %>% filter(trust == FALSE, !is.na(LH)),
+  trtVar = dosage,
+  trtName = "doseage (mg/kg)",
+  trtLineGuide = c("0" = "dotted", "2" = "solid"),
+  trtFill = scale_fill_manual(
+    "dosage (mg/kg)",
+    values = c("0" = "white", "2" = "black")
+  ),
+  trtColor = scale_color_manual(
+    "dosage (mg/kg)",
+    values = c("0" = "black", "2" = "black")
+  ),
+  fontSize = 16
+  , dotSize = 2.5
+  , zoom_y = TRUE
+  , ymin = 0
+  , ymax = 45
+) + facet_wrap(
+  ~ dosage,
+  ncol = 2
+)
+
+cortAdminLH_unsure <- LHPlot_adultTrt(
+  BD_LH %>% makeFactors(dosage) %>% filter(is.na(trust), !is.na(LH)),
+  trtVar = dosage,
+  trtName = "doseage (mg/kg)",
+  trtLineGuide = c("0" = "dotted", "2" = "solid"),
+  trtFill = scale_fill_manual(
+    "dosage (mg/kg)",
+    values = c("0" = "white", "2" = "black")
+  ),
+  trtColor = scale_color_manual(
+    "dosage (mg/kg)",
+    values = c("0" = "black", "2" = "black")
+  ),
+  fontSize = 16
+  , dotSize = 2.5
+  , zoom_y = TRUE
+  , ymin = 0
+  , ymax = 45
+) + facet_wrap(
+  ~ dosage,
+  ncol = 2
+)
+
+cortAdminLH_trust
+cortAdminLH_dontTrust
+# cortAdminLH_unsure
+```
+```{r}
+flexSave(
+  "LH_trust",
+  "cortAdmin",
+  cortAdminLH_trust,
+  "png",
+  width = 11,
+  height = 5.5
+)
+flexSave(
+  "LH_dontTrust",
+  "cortAdmin",
+  cortAdminLH_dontTrust,
+  "png",
+  width = 11,
+  height = 5.5
+)
+flexSave(
+  "LH_unsure",
+  "cortAdmin",
+  cortAdminLH_unsure,
+  "png",
+  width = 11,
+  height = 5.5
 )
 ```
 
@@ -236,7 +320,7 @@ BD_comboNutALPS %>%
     lineTypeGuide = "",
     positionDodge = 0.2, #this controls the spread of the data visually
     zoom_y = TRUE,
-    ymax = 500,
+    ymax = 1000,
     ymin = 0
   ) +
   # facet_wrap(
@@ -357,5 +441,81 @@ BD_cort %>%
     time
   ) %>%
   meanSummary(cort)
+```
+
+
+```{r}
+cortAdmin_timeLHPeak <- BD_sampling %>% makeFactors(dosage) %>% filter(trust == TRUE, !is.na(timeAtMax)) %>%
+  scatterPlot_general(
+    xVar = dosage,
+    xLab = "dosage (mg/kg)"
+    , yVar = timeAtMax
+    , yLab = "time at max LH\n(hr relative to lights out)"
+    , fillVar = dosage
+    , fillLimits = c(0, 2)
+    , fillValues = c("white", "black")
+    , textSize = 16
+    , dotSize = 3
+    # , jitterWidth = 0.3
+    , zoom_y = TRUE
+    , ymin = 4.5
+    , ymax = 10
+  ) + scale_x_discrete(
+    labels = c("0" = "0 mg/kg", "2" = "2 mg/kg")
+  ) + scale_y_continuous(
+    breaks = c(5, 5.5, 6.5, 7.5, 8.5, 9.5),
+    labels = c(-2.5, -2, -1, 0, 1, 2)
+  )
+
+flexSave(
+  "timeLHPeak",
+  "cortAdmin",
+  cortAdmin_timeLHPeak
+  , "png"
+  , width = 11
+  , height = 5.5
+)
+```
+
+```{r}
+cortAdmin_LHPeak <- BD_sampling %>% makeFactors(dosage) %>% filter(trust == TRUE, !is.na(maxLH)) %>%
+  scatterPlot_general(
+    xVar = dosage,
+    xLab = "dosage (mg/kg)"
+    , yVar = maxLH
+    , yLab = "peak LH (ng/mL)"
+    , fillVar = dosage
+    , fillLimits = c(0, 2)
+    , fillValues = c("white", "black")
+    , textSize = 16
+    , dotSize = 3
+    # , jitterWidth = 0.3
+    # , zoom_y = TRUE
+    # , ymin = 4.5
+    # , ymax = 10
+  ) + scale_x_discrete(
+    labels = c("0" = "0 mg/kg", "2" = "2 mg/kg")
+  )
+
+cortAdmin_LHPeak
+
+flexSave(
+  "LHPeak",
+  "cortAdmin",
+  cortAdmin_LHPeak
+  , "png"
+  , width = 11
+  , height = 5.5
+)
+
+BD_sampling %>%
+  makeFactors(dosage) %>%
+  filter(
+    trust == TRUE
+  ) %>%
+  propSurgedPlot(
+    xVar = dosage,
+    fontSize = 16
+  )
 ```
 

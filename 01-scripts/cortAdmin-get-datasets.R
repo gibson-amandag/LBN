@@ -1,3 +1,5 @@
+surgeMin <- 3
+
 # LOAD EXCEL SHEETS -------------------------------------------------------
 
 BD_damInfo <- loadExcelSheet(cortAdminFolder, cortAdminFileName, "DamInfo")
@@ -87,34 +89,41 @@ BD_offspringInfo <- BD_offspringInfo %>%
   )
 
 # Cycles ------------------------------------------------------------------
-
-BD_cycles <- BD_cycles %>%
-  left_join(
-    BD_offspringInfo,
-    by = "mouseID"
-  )
-
-BD_offspringInfo <- BD_offspringInfo %>%
-  left_join(
-    BD_cycles %>%
-      select(
-        mouseID, cycleID
-      ),
+  
+  BD_cycles <- BD_cycles %>%
+    left_join(
+      BD_offspringInfo,
       by = "mouseID"
-  ) %>% mutate(
-    numID = cycleID
-  ) %>%
-  relocate(
-    cycleID, numID,
-    .after = originalID
-  )
+    )
+  
+  BD_offspringInfo <- BD_offspringInfo %>%
+    left_join(
+      BD_cycles %>%
+        select(
+          mouseID, cycleID
+        ),
+        by = "mouseID"
+    ) %>% mutate(
+      numID = cycleID
+    ) %>%
+    relocate(
+      cycleID, numID,
+      .after = originalID
+    )
 
 # CORT AND LH -------------------------------------------------------------
 makeBDCortWider <- function(df){
+  aboveLimitExists <- ifelse("aboveLimit" %in% names(df), TRUE, FALSE)
+  if(!aboveLimitExists){
+    df <- df %>%
+      mutate(
+        aboveLimit = NA
+      )
+  }
   spec <- build_wider_spec(
     df,
     names_from = time, 
-    values_from = c(cort, cortCV, exclude),
+    values_from = c(cort, cortCV, exclude, aboveLimit),
     names_sep = "_hr"
   )
   spec <- arrange(spec, time, .value)
@@ -235,27 +244,46 @@ BD_sampling4 <- cortSampling4$sampling
 BD_cortALPS <- cortSamplingALPS$cort
 BD_samplingALPS <- cortSamplingALPS$sampling
 
+# Calculated ovulated true/fasle
+
+BD_sampling <- BD_sampling %>%
+  mutate(
+    ovulated = ifelse(oocytes1>0 | oocytes2 > 0, TRUE, FALSE),
+    numOocytes = oocytes1 + oocytes2,
+    .after = oocytes2
+  )
 
 # Add mouse and time info to LH values
 BD_LH <- BD_LH %>%
+  filter(
+    !is.na(sampleID)
+  ) %>%
   left_join(
-    BD_LHcode,
+    BD_LHcode %>%
+      filter(
+        !is.na(sampleID)
+      ),
     by = "sampleID"
   )
 
 # Get max LH value after baseline for each mouse
 BD_LH_max <- BD_LH %>%
   filter(time !=0) %>% # missing initially -> max could have been AM
-  getMaxFromRepMeasures(
+  getMaxFromRepMeasures_plusOtherVal(
     col = LH,
     maxColName = maxLH,
-    groupingVar = mouseID
+    groupingVar = mouseID,
+    valCol = time,
+    valAtMaxColName = timeAtMax
   )
 
 BD_LH <- BD_LH %>%
   left_join(
     BD_LH_max,
     by = "mouseID"
+  ) %>%
+  mutate(
+    surged = maxLH > surgeMin
   )
 
 # Make wide version of LH
@@ -269,6 +297,9 @@ BD_LH_wide <- BD_LH %>%
   left_join( # Add max column
     BD_LH_max,
     by = "mouseID"
+  ) %>%
+  mutate(
+    surged = maxLH > surgeMin
   )
 
 # Add stress day demo to long cort df
@@ -285,5 +316,21 @@ BD_sampling <- BD_sampling %>%
     by = "mouseID"
   )
 
+# Add surge and ovulation data to cort df
+BD_cort <- BD_cort %>%
+  left_join(
+    BD_sampling %>%
+      select(
+        mouseID
+        , surged
+        , ovulated
+      )
+    , by = "mouseID"
+  )
 
 
+BD_offspringInfo <- BD_offspringInfo %>%
+  left_join(
+    BD_LH_wide,
+    by = "mouseID"
+  )

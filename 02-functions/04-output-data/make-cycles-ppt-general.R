@@ -730,7 +730,8 @@ createOvulationPPT <- function(
     includeNextDay = TRUE,
     slideVersion = slideVersion,
     includeNotes = TRUE,
-    notesVar = comboNotes
+    notesVar = comboNotes,
+    trtVar = {{ trtVar }}
   )
 
   print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", addToName, "_", Sys.Date(), ".pptx")))

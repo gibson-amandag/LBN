@@ -14,6 +14,11 @@ optoOutput <- loadExcelSheet_fromFile(CRH_opto_path, "optoOutput")
 optoFileInfo <- loadExcelSheet_fromFile(CRH_opto_path, "fileInfo")
 opto_cycleDir <- optoFileInfo$cycleImgFolder[1]
 
+optoLHcode <- loadExcelSheet_fromFile(CRH_opto_path, "LH_code")
+optoLH <- loadExcelSheet_fromFile(CRH_opto_path, "LH")
+
+optoSamplingInfo <- loadExcelSheet_fromFile(CRH_opto_path, "samplingInfo")
+
 # Make factors ------------------------------------------------------------
 
 optoDamInfo <- optoDamInfo %>%
@@ -48,6 +53,28 @@ optoOutput <- optoOutput %>%
     cellID
     , seriesName
   ))
+
+optoLHcode <- optoLHcode %>%
+  makeFactors(
+    c(
+      mouseID
+      , sampleID
+    )
+  )
+
+optoLH <- optoLH %>%
+  makeFactors(
+    c(
+      sampleID
+    )
+  )
+
+optoSamplingInfo <- optoSamplingInfo %>%
+  makeFactors(
+    c(
+      mouseID
+    )
+  )
 
 
 # Combine datasets --------------------------------------------------------
@@ -112,7 +139,24 @@ optoOutput <- optoOutput %>%
     , by = "cellID"
   )
 
-  
+optoLH <- optoLHcode %>%
+  left_join(
+    optoLH,
+    by = "sampleID"
+  )
+
+optoSamplingInfo <- optoSamplingInfo %>%
+  rename(
+    samplingStage = cycleStage
+  ) %>%
+  left_join(
+    optoLH,
+    by = c("mouseID", "day")
+  ) %>%
+  left_join(
+    optoMouseInfo,
+    by = c("mouseID")
+  )
 
 
 # Filter ------------------------------------------------------------------

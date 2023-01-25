@@ -293,6 +293,51 @@ addSlide_oneTable <- function(
   return(ppt)
 }
 
+addSlide_twoTables <- function(
+  ppt,
+  title,
+  table1,
+  table2,
+  textSize = 16,
+  dontFormat = FALSE
+){
+  ppt <- add_slide(ppt, "Two Content")
+  ppt <- ph_with(
+    ppt,
+    value = title,
+    location = ph_location_label("Title 1")
+  )
+  
+  if(!dontFormat){
+    table1 <- table1 %>%
+      flextable() %>%
+      fontsize(size = textSize, part = "all") %>%
+      colformat_double(digits = 3) %>%
+      autofit()
+    table2 <- table2 %>%
+      flextable() %>%
+      fontsize(size = textSize, part = "all") %>%
+      colformat_double(digits = 3) %>%
+      autofit()
+  } else { ## have to be careful here - needs to already by a flextable
+    # table <- table %>%
+    #   autofit()
+  }
+    
+  
+  ppt <- ph_with(
+    ppt,
+    value = table1,
+    location = ph_location_label("Content Placeholder 2")
+  )
+  ppt <- ph_with(
+    ppt,
+    value = table2,
+    location = ph_location_label("Content Placeholder 3")
+  )
+  return(ppt)
+}
+
 addSlide_text <- function(
   ppt,
   title,

@@ -253,23 +253,144 @@ behavior_overTime_days <- function(
     boxTheme() + 
     scale_x_datetime(
       breaks = c(
-        as_datetime(ymd_h("2000-01-04 15")),
+        # as_datetime(ymd_h("2000-01-04 15")),
         as_datetime(ymd_h("2000-01-05 01")),
-        as_datetime(ymd_h("2000-01-05 15")),
+        # as_datetime(ymd_h("2000-01-05 15")),
         as_datetime(ymd_h("2000-01-06 01")),
-        as_datetime(ymd_h("2000-01-06 15")),
+        # as_datetime(ymd_h("2000-01-06 15")),
         as_datetime(ymd_h("2000-01-07 01")),
-        as_datetime(ymd_h("2000-01-07 15")),
+        # as_datetime(ymd_h("2000-01-07 15")),
         as_datetime(ymd_h("2000-01-08 01")),
-        as_datetime(ymd_h("2000-01-08 15")),
+        # as_datetime(ymd_h("2000-01-08 15")),
         as_datetime(ymd_h("2000-01-09 01")),
-        as_datetime(ymd_h("2000-01-09 15")),
+        # as_datetime(ymd_h("2000-01-09 15")),
         as_datetime(ymd_h("2000-01-10 01")),
-        as_datetime(ymd_h("2000-01-10 15")),
+        # as_datetime(ymd_h("2000-01-10 15")),
         as_datetime(ymd_h("2000-01-11 01"))
       ), 
       # date_labels = "PND%d\nZT%H"
       date_labels = "%d\n%H"
+    )
+  return(viz)
+}
+
+## note - can't position dodge with date/time because it's a continous variable
+## https://stackoverflow.com/questions/59857137/how-to-make-position-dodge-and-scale-x-date-work-together
+plotDamFrame_days <- function(
+  df,
+  yVar,
+  yLab,
+  fontSize = 12,
+  dotSize = 1.2,
+  dotSize_byFirstDay = FALSE,
+  lineSize = 1,
+  dodgeVal = 0.4,
+  addTriangleForMean = FALSE,
+  redMean = FALSE,
+  colorByDam = FALSE,
+  lineAlpha = 0.4,
+  showDots = TRUE,
+  addVertError = TRUE
+){
+  viz <- df %>%
+    mutate(
+      dayTime = as_datetime(ymd_h(paste0(paste0("2000-01-", PND), paste0(" ", 0)))),
+      .after = PND
+    ) %>%
+    ggplot(
+      aes(
+        x = dayTime,
+        y = {{ yVar }},
+        fill = earlyLifeTrt
+      )
+    )
+  
+  if(colorByDam){
+    viz <- viz + geom_line(
+      alpha = lineAlpha,
+      aes(group = damID, color = damID),
+      position = position_dodge(0.4),
+      size = lineSize
+    )
+  } else {
+    viz <- viz + geom_line(
+      alpha = lineAlpha,
+      color = "black",
+      aes(group = damID, linetype = earlyLifeTrt),
+      position = position_dodge(0.4),
+      size = lineSize
+    )
+    
+  }
+  
+  if(showDots){
+    if(dotSize_byFirstDay){
+      viz <- viz + geom_point(
+        alpha = 1, 
+        aes(fill=earlyLifeTrt,group=damID, shape = firstDay), 
+        position = position_dodge(0.4),
+        size = dotSize
+      )+ scale_shape_manual(
+        values = c(21, 22)
+      )
+    } else {
+      viz <- viz + geom_point(
+        shape = 21,
+        alpha = 1, 
+        aes(fill=earlyLifeTrt,group=damID), 
+        position = position_dodge(0.4), 
+        size = dotSize
+      )
+    }
+  }
+  
+  if(addTriangleForMean){ # horizontal bar is too small to show up
+    if(redMean){
+      viz <- viz +
+        stat_summary(
+          geom = "point",
+          fun = mean,
+          shape = 16,
+          color = "red",
+          size = dotSize * .5
+        )
+    } else {
+      viz <- viz +
+        stat_summary(
+          geom = "point",
+          fun = mean,
+          shape = 24,
+          size = dotSize
+        )
+    }
+  }
+  
+  if(addVertError){
+    viz <- viz + addMeanSE_vertBar()
+  }
+  
+  viz <- viz +
+    addMeanHorizontalBar(addLineType = FALSE)+
+    labs(y = yLab, linetype = "early life trt", x = "PND") +
+    earlyLifeFill() +
+    textTheme(
+      size = fontSize
+    )+
+    boxTheme() + 
+    scale_x_datetime(
+      breaks = c(
+        as_datetime(ymd_h("2000-01-04 0")),
+        as_datetime(ymd_h("2000-01-05 0")),
+        as_datetime(ymd_h("2000-01-06 0")),
+        as_datetime(ymd_h("2000-01-07 0")),
+        as_datetime(ymd_h("2000-01-08 0")),
+        as_datetime(ymd_h("2000-01-09 0")),
+        as_datetime(ymd_h("2000-01-10 0")),
+        as_datetime(ymd_h("2000-01-11 0"))
+      ), 
+      # date_labels = "PND%d\nZT%H"
+      date_labels = "%d"
+      # date_labels = "%d\n%H"
     )
   return(viz)
 }

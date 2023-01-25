@@ -140,7 +140,17 @@ scatterPlotTwoVars_byLBN <- function(
   xVar,
   xLab,
   textSize = 11,
-  dotSize = 1.5
+  dotSize = 1.5,
+  jitterWidth = 0.35,
+  jitterHeight = 0,
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL,
+  STDColor = "white",
+  LBNColor = "cyan4"
 ){
   viz <- df %>%
     ggplot(
@@ -150,10 +160,15 @@ scatterPlotTwoVars_byLBN <- function(
         fill = earlyLifeTrt
       )
     ) +
-    jitterGeom(size = dotSize) +
+    jitterGeom(
+      size = dotSize,
+      width = jitterWidth,
+      height = jitterHeight
+    ) +
     labs(y = yLab, x = xLab)+
     expand_limits(x = 0, y = 0)+
-    earlyLifeFill() +
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
+    earlyLifeFill(STDColor = STDColor, LBNColor = LBNColor) +
     textTheme(textSize)+
     boxTheme()
   

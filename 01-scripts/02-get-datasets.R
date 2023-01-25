@@ -45,6 +45,8 @@ GABApscs <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs")
 cellInfo <- loadExcelSheet(dataFolder, LBN_DataName, "cellInfo")
 cellExclusion <- loadExcelSheet(dataFolder, LBN_DataName, "cellExclusion")
 
+damFrames <- loadExcelSheet(dataFolder, LBN_DataName, "damFrames")
+
 # FORMAT DATASETS ---------------------------------------------------------
 
 #Make factor variables
@@ -84,6 +86,9 @@ Demo_dam <- Breeding %>%
   )
 
 Demo_off <- makeFactors(Demo_off, c(damID, mouseID, sex, mouseID_spec))
+
+damFrames <- damFrames %>%
+  makeFactors(damID)
 
 # Add the numeric mouseID to the litter mass dataframe
 Mass_litter_off <- Mass_litter_off %>%
@@ -191,9 +196,37 @@ dam_behavior_wide <- dam_behavior_noDemo %>%
   )
 
 # Add behavior wide to Demo_dam
-Demo_dam <- Demo_dam %>%
-  left_join(dam_behavior_wide, by = "damID")
 
+# 2023-01-20 - removed this; gets way too large. Pain to remove when trying to add dam information later
+# may cause some errors in old combo code, though
+# Demo_dam <- Demo_dam %>%
+#   left_join(dam_behavior_wide, by = "damID")
+
+damFrames_wide <- damFrames %>%
+  select(
+    -lightDark
+  ) %>%
+  pivot_wider(
+    id_cols = damID,
+    names_from = PND:minute,
+    values_from = damOnNest:clump8,
+    names_glue = "P{PND}_ZT{ZT}_min{minute}_{.value}"
+  )
+
+# Add dam demographic info to damFrames
+damFrames <- damFrames %>%
+  left_join(Demo_dam, by = "damID") %>%
+  mutate(
+    across(starts_with("clump"), ~ .x / Litter_size, .names = "{.col}_propLitter")
+    , .after = clump8
+  )
+
+damFrames_wide <- damFrames_wide %>%
+  left_join(
+    Demo_dam, by = "damID"
+  )
+
+# 2023-01-12, didn't add dam frames data to general dam demo frame
 
 # CORT AND LH -------------------------------------------------------------
 Cort_off <- Cort_off %>%
@@ -338,7 +371,8 @@ LBN_all <- Demo_off %>%
   full_join(Cycles_off, by = "mouseID") %>%
   full_join(Cycles_off_extra, by = "mouseID")%>%
   full_join(AcuteStress_off, by = "mouseID") %>%
-  full_join(ChronicStress_off, by = "mouseID")
+  full_join(ChronicStress_off, by = "mouseID") %>%
+  full_join(slicingInfo, by = "mouseID")
 
 # DAM DEMO FOR OFFSPRING --------------------------------------------------
 
@@ -364,8 +398,8 @@ Demo_dam_for_offspring <- Demo_dam %>%
     Litter_size_startPara, 
     Litter_size_endPara,
     Pups_through_wean,
-    Sac_or_stop,
-    P5_ZT12_Duration:P6_ZT4_Avg_dur_on_nest
+    Sac_or_stop
+    # , P5_ZT12_Duration:P6_ZT4_Avg_dur_on_nest # removed 2023-01-20
   )
 
 # Update offspring demographics
@@ -383,7 +417,7 @@ LBN_data <- Demo_off %>%
   left_join(Cycles_off, by = "mouseID") %>%
   left_join(Cycles_off_extra, by = "mouseID") %>%
   left_join(AcuteStress_off, by = "mouseID") %>%
-  left_join(ChronicStress_off, by = "mouseID")
+  left_join(ChronicStress_off, by = "mouseID") 
 
 
 # ADD OFFSPRING DEMO DATA -------------------------------------------------

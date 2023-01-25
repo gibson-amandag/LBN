@@ -6719,6 +6719,121 @@ saveDFsToExcel(
 ```
 
 
+# 2023-01-16 - ZT15, ZT19, and ZT1 times and dates for Cohort 9 after D067-01
+
+```{r}
+damBehaveDates <- Demo_dam %>%
+  filter(
+    Litter_size >= 5
+    , cohort == 9
+    , is.na(Sac_or_stop)
+    , DOB > as_date("2022-11-06")
+  ) %>%
+  arrange(
+    cohort,
+    DOB
+  ) %>%
+  select(
+    damID
+    , cohort
+    , DOB
+  ) %>%
+  mutate(
+    P4_ZT15 = getZT_DateTime(DOB, PND = 4, ZT = 15)
+    , P4_ZT15_done = NA
+    , P4_ZT15_who = NA
+    , P4_ZT15_notes = NA,
+    P4_ZT19 = getZT_DateTime(DOB, PND = 4, ZT = 19)
+    , P4_ZT19_done = NA
+    , P4_ZT19_who = NA
+    , P4_ZT19_notes = NA,
+    P5_ZT1 = getZT_DateTime(DOB, PND = 5, ZT = 1)
+    , P5_ZT1_done = NA
+    , P5_ZT1_who = NA
+    , P5_ZT1_notes = NA,
+    P5_ZT15 = getZT_DateTime(DOB, PND = 5, ZT = 15)
+    , P5_ZT15_done = NA
+    , P5_ZT15_who = NA
+    , P5_ZT15_notes = NA,
+    P5_ZT19 = getZT_DateTime(DOB, PND = 5, ZT = 19)
+    , P5_ZT19_done = NA
+    , P5_ZT19_who = NA
+    , P5_ZT19_notes = NA,
+    P6_ZT1 = getZT_DateTime(DOB, PND = 6, ZT = 1)
+    , P6_ZT1_done = NA
+    , P6_ZT1_who = NA
+    , P6_ZT1_notes = NA,
+    P6_ZT15 = getZT_DateTime(DOB, PND = 6, ZT = 15)
+    , P6_ZT15_done = NA
+    , P6_ZT15_who = NA
+    , P6_ZT15_notes = NA,
+    P6_ZT19 = getZT_DateTime(DOB, PND = 6, ZT = 19)
+    , P6_ZT19_done = NA
+    , P6_ZT19_who = NA
+    , P6_ZT19_notes = NA,
+    P7_ZT1 = getZT_DateTime(DOB, PND = 7, ZT = 1)
+    , P7_ZT1_done = NA
+    , P7_ZT1_who = NA
+    , P7_ZT1_notes = NA,
+    P7_ZT15 = getZT_DateTime(DOB, PND = 7, ZT = 15)
+    , P7_ZT15_done = NA
+    , P7_ZT15_who = NA
+    , P7_ZT15_notes = NA,
+    P7_ZT19 = getZT_DateTime(DOB, PND = 7, ZT = 19)
+    , P7_ZT19_done = NA
+    , P7_ZT19_who = NA
+    , P7_ZT19_notes = NA,
+    P8_ZT1 = getZT_DateTime(DOB, PND = 8, ZT = 1)
+    , P8_ZT1_done = NA
+    , P8_ZT1_who = NA
+    , P8_ZT1_notes = NA,
+    P8_ZT15 = getZT_DateTime(DOB, PND = 8, ZT = 15)
+    , P8_ZT15_done = NA
+    , P8_ZT15_who = NA
+    , P8_ZT15_notes = NA,
+    P8_ZT19 = getZT_DateTime(DOB, PND = 8, ZT = 19)
+    , P8_ZT19_done = NA
+    , P8_ZT19_who = NA
+    , P8_ZT19_notes = NA,
+    P9_ZT1 = getZT_DateTime(DOB, PND = 9, ZT = 1)
+    , P9_ZT1_done = NA
+    , P9_ZT1_who = NA
+    , P9_ZT1_notes = NA,
+    P9_ZT15 = getZT_DateTime(DOB, PND = 9, ZT = 15)
+    , P9_ZT15_done = NA
+    , P9_ZT15_who = NA
+    , P9_ZT15_notes = NA,
+    P9_ZT19 = getZT_DateTime(DOB, PND = 9, ZT = 19)
+    , P9_ZT19_done = NA
+    , P9_ZT19_who = NA
+    , P9_ZT19_notes = NA,
+    P10_ZT1 = getZT_DateTime(DOB, PND = 10, ZT = 1)
+    , P10_ZT1_done = NA
+    , P10_ZT1_who = NA
+    , P10_ZT1_notes = NA,
+    P10_ZT15 = getZT_DateTime(DOB, PND = 10, ZT = 15)
+    , P10_ZT15_done = NA
+    , P10_ZT15_who = NA
+    , P10_ZT15_notes = NA,
+    P10_ZT19 = getZT_DateTime(DOB, PND = 10, ZT = 19)
+    , P10_ZT19_done = NA
+    , P10_ZT19_who = NA
+    , P10_ZT19_notes = NA,
+    P11_ZT1 = getZT_DateTime(DOB, PND = 11, ZT = 1)
+    , P11_ZT1_done = NA
+    , P11_ZT1_who = NA
+    , P11_ZT1_notes = NA
+  )
+
+damBehaveDates
+
+saveDFsToExcel(
+  "damBehaviorDates_ZT15_ZT19_ZT1",
+  dates = damBehaveDates
+)
+```
+
+
 ```{r}
 dam_behavior %>%
   filterDamBehavior()
@@ -7070,7 +7185,622 @@ Demo_dam %>%
   )
 ```
 
+# 2023-01-17
+
+Checking dam behavior dfs
+
+```{r}
+damBehaviorFiltered_ZTs %>%
+  filter(
+    cohort == 9
+  ) %>%
+  arrange(
+    PND,
+    time,
+    DOB
+  ) %>%
+  group_by(
+    earlyLifeTrt,
+    PND,
+    time
+  ) %>%
+  summarize(
+    Num_exits = mean(Num_exits, na.rm=TRUE)
+    , n()
+    , .groups = "drop"
+  )
+
+
+damFiltered %>%
+  filter(
+    cohort == 9
+  ) %>%
+  select(
+    damID,
+    earlyLifeTrt
+  )
+```
+
+Individual hours plot - facet by treatment, color by dam
 ```{r}
 
+damBehavior_plot_days_1stL_cohort9
+fileBaseName = "damBehavior_cohort9"
+exportFullPPTSlide()
+```
+
+
+```{r}
+behavior_cohort9_avgByDay <- damBehaviorFiltered_ZTs %>%
+  filter(
+    cohort == 9
+  ) %>%
+  group_by(
+    damID
+    , PND
+  ) %>%
+  summarize(
+    Num_exits = mean(Num_exits, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  left_join(
+    Demo_dam %>%
+      select(
+        damID,
+        earlyLifeTrt,
+        litterNum
+      ),
+    by = "damID"
+  ) %>%
+  # mutate(
+  #   time = 0
+  # ) %>%
+  # plotDamFrame_days(
+  #   yVar = Num_exits,
+  #   yLab = "# of exits / hour",
+  #   addTriangleForMean = FALSE,
+  #   lineMean = TRUE,
+  #   dotSize = 3
+  # )
+  mutate(
+    time = PND
+  ) %>%
+  behavior_overTime(
+    yVar = Num_exits,
+    yLab = "# of exits / hour",
+    timeBreaks = c(4:11),
+    timeLabels = c(4:11),
+    dotSize = 3,
+    fontSize = 16
+  ) + 
+  xlab("PND")
+
+behavior_cohort9_avgByDay
+fileBaseName = "damBehavior_cohort9_byDay"
+exportFullPPTSlide()
+```
+
+```{r}
+behavior_cohort9_avgByTime <- damBehaviorFiltered_ZTs %>%
+  filter(
+    cohort == 9
+  ) %>%
+  group_by(
+    damID,
+    time
+  ) %>%
+  summarize(
+    Num_exits = mean(Num_exits, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  left_join(
+    Demo_dam %>%
+      select(
+        damID,
+        earlyLifeTrt,
+        litterNum
+      ),
+    by = "damID"
+  ) %>%
+  behavior_overTime(
+    yVar = Num_exits,
+    yLab = "# of exits / hour",
+    timeBreaks = c(1, 15, 19),
+    timeLabels = c("ZT1", "ZT15", "ZT19"),
+    dotSize = 3,
+    fontSize = 16
+  )
+
+behavior_cohort9_avgByTime
+fileBaseName = "damBehavior_cohort9_byTime"
+exportFullPPTSlide()
+```
+```{r}
+damBehaviorFiltered_P5_P6 %>%
+  arrange(
+    PND,
+    time,
+    DOB
+  )
+```
+
+
+# Cohort 9 - Experimental Usage
+
+```{r}
+cohort9_usage <- LBN_all %>%
+  filter(
+    sex == "F",
+    cohort == 9,
+    is.na(Sac_stop_off)
+  ) %>%
+  select(
+    mouseID,
+    damID,
+    earlyLifeTrt,
+    adultTrt
+  )
+```
+```{r}
+LBN_all %>%
+  select(
+    -starts_with("Day")
+    ,-ends_with("Duration")
+    ,-ends_with("Num_exits")
+    ,-ends_with("Num_entries")
+    ,-ends_with("_off_nest")
+    ,-ends_with("_on_nest")
+  ) %>%
+  names()
+```
+
+
+```{r}
+LBN_females <- LBN_all %>%
+  filterLBNCohorts() %>%
+  filter(
+    sex == "F"
+  ) %>%
+  select(
+    mouseID,
+    damID,
+    sex,
+    cohort,
+    litterNum,
+    earlyLifeTrt,
+    adultTrt,
+    Sac_cycle,
+    ReproTract_mass,
+    Sac_hr,
+    Sac_stop_off
+    # , starts_with("LH_hr")
+  ) %>%
+  filter(
+    is.na(Sac_stop_off)
+  ) %>%
+  select(
+    -Sac_stop_off
+  )
+
+femaleUse <- LBN_females %>%
+  mutate(
+    adultDi = ifelse(
+      !is.na(Sac_cycle),
+      ifelse(Sac_cycle == "diestrus", TRUE, FALSE),
+      NA
+    ),
+    adultProLH = ifelse(
+      !is.na(Sac_cycle),
+      ifelse(Sac_cycle == "proestrus" & is.na(Sac_hr), TRUE, FALSE),
+      NA
+    ),
+    adultProEphys = ifelse(
+      !is.na(Sac_cycle),
+      ifelse(Sac_cycle == "proestrus" & !is.na(Sac_hr), TRUE, FALSE),
+      NA
+    ),
+    hitCycle = ifelse(
+      !is.na(Sac_cycle),
+      ifelse(
+        (Sac_cycle == "proestrus" & ReproTract_mass >= proUterineMin) |
+        (Sac_cycle == "diestrus" & ReproTract_mass <= diUterineMax),
+        TRUE,
+        FALSE
+      ),
+      NA
+    ),
+    otherUse = ifelse(
+      !is.na(Sac_hr) & is.na(Sac_cycle),
+      TRUE,
+      NA
+    )
+    # ,adultDiCount = ifelse(adultDi, 1, 0),
+    # adultProLHCount = ifelse(adultProLH, 1, 0),
+    # adultProEphysCount = ifelse(adultProEphys, 1, 0),
+    # hitCycleCount = ifelse(hitCycle, 1, 0)
+  ) %>%
+  arrange(
+    -adultDi,
+    -adultProLH,
+    -adultProEphys,
+    -hitCycle,
+    -otherUse,
+    earlyLifeTrt,
+    adultTrt,
+    litterNum,
+    mouseID
+  )
+
+# diFemalesUse = femaleUse %>%
+#   filter(
+#     adultDi == TRUE & hitCycle == TRUE
+#   )
+# 
+# proLHFemalesUse = femaleUse %>%
+#   filter(
+#     adultProLH == TRUE & hitCycle == TRUE
+#   )
+# 
+# proEphysFemalesUse = femaleUse %>%
+#   filter(
+#     adultProEphys == TRUE & hitCycle == TRUE
+#   )
+
+diFemalesUse <- femaleUse %>%
+  filter(
+    adultDi == TRUE & hitCycle == TRUE
+  ) %>%
+  group_by(
+    earlyLifeTrt,
+    adultTrt,
+    litterNum
+  ) %>%
+  summarize(
+    count = n()
+    , .groups = "drop"
+  )
+
+proLHFemalesUse <- femaleUse %>%
+  filter(
+    adultProLH == TRUE & hitCycle == TRUE
+  ) %>%
+  group_by(
+    earlyLifeTrt,
+    adultTrt,
+    litterNum
+  ) %>%
+  summarize(
+    count = n()
+    , .groups = "drop"
+  )
+
+proEphysFemalesUse <- femaleUse %>%
+  filter(
+    adultProEphys == TRUE & hitCycle == TRUE
+  ) %>%
+  group_by(
+    earlyLifeTrt,
+    adultTrt,
+    litterNum
+  ) %>%
+  summarize(
+    count = n()
+    , .groups = "drop"
+  )
+
+saveUseInfoDFsToExcel(
+  "femaleUse",
+  "femaleUse" = femaleUse,
+  "diestrus" = diFemalesUse,
+  "proLH" = proLHFemalesUse,
+  "proEphys" = proEphysFemalesUse
+)
+```
+
+```{r}
+saveDFsToExcel("GABAPSCs", "GABA" = GABApscs)
+```
+
+```{r}
+avgExitsByDam <- damBehaviorFiltered_ZTs %>%
+  group_by(
+    damID
+  ) %>%
+  summarize(
+    Num_exits = mean(Num_exits, na.rm = TRUE)
+  ) %>%
+  left_join(
+    Demo_dam %>%
+      select(
+        -ends_with("Duration")
+        ,-ends_with("Num_exits")
+        ,-ends_with("Num_entries")
+        ,-ends_with("_off_nest")
+        ,-ends_with("_on_nest")
+      ),
+    by = "damID"
+  )
+
+avgExitsByDam %>%
+  scatterPlotTwoVars_byLBN(
+    Num_exits,
+    "average # exits / hour",
+    Cort_dam_P11,
+    "corticosterone (ng/mL)",
+    textSize = 16,
+    dotSize = 3
+  ) + 
+  stat_smooth(
+    method = "lm",
+    formula = y ~ x,
+    geom = "line",
+    aes(color = earlyLifeTrt)
+  ) + 
+  earlyLifeColor()
+
+model <- lm(Num_exits ~ Cort_dam_P11 * earlyLifeTrt, data = avgExitsByDam)
+summary(model)
+```
+
+```{r}
+damFrames_byZT <- damFrames %>%
+  group_by(
+    damID,
+    PND,
+    ZT
+  ) %>%
+  filter(
+    confirmed == 1
+  ) %>%
+  mutate(
+    numClumps = as.numeric(numClumps)
+    , clump1 = as.numeric(clump1)
+  ) %>%
+  summarize(
+    percOnNest = mean(damOnNest, na.rm = TRUE) * 100
+    , percTogether = mean(pupsTogether, na.rm = TRUE) * 100
+    , avgDist = mean(dist, na.rm = TRUE)
+    , avgClumps = mean(numClumps, na.rm = TRUE)
+    , across(starts_with("clump"), ~ mean(.x, na.rm = TRUE))
+    , .groups = "drop"
+  ) %>%
+  mutate(
+    time = ZT
+  )
+
+damFrames_byZT
+
+comboDamBehavior_P1_15_19 <- damBehaviorFiltered_ZTs %>%
+  left_join(
+    damFrames_byZT,
+    by = c("damID", "PND", "time")
+  )
+
+damBehaviorFiltered_byDay <- damBehaviorFiltered_ZTs %>%
+  group_by(
+    damID,
+    PND
+  ) %>%
+  summarize(
+    across(c(Num_exits, Perc_on_nest), ~ mean(.x, na.rm = TRUE))
+    , .groups = "drop"
+  )
+
+damFrames_byPND %>%
+  mutate(
+    PND = as.numeric(PND)
+  ) %>%
+  left_join(
+    damBehaviorFiltered_byDay,
+    by = c("damID", "PND")
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    # Num_exits,
+    # "average # exits / hour",
+    Perc_on_nest,
+    "% on nest",
+    percTogether,
+    "% pups together",
+    textSize = 16,
+    dotSize = 3
+  ) + 
+  stat_smooth(
+    method = "lm",
+    formula = y ~ x,
+    geom = "line",
+    aes(color = earlyLifeTrt)
+  ) + 
+  earlyLifeColor() +
+  # ylim(c(0, 40)) +
+  xlim(c(90, 100))
+
+
+damFrames_byDam <- damFrames %>%
+  group_by(
+    damID
+  ) %>%
+  summarize(
+    percTogether = sum(pupsTogether, na.rm = TRUE) / n()
+    , .groups = "drop"
+  ) %>%
+  left_join(
+    Demo_dam %>%
+      select(
+        damID,
+        earlyLifeTrt,
+        cohort,
+        litterNum
+      ),
+    by = "damID"
+  )
+
+```
+
+
+## Percent pups together anova
+
+This is the average over all recording times for each mouse
+
+```{r}
+damFrames_byDam %>%
+  anova_test(
+    dv = percTogether,
+    between = c(earlyLifeTrt, litterNum)
+    , type = 3
+  )
+```
+
+
+## Percent pups together by PND
+
+ANOVA will get rid of dams that don't have each day of recording.
+
+Look first at only P5 and 6, where we've got data for more litters. There's an effect of early-life treatment, and litter number doesn't really add anything
+
+```{r}
+
+damFrames_byPND %>%
+  filter(
+    PND %in% c(5:6)
+  ) %>%
+  anova_test(
+    dv = percTogether,
+    between = c(earlyLifeTrt)
+    , wid = damID
+    , within = PND
+  )
+
+damFrames_byPND %>%
+  filter(
+    PND %in% c(5:6)
+  ) %>%
+  anova_test(
+    dv = percTogether,
+    between = c(earlyLifeTrt, litterNum)
+    , wid = damID
+    , within = PND
+  )
+
+
+```
+
+So these two are the same, because only first litter dams have recording from P4-P11
+This is also why a between of earlyLifeTrt and litterNum doesn't work for the full data set
+
+For this reason, a mixed linear model might be a better approach
+
+```{r}
+
+damFrames_byPND %>%
+  anova_test(
+    dv = percTogether,
+    between = earlyLifeTrt
+    , wid = damID
+    , within = PND
+  )
+
+damFrames_byPND %>%
+  filter(
+    litterNum == 1
+  ) %>%
+  anova_test(
+    dv = percTogether,
+    between = earlyLifeTrt
+    , wid = damID
+    , within = PND
+  )
+
+damFrames_byPND %>%
+  filter(
+    litterNum == 2
+  ) %>%
+  anova_test(
+    dv = percTogether,
+    between = earlyLifeTrt
+    , wid = damID
+    , within = PND
+  )
+```
+
+
+Make the summarized damFrames datasets in 04-filter-datasets.R
+
+```{r}
+damFrames_byDam
+
+damFrames_byPND
+
+damFrames_byZT
+
+damFrames_byPND_ZT
+
+damFrames_byLightDark
+
+damFrames_byPNDLightDark
+```
+
+```{r}
+damBehavior_byDam
+damBehavior_byPND
+damBehavior_byZT
+damBehavior_byLightDark
+damBehavior_byPNDLightDark
+```
+
+
+```{r}
+Demo_dam
+```
+```{r}
+damFrames_byDam
+
+damFramesAndBehaviorByDam
+
+Demo_dam
+```
+
+
+# 2023-01-23 - opto LH
+
+```{r}
+optoSamplingInfo %>%
+  arrange(
+    - LH
+  )
+
+saveDFsToExcel(
+  "LH",
+  "AGG_opto",
+  "optoLH" = optoSamplingInfo %>%
+    arrange(
+      -LH
+    )
+)
+
+optoMouseInfo %>%
+  filter(
+    mouseID == "CRH-GFP2-Chr-23"
+  )
+optoSamplingInfo %>%
+  rename(
+    Sac_stage = samplingStage
+    , maxLH = LH
+  ) %>%
+  mutate(
+    Uterine_description = NA
+    , oocytes1 = NA
+    , oocytes2 = NA
+    , notes = NA
+    , trust = NA
+  ) %>%
+  createOvulationPPT(
+    cyclesDF = optoCycles
+    , trtVar = treatment
+    , useVar = samplingDate
+    , sortByCycle = FALSE
+    , sortByLH = TRUE
+    , sortByDate = FALSE
+    , addToName = "opto"
+  )
 ```
 

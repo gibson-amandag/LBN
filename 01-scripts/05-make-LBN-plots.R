@@ -16,23 +16,23 @@ plotDamBehavior_days_1stL <- plotDamBehavior_daysFunc(
   dotSize = dotSize,
   facet = TRUE,
   facetInfo = facetForLBN,
-  addTriangleForMean = FALSE,
-  redMean = FALSE,
+  addTriangleForMean = TRUE,
+  redMean = TRUE,
   colorByDam = TRUE,
   showDots = FALSE,
   removeLegend = TRUE,
-  addVertErrorBars = FALSE
+  addVertErrorBars = TRUE
 )
 
 damBehavior_plot_days_1stL <- plotDamBehavior_days_1stL(damBehaviorFiltered_ZTs)+
-  expand_limits(y = 70)
+  expand_limits(y = 90)
 
 damBehavior_plot_days_1stL_cohort9 <- damBehaviorFiltered_ZTs %>%
   filter(
     cohort == 9
   ) %>%
   plotDamBehavior_days_1stL() +
-  expand_limits(y=70)
+  expand_limits(y=90)
 
 
 ### Second litter -----------------------------------------------------------
@@ -46,7 +46,7 @@ plotDamBehavior_days_2ndL <- plotDamBehavior_daysFunc(
 )
 
 damBehavior_plot_days_2ndL <- plotDamBehavior_days_2ndL(damBehaviorFiltered_ZTs)+
-  expand_limits(y = 70)
+  expand_limits(y = 90)
 
 
 ## P5, P6 ------------------------------------------------------------------
@@ -203,6 +203,17 @@ damCort_plot <- damFiltered %>%
     ymin = 0,
     ymax = 120
   ) +
+  facetForLitterNum
+
+# Dam Mass ------------------------------------------------------
+
+
+plotDamMass <- plotDamMass_func(
+  c(1:2)
+)
+
+damMass_plot <- damFiltered %>%
+  plotDamMass() +
   facetForLitterNum
 
 

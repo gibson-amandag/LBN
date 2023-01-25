@@ -11,6 +11,7 @@ library(shiny)
 
 source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
+source(file.path(scriptsFolder, "04-filter-datasets.R"))
 # library(shinyFiles)
 
 moduleFiles <- list.files(
@@ -67,13 +68,13 @@ ui <- navbarPage(
                     #Mass
                     tabPanel(
                         "Dam Mass",
-                        # massDamUI("massDam", Demo_dam_P4)
+                        massDamUI("massDam", damFiltered)
                     ),
                     
-                    #Pup Loss
+                    #Scatter plots
                     tabPanel(
-                        "Pup Loss",
-                        # pupLossUI("pupLoss", Demo_dam_P4)
+                        "Scatter plots",
+                        damByTrtUI("damByTrt", damFramesAndBehaviorByDam)
                     ),
                     
                     #Corticosterone
@@ -204,6 +205,16 @@ server <- function(input, output) {
     # massDamServer("massDam", Demo_dam_P4)
     # pupLossServer("pupLoss", Demo_dam_P4)
     # damCortServer("damCort", Demo_dam_P4)
+  
+    massDamServer("massDam",
+                  damFiltered,
+                  niceNames = niceNames,
+                  compType = currentCompType
+                  )
+    damByTrtServer("damByTrt",
+                   damFramesAndBehaviorByDam,
+                   niceNames = niceNames,
+                   compType = currentCompType)
     massOffServer("massOff", 
                   Mass_off %>% filter(ParaType == 4), 
                   Demo_dam %>% filter(ParaType == 4),

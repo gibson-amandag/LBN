@@ -1,12 +1,38 @@
-### Single variable (category plot) and double variable Scatter plots by combo treatment
+### Single variable (category plot) and double variable Scatter plots by early-life treatment
 
 # https://shiny.rstudio.com/articles/modules.html
-catPlotComboTrtUI <- function(
+catPlotEarlyLifeTrtUI <- function(
   id,
   dfForVars
 ){
   ns <- NS(id)
   tagList(
+    fluidRow(
+      div(
+        class = "col-xs-4",
+        numericInput(
+          ns("fontSize"),
+          "font size",
+          16
+        ),
+      ),
+      div(
+        class= "col-xs-4",
+        colourpicker::colourInput(
+          ns("STDColor"),
+          "STD Color",
+          "white"
+        )
+      ),
+      div(
+        class = "col-xs-4",
+        colourpicker::colourInput(
+          ns("LBNColor"),
+          "LBN Color",
+          "cyan4"
+        )
+      )
+    ),
     fluidRow(
       div(
         class = "col-xs-4",
@@ -17,6 +43,7 @@ catPlotComboTrtUI <- function(
         )
       )
     ),
+    tableOutput(ns("countTable")),
     uiOutput(ns("ANOVA")),
     zoomAxisUI(ns("zoomY"), "y"),
     plotUI(
@@ -33,7 +60,7 @@ catPlotComboTrtUI <- function(
 }
 
 
-catPlotComboTrtServer <- function(
+catPlotEarlyLifeTrtServer <- function(
   id,
   df_filtered_orig,
   yVarCaseFunc, # a case_when function for processing the label for the yvar
@@ -54,8 +81,6 @@ catPlotComboTrtServer <- function(
     #     cellID,
     #     mouseID,
     #     earlyLifeTrt,
-    #     adultTrt,
-    #     comboTrt,
     #     ReproTract_mass,
     #     Rseries,
     #     Rinput,
@@ -85,16 +110,18 @@ catPlotComboTrtServer <- function(
           ) %>%
           filter(
             ! (row_number() %in% input$table_rows_selected),
-            ! (is.na(adultTrt)) # added 2022-03-14
+            ! (is.na(earlyLifeTrt))
           ) %>%
-          scatterPlotComboTrt(
+          scatterPlotLBN(
             yVar = !! input$singleVar,
             yLab = yText(),
             dotSize = dotSize,
-            fontSize = 16,
+            textSize = input$fontSize,
             zoom_y = zoomY$zoom(),
             ymin = zoomY$min(),
-            ymax = zoomY$max()
+            ymax = zoomY$max(),
+            STDColor = input$STDColor,
+            LBNColor = input$LBNColor
           # ) + 
           # theme(
           #   legend.position = "top"
@@ -131,7 +158,7 @@ catPlotComboTrtServer <- function(
           
           df_filtered2() %>%
             filter(
-              comboTrt == catLevel,
+              earlyLifeTrt == catLevel,
               !! input$singleVar <= y + yError & !! input$singleVar >= y - yError
             ) %>%
             select(
@@ -162,52 +189,62 @@ catPlotComboTrtServer <- function(
           ) %>%
           anova_test(
             dv = !! input$singleVar,
-            between = c(earlyLifeTrt, adultTrt),
+            between = c(earlyLifeTrt),
             type = 3
           ) %>%
           formatAnova() %>%
           htmltools_value()
       })
       
-      output$countTable <- shiny::renderDataTable({
-        countTbl <-  df_filtered() %>%
-          filter(
-            # ! (row_number() %in% input$GABApscsScatterTable_rows_selected)
-            ! (row_number() %in% input$table_rows_selected) # AGG 2023-01-20, edited. Best guess from generic use here
-          ) %>%
-          countMiceAndLitters(
-            !! input$singleVar,
-            c(expr(earlyLifeTrt), expr(adultTrt))
-          )
-        
-        meanTbl <- df_filtered() %>%
+      output$countTable <- renderTable({
+        df_filtered() %>%
           filter(
             !is.na(!! input$singleVar)
           ) %>%
           filter(
             ! (row_number() %in% input$table_rows_selected)
           ) %>%
-          group_by(earlyLifeTrt, adultTrt) %>%
+          group_by(earlyLifeTrt) %>%
           meanSummary(!! input$singleVar)
-        
-        countTbl %>%
-          left_join(
-            meanTbl %>% select(-n),
-            by = c("earlyLifeTrt", "adultTrt")
-          )
       })
     }
   )
 }
 
 
-scatterPlotComboTrtUI <- function(
+scatterPlotEarlyLifeTrtUI <- function(
   id,
   dfForXVars,
   dfForYVars
 ){
   ns <- NS(id)
   tagList(
+    fluidRow(
+      div(
+        class = "col-xs-4",
+        numericInput(
+          ns("fontSize"),
+          "font size",
+          16
+        ),
+      ),
+      div(
+        class= "col-xs-4",
+        colourpicker::colourInput(
+          ns("STDColor"),
+          "STD Color",
+          "white"
+        )
+      ),
+      div(
+        class = "col-xs-4",
+        colourpicker::colourInput(
+          ns("LBNColor"),
+          "LBN Color",
+          "cyan4"
+        )
+      )
+    ),
     fluidRow(
       div(
         class = "col-xs-4",
@@ -242,7 +279,7 @@ scatterPlotComboTrtUI <- function(
 }
 
 
-scatterPlotComboTrtServer <- function(
+scatterPlotEarlyLifeTrtServer <- function(
   id,
   df_filtered_orig,
   varCaseFunc, # a case_when function for processing the label for the yvar
@@ -262,8 +299,6 @@ scatterPlotComboTrtServer <- function(
     #     cellID,
     #     mouseID,
     #     earlyLifeTrt,
-    #     adultTrt,
-    #     comboTrt,
     #     ReproTract_mass,
     #     Rseries,
     #     Rinput,
@@ -296,21 +331,24 @@ scatterPlotComboTrtServer <- function(
           ) %>%
           filter(
             ! (row_number() %in% input$table_rows_selected),
-            ! (is.na(adultTrt)) # added 2022-03-14
+            ! (is.na(earlyLifeTrt))
           ) %>%
-          scatterPlotTwoVars_byComboTrt(
+          scatterPlotTwoVars_byLBN(
             yVar = !! input$yVar,
             yLab = yText(),
             xVar = !! input$xVar,
             xLab = xText(),
             dotSize = dotSize,
-            fontSize = 16,
+            textSize = input$fontSize,
             zoom_x = zoomX$zoom(),
             xmin = zoomX$min(),
             xmax = zoomX$max(),
             zoom_y = zoomY$zoom(),
             ymin = zoomY$min(),
-            ymax = zoomY$max()
+            ymax = zoomY$max(),
+            STDColor = input$STDColor,
+            LBNColor = input$LBNColor,
+            jitterWidth = 0
           )
       })
       

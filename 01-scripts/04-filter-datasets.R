@@ -29,6 +29,175 @@ damBehaviorFiltered_P5_P6 <- damBehaviorFiltered %>%
     PND %in% c(5, 6)
     , ! (PND == 5 & time == 1)
     , ! (PND == 6 & time == 15)
+    , ! (PND == 6 & time == 19)
+  )
+
+damBehavior_byDam <- damBehaviorFiltered_ZTs %>%
+  group_by(
+    damID
+  ) %>%
+  summarizeDamBehavior() %>%
+  arrange(
+    cohort
+    , damID
+  )
+
+damBehavior_byPND <- damBehaviorFiltered_ZTs %>%
+  group_by(
+    damID,
+    PND
+  ) %>%
+  summarizeDamBehavior() %>%
+  arrange(
+    cohort
+    , damID
+    , PND
+  )
+
+
+damBehavior_byZT <- damBehaviorFiltered_ZTs %>%
+  group_by(
+    damID,
+    time
+  ) %>%
+  summarizeDamBehavior() %>%
+  arrange(
+    cohort
+    , damID
+    , time
+  )
+
+damBehavior_byLightDark <- damBehaviorFiltered_ZTs %>%
+  mutate(
+    lightDark = ifelse(time < 14, "light", "dark")
+  ) %>%
+  group_by(
+    damID,
+    lightDark
+  ) %>%
+  summarizeDamBehavior() %>%
+  arrange(
+    cohort
+    , damID
+    , PND
+    , desc(lightDark)
+  )
+
+damBehavior_byPNDLightDark <- damBehaviorFiltered_ZTs %>%
+  mutate(
+    lightDark = ifelse(time < 14, "light", "dark")
+  ) %>%
+  group_by(
+    damID,
+    PND,
+    lightDark
+  ) %>%
+  summarizeDamBehavior() %>%
+  arrange(
+    cohort
+    , damID
+    , PND
+    , desc(lightDark)
+  )
+
+damFramesAndBehaviorByDam <- damBehavior_byDam %>%
+  select(
+    -(earlyLifeTrt:Sac_or_stop)
+  ) %>%
+  left_join(
+    damFrames_byDam %>%
+      select(
+      -(earlyLifeTrt:Sac_or_stop)
+      ),
+    by = "damID"
+  ) %>%
+  left_join(
+    Demo_dam %>%
+      select(
+        -c(CyclesFolder, cyclingFolderPath)
+      ),
+    by = "damID"
+  )
+
+## Frames -----------------------------------------------------------------
+
+damFramesFiltered <- damFrames %>%
+  filterLBNCohorts() %>%
+  filter(
+    confirmed == 1
+  )
+
+damFrames_byDam <- damFramesFiltered %>%
+  group_by(
+    damID
+  ) %>%
+  summarizeDamFrames() %>%
+  arrange(
+    cohort
+    , damID
+  )
+
+damFrames_byPND <- damFramesFiltered %>%
+  group_by(
+    damID,
+    PND
+  ) %>%
+  summarizeDamFrames() %>%
+  arrange(
+    cohort
+    , damID
+    , PND
+  )
+
+damFrames_byZT <- damFramesFiltered %>%
+  group_by(
+    damID,
+    ZT
+  ) %>%
+  summarizeDamFrames() %>%
+  arrange(
+    cohort
+    , damID
+    , ZT
+  )
+
+damFrames_byPND_ZT <- damFramesFiltered %>%
+  group_by(
+    damID,
+    PND,
+    ZT
+  ) %>%
+  summarizeDamFrames() %>%
+  arrange(
+    cohort
+    , damID
+    , PND
+    , ZT
+  )
+
+damFrames_byLightDark <- damFramesFiltered %>%
+  group_by(
+    damID,
+    lightDark
+  ) %>%
+  summarizeDamFrames() %>%
+  arrange(
+    cohort
+    , damID
+    , desc(lightDark)
+  )
+
+damFrames_byPNDLightDark <- damFramesFiltered %>%
+  group_by(
+    damID,
+    PND,
+    lightDark
+  ) %>%
+  summarizeDamFrames() %>%
+  arrange(
+    cohort
+    , damID
+    , desc(lightDark)
   )
   
 
