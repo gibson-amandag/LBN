@@ -1,3 +1,229 @@
+# when using this with sapply in vectors, 
+# it seems to simplify to a number
+makeDateTime <- function(PND, hr){
+  as_datetime(
+    ymd_h(
+      paste0(
+        "2000-01-"
+        , sprintf("%02d", as.integer(PND))
+        , " "
+        , sprintf("%02d", as.integer(hr))
+      )
+    )
+  )
+}
+
+
+# This function will detect if PND or ZT are columns
+# in the provided dataset.
+# If they are, they will include them in the plot
+# If neither are included, will plot trt on the x-axis
+# Only color by treatment, and always use a horizontal
+# line for the mean
+
+# This function should meet the needs of most of the others
+# in this file, with more flexibility
+plotDamBehavior <- function(
+    df
+    , yVar
+    , yLab
+    , fontSize = 12
+    , dotSize = 1.2
+    , lineSize = 1
+    , lineAlpha = 0.4
+    , addTriangleForMean = FALSE
+    , redMean = FALSE
+    , colorByDam = FALSE
+    , showDots = TRUE
+    , addVertError = TRUE
+    , facetByTrt = TRUE
+    , facetByLitter = FALSE
+    , removeLegend = TRUE
+){
+  df <- df %>%
+    rename(
+      any_of(
+        c(ZT = "time") # renames time as ZT, if it exists
+      )
+    )
+  
+  includesPND <- ifelse("PND" %in% names(df), TRUE, FALSE)
+  includesZT <- ifelse("ZT" %in% names(df), TRUE, FALSE)
+  
+  if(includesPND & includesZT){
+    df <- df %>%
+      mutate(
+        dayTime = as_datetime(ymd_h(paste0(paste0("2000-01-", PND), paste0(" ", ZT)))),
+        .after = ZT
+      )
+    
+    days <- c(4:11)
+    dateTimes01 <- sapply(days, makeDateTime, 1)
+    dateTimes15 <- sapply(days, makeDateTime, 15)
+    dateTimes <- as_datetime(c(rbind(dateTimes01, dateTimes15)))
+    
+    viz <- df %>%
+      ggplot(
+        aes(
+          x = dayTime,
+          y = {{ yVar }}
+        )
+      ) + scale_x_datetime(
+        breaks = c(
+          dateTimes
+        ), 
+        date_labels = "%d\n%H"
+      ) +
+      xlab("PND\nZT")
+  } else {
+    if(includesPND){
+      viz <- df %>%
+        ggplot(
+          aes(
+            x = PND
+            , y = {{ yVar }}
+          )
+        ) +
+        xlab("PND")
+    } else if(includesZT){
+      viz <- df %>%
+        ggplot(
+          aes(
+            x = ZT
+            , y = {{ yVar }}
+          )
+        ) + 
+        xlab("ZT")
+    } else {
+      viz <- df %>%
+        ggplot(
+          aes(
+            x = earlyLifeTrt
+            , y = {{ yVar }}
+            , fill = earlyLifeTrt
+          )
+        ) +
+        theme(
+          axis.title.x = element_blank()
+        ) + 
+        earlyLifeFill()
+    }
+  }
+  
+  if(includesPND | includesZT){
+    if(colorByDam){
+      viz <- viz + geom_line(
+        alpha = lineAlpha,
+        aes(group = damID, color = damID),
+        position = position_dodge(0.4),
+        size = lineSize
+      )
+      if(showDots){
+        viz <- viz + geom_point(
+          shape = 21,
+          alpha = 1, 
+          aes(color=damID, fill = damID, group=damID), 
+          position = position_dodge(0.4), 
+          size = dotSize
+        )
+      }
+    } else {
+      viz <- viz + geom_line(
+        alpha = lineAlpha,
+        color = "black",
+        aes(group = damID, linetype = earlyLifeTrt),
+        position = position_dodge(0.4),
+        size = lineSize
+      )
+      if(showDots){
+        viz <- viz + geom_point(
+          shape = 21,
+          alpha = 1, 
+          aes(fill=earlyLifeTrt,group=damID), 
+          position = position_dodge(0.4), 
+          size = dotSize
+        ) + 
+          earlyLifeFill()
+      }
+    }
+    
+    if(addTriangleForMean){ # horizontal bar is too small to show up
+      if(redMean){
+        viz <- viz +
+          stat_summary(
+            geom = "point",
+            fun = mean,
+            shape = 16,
+            color = "red",
+            size = dotSize * .5
+          )
+      }else {
+        viz <- viz +
+          stat_summary(
+            geom = "point",
+            fun = mean,
+            shape = 24,
+            size = dotSize
+          )
+      }
+    }
+  } else {
+    # if don't have a time-based x-asis, always show dots
+    viz <- viz + geom_point(
+      shape = 21,
+      alpha = 1, 
+      aes(fill=earlyLifeTrt,group=damID), 
+      position = position_dodge(0.4), 
+      size = dotSize
+    )
+  }
+  
+  if(addVertError){
+    viz <- viz + addMeanSE_vertBar()
+  }
+  
+  viz <- viz +
+    addMeanHorizontalBar(addLineType = FALSE)+
+    labs(y = yLab, linetype = "early life trt") +
+    textTheme(
+      size = fontSize
+    )+
+    expand_limits(y = 0)+
+    boxTheme()
+  
+  litterNum_label <- labeller(litterNum = c("1" = "first litter", "2" = "second litter"))
+  if(facetByTrt & facetByLitter){
+    viz <- viz +
+      facet_wrap(
+        vars(litterNum, earlyLifeTrt)
+        , labeller = litterNum_label
+      )
+  } else if(facetByTrt){
+    viz <- viz + 
+      facet_wrap(
+        vars(earlyLifeTrt)
+        , ncol = 2
+      )
+  } else if(facetByLitter){
+    viz <- viz +
+      facet_wrap(
+        vars(litterNum)
+        , labeller = litterNum_label
+      )
+  }
+  
+  if(removeLegend){
+    viz <- viz +
+      theme(
+        legend.position = "none"
+      )
+  }
+  
+  return(viz)
+}
+
+
+
 behavior_overTime <- function(
   df,
   yVar,

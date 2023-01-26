@@ -71,17 +71,25 @@ ui <- navbarPage(
                         massDamUI("massDam", damFiltered)
                     ),
                     
+                    #Behavior
+                    tabPanel(
+                        "Dam Behavior",
+                        behaviorDamUI(
+                          "damBehavior"
+                          , damFiltered
+                          , damFramesAndBehaviorByDam %>%
+                            select(
+                              Num_exits:clump8_percLitter
+                            )
+                        )
+                    ),
+                    
                     #Scatter plots
                     tabPanel(
                         "Scatter plots",
                         damByTrtUI("damByTrt", damFramesAndBehaviorByDam)
                     ),
                     
-                    #Corticosterone
-                    tabPanel(
-                        "Dam Corticosterone",
-                        # damCortUI("damCort", Demo_dam_P4)
-                    )
                 )
             ),
             

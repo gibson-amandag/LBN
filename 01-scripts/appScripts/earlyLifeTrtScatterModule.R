@@ -41,20 +41,30 @@ catPlotEarlyLifeTrtUI <- function(
           "Select variable to summarize",
           dfForVars
         )
+      ),
+      div(
+        class = "col-xs-4",
+        checkboxInput(
+          ns("facetByLitter"),
+          "Facet by litter",
+          TRUE
+        )
       )
     ),
+    h4("Mean summary"),
     tableOutput(ns("countTable")),
+    h4("ANOVA"),
     uiOutput(ns("ANOVA")),
     zoomAxisUI(ns("zoomY"), "y"),
-    plotUI(
-      ns("plot")
-    ),
-    p("Click on a point to get info"),
+    h4("Click on a point to get info"),
     tableOutput(
       ns("info")
     ),
+    plotUI(
+      ns("plot")
+    ),
     shiny::dataTableOutput(ns("sumTable")),
-    p("Click on a row in the table to exclude from plot"),
+    h4("Click on a row in the table to exclude from plot"),
     DTOutput(ns("table"))
   )
 }
@@ -104,7 +114,7 @@ catPlotEarlyLifeTrtServer <- function(
       yText <- reactive(yVarCaseFunc(yVar()))
       
       plot <- reactive({
-        df_filtered() %>%
+        plot <- df_filtered() %>%
           filter(
             ! is.na(!! input$singleVar)
           ) %>%
@@ -126,6 +136,18 @@ catPlotEarlyLifeTrtServer <- function(
           # theme(
           #   legend.position = "top"
           )
+        
+        if(input$facetByLitter){
+          plot <- plot + 
+            facet_wrap(
+              vars(litterNum)
+              , ncol = 2
+              , labeller = labeller(
+                litterNum = c("1" = "first litter", "2" = "second litter")
+              )
+            )
+        }
+        return(plot)
       })
       
       info <- plotServer("plot", plot, paste0(yVar()), compType)
@@ -180,32 +202,72 @@ catPlotEarlyLifeTrtServer <- function(
       })
       
       output$ANOVA <- renderUI({
-        df_filtered() %>%
-          filter(
-            ! is.na(!! input$singleVar)
-          ) %>%
-          filter(
-            ! (row_number() %in% input$table_rows_selected)
-          ) %>%
-          anova_test(
-            dv = !! input$singleVar,
-            between = c(earlyLifeTrt),
-            type = 3
-          ) %>%
-          formatAnova() %>%
-          htmltools_value()
+        if(input$facetByLitter){
+          tbl <- df_filtered() %>%
+            filter(
+              ! is.na(!! input$singleVar)
+            ) %>%
+            filter(
+              ! (row_number() %in% input$table_rows_selected)
+            ) %>%
+            anova_test(
+              dv = !! input$singleVar,
+              between = c(earlyLifeTrt, litterNum),
+              type = 3
+            ) %>%
+            formatAnova() %>%
+            htmltools_value(ft.align = "left")
+        } else {
+          tbl <- df_filtered() %>%
+            filter(
+              ! is.na(!! input$singleVar)
+            ) %>%
+            filter(
+              ! (row_number() %in% input$table_rows_selected)
+            ) %>%
+            anova_test(
+              dv = !! input$singleVar,
+              between = c(earlyLifeTrt),
+              type = 3
+            ) %>%
+            formatAnova() %>%
+            htmltools_value(ft.align = "left")
+        }
+        
+        return(tbl)
       })
       
       output$countTable <- renderTable({
-        df_filtered() %>%
-          filter(
-            !is.na(!! input$singleVar)
-          ) %>%
-          filter(
-            ! (row_number() %in% input$table_rows_selected)
-          ) %>%
-          group_by(earlyLifeTrt) %>%
-          meanSummary(!! input$singleVar)
+        # it works to do if(input$facetByLitter) litterNum in the group_by,
+        # but then the if statement shows up in the table itself
+        if(input$facetByLitter){
+          meanDF <- df_filtered() %>%
+            filter(
+              !is.na(!! input$singleVar)
+            ) %>%
+            filter(
+              ! (row_number() %in% input$table_rows_selected)
+            ) %>%
+            group_by(
+              earlyLifeTrt
+              , litterNum
+            ) %>%
+            meanSummary(!! input$singleVar)
+        } else {
+          meanDF <- df_filtered() %>%
+            filter(
+              !is.na(!! input$singleVar)
+            ) %>%
+            filter(
+              ! (row_number() %in% input$table_rows_selected)
+            ) %>%
+            group_by(
+              earlyLifeTrt
+            ) %>%
+            meanSummary(!! input$singleVar)
+          
+        }
+        return(meanDF)
       })
     }
   )
@@ -261,19 +323,28 @@ scatterPlotEarlyLifeTrtUI <- function(
           "Select y-variable",
           dfForYVars
         )
+      ),
+      div(
+        class = "col-xs-4",
+        checkboxInput(
+          ns("facetByLitter"),
+          "Facet by litter",
+          TRUE
+        )
       )
     ),
+    h4("ANOVA"),
     uiOutput(ns("ANOVA")),
     zoomAxisUI(ns("zoomX"), "x"),
     zoomAxisUI(ns("zoomY"), "y"),
-    plotUI(
-      ns("plot")
-    ),
-    p("Click on a point to get info"),
+    h4("Click on a point to get info"),
     tableOutput(
       ns("info")
     ),
-    p("Click on a row in the table to exclude from plot"),
+    plotUI(
+      ns("plot")
+    ),
+    h4("Click on a row in the table to exclude from plot"),
     DTOutput(ns("table"))
   )
 }
@@ -324,7 +395,7 @@ scatterPlotEarlyLifeTrtServer <- function(
       yText <- reactive(varCaseFunc(yVar()))
       
       plot <- reactive({
-        df_filtered() %>%
+        plot <- df_filtered() %>%
           filter(
             ! is.na(!! input$xVar),
             ! is.na(!! input$yVar)
@@ -350,6 +421,17 @@ scatterPlotEarlyLifeTrtServer <- function(
             LBNColor = input$LBNColor,
             jitterWidth = 0
           )
+        if(input$facetByLitter){
+          plot <- plot + 
+            facet_wrap(
+              vars(litterNum)
+              , ncol = 2
+              , labeller = labeller(
+                litterNum = c("1" = "first litter", "2" = "second litter")
+              )
+            )
+        }
+        return(plot)
       })
       
       info <- plotServer("plot", plot, paste0(yText(), "-by-", xText()), compType)

@@ -4,7 +4,8 @@ summarizeDamFrames <- function(
 ){
   sum_df <- df %>%
     summarize(
-      across(c(damOnNest, pupsTogether, distPxl, dist, numClumps, starts_with("clump")), ~ mean(.x, na.rm = TRUE))
+      across(c(damOnNest, pupsTogether), ~mean(.x, na.rm = TRUE) * 100),
+      across(c(distPxl, dist, numClumps, starts_with("clump")), ~ mean(.x, na.rm = TRUE))
       , .groups = "drop"
     ) %>%
     left_join(

@@ -79,7 +79,6 @@ damBehavior_byLightDark <- damBehaviorFiltered_ZTs %>%
   arrange(
     cohort
     , damID
-    , PND
     , desc(lightDark)
   )
 
@@ -100,24 +99,6 @@ damBehavior_byPNDLightDark <- damBehaviorFiltered_ZTs %>%
     , desc(lightDark)
   )
 
-damFramesAndBehaviorByDam <- damBehavior_byDam %>%
-  select(
-    -(earlyLifeTrt:Sac_or_stop)
-  ) %>%
-  left_join(
-    damFrames_byDam %>%
-      select(
-      -(earlyLifeTrt:Sac_or_stop)
-      ),
-    by = "damID"
-  ) %>%
-  left_join(
-    Demo_dam %>%
-      select(
-        -c(CyclesFolder, cyclingFolderPath)
-      ),
-    by = "damID"
-  )
 
 ## Frames -----------------------------------------------------------------
 
@@ -135,6 +116,25 @@ damFrames_byDam <- damFramesFiltered %>%
   arrange(
     cohort
     , damID
+  )
+
+damFramesAndBehaviorByDam <- damBehavior_byDam %>%
+  select(
+    -(earlyLifeTrt:Sac_or_stop)
+  ) %>%
+  left_join(
+    damFrames_byDam %>%
+      select(
+        -(earlyLifeTrt:Sac_or_stop)
+      ),
+    by = "damID"
+  ) %>%
+  left_join(
+    Demo_dam %>%
+      select(
+        -c(CyclesFolder, cyclingFolderPath)
+      ),
+    by = "damID"
   )
 
 damFrames_byPND <- damFramesFiltered %>%

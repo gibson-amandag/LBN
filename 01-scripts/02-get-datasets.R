@@ -217,7 +217,7 @@ damFrames_wide <- damFrames %>%
 damFrames <- damFrames %>%
   left_join(Demo_dam, by = "damID") %>%
   mutate(
-    across(starts_with("clump"), ~ .x / Litter_size, .names = "{.col}_propLitter")
+    across(starts_with("clump"), ~ .x / Litter_size * 100, .names = "{.col}_percLitter")
     , .after = clump8
   )
 
