@@ -25,7 +25,7 @@ filterDamBehaviorTimeFunc <- function(
   ) {
     df <- df %>%
       filter(
-        time %in% behaviorTimes
+        ZT %in% behaviorTimes
       )
     return(df)
   }

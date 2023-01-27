@@ -9,9 +9,9 @@
 
 library(shiny)
 
-source("./01-scripts/01-set-up.R")
-source(file.path(scriptsFolder, "02-get-datasets.R"))
-source(file.path(scriptsFolder, "04-filter-datasets.R"))
+# source("./01-scripts/01-set-up.R")
+# source(file.path(scriptsFolder, "02-get-datasets.R"))
+# source(file.path(scriptsFolder, "04-filter-datasets.R"))
 # library(shinyFiles)
 
 moduleFiles <- list.files(
@@ -81,6 +81,7 @@ ui <- navbarPage(
                             select(
                               Num_exits:clump8_percLitter
                             )
+                          , damFramesAndBehavior_ByPND_ZT
                         )
                     ),
                     
@@ -223,6 +224,16 @@ server <- function(input, output) {
                    damFramesAndBehaviorByDam,
                    niceNames = niceNames,
                    compType = currentCompType)
+    behaviorDamServer("damBehavior",
+                   damFramesDF = damFramesFiltered,
+                   damBehaviorDF = damBehaviorFiltered_ZTs,
+                   niceNames = niceNames,
+                   compType = currentCompType,
+                   demoDamToAdd = Demo_dam_for_offspring %>% 
+                     select(
+                       -cyclingFolderPath
+                     )
+                   )
     massOffServer("massOff", 
                   Mass_off %>% filter(ParaType == 4), 
                   Demo_dam %>% filter(ParaType == 4),

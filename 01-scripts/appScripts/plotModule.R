@@ -7,13 +7,15 @@
 # https://shiny.rstudio.com/articles/modules.html
 
 plotUI <- function(
-  id
+  id,
+  height = "400px"
 ){
   ns <- NS(id)
   tagList(
     plotOutput(
       ns("plot"),
       click = ns("plot_click")
+      , height = height
     ),
     fluidRow(
       div(

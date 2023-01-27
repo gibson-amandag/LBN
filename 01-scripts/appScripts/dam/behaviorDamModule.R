@@ -6,7 +6,8 @@
 behaviorDamUI <- function(
     id,
     Demo_dam,
-    dfForVars
+    dfForVars,
+    damFramesAndBehavior_ByPND_ZT
 ){
   ns <- NS(id)
   tagList(
@@ -19,12 +20,15 @@ behaviorDamUI <- function(
     fluidRow(
       div(
         class = "col-xs-4"
-        , selectInput(
+        , varSelectInput(
           ns("groupBy"),
           "Group by time?",
-          choices = c("PND", "ZT"),
+          damFramesAndBehavior_ByPND_ZT %>%
+            select(
+              PND, ZT
+            ),
           multiple = TRUE,
-          selected = c(1,2)
+          selected = c("PND")
         ),
         
       ),
@@ -36,6 +40,30 @@ behaviorDamUI <- function(
           dfForVars
         )
       )
+    ),
+    
+    fluidRow(
+      div(
+        class = "col-xs-4",
+        selectInput(
+          ns("days"),
+          "Which days?",
+          choices = unique(damFramesAndBehavior_ByPND_ZT$PND), # Changed from levels to unique
+          multiple = TRUE,
+          selected = c(4:11)
+        )
+      ),
+      div(
+        class = "col-xs-4",
+        selectInput(
+          ns("ZTs"),
+          "Which ZTs?",
+          choices = sort(unique(damFramesAndBehavior_ByPND_ZT$ZT)), # Changed from levels to unique
+          multiple = TRUE,
+          selected = c(0:23)
+        )
+      )
+      
     ),
     
     tabsetPanel(
@@ -56,7 +84,7 @@ behaviorDamUI <- function(
             checkboxInput(
               ns("facetByTrt"),
               "Facet by trt",
-              FALSE
+              TRUE
             )
           ),
           div(
@@ -81,6 +109,11 @@ behaviorDamUI <- function(
           div(
             class= "col-xs-4",
             colourpicker::colourInput(
+              ns("STDFill"),
+              "STD Fill",
+              "white"
+            ),
+            colourpicker::colourInput(
               ns("STDColor"),
               "STD Color",
               "grey30"
@@ -88,6 +121,11 @@ behaviorDamUI <- function(
           ),
           div(
             class = "col-xs-4",
+            colourpicker::colourInput(
+              ns("LBNFill"),
+              "LBN Fill",
+              "cyan4"
+            ),
             colourpicker::colourInput(
               ns("LBNColor"),
               "LBN Color",
@@ -142,7 +180,17 @@ behaviorDamUI <- function(
               "Dot size",
               value = 3
             )
-          )
+          ),
+          div(
+            class = "col-xs-4",
+            sliderInput(
+              ns("dodgeVal"),
+              "Position dodge",
+              min = 0,
+              max = 1,
+              value = 0
+            )
+          ),
         ),
         
         strong("Options when grouped by time"),
@@ -174,14 +222,12 @@ behaviorDamUI <- function(
           )
         ),
         
-        # plotOutput(ns("plot"))
-        
         zoomAxisUI(ns("zoom_x"), "x"),
         
         zoomAxisUI(ns("zoom_y"), "y"),
         
         tableOutput(ns("plotInfo")),
-        plotUI(ns("plot")),
+        plotUI(ns("plot"), height = "600px"),
         
         DTOutput(ns("demoTable"))
       ),
@@ -218,9 +264,11 @@ behaviorDamUI <- function(
 
 behaviorDamServer <- function(
   id,
-  Demo_dam,
+  damBehaviorDF,
+  damFramesDF,
   niceNames,
-  compType
+  compType,
+  demoDamToAdd
 ){
   moduleServer(
     id,
@@ -228,162 +276,258 @@ behaviorDamServer <- function(
       
       
       ## Filtering -------------------------------------------------------------
-      
-      Demo_dam_filtered <- filteringDFServer("filter", Demo_dam)
-      Demo_dam_react <- reactive({
-        Demo_dam_filtered()
+      damBehavior_filtered <- filteringDFServer("filter", damBehaviorDF)
+      damBehavior_react <- reactive({
+        damBehavior_filtered()
       })
+      
+      damFrames_filtered <- filteringDFServer("filter", damFramesDF)
+      damFrames_react <- reactive({
+        damFrames_filtered()
+      })
+      
+      yVar <- reactive(as.character(input$singleVar))
+      yText <- reactive(getNiceName(yVar()))
+      
+      behaviorVars <- names(damBehaviorDF %>% select(
+        Num_exits:Avg_dur_on_nest
+      ))
+      
+      framesVars <- names(damFramesDF %>% select(
+        damOnNest:clump8_percLitter
+      ))
+      
+      df_picked <- reactive({
+        
+        if(yVar() %in% behaviorVars){
+          df <- damBehavior_react()
+        } else {
+          df <- damFrames_react()
+        }
+        
+        return(df)
+      })
+      
+      useDF <- reactive({
+        if(yVar() %in% behaviorVars){
+          useDF <- "behavior"
+        } else {
+          useDF <- "frames"
+        }
+        return(useDF)
+      })
+      
+      output$test <- renderText(useDF())
+      
+      df_react <- reactive({
+        df <- df_picked() %>%
+          filter(
+            PND %in% input$days
+            , ZT %in% input$ZTs
+            , !is.na(!! input$singleVar )
+          )
+        
+        if(useDF() == "behavior"){
+          df <- df %>%
+            group_by(
+              damID
+              , !!! input$groupBy
+            ) %>%
+            summarizeDamBehavior(demoDamToAdd)
+        } else {
+          df <- df %>%
+            group_by(
+              damID
+              , !!! input$groupBy
+            ) %>%
+            summarizeDamFrames(demoDamToAdd)
+        }
+        return(df)
+      })
+      
       zoom_x <- zoomAxisServer("zoom_x", "x", minVal = 0, maxVal = 21)
       zoom_y <- zoomAxisServer("zoom_y", "y", minVal = 0, maxVal = 35)
       
       behaviorPlot <- reactive({
-        df <- Demo_dam_react()
-        
+        df <- df_react()
+
         plot <- df %>%
-          plot_dam_mass_lines(
-            useLineType = input$useLineType, # TRUE/FALSE
-            lineTypeVar = earlyLifeTrt,
-            individualLines = input$individualLines, # plot individual lines
-            meanLines = input$meanLines, # plot mean lines with SE
-            zoom_x = zoom_x$zoom(), # Zoom to part of x axis
-            xmin = zoom_x$min(),
-            xmax = zoom_x$max(),
-            zoom_y = zoom_y$zoom(), # Zoom to part of y axis
-            ymin = zoom_y$min(),
-            ymax = zoom_y$max(),
-            indivLineAlpha = input$indivAlpha,
-            indivLineSize = 0.8,
-            errorBarWidth = 1,
-            meanLineSize = 1.4,
-            meanAlpha = input$meanAlpha,
-            errorBarSize = 1,
-            # errorBarColor = "grey10",
-            errorBarAlpha = input$errorBarAlpha,
-            textSize = input$fontSize,
-            axisSize = 0.5,
-            legendPosition = "top",
-            STDColor = input$STDColor,
-            LBNColor = input$LBNColor
+          plotDamBehavior(
+            yVar = !! input$singleVar
+            , yLab = yText()
+            , fontSize = input$fontSize
+            , dotSize = input$dotSize
+            , lineSize = input$lineSize
+            , lineAlpha = input$indivAlpha
+            , dodgeVal = input$dodgeVal
+            , addTriangleForMean = input$triangleMean
+            , redMean = input$redMean
+            , colorByDam = input$colorByDam
+            , showDots = input$showDots
+            , addVertError = input$addVertError
+            , facetByTrt = input$facetByTrt
+            , facetByLitter = input$facetByLitter
+            , removeLegend = input$removeLegend
+            , STDColor = input$STDColor
+            , LBNColor = input$LBNColor
+            , STDFill = input$STDFill
+            , LBNFill = input$LBNFill
+            , zoom_x = zoom_x$zoom() # Zoom to part of x axis
+            , xmin = zoom_x$min()
+            , xmax = zoom_x$max()
+            , zoom_y = zoom_y$zoom() # Zoom to part of y axis
+            , ymin = zoom_y$min()
+            , ymax = zoom_y$max()
           )
-        
-        if(input$facetByLitter){
-          if(input$facetByTrt){
-            plot <- plot + 
-              facet_wrap(
-                vars(earlyLifeTrt, litterNum),
-                nrow = 1,
-                labeller = labeller(litterNum = c("1" = "first", "2" = "second"))
-              )
-          } else {
-            plot <- plot + 
-              facet_wrap(
-                vars(litterNum),
-                labeller = labeller(litterNum = c("1" = "first", "2" = "second"))
-              )
-          }
-            
-        } else if(input$facetByTrt){
-          plot <- plot + 
-            facet_wrap(
-              vars(earlyLifeTrt)
-            )
-        }
         return(plot)
       })
-      
+
       plotInfo <- plotServer("plot", behaviorPlot, "behaviorPlot", compType)
       # To access plot click information plotInfo$click()
         # x = plotInfo$click()$x
-      
+
       output$plotInfo <- renderTable({
         
-        df <- Demo_dam_react()
+        if(!is.null(plotInfo$click())){
+          if(length(input$groupBy) == 0){
+            x <- plotInfo$click()$x
+            xRound <- round(x)
+            y <- plotInfo$click()$y
+            catLevel <- plotInfo$click()$domain$discrete_limits$x[[xRound]]
+            
+            df_filtered2 <- reactive({df_react() %>%
+                filter(
+                  ! is.na(!! input$singleVar)
+                ) %>%
+                filter(
+                  ! (row_number() %in% input$table_rows_selected)
+                )
+            })
+            
+            if(zoom_y$zoom()){
+              yRange = zoom_y$max() - zoom_y$min()
+            } else {
+              yMin <- min(df_filtered2() %>% select(!! input$singleVar), na.rm = TRUE)
+              yMax <- max(df_filtered2() %>% select(!! input$singleVar), na.rm = TRUE)
+              yRange <- yMax - yMin
+            }
+            
+            yError <- yRange * 0.03
+            
+            df <- df_filtered2() %>%
+              filter(
+                earlyLifeTrt == catLevel,
+                !! input$singleVar <= y + yError & !! input$singleVar >= y - yError
+              ) %>%
+              select(
+                damID,
+                earlyLifeTrt,
+                litterNum,
+                !! input$singleVar
+              )
+            
+          } else {
+            df <- df_react()
+            
+            print(plotInfo$click())
+            
+            if(length(input$groupBy) == 2){
+              df <- df %>%
+                mutate(
+                  dayTime = as_datetime(ymd_h(paste0(paste0("2000-01-", PND), paste0(" ", ZT)))),
+                  .after = ZT
+                )
+            }
+
+            df <- nearPoints(
+              df %>% select(
+                damID,
+                earlyLifeTrt,
+                litterNum,
+                !!! input$groupBy,
+                any_of(c("dayTime")), 
+                !! input$singleVar
+              ),
+              plotInfo$click())
+          }
+        return(df)
+        }
         
-        df_long <- df %>%
-          makeDamMassLong()
-        
-        nearPoints(
-          df_long %>% select(
-            damID,
-            earlyLifeTrt,
-            litterNum,
-            day,
-            mass
-          ), 
-          plotInfo$click())
       })
       
-      output$massSummary <- renderTable({
-        df <- Demo_dam_react()
-        
-        df_long <- df %>%
-          makeDamMassLong()
-        
-        df_long %>%
-          group_by(
-            day,
-            !!! input$betweenVars
-          ) %>%
-          meanSummary(mass)
-      })
       
-      output$massANOVA <- renderUI({
-        
-        df <- Demo_dam_react()
-        
-        df_long <- df %>%
-          makeDamMassLong()
-        
-        anova <- df_long %>%
-          anova_test(
-            dv = mass,
-            wid = damID,
-            within = day,
-            between = c(!!! input$betweenVars),
-            type = 3
-          ) 
-        
-        anova$ANOVA%>%
-          formatAnova() %>%
-          htmltools_value()
-      })
-      
-      output$byDayANOVA <- renderUI({
-        df <- Demo_dam_react()
-        
-        df_long <- df %>%
-          makeDamMassLong()
-        
-        req(length(input$betweenVars) > 0)
-        
-        df_long %>%
-          group_by(day) %>%
-          anova_test(
-            dv = mass,
-            wid = damID,
-            between = c(!!! input$betweenVars),
-            type = 3
-          ) %>%
-          adjust_pvalue(method = "bonferroni")%>%
-          formatAdjAnova() %>%
-          # colformat_num(
-          #   j = "p.adj",
-          #   digits = 5
-          # ) %>%
-          htmltools_value()
-      })
-      
-      output$demoTable <- renderDT({
-        Demo_dam_react() %>%
-          select(
-            damID,
-            earlyLifeTrt,
-            litterNum,
-            Dam_Mass_P4,
-            Dam_Mass_P11,
-            Dam_Mass_P21
-          )
-      })
+      # 
+      # output$massSummary <- renderTable({
+      #   df <- df_react()
+      #   
+      #   df_long <- df %>%
+      #     makeDamMassLong()
+      #   
+      #   df_long %>%
+      #     group_by(
+      #       day,
+      #       !!! input$betweenVars
+      #     ) %>%
+      #     meanSummary(mass)
+      # })
+      # 
+      # output$massANOVA <- renderUI({
+      #   
+      #   df <- df_react()
+      #   
+      #   df_long <- df %>%
+      #     makeDamMassLong()
+      #   
+      #   anova <- df_long %>%
+      #     anova_test(
+      #       dv = mass,
+      #       wid = damID,
+      #       within = day,
+      #       between = c(!!! input$betweenVars),
+      #       type = 3
+      #     ) 
+      #   
+      #   anova$ANOVA%>%
+      #     formatAnova() %>%
+      #     htmltools_value()
+      # })
+      # 
+      # output$byDayANOVA <- renderUI({
+      #   df <- df_react()
+      #   
+      #   df_long <- df %>%
+      #     makeDamMassLong()
+      #   
+      #   req(length(input$betweenVars) > 0)
+      #   
+      #   df_long %>%
+      #     group_by(day) %>%
+      #     anova_test(
+      #       dv = mass,
+      #       wid = damID,
+      #       between = c(!!! input$betweenVars),
+      #       type = 3
+      #     ) %>%
+      #     adjust_pvalue(method = "bonferroni")%>%
+      #     formatAdjAnova() %>%
+      #     # colformat_num(
+      #     #   j = "p.adj",
+      #     #   digits = 5
+      #     # ) %>%
+      #     htmltools_value()
+      # })
+      # 
+      # output$demoTable <- renderDT({
+      #   df_react() %>%
+      #     select(
+      #       damID,
+      #       earlyLifeTrt,
+      #       litterNum,
+      #       Dam_Mass_P4,
+      #       Dam_Mass_P11,
+      #       Dam_Mass_P21
+      #     )
+      # })
     }
   )
 }

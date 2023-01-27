@@ -31,6 +31,7 @@ plotDamBehavior <- function(
     , dotSize = 1.2
     , lineSize = 1
     , lineAlpha = 0.4
+    , dodgeVal = 0.4
     , addTriangleForMean = FALSE
     , redMean = FALSE
     , colorByDam = FALSE
@@ -39,6 +40,16 @@ plotDamBehavior <- function(
     , facetByTrt = TRUE
     , facetByLitter = FALSE
     , removeLegend = TRUE
+    , STDColor = "black"
+    , LBNColor = "black"
+    , STDFill = "grey30"
+    , LBNFill = "cyan4"
+    , zoom_x = FALSE # Zoom to part of x axis
+    , xmin = NULL
+    , xmax = NULL
+    , zoom_y = FALSE # Zoom to part of y axis
+    , ymin = NULL
+    , ymax = NULL
 ){
   df <- df %>%
     rename(
@@ -93,7 +104,8 @@ plotDamBehavior <- function(
             , y = {{ yVar }}
           )
         ) + 
-        xlab("ZT")
+        xlab("ZT") +
+        expand_limits(x = c(0, 23))
     } else {
       viz <- df %>%
         ggplot(
@@ -106,7 +118,10 @@ plotDamBehavior <- function(
         theme(
           axis.title.x = element_blank()
         ) + 
-        earlyLifeFill()
+        earlyLifeFill(
+          STDColor = STDFill
+          , LBNColor = LBNFill
+        )
     }
   }
   
@@ -115,7 +130,7 @@ plotDamBehavior <- function(
       viz <- viz + geom_line(
         alpha = lineAlpha,
         aes(group = damID, color = damID),
-        position = position_dodge(0.4),
+        position = position_dodge(dodgeVal),
         size = lineSize
       )
       if(showDots){
@@ -123,16 +138,16 @@ plotDamBehavior <- function(
           shape = 21,
           alpha = 1, 
           aes(color=damID, fill = damID, group=damID), 
-          position = position_dodge(0.4), 
+          position = position_dodge(dodgeVal), 
           size = dotSize
         )
       }
     } else {
       viz <- viz + geom_line(
         alpha = lineAlpha,
-        color = "black",
-        aes(group = damID, linetype = earlyLifeTrt),
-        position = position_dodge(0.4),
+        # color = "black",
+        aes(group = damID, color = earlyLifeTrt),
+        position = position_dodge(dodgeVal),
         size = lineSize
       )
       if(showDots){
@@ -140,11 +155,19 @@ plotDamBehavior <- function(
           shape = 21,
           alpha = 1, 
           aes(fill=earlyLifeTrt,group=damID), 
-          position = position_dodge(0.4), 
+          position = position_dodge(dodgeVal), 
           size = dotSize
-        ) + 
-          earlyLifeFill()
-      }
+        )
+      } 
+      viz <- viz +
+        earlyLifeFill(
+          STDColor = STDFill
+          , LBNColor = LBNFill
+        ) +
+        earlyLifeColor(
+          STDColor = STDColor
+          , LBNColor = LBNColor
+        )
     }
     
     if(addTriangleForMean){ # horizontal bar is too small to show up
@@ -153,9 +176,12 @@ plotDamBehavior <- function(
           stat_summary(
             geom = "point",
             fun = mean,
-            shape = 16,
+            aes(group = earlyLifeTrt),
+            shape = 24,
             color = "red",
-            size = dotSize * .5
+            fill = "red",
+            size = dotSize * 1.25
+            , position = position_dodge(dodgeVal) # if want the means to dodge, too
           )
       }else {
         viz <- viz +
@@ -163,7 +189,9 @@ plotDamBehavior <- function(
             geom = "point",
             fun = mean,
             shape = 24,
-            size = dotSize
+            aes(fill = earlyLifeTrt, group = earlyLifeTrt),
+            size = dotSize * 1.25
+            , position = position_dodge(dodgeVal)
           )
       }
     }
@@ -173,43 +201,51 @@ plotDamBehavior <- function(
       shape = 21,
       alpha = 1, 
       aes(fill=earlyLifeTrt,group=damID), 
-      position = position_dodge(0.4), 
+      position = position_dodge(dodgeVal), 
       size = dotSize
     )
   }
   
   if(addVertError){
-    viz <- viz + addMeanSE_vertBar()
+    viz <- viz + addMeanSE_vertBar(
+      # linetype = earlyLifeTrt,
+      group = earlyLifeTrt
+      , barPosition = position_dodge(dodgeVal)
+    )
   }
   
-  viz <- viz +
-    addMeanHorizontalBar(addLineType = FALSE)+
-    labs(y = yLab, linetype = "early life trt") +
-    textTheme(
-      size = fontSize
-    )+
-    expand_limits(y = 0)+
-    boxTheme()
-  
   litterNum_label <- labeller(litterNum = c("1" = "first litter", "2" = "second litter"))
-  if(facetByTrt & facetByLitter){
-    viz <- viz +
-      facet_wrap(
-        vars(litterNum, earlyLifeTrt)
-        , labeller = litterNum_label
-      )
-  } else if(facetByTrt){
-    viz <- viz + 
-      facet_wrap(
-        vars(earlyLifeTrt)
-        , ncol = 2
-      )
-  } else if(facetByLitter){
-    viz <- viz +
-      facet_wrap(
-        vars(litterNum)
-        , labeller = litterNum_label
-      )
+  
+  colorMean <- FALSE
+  if((includesPND | includesZT)){
+    if(facetByTrt & facetByLitter){
+      viz <- viz +
+        facet_wrap(
+          vars(litterNum, earlyLifeTrt)
+          , labeller = litterNum_label
+        )
+    } else if(facetByTrt){
+      viz <- viz + 
+        facet_wrap(
+          vars(earlyLifeTrt)
+          , ncol = 2
+        )
+    } else if(facetByLitter){
+      viz <- viz +
+        facet_wrap(
+          vars(litterNum)
+          , labeller = litterNum_label
+        ) 
+      colorMean <- TRUE
+    }
+  } else {
+    if(facetByLitter){
+      viz <- viz +
+        facet_wrap(
+          vars(litterNum)
+          , labeller = litterNum_label
+        )
+    }
   }
   
   if(removeLegend){
@@ -218,6 +254,31 @@ plotDamBehavior <- function(
         legend.position = "none"
       )
   }
+  
+  if(colorMean){
+    viz <- viz + addMeanHorizontalBar(
+      addLineType = FALSE
+      , group = earlyLifeTrt
+      , color = earlyLifeTrt
+      , barPosition = position_dodge(dodgeVal)
+    )
+  } else {
+    viz <- viz +
+      addMeanHorizontalBar(
+        addLineType = FALSE
+        , group = earlyLifeTrt
+        , barPosition = position_dodge(dodgeVal)
+      )
+  }
+  
+  viz <- viz +
+    labs(y = yLab, linetype = "early life trt") +
+    textTheme(
+      size = fontSize
+    )+
+    expand_limits(y = 0)+
+    boxTheme()+
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})
   
   return(viz)
 }
