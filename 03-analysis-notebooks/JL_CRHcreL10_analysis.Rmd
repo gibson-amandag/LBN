@@ -26,7 +26,7 @@ JL_allInfo %>%
     is.na(sacDateOff),
     is.na(Sac_date),
     DOB >= as.Date("2022-01-01"),
-    cycleID >= 44 & cycleID <=84
+    cycleID >= 44 & cycleID <=87
   ) %>%
    unite(
     comboTrt,
@@ -44,11 +44,12 @@ JL_allInfo %>%
   )
 ```
 
+
 ```{r}
 df <- JL_allInfo %>%
   filter(
     DOB >= as.Date("2022-01-01"),
-    cycleID >= 44 & cycleID <=71
+    cycleID >= 44 & cycleID <=87
   ) %>%
   select(
     mouseID,
@@ -69,5 +70,113 @@ saveDFsToExcel(
   "df" = df,
   prefix = NULL
 )
+```
+
+```{r}
+JL_LH
+```
+
+
+```{r}
+JL_stressInfo <- JL_acuteStress %>%
+  select(
+    mouseID
+    , Sampling_date
+    , Sac_cycle
+    , perfusionHr
+    , Dosage
+    , adultTrt
+    , starts_with("cort")
+    , starts_with("LH")
+    , maxLH
+  ) %>%
+  filter(
+    !is.na(perfusionHr)
+  )
+
+saveDFsToExcel(
+  "stressInfo"
+  , prefix = JL_filePrefix
+  , "stressInfo" = JL_stressInfo
+)
+```
+
+```{r}
+JL_LH_plot <- JL_LH %>%
+  filter(
+    !is.na(perfusionHr)
+    , !is.na(cycleID)
+    # , time == 0
+  ) %>%
+  LHPlot_adultTrt(
+    dotSize = 3
+    , fontSize = 16
+  ) +
+  facet_wrap(
+    vars(adultTrt)
+    , nrow = 1
+  )
+
+JL_LH_plot
+
+flexSave(
+  "LH"
+  , JL_filePrefix
+  , fileType = "png"
+  , width = JL_width
+  , height = JL_height
+)
+```
+
+
+```{r}
+df <- JL_acuteStress %>%
+  filter(
+    !is.na(cycleID)
+    , is.na(Dosage)
+    , !is.na(perfusionHr)
+    # , mouseID == "CRH53"
+  ) %>%
+  calcAgeInDays(
+      ageAtDateVar = Sampling_date
+  ) %>%
+  mutate(
+      comboNotes = paste0(
+        "uterus: ", UterineDescription,
+        "\nAM LH: ", LH_hr0, " ng/mL"
+        , "\nAge: ", AgeInDays
+      )
+    ) %>%
+  select(
+    -AgeInDays
+  ) %>%
+  createSamplingPPT(
+    cyclesDF = JL_cycles
+    , useVar = Sampling_date
+    , addToName = "CRH_L10a"
+    , showNextDay = FALSE
+    , includeNotes = TRUE
+    , notesVar = comboNotes
+    , slideVersion = 4
+    , includeUterus = FALSE
+  )
+```
+
+```{r}
+JL_acuteStress %>%
+  filter(
+    LH_hr0 > 3
+  ) %>%
+  select(
+    mouseID,
+    LH_hr0
+  )
+```
+
+```{r}
+JL_acuteStress %>%
+  filter(
+    is.na(cort_hr0)
+  )
 ```
 

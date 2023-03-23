@@ -1,11 +1,13 @@
 cohorts <- c(2, 4, 6, 7, 8, 9)
+# cohorts <- c(7, 9)
 minLitterSize <- 5
 damBehaviorTimes <- c(1, 15, 19)
 surgeMin <- 3
+exclude9011 <- TRUE
 
 # This is a function that creates another function - makes it clearer what
 # is being done for the filtering
-filterLBNCohorts <- filterLBN(cohorts, minLitterSize)
+filterLBNCohorts <- filterLBN(cohorts, minLitterSize, exclude9011)
 
 
 # Dam Demo ----------------------------------------------------------------
@@ -577,6 +579,9 @@ LHFilteredDi <- LHFiltered %>%
 
 
 surgedDF <- acuteStressFilteredPro %>%
+  filter(
+    !is.na(maxLH)
+  ) %>%
   mutate(
     surged = maxLH > surgeMin
   )
@@ -600,7 +605,7 @@ filterByCapacitance <- TRUE
 capacitanceMin <- 5
 capacitanceMax <- 20
 
-filterByNumCells <- FALSE
+filterByNumCells <- TRUE
 maxCellNum <- 3
 
 filterBySacHr <- TRUE

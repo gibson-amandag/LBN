@@ -151,6 +151,65 @@ plotDamBehavior_daysFunc <- function(
   return(plotFunc)
 }
 
+# to-do : 2023-03-12, finish updating this. Add options for grouping
+# model after behaviorDamModule.R 
+
+# plotDamBehavior_func <- function(
+#     litterNums # as c()
+#     , fontSize = 16
+#     , dotSize = 3
+#     , lineSize = 0.75
+#     , lineAlpha = 0.5
+#     , dodgeVal = 0.2
+#     , addTriangleForMean = TRUE
+#     , redMean = TRUE
+#     , colorByDam = TRUE
+#     , showDots = FALSE
+#     , addVertError = TRUE
+#     , facetByTrt = TRUE
+#     , facetByLitter = TRUE
+#     , removeLegend = TRUE
+#     , zoom_x = FALSE # Zoom to part of x axis
+#     , xmin = 4
+#     , xmax = 11
+#     , zoom_y = FALSE # Zoom to part of y axis
+#     , ymin = 0
+#     , ymax = 90
+# ) {
+#   plotFunc <- function(df){
+#     
+#   }
+# }
+#   
+#   plot <- df %>%
+#   plotDamBehavior(
+#     yVar = !! input$singleVar
+#     , yLab = yText()
+#     , fontSize = input$fontSize
+#     , dotSize = input$dotSize
+#     , lineSize = input$lineSize
+#     , lineAlpha = input$indivAlpha
+#     , dodgeVal = input$dodgeVal
+#     , addTriangleForMean = input$triangleMean
+#     , redMean = input$redMean
+#     , colorByDam = input$colorByDam
+#     , showDots = input$showDots
+#     , addVertError = input$addVertError
+#     , facetByTrt = input$facetByTrt
+#     , facetByLitter = input$facetByLitter
+#     , removeLegend = input$removeLegend
+#     , STDColor = input$STDColor
+#     , LBNColor = input$LBNColor
+#     , STDFill = input$STDFill
+#     , LBNFill = input$LBNFill
+#     , zoom_x = zoom_x$zoom() # Zoom to part of x axis
+#     , xmin = zoom_x$min()
+#     , xmax = zoom_x$max()
+#     , zoom_y = zoom_y$zoom() # Zoom to part of y axis
+#     , ymin = zoom_y$min()
+#     , ymax = zoom_y$max()
+#   )
+
 
 # Dam Mass ----------------------------------------------------------
 

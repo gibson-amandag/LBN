@@ -20,7 +20,8 @@ LBN_data %>%
   filter(
     cohort == 9
     , sex == "F"
-    , is.na(Sac_or_stop)
+    , is.na(Sac_stop_off)
+    , is.na(Sac_date)
     , DOB < (Sys.Date() - 90)
   ) %>%
   createRemainingPPT(
@@ -31,6 +32,12 @@ LBN_data %>%
     , trtVar = earlyLifeTrt
     )
 ```
+
+```{r}
+LBN_data %>%
+  getMouseInfoForSlicing("908")
+```
+
 
 ```{r}
 View(AcuteStress_off %>%

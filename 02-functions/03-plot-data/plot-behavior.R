@@ -13,6 +13,25 @@ makeDateTime <- function(PND, hr){
   )
 }
 
+plotDamBehavior_test <- function(df, yVar){
+  plot <-  df %>%
+    ggplot(
+      aes(
+        x = ZT
+        , y = {{ yVar }}
+      )
+    ) +
+    geom_line(
+      alpha = 0.5,
+      aes(group = damID, color = damID),
+      position = position_dodge(0.4),
+      size = 1
+    ) +
+    boxTheme() +
+    expand_limits(x = c(0,23))
+  return(plot)
+}
+
 
 # This function will detect if PND or ZT are columns
 # in the provided dataset.
@@ -61,18 +80,18 @@ plotDamBehavior <- function(
   includesPND <- ifelse("PND" %in% names(df), TRUE, FALSE)
   includesZT <- ifelse("ZT" %in% names(df), TRUE, FALSE)
   
-  if(includesPND & includesZT){
+  if(includesPND & includesZT ) {
     df <- df %>%
       mutate(
         dayTime = as_datetime(ymd_h(paste0(paste0("2000-01-", PND), paste0(" ", ZT)))),
         .after = ZT
       )
-    
+
     days <- c(4:11)
     dateTimes01 <- sapply(days, makeDateTime, 1)
     dateTimes15 <- sapply(days, makeDateTime, 15)
     dateTimes <- as_datetime(c(rbind(dateTimes01, dateTimes15)))
-    
+
     viz <- df %>%
       ggplot(
         aes(
@@ -82,47 +101,44 @@ plotDamBehavior <- function(
       ) + scale_x_datetime(
         breaks = c(
           dateTimes
-        ), 
+        ),
         date_labels = "%d\n%H"
       ) +
       xlab("PND\nZT")
-  } else {
-    if(includesPND){
-      viz <- df %>%
-        ggplot(
-          aes(
-            x = PND
-            , y = {{ yVar }}
-          )
-        ) +
-        xlab("PND")
-    } else if(includesZT){
-      viz <- df %>%
-        ggplot(
-          aes(
-            x = ZT
-            , y = {{ yVar }}
-          )
-        ) + 
-        xlab("ZT") +
-        expand_limits(x = c(0, 23))
-    } else {
-      viz <- df %>%
-        ggplot(
-          aes(
-            x = earlyLifeTrt
-            , y = {{ yVar }}
-            , fill = earlyLifeTrt
-          )
-        ) +
-        theme(
-          axis.title.x = element_blank()
-        ) + 
-        earlyLifeFill(
-          STDColor = STDFill
-          , LBNColor = LBNFill
+  } else if(includesPND) {
+    viz <- df %>%
+      ggplot(
+        aes(
+          x = PND
+          , y = {{ yVar }}
         )
-    }
+      ) +
+      xlab("PND") +
+      scale_x_continuous(breaks = c(4:11))
+  } else if(includesZT){
+    viz <- df %>%
+      ggplot(
+        aes(
+          x = ZT
+          , y = {{ yVar }}
+        )
+      ) + xlab("ZT")
+  } else {
+    viz <- df %>%
+      ggplot(
+        aes(
+          x = earlyLifeTrt
+          , y = {{ yVar }}
+          , fill = earlyLifeTrt
+        )
+      ) +
+      theme(
+        axis.title.x = element_blank()
+      ) +
+      earlyLifeFill(
+        STDColor = STDFill
+        , LBNColor = LBNFill
+      )
   }
   
   if(includesPND | includesZT){
@@ -280,6 +296,12 @@ plotDamBehavior <- function(
     boxTheme()+
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})
   
+  if(includesZT & !includesPND){
+    # This seems to have to be after addition of all geoms maybe? 
+    # Otherwise nearpoints gets mad and can't find the x variable
+    viz <- viz +
+      expand_limits(x = c(0, 23))
+  }
   return(viz)
 }
 

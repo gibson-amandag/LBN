@@ -119,6 +119,15 @@ saveUseInfoDFsToExcel <- function(
     conditionalFormatting(
       wb,
       sheetName,
+      cols = which(colnames(dfList[[sheetName]])=="moved"),
+      rows = 2:(length(dfList[[sheetName]][[1]])+1),
+      rule = "== TRUE",
+      type = "expression",
+      style = trueFill
+    )
+    conditionalFormatting(
+      wb,
+      sheetName,
       cols = which(colnames(dfList[[sheetName]])=="adultProLH"),
       rows = 2:(length(dfList[[sheetName]][[1]])+1),
       rule = "== TRUE",

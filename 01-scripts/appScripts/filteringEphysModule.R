@@ -160,7 +160,7 @@ filteringEphysServer <- function(
         if(input$filterByHoldingCurr){
           df <- df %>%
             filter(
-              holdingCurrent <= input$holdingCurrMax & holdingCurrent >= input$holdingCurrtMin
+              holdingCurrent <= input$holdingCurrMax & holdingCurrent >= input$holdingCurrMin
             )
         }
         if(input$filterByCapacitance){

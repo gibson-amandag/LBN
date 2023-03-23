@@ -141,7 +141,7 @@ scatterPlotTwoVars_byLBN <- function(
   xLab,
   textSize = 11,
   dotSize = 1.5,
-  jitterWidth = 0.35,
+  jitterWidth = 0.1,
   jitterHeight = 0,
   zoom_x = FALSE, #Zoom to a part of x axis
   xmin = NULL,
@@ -150,7 +150,8 @@ scatterPlotTwoVars_byLBN <- function(
   ymin = NULL,
   ymax = NULL,
   STDColor = "white",
-  LBNColor = "cyan4"
+  LBNColor = "cyan4",
+  xIsDate = FALSE
 ){
   viz <- df %>%
     ggplot(
@@ -165,8 +166,17 @@ scatterPlotTwoVars_byLBN <- function(
       width = jitterWidth,
       height = jitterHeight
     ) +
-    labs(y = yLab, x = xLab)+
-    expand_limits(x = 0, y = 0)+
+    labs(y = yLab, x = xLab)
+  
+  if(xIsDate){
+    viz <- viz +
+      expand_limits(y = 0)
+  } else {
+    viz <- viz +
+      expand_limits(x = 0, y = 0)
+  }
+  
+  viz <- viz +
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
     earlyLifeFill(STDColor = STDColor, LBNColor = LBNColor) +
     textTheme(textSize)+
@@ -189,6 +199,7 @@ scatterPlotTwoVars_byComboTrt <- function(
   zoom_y = FALSE, #Zoom to a part of y axis
   ymin = NULL,
   ymax = NULL
+  , xIsDate = FALSE
 ){
   viz <- df %>%
     ggplot(
@@ -200,8 +211,15 @@ scatterPlotTwoVars_byComboTrt <- function(
       )
     ) +
     jitterGeom(size = dotSize, width = 0) +
-    labs(y = yLab, x = xLab)+
-    expand_limits(x = 0, y = 0)+
+    labs(y = yLab, x = xLab)
+  
+  if(xIsDate){
+    viz <- viz + expand_limits(y = 0)
+  } else {
+    viz <- viz + expand_limits(x = 0, y = 0)
+  }
+  
+  viz <- viz +
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
     comboTrtFillShape()+
     theme_pubr()+

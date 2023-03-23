@@ -28,6 +28,9 @@ if(!require(plater)) install.packages('plater')
 if(!require(tinytex))install.packages('tinytex')
 if(!require(lemon))install.packages('lemon')
 if(!require(rvg))install.packages('rvg')
+if(!require(googledrive))install.packages('googledrive')
+if(!require(googlesheets4))install.packages('googlesheets4')
+
 
 
 
@@ -60,6 +63,12 @@ library(tinytex)
 library(clock)
 library(lemon)
 library(rvg)
+library(googledrive)
+library(googlesheets4)
+
+drive_auth(email = "*@umich.edu")
+gs4_auth(token = drive_token())
+
 select <- dplyr::select
 # Save a PDF - in ggsave, device = cairo_pdf on Windows
 # https://r-graphics.org/recipe-output-fonts-pdf - even when following these

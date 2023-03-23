@@ -4,188 +4,193 @@ dotSize <- 3
 # Dam behavior ------------------------------------------------------------
 
 
-## P4-P11, ZT1 and 15 -----------------------------------------------------
+  # ## P4-P11, ZT1 and 15 -----------------------------------------------------
+  # 
+  # 
+  # ### First litter ------------------------------------------------------------
+  # 
+  # 
+  # plotDamBehavior_days_1stL <- plotDamBehavior_daysFunc(
+  #   c(1),
+  #   fontSize = textSize,
+  #   dotSize = dotSize,
+  #   facet = TRUE,
+  #   facetInfo = facetForLBN,
+  #   addTriangleForMean = TRUE,
+  #   redMean = TRUE,
+  #   colorByDam = TRUE,
+  #   showDots = FALSE,
+  #   removeLegend = TRUE,
+  #   addVertErrorBars = TRUE
+  # )
+  # 
+  # damBehavior_plot_days_1stL <- plotDamBehavior_days_1stL(damBehaviorFiltered_ZTs)+
+  #   expand_limits(y = 90)
+  # 
+  # damBehavior_plot_days_1stL_cohort9 <- damBehaviorFiltered_ZTs %>%
+  #   filter(
+  #     cohort == 9
+  #   ) %>%
+  #   plotDamBehavior_days_1stL() +
+  #   expand_limits(y=90)
+  # 
+  # 
+  # ### Second litter -----------------------------------------------------------
+  # 
+  # plotDamBehavior_days_2ndL <- plotDamBehavior_daysFunc(
+  #   c(2),
+  #   fontSize = textSize,
+  #   dotSize = dotSize,
+  #   facet = FALSE,
+  #   addTriangleForMean = TRUE
+  # )
+  # 
+  # damBehavior_plot_days_2ndL <- plotDamBehavior_days_2ndL(damBehaviorFiltered_ZTs)+
+  #   expand_limits(y = 90)
+  # 
+  # 
+  # ## P5, P6 ------------------------------------------------------------------
+  # 
+  # 
+  # ### First litter ------------------------------------------------------------
+  # 
+  # plotDamBehavior_time_1stL <- plotDamBehavior_daysFunc(
+  #   c(1),
+  #   fontSize = textSize,
+  #   dotSize = dotSize,
+  #   facet = TRUE,
+  #   facetInfo = facetForLBN,
+  #   addTriangleForMean = TRUE,
+  #   redMean = TRUE
+  # )
+  # 
+  # damBehavior_plot_time_1stL <- plotDamBehavior_time_1stL(damBehaviorFiltered_P5_P6) +
+  #   expand_limits(y = 70) +
+  #   scale_x_datetime(
+  #     breaks = c(
+  #       as_datetime(ymd_h("2000-01-05 14")),
+  #       as_datetime(ymd_h("2000-01-05 19")),
+  #       as_datetime(ymd_h("2000-01-06 0")),
+  #       as_datetime(ymd_h("2000-01-06 4"))
+  #     ), 
+  #     date_labels = "%d\n%H"
+  #   )
+  # 
+  # 
+  # plotDamBehavior_indivLines_time_1stL <- plotDamBehavior_daysFunc(
+  #   c(1),
+  #   fontSize = textSize,
+  #   dotSize = dotSize,
+  #   facet = TRUE,
+  #   facetInfo = facetForLBN,
+  #   addTriangleForMean = TRUE,
+  #   redMean = TRUE,
+  #   colorByDam = TRUE,
+  #   showDots = FALSE,
+  #   removeLegend = TRUE,
+  #   addDarkBox = TRUE
+  # )
+  # 
+  # damBehavior_plot_indivLines_time_1stL <- plotDamBehavior_indivLines_time_1stL(damBehaviorFiltered_P5_P6) +
+  #   expand_limits(y = 70) +
+  #   scale_x_datetime(
+  #     breaks = c(
+  #       as_datetime(ymd_h("2000-01-05 14")),
+  #       as_datetime(ymd_h("2000-01-05 19")),
+  #       as_datetime(ymd_h("2000-01-06 0")),
+  #       as_datetime(ymd_h("2000-01-06 4"))
+  #     ), 
+  #     date_labels = "%d\n%H"
+  #   )
+  # 
+  # 
+  # damBehavior_plot_indivLines_time_1stL_no9 <- damBehaviorFiltered_P5_P6 %>%
+  #   filter(
+  #     cohort != 9
+  #   ) %>%
+  #   plotDamBehavior_indivLines_time_1stL() +
+  #   expand_limits(y = 70) +
+  #   scale_x_datetime(
+  #     breaks = c(
+  #       as_datetime(ymd_h("2000-01-05 14")),
+  #       as_datetime(ymd_h("2000-01-05 19")),
+  #       as_datetime(ymd_h("2000-01-06 0")),
+  #       as_datetime(ymd_h("2000-01-06 4"))
+  #     ), 
+  #     date_labels = "%d\n%H"
+  #   )
+  # 
+  # 
+  # ### Second litter -----------------------------------------------------------
+  # 
+  # plotDamBehavior_time_2ndL <- plotDamBehavior_daysFunc(
+  #   c(2),
+  #   fontSize = textSize,
+  #   dotSize = dotSize,
+  #   facet = TRUE,
+  #   facetInfo = facetForLBN,
+  #   addTriangleForMean = TRUE,
+  #   redMean = TRUE
+  # )
+  # 
+  # damBehavior_plot_time_2ndL <- plotDamBehavior_time_2ndL(damBehaviorFiltered_P5_P6) +
+  #   expand_limits(y = 70) +
+  #   scale_x_datetime(
+  #     breaks = c(
+  #       as_datetime(ymd_h("2000-01-05 14")),
+  #       as_datetime(ymd_h("2000-01-05 19")),
+  #       as_datetime(ymd_h("2000-01-06 0")),
+  #       as_datetime(ymd_h("2000-01-06 4"))
+  #     ), 
+  #     date_labels = "%d\n%H"
+  #   )
+  # 
+  # plotDamBehavior_indivLines_time_2ndL <- plotDamBehavior_daysFunc(
+  #   c(2),
+  #   fontSize = textSize,
+  #   dotSize = dotSize,
+  #   facet = TRUE,
+  #   facetInfo = facetForLBN,
+  #   addTriangleForMean = TRUE,
+  #   redMean = TRUE,
+  #   colorByDam = TRUE,
+  #   showDots = FALSE,
+  #   removeLegend = TRUE,
+  #   addDarkBox = TRUE
+  # )
+  # 
+  # damBehavior_plot_indivLines_time_2ndL <- plotDamBehavior_indivLines_time_2ndL(damBehaviorFiltered_P5_P6) +
+  #   expand_limits(y = 70) +
+  #   scale_x_datetime(
+  #     breaks = c(
+  #       as_datetime(ymd_h("2000-01-05 14")),
+  #       as_datetime(ymd_h("2000-01-05 19")),
+  #       as_datetime(ymd_h("2000-01-06 0")),
+  #       as_datetime(ymd_h("2000-01-06 4"))
+  #     ), 
+  #     date_labels = "%d\n%H"
+  #   )
+  # 
+  # damBehavior_plot_indivLines_time_2ndL_no9 <- damBehaviorFiltered_P5_P6 %>%
+  #   filter(
+  #     cohort != 9
+  #   ) %>%
+  #   plotDamBehavior_indivLines_time_2ndL() +
+  #   expand_limits(y = 70) +
+  #   scale_x_datetime(
+  #     breaks = c(
+  #       as_datetime(ymd_h("2000-01-05 14")),
+  #       as_datetime(ymd_h("2000-01-05 19")),
+  #       as_datetime(ymd_h("2000-01-06 0")),
+  #       as_datetime(ymd_h("2000-01-06 4"))
+  #     ), 
+  #     date_labels = "%d\n%H"
+  #   )
+  # 
+  # 
 
+## First litter, grouped by PND
 
-### First litter ------------------------------------------------------------
-
-
-plotDamBehavior_days_1stL <- plotDamBehavior_daysFunc(
-  c(1),
-  fontSize = textSize,
-  dotSize = dotSize,
-  facet = TRUE,
-  facetInfo = facetForLBN,
-  addTriangleForMean = TRUE,
-  redMean = TRUE,
-  colorByDam = TRUE,
-  showDots = FALSE,
-  removeLegend = TRUE,
-  addVertErrorBars = TRUE
-)
-
-damBehavior_plot_days_1stL <- plotDamBehavior_days_1stL(damBehaviorFiltered_ZTs)+
-  expand_limits(y = 90)
-
-damBehavior_plot_days_1stL_cohort9 <- damBehaviorFiltered_ZTs %>%
-  filter(
-    cohort == 9
-  ) %>%
-  plotDamBehavior_days_1stL() +
-  expand_limits(y=90)
-
-
-### Second litter -----------------------------------------------------------
-
-plotDamBehavior_days_2ndL <- plotDamBehavior_daysFunc(
-  c(2),
-  fontSize = textSize,
-  dotSize = dotSize,
-  facet = FALSE,
-  addTriangleForMean = TRUE
-)
-
-damBehavior_plot_days_2ndL <- plotDamBehavior_days_2ndL(damBehaviorFiltered_ZTs)+
-  expand_limits(y = 90)
-
-
-## P5, P6 ------------------------------------------------------------------
-
-
-### First litter ------------------------------------------------------------
-
-plotDamBehavior_time_1stL <- plotDamBehavior_daysFunc(
-  c(1),
-  fontSize = textSize,
-  dotSize = dotSize,
-  facet = TRUE,
-  facetInfo = facetForLBN,
-  addTriangleForMean = TRUE,
-  redMean = TRUE
-)
-
-damBehavior_plot_time_1stL <- plotDamBehavior_time_1stL(damBehaviorFiltered_P5_P6) +
-  expand_limits(y = 70) +
-  scale_x_datetime(
-    breaks = c(
-      as_datetime(ymd_h("2000-01-05 14")),
-      as_datetime(ymd_h("2000-01-05 19")),
-      as_datetime(ymd_h("2000-01-06 0")),
-      as_datetime(ymd_h("2000-01-06 4"))
-    ), 
-    date_labels = "%d\n%H"
-  )
-
-
-plotDamBehavior_indivLines_time_1stL <- plotDamBehavior_daysFunc(
-  c(1),
-  fontSize = textSize,
-  dotSize = dotSize,
-  facet = TRUE,
-  facetInfo = facetForLBN,
-  addTriangleForMean = TRUE,
-  redMean = TRUE,
-  colorByDam = TRUE,
-  showDots = FALSE,
-  removeLegend = TRUE,
-  addDarkBox = TRUE
-)
-
-damBehavior_plot_indivLines_time_1stL <- plotDamBehavior_indivLines_time_1stL(damBehaviorFiltered_P5_P6) +
-  expand_limits(y = 70) +
-  scale_x_datetime(
-    breaks = c(
-      as_datetime(ymd_h("2000-01-05 14")),
-      as_datetime(ymd_h("2000-01-05 19")),
-      as_datetime(ymd_h("2000-01-06 0")),
-      as_datetime(ymd_h("2000-01-06 4"))
-    ), 
-    date_labels = "%d\n%H"
-  )
-
-
-damBehavior_plot_indivLines_time_1stL_no9 <- damBehaviorFiltered_P5_P6 %>%
-  filter(
-    cohort != 9
-  ) %>%
-  plotDamBehavior_indivLines_time_1stL() +
-  expand_limits(y = 70) +
-  scale_x_datetime(
-    breaks = c(
-      as_datetime(ymd_h("2000-01-05 14")),
-      as_datetime(ymd_h("2000-01-05 19")),
-      as_datetime(ymd_h("2000-01-06 0")),
-      as_datetime(ymd_h("2000-01-06 4"))
-    ), 
-    date_labels = "%d\n%H"
-  )
-
-
-### Second litter -----------------------------------------------------------
-
-plotDamBehavior_time_2ndL <- plotDamBehavior_daysFunc(
-  c(2),
-  fontSize = textSize,
-  dotSize = dotSize,
-  facet = TRUE,
-  facetInfo = facetForLBN,
-  addTriangleForMean = TRUE,
-  redMean = TRUE
-)
-
-damBehavior_plot_time_2ndL <- plotDamBehavior_time_2ndL(damBehaviorFiltered_P5_P6) +
-  expand_limits(y = 70) +
-  scale_x_datetime(
-    breaks = c(
-      as_datetime(ymd_h("2000-01-05 14")),
-      as_datetime(ymd_h("2000-01-05 19")),
-      as_datetime(ymd_h("2000-01-06 0")),
-      as_datetime(ymd_h("2000-01-06 4"))
-    ), 
-    date_labels = "%d\n%H"
-  )
-
-plotDamBehavior_indivLines_time_2ndL <- plotDamBehavior_daysFunc(
-  c(2),
-  fontSize = textSize,
-  dotSize = dotSize,
-  facet = TRUE,
-  facetInfo = facetForLBN,
-  addTriangleForMean = TRUE,
-  redMean = TRUE,
-  colorByDam = TRUE,
-  showDots = FALSE,
-  removeLegend = TRUE,
-  addDarkBox = TRUE
-)
-
-damBehavior_plot_indivLines_time_2ndL <- plotDamBehavior_indivLines_time_2ndL(damBehaviorFiltered_P5_P6) +
-  expand_limits(y = 70) +
-  scale_x_datetime(
-    breaks = c(
-      as_datetime(ymd_h("2000-01-05 14")),
-      as_datetime(ymd_h("2000-01-05 19")),
-      as_datetime(ymd_h("2000-01-06 0")),
-      as_datetime(ymd_h("2000-01-06 4"))
-    ), 
-    date_labels = "%d\n%H"
-  )
-
-damBehavior_plot_indivLines_time_2ndL_no9 <- damBehaviorFiltered_P5_P6 %>%
-  filter(
-    cohort != 9
-  ) %>%
-  plotDamBehavior_indivLines_time_2ndL() +
-  expand_limits(y = 70) +
-  scale_x_datetime(
-    breaks = c(
-      as_datetime(ymd_h("2000-01-05 14")),
-      as_datetime(ymd_h("2000-01-05 19")),
-      as_datetime(ymd_h("2000-01-06 0")),
-      as_datetime(ymd_h("2000-01-06 4"))
-    ), 
-    date_labels = "%d\n%H"
-  )
 
 
 # Dam corticosterone ------------------------------------------------------

@@ -374,7 +374,7 @@ createSamplingSlideGen <- function(
   samplingPPT,
   cyclingDF_long,
   slideVersion = 2,
-  cycleLineVar = cohort,
+  cycleLineVar = NULL,
   includeUterus = TRUE,
   includeNextDay = FALSE,
   includeNotes = FALSE,
@@ -523,6 +523,7 @@ addSamplingSlidesFromDFGen <- function(
   includeNotes = FALSE,
   notesVar = notes,
   IDVar = cycleID
+  , cyclingLineColorVar = NULL
 ){
   print("addSamplingSlidesFromDF")
   cyclingDF_long <- cyclingDF %>%
@@ -598,6 +599,7 @@ addSamplingSlidesFromDFGen <- function(
     includeUterus = includeUterus,
     includeNextDay = includeNextDay,
     includeNotes = includeNotes
+    , cycleLineVar = !! cyclingLineColorVar
   )
 }
 
@@ -750,6 +752,10 @@ createSamplingPPT <- function(
   sortByLH = TRUE,
   sortByDate = FALSE,
   IDVar = cycleID
+  , showNextDay = TRUE
+  , includeNotes = FALSE
+  , notesVar = notes
+  , includeUterus = TRUE
 ){
   if(!"maxLH" %in% names(df)){
     df <- df %>%
@@ -771,11 +777,11 @@ createSamplingPPT <- function(
       dateVar = {{ useVar }},
       ageVar = AgeInDays,
       includeUterus = FALSE,
-      includeNextDay = TRUE
+      includeNextDay = showNextDay
     ) %>%
     addGenSamplingImgFilePaths(
       includeUterus = FALSE
-      , includeNextDay = TRUE
+      , includeNextDay = showNextDay
     ) %>%
     arrange(
       {{ trtVar }},
@@ -797,10 +803,13 @@ createSamplingPPT <- function(
       filter(
         mouseID %in% samplingDF$mouseID
       ),
-    includeUterus = TRUE,
+    includeUterus = includeUterus,
     includeNextDay = FALSE,
     slideVersion = slideVersion,
-    includeNotes = FALSE
+    includeNotes = includeNotes,
+    notesVar = {{ notesVar }},
+    trtVar = {{ trtVar }}
+    
   )
 
   print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0("sampling_", addToName, "_", Sys.Date(), ".pptx")))

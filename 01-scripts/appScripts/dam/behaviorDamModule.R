@@ -27,8 +27,8 @@ behaviorDamUI <- function(
             select(
               PND, ZT
             ),
-          multiple = TRUE,
-          selected = c("PND")
+          multiple = TRUE
+          , selected = c("ZT")
         ),
         
       ),
@@ -350,7 +350,48 @@ behaviorDamServer <- function(
       
       behaviorPlot <- reactive({
         df <- df_react()
-
+        
+        # This works w/ expand_limits
+        # plot <- df %>%
+        #   plotDamBehavior_test(
+        #     !! input$singleVar
+        #   )
+        
+        # This works
+        # plot <-  df %>%
+        #   ggplot(
+        #     aes(
+        #       x = ZT
+        #       , y = !! input$singleVar
+        #     )
+        #   ) +
+        #   geom_line(
+        #     alpha = 0.5,
+        #     aes(group = damID, color = damID),
+        #     position = position_dodge(0.4),
+        #     size = 1
+        #   ) +
+        #   boxTheme()
+        
+        # this works
+        # plot <-  df %>%
+        #   ggplot(
+        #     aes(
+        #       x = ZT
+        #       , y = !! input$singleVar
+        #     )
+        #   ) +
+        #   geom_line(
+        #     alpha = 0.5,
+        #     aes(group = damID, color = damID),
+        #     position = position_dodge(0.4),
+        #     size = 1
+        #   ) +
+        #   boxTheme() +
+        #   expand_limits(
+        #     x = c(0,23)
+        #   )
+        
         plot <- df %>%
           plotDamBehavior(
             yVar = !! input$singleVar
@@ -429,6 +470,8 @@ behaviorDamServer <- function(
           } else {
             df <- df_react()
             
+            
+            
             print(plotInfo$click())
             
             if(length(input$groupBy) == 2){
@@ -445,7 +488,7 @@ behaviorDamServer <- function(
                 earlyLifeTrt,
                 litterNum,
                 !!! input$groupBy,
-                any_of(c("dayTime")), 
+                any_of(c("dayTime")),
                 !! input$singleVar
               ),
               plotInfo$click())

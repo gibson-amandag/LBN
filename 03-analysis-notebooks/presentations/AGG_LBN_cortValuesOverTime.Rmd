@@ -1,0 +1,412 @@
+---
+title: "AGG LBN Change in Cort Values Over Time"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/05-make-LBN-plots.R")
+source("./01-scripts/06-make-LBN-ANOVAs_noLitter.R")
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+# Set-up
+```{r}
+figureNum <- 1
+
+pptBaseName <- makeBaseNameFunc("")
+
+plotFolder <- file.path(plotOutputFolder, "cortChange")
+
+imgType <-"png"
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotFolder
+  , compType = currentCompType
+)
+
+exportFullPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 11.5
+  #   , height = 5
+  # )
+}
+
+exportHalfPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 5.67
+  #   , height = 5
+  # )
+}
+
+exportThirdPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 3.6
+  #   , height = 5
+  # )
+}
+
+exportQuarterPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 3.2
+  #   , height = 5
+  # )
+}
+
+editableImgs <- TRUE
+pptAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddOneTable <- function(
+    table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_oneTable(
+    officer_ppt, 
+    title, 
+    table, 
+    dontFormat = dontFormat
+  )
+  return(officer_ppt)
+}
+
+pptUneditAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = FALSE
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphs <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphsMoreLeft <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraphMoreLeft(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddGraphTable <- function(
+    plot
+    , table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_graphTable(
+    officer_ppt, 
+    title, 
+    plot, 
+    table,
+    makeEditable = editableImgs
+    , dontFormat = dontFormat
+    , textSize = textSize
+  )
+  return(officer_ppt)
+}
+
+pptAddFourGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , plot4
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_fourGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    plot4,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddThreeGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_threeGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddStats <- function(
+    statsText
+    , officer_ppt = ppt
+){
+  officer_ppt <- addStatsToBottom(
+    officer_ppt,
+    statsText
+  )
+}
+
+pptAddTwoStats <- function(
+    statsText1
+    , statsText2
+    , officer_ppt = ppt
+){
+  officer_ppt <- addTwoStatsToGraphs(
+    officer_ppt,
+    statsText1,
+    statsText2
+  )
+}
+
+pptAddSectionHead <- function(
+    title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_sectionHead(
+    officer_ppt
+    , title
+  )
+}
+```
+
+```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("genericPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+# layout_properties(ppt, layout="Title Slide")
+
+subText <- "Amanda Gibson\nChange in corticosterone levels over time"
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "AGG_LBN_data"
+  , addDate = TRUE
+)
+```
+
+```{r}
+ALPS_plot_by_date <- acuteStressFiltered_M_DiPro %>%
+  filter(
+    adultTrt == "ALPS"
+    # , cohort != 9
+  ) %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = cort_hr5
+    , yLab = "serum corticosterone - pm (ng/mL)"
+    , xVar = Sac_date
+    , xLab = "date"
+    , xIsDate = TRUE
+    , dotSize = 3
+    , fontSize = 16
+  ) +
+  geom_smooth(method=lm, formula = 'y~x', se = FALSE, aes(color = comboTrt)) +
+  facet_wrap(
+    facets = vars(sex, adultTrt)
+  )
+
+CON_plot_by_date <- acuteStressFiltered_M_DiPro %>%
+  filter(
+    adultTrt == "CON"
+  ) %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = cort_hr5
+    , yLab = "serum corticosterone - pm (ng/mL)"
+    , xVar = Sac_date
+    , xLab = "date"
+    , xIsDate = TRUE
+    , dotSize = 3
+    , fontSize = 16
+  ) +
+  geom_smooth(method=lm, formula = 'y~x', se = FALSE, aes(color = comboTrt)) +
+  facet_wrap(
+    facets = vars(sex, adultTrt)
+  )
+
+AM_plot_by_date <- acuteStressFiltered_M_DiPro %>%
+  filter(
+    !is.na(adultTrt)
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = cort_hr0
+    , yLab = "serum corticosterone - am (ng/mL)"
+    , xVar = Sac_date
+    , xLab = "date"
+    , xIsDate = TRUE
+    , dotSize = 3
+    , textSize = 16
+  ) +
+  geom_smooth(method=lm, formula = 'y~x', se = FALSE, aes(color = earlyLifeTrt)) +
+  facet_wrap(
+    facets = vars(sex)
+  ) +
+  earlyLifeColor()
+
+summary(lm(cort_hr5 ~ Sac_date, data = acuteStressFiltered_M_DiPro %>% filter(adultTrt == "ALPS", cohort != 9)))
+```
+
+
+```{r}
+ALPS_plot_by_date
+fileBaseName <- "ALPS_plot_by_date"
+slideTitle <- "Afternoon corticosterone levels in ALPS mice has decreased over time"
+
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+CON_plot_by_date
+fileBaseName <- "CON_plot_by_date"
+slideTitle <- "Afternoon corticosterone levels in CON female mice has slightly decreased over time"
+
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+AM_plot_by_date
+fileBaseName <- "AM_plot_by_date"
+slideTitle <- "AM corticsterone levels have been more stable over time"
+
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+normPMtoQC <- acuteStressFiltered_M_DiPro %>%
+  mutate(
+    normToQC_hr5 = cort_hr5 / plateQC
+  ) %>%
+  filter(
+    adultTrt == "ALPS"
+    # , cohort != 9
+  ) %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = normToQC_hr5
+    , yLab = "serum corticosterone - pm (norm to QC)"
+    , xVar = Sac_date
+    , xLab = "date"
+    , xIsDate = TRUE
+    , dotSize = 3
+    , fontSize = 16
+  ) +
+  geom_smooth(method=lm, formula = 'y~x', se = FALSE, aes(color = comboTrt)) +
+  facet_wrap(
+    facets = vars(sex, adultTrt)
+  )
+```
+
+
+```{r}
+normPMtoQC
+fileBaseName <- "normPMtoQC"
+slideTitle <- "When normalized to plate QC value, the PM cort values seem more stable over time"
+
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+

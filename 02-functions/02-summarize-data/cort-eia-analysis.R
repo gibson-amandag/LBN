@@ -9,6 +9,9 @@ getMeanCVfromReplicates <- function(assayPlate, colToSum = netOD) {
 }
 
 loadCortAssayPlate <- function(filePath){
+  # This will combine all of the different plate information
+  # layouts into a single dataframe with one well per row
+  
   assayPlate <- read_plate(filePath, "wells") %>%
     mutate(
       type = factor(type, c("NSB", "bufferCtrl", "STD", "QC", "sample"))
@@ -178,13 +181,29 @@ getSamplesConcEstimates <- function(assayPlate_concEstimates){
     )
 }
 
-calcMeanSampleCortEstimates <- function(assayPlate_concEstimates){
+calcPlateQC <- function(assayPlate_concEstimates){
   plateQC <- assayPlate_concEstimates %>%
     filter(
       type == "QC"
     )
-  plateQCmean <- mean(plateQC$sampleConc_ngPer_mL, na.rm = TRUE)
   
+  plateQCmean <- mean(plateQC$sampleConc_ngPer_mL, na.rm = TRUE)
+  plateQCID <- plateQC$plateID[1]
+  
+  return(
+    list(
+      mean = plateQCmean
+      , ID = plateQCID
+    )
+  )
+}
+
+calcMeanSampleCortEstimates <- function(
+    assayPlate_concEstimates
+    , modelType
+    , addQC = FALSE
+    , thisPlateID = NULL
+){
   sampleMeans <- assayPlate_concEstimates %>%
     filter(
       type == "sample"
@@ -193,10 +212,29 @@ calcMeanSampleCortEstimates <- function(assayPlate_concEstimates){
     calcMeanCV_concEstimates(
       cort,
       cortCV
-    ) %>%
-    mutate(
-      plateQC = plateQCmean
     )
+  
+  if(addQC){
+    QC_info <- calcPlateQC(assayPlate_concEstimates)
+    sampleMeans <- sampleMeans %>%
+      mutate(
+        plateQC = QC_info$mean
+        , QC_ID = QC_info$ID
+      )
+  }
+  
+  if(!is.null(thisPlateID)){
+    sampleMeans <- sampleMeans %>%
+      mutate(
+        plateID = thisPlateID
+      )
+  }
+  
+  sampleMeans <- sampleMeans %>%
+    mutate(
+      modelType = modelType
+    )
+  
   return(sampleMeans)
 }
 
@@ -204,12 +242,17 @@ processCortEIAtoSamplesEstimates <- function(
   assayPlate_percBinding,
   standards,
   modelType
+  , addQC = FALSE
+  , plateID = NULL
 ){
   stdCurve <- calcStandardCurveCortEIA(standards, modelType)
   assayPlate_concEstimates <- estimateSampleConc(assayPlate_percBinding, stdCurve, modelType)
   assayPlate_concEstimates_meanCV <- addMeanCVToCortEstimation(assayPlate_concEstimates)
   samplesEst <- getSamplesConcEstimates(assayPlate_concEstimates)
-  meanSampleResults <- calcMeanSampleCortEstimates(assayPlate_concEstimates)
+  meanSampleResults <- calcMeanSampleCortEstimates(assayPlate_concEstimates, modelType, addQC, plateID)
+  plateQC <- calcPlateQC(assayPlate_concEstimates)$mean
+  plateQC_id <- calcPlateQC(assayPlate_concEstimates)$ID
+    
   
   return(
     list(
@@ -217,8 +260,122 @@ processCortEIAtoSamplesEstimates <- function(
       assayPlate_concEstimates = assayPlate_concEstimates,
       assayPlate_concEstimates_meanCV = assayPlate_concEstimates_meanCV,
       samplesEst = samplesEst,
-      meanSampleResults = meanSampleResults
+      meanSampleResults = meanSampleResults,
+      QC_val = plateQC,
+      QC_ID = plateQC_id
     )
   )
+}
+
+
+# Google Sheets -----------------------------------------------------------
+addCSVFileToGoogleSheet <- function(
+    csvFilePath
+    , googleSheetDoc
+    , newTabName
+) {
+  csvAsDF = read_csv(csvFilePath)
+  
+  if(! newTabName %in% sheet_names(googleSheetDoc)){
+    googleSheetDoc %>%
+      sheet_add(
+        newTabName
+      )
+  }
+  
+  googleSheetDoc %>%
+    range_write(
+      csvAsDF
+      , sheet = newTabName
+    )
+}
+
+addMetaRowToGoogle <- function(
+    metaDF,
+    driveSS,
+    plateID,
+    modelType,
+    sheetName = "plateInfo"
+){
+  plateInfo <- driveSS %>%
+    read_sheet(
+      sheet = sheetName
+    )
+  
+  # Find previously entered matching values for the plate/model type
+  matchingRows <- which(plateInfo$plateID == plateID & plateInfo$modelType == modelType)
+  
+  if(length(matchingRows)>0){
+    deleteRows <- matchingRows + 1
+    driveSS %>%
+      range_delete(
+        sheet = sheetName
+        , range = cell_rows(deleteRows)
+      )
+  }
+  
+  # Add the overall plate info row
+  driveSS %>%
+    sheet_append(
+      metaDF
+      , sheet = sheetName
+    )
+}
+
+addStdsToGoogle <- function(
+    indivPlusMeanDF,
+    driveSS,
+    plateID,
+    modelType,
+    sheetName = "stdInfo"
+){
+  stdInfo <- driveSS %>%
+    read_sheet(
+      sheet = sheetName
+    )
+  
+  # Find previously entered matching values for the plate/model type
+  matchingRows <- which(stdInfo$plateID == plateID & stdInfo$modelType == modelType)
+  
+  if(length(matchingRows)>0){
+    deleteRows <- matchingRows + 1
+    driveSS %>%
+      range_delete(
+        sheet = sheetName
+        , range = cell_rows(deleteRows)
+      )
+  }
+  
+  # Add the overall plate info row
+  driveSS %>%
+    sheet_append(
+      indivPlusMeanDF %>%
+        filter(type == "STD") %>%
+        select(
+          -mouseID
+          , - time
+        ) %>%
+        rename(
+          stdName = plateID
+        ) %>%
+        mutate(
+          plateID = plateID
+          , modelType = modelType
+        )
+      , sheet = sheetName
+    )
+}
+
+addSamplesToGoogle <- function(
+    meanSampleResults
+    , driveSS
+    , plateID
+    , modelType
+){
+  meanSampleResults %>%
+    sheet_write(
+      ss = driveSS
+      , sheet = paste0(modelType, "_", plateID)
+    )
 }
 

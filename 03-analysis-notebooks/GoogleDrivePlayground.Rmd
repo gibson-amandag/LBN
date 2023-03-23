@@ -1,0 +1,174 @@
+---
+title: "Google Sheets"
+output: html_notebook
+---
+
+```{r eval=FALSE, include=FALSE}
+install.packages("googlesheets4")
+```
+
+```{r}
+library(googledrive)
+library(googlesheets4)
+
+# drive_auth()
+# gs4_auth(token = drive_token())
+
+# drive_user()
+# gs4_user()
+```
+
+# Reading sheets
+
+
+```{r}
+# URL
+read_sheet("https://docs.google.com/spreadsheets/d/1U6Cf_qEOhiR9AZqTqS3mbMF3zt2db48ZP5v3rkrAEJY/edit#gid=780868077")
+
+# Sheet ID
+read_sheet("1U6Cf_qEOhiR9AZqTqS3mbMF3zt2db48ZP5v3rkrAEJY")
+
+# a googledrive "dribble"
+googledrive::drive_get("TestRGoogleSheets") %>% 
+  read_sheet()
+```
+
+# Creating sheets
+
+```{r}
+ss1 <- gs4_create("sheets-create-demo-1")
+
+ss1
+```
+
+```{r}
+ss2 <- gs4_create(
+  "sheets-create-demo-2",
+  sheets = c("alpha", "beta")
+)
+
+ss2
+```
+
+```{r}
+my_data <- data.frame(x = 1:3, y = letters[1:3])
+ss3 <- gs4_create(
+  "sheets-create-demo-3",
+  sheets = my_data
+)
+ss3
+```
+
+# Deleting sheets
+
+```{r}
+gs4_find("sheets-create-demo") %>%
+  googledrive::drive_trash()
+```
+
+# Adding data to sheets
+
+```{r}
+ss1 <- gs4_create(
+  "write-sheets-demo-1",
+  sheets = "chickwts"
+)
+ss1
+```
+
+```{r}
+sheet_write(chickwts, ss = ss1, sheet = "chickwts")
+```
+```{r}
+gs4_find("write-sheets-demo") %>%
+  drive_trash()
+```
+
+# Browse a sheet
+
+```{r}
+gs4_example("deaths") %>%
+  gs4_browse()
+```
+
+
+# Append to a sheet
+
+```{r}
+deaths <- gs4_example("deaths") %>%
+  range_read(
+    range = "other_data"
+    , col_types = "????DD"
+  )
+
+deaths
+
+deaths_zero  <- deaths[integer(), ] # "scaffolding" data frame with 0 rows
+deaths_one   <- deaths[1:5, ] 
+deaths_two   <- deaths[6, ]
+deaths_three <- deaths[7:10, ]
+```
+
+```{r}
+ss <- gs4_create(
+  "sheets-append-demo"
+  , sheets = list(deaths = deaths_zero)
+)
+ss
+gs4_browse(ss)
+```
+
+```{r}
+ss %>%
+  sheet_append(
+    deaths_one
+  )
+```
+```{r}
+gs4_find("sheets-append-demo") %>%
+  googledrive::drive_trash()
+```
+
+```{r}
+ss_edit <- googledrive::drive_get("TestRGoogleSheets")
+
+ss_edit
+
+(df <- tibble(V1 = head(LETTERS,3), V2 = tail(LETTERS, 3)))
+
+range_write(ss_edit, data = df, sheet = "dashes")
+```
+
+
+```{r}
+googledrive::drive_get("TestRGoogleSheets") %>% 
+  range_read(
+    range = "namedRange"
+  )
+```
+
+```{r}
+testCSV <- googledrive::drive_get("TestRGoogleSheets") %>% 
+  range_speedread(
+    sheet = "plateCSV"
+  )
+
+
+workingSS <- googledrive::drive_get("TestRGoogleSheets")
+
+
+workingSS %>%
+  sheet_add(
+    "testAddCSV"
+  )
+
+
+googledrive::drive_get("TestRGoogleSheets") %>%
+  range_write(
+    testCSV
+    , sheet = "testAddCSV"
+  )
+
+read_csv("C:\\Users\\percs\\OneDrive - Umich\\Moenter lab\\LBN_0002_OneDrive\\DataForR\\cortPlates\\updatedNaming\\cortPlate_2023-03-14b_byAGG_kit23CS001b_cort21CS028b.csv")
+```
+

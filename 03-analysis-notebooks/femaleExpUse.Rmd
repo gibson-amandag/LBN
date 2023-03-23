@@ -12,13 +12,26 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
 source("./01-scripts/04-filter-datasets.R")
-source("./01-scripts/05-make-LBN-plots.R")
-source("./01-scripts/06-make-LBN-ANOVAs.R")
+# source("./01-scripts/05-make-LBN-plots.R")
+# source("./01-scripts/06-make-LBN-ANOVAs.R")
 ```
 
 ```{r}
 doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
 ```
+
+```{r}
+addLocation <- function(df){
+  movedCohorts <- c(1:6)
+  df <- df %>%
+    mutate(
+      moved = ifelse(cohort %in% movedCohorts, TRUE, FALSE)
+      , .after = cohort
+    )
+  return(df)
+}
+```
+
 
 ```{r}
 LBN_females <- LBN_all %>%
@@ -40,6 +53,7 @@ LBN_females <- LBN_all %>%
     Sac_stop_off
     # , starts_with("LH_hr")
   ) %>%
+  addLocation() %>%
   filter(
     is.na(Sac_stop_off)
   ) %>%
@@ -99,7 +113,8 @@ diFemalesUse <- femaleUse %>%
   group_by(
     earlyLifeTrt,
     adultTrt,
-    litterNum
+    litterNum,
+    moved
   ) %>%
   summarize(
     count = n()
@@ -114,6 +129,7 @@ proLHFemalesUse <- femaleUse %>%
     earlyLifeTrt,
     adultTrt,
     litterNum
+    , moved
   ) %>%
   summarize(
     count = n()
@@ -128,17 +144,156 @@ proEphysFemalesUse <- femaleUse %>%
     earlyLifeTrt,
     adultTrt,
     litterNum
+    , moved
   ) %>%
   summarize(
     count = n()
     , .groups = "drop"
   )
 
+```
+
+```{r}
+addRecDaysFunc <- function(df){
+  df <- df %>%
+    mutate(
+      recDays = ifelse(
+        ((cohort == 7 | cohort == 8 | damID == "D015") & damID != "D051-01")
+        , "P4-6"
+        , ifelse(
+          (cohort == 2 | cohort == 4 | cohort == 6 | damID == "D051-01")
+          , "P5-6"
+          , ifelse(
+            cohort == 9
+            , "P4-11"
+            , NA
+          )
+        )
+      )
+    )
+  return(df)
+}
+```
+
+```{r}
+numFemalesInLitter <- Demo_off %>%
+  filterLBNCohorts() %>%
+  filter(
+    sex == "F"
+  ) %>%
+  group_by(
+    damID
+  ) %>%
+  summarize(
+    numFemales = n()
+    , .groups = "drop"
+  )
+
+numFemalesInLitter
+
+damInfo <- damFiltered %>%
+  left_join(
+    numFemalesInLitter
+    , by = "damID"
+  ) %>%
+  addLocation() %>%
+  addRecDaysFunc() %>%
+  select(
+    damID
+    , cohort
+    , litterNum
+    , moved
+    , recDays
+    , earlyLifeTrt
+    , Litter_size
+    , numFemales
+  ) %>%
+  arrange(
+    cohort
+    , earlyLifeTrt
+  )
+
+damInfo
+```
+
+```{r}
+sumDamInfo <- damInfo %>%
+  group_by(
+    earlyLifeTrt
+    , litterNum
+    , moved
+    , recDays
+  ) %>%
+  summarize(
+    numLitters = n()
+    , .groups = "drop"
+  )
+```
+
+
+```{r}
+# sumGabaInfo <- GABApscs %>%
+#   countMiceAndLitters()
+```
+
+## Count unused and available
+```{r}
+cohort9_available <- LBN_data %>%
+  filter(
+    cohort == 9
+    , is.na(Pups_through_wean) | Pups_through_wean == TRUE
+    , sex == "F"
+    , is.na(Sac_date)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  summarize(
+    n = n()
+    , .groups = "drop"
+  )
+```
+
+
+
+```{r}
+
 saveUseInfoDFsToExcel(
-  "femaleUse",
+  "animalInfo",
+  "damInfo" = damInfo,
+  "damCounts" = sumDamInfo,
   "femaleUse" = femaleUse,
   "diestrus" = diFemalesUse,
   "proLH" = proLHFemalesUse,
   "proEphys" = proEphysFemalesUse
+  , "cohort9_Avail" = cohort9_available
+)
+
+saveDFsToExcel(
+  "animalInfo_noColor",
+  "damInfo" = damInfo,
+  "damCounts" = sumDamInfo,
+  "femaleUse" = femaleUse,
+  "diestrus" = diFemalesUse,
+  "proLH" = proLHFemalesUse,
+  "proEphys" = proEphysFemalesUse
+  , "cohort9_Avail" = cohort9_available
 )
 ```
+
+```{r}
+acuteStressFilteredMales %>%
+  # filter(
+  #   cohort %in% c(7, 9)
+  # ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    n()
+  )
+```
+
+
+

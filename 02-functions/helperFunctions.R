@@ -90,6 +90,7 @@ getMouseInfoForSlicing <- function(df, thisMouseID){
       , "strain"
       , "damID"
       , "sire"
+      , "weanCageNumber"
       , "weanCage"
       , "damCage"
       , "DOB"

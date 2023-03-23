@@ -12,7 +12,7 @@ library(shiny)
 # source("./01-scripts/01-set-up.R")
 # source(file.path(scriptsFolder, "02-get-datasets.R"))
 # source(file.path(scriptsFolder, "04-filter-datasets.R"))
-# library(shinyFiles)
+library(shinyFiles)
 
 moduleFiles <- list.files(
     appScriptsFolder, 

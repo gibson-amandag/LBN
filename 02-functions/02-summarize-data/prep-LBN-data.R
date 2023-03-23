@@ -1,6 +1,7 @@
 filterLBN <- function(
     cohorts = c(2, 4, 6, 7, 8, 9)
     , minSize = 5
+    , exclude9011 = TRUE # malocclusion 
     , sizeVar = Litter_size_startPara
 ) {
   filterFunc <- function(
@@ -12,6 +13,15 @@ filterLBN <- function(
         , cohort %in% cohorts
         , is.na(Pups_through_wean) | Pups_through_wean == TRUE
       )
+    if(exclude9011){
+      df <- df %>%
+        filter(
+          across(
+            # will remove row where mouseID == 9011, if mouseID column exists in DF
+            any_of("mouseID"), ~ .x != 9011 
+          )
+        )
+    }
     return(df)
   }
   return(filterFunc)
@@ -283,6 +293,23 @@ getTrtLitterFResults <- function(df, sepText = "\n"){
       earlyLifeF = earlyLifeF
       , litterF = litterF
       , earlyLifeLitterF = earlyLifeLitterF
+      , paragraph = paragraph
+    )
+  )
+}
+
+getTrtFResults <- function(df, sepText = "\n"){
+  earlyLifeF <- getFText(df, "earlyLifeTrt")
+  
+  paragraph <- paste0(
+    "Early-life trt: "
+    , earlyLifeF
+    , sepText
+  )
+  
+  return(
+    list(
+      earlyLifeF = earlyLifeF
       , paragraph = paragraph
     )
   )

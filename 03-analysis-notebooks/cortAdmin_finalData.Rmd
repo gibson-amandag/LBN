@@ -524,6 +524,7 @@ cortAdminCortDF <- BD_cort %>%
   filter(
     time %in% c(0, 5)
     , is.na(exclude) | exclude == FALSE
+    , trust == TRUE
   )
 
 cortAdmin_cort <- cortAdminCortDF %>%
@@ -607,6 +608,8 @@ cortAdminCortAnovas_postHoc_flx <- cortAdminCortAnovas_postHoc %>%
 
 cortAdminCortAnova
 cortAdminCortAnovas_postHoc
+
+getFText(cortAdminCortAnova, "dosage:time")
 ```
 
 ```{r}
@@ -884,6 +887,32 @@ ppt <- pptAddTwoTables(
   , dontFormat = FALSE
 )
 ```
+# Ovulation 
+
+```{r}
+figureNum <- figureNum + 1
+```
+
+
+```{r}
+BD_ovulation_plot <- BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+  propOvulatedPlot(
+    xVar = dosage,
+    fontSize = 16
+  )
+```
+
+```{r}
+fileBaseName <- "cortAdmin_propOvulated"
+slideTitle <- "Oral corticosterone administration does not alter proportion of animals that ovulated"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+BD_ovulation_plot
+```
+
 
 
 ```{r}
@@ -910,3 +939,25 @@ saveDFsToExcel(
   , "propSurged_chi_descriptives" = propSurged.Chi.Sq.descriptives
 )
 ```
+
+```{r}
+BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+scatterPlot_general(
+  xVar = cort_hr5,
+  xLab = "corticosterone (ng/mL)",
+  yVar = maxLH,
+  yLab = "LH (ng/mL)",
+  fillVar = dosage,
+  fillLimits = c(0, 2),
+  fillValues = c("white", "black")
+)
+
+BD_sampling %>%
+  filter(
+    cort_hr5 > 400
+  )
+```
+

@@ -3,7 +3,7 @@
 # https://shiny.rstudio.com/articles/modules.html
 
 
-cortEIAUI <- function(id){
+cortEIAUI_sep <- function(id){
   ns <- NS(id)
   tagList(
     tags$body(
@@ -31,29 +31,6 @@ cortEIAUI <- function(id){
     ),
     
     useShinyjs(),
-    
-    fluidRow(
-      h2(
-        "Upload plate layout CSV"
-      )
-    ),
-    fluidRow(
-      div(
-        class = "col-xs-6",
-        fileInput(
-          ns("dataFile"),
-          label = "Select CSV File",
-          accept = ".csv"
-        ),
-        textOutput(ns("fileStatus")),
-      ),
-      div(
-        class = "col-xs-6",
-        a("Example CSV File", href = "exampleCortEIAPlate.csv"),
-        br(),
-        a("Template CSV File", href = "templateCortEIAPlate.csv")
-      )
-    ),
     
     fluidRow(
       div(
@@ -150,13 +127,10 @@ cortEIAUI <- function(id){
         class = "col-xs-6",
         downloadButton(ns("downloadResults"), "Download Results in Excel"),
         br(),
-        actionButton(ns("addAllToGoogle"), "Add all to Google"),
-        br(), p("or add individually"),
-        actionButton(ns("addCSVToGoogle"), "Add plate yayout CSV"),
-        actionButton(ns("addMetaToGoogle"), "Add plate info"),
-        actionButton(ns("addStdToGoogle"), "Add standard info"),
-        actionButton(ns("addResultsToGoogle"), "Add results"),
-        br()
+        actionButton(ns("addCSVToGoogle"), "Add CSV to Google Sheet"),
+        actionButton(ns("addMetaToGoogle"), "Add plate info to Google Sheet"),
+        actionButton(ns("addStdToGoogle"), "Add standard info to Google Sheet"),
+        actionButton(ns("addResultsToGoogle"), "Add results to Google Sheet"),
       ),
       div(
         class = "col-xs-6",
@@ -344,10 +318,10 @@ cortEIAUI <- function(id){
 }
 
 
-cortEIAServer <- function(
+cortEIAServer_sep <- function(
   id,
-  # filePath,
-  # fileName,
+  filePath,
+  fileName,
   compType
 ){
   moduleServer(
@@ -357,17 +331,9 @@ cortEIAServer <- function(
       library(shinyjs)
       
       
+      modelType <- input$modelType
       
-      modelType <- reactive(input$modelType)
-      fileName <- reactive(input$dataFile$name)
-      
-      initialProcessing <- reactive({
-        req(input$dataFile$datapath %>% path_ext() == "csv")
-        
-        filePath <- input$dataFile$datapath
-        
-        processCortEIAtoPercBinding(filePath)
-      })
+      initialProcessing <- reactive({processCortEIAtoPercBinding(filePath)})
       
       assayPlate  <-  reactive({initialProcessing()$assayPlate})
       assayPlate_netOD_meanCV <-  reactive({initialProcessing()$assayPlate_netOD_meanCV})
@@ -396,7 +362,7 @@ cortEIAServer <- function(
         processCortEIAtoSamplesEstimates(
           assayPlate_percBinding(), 
           standards_included(), 
-          modelType()
+          modelType
           , addQC = input$addQC
           , plateID = input$plateID
         )
@@ -878,7 +844,7 @@ cortEIAServer <- function(
           #   breaks = c(500, 250, 125, 75, 37.5, 18.75, 9.375, 4.6875)
           )
         
-        if(modelType() == "4PLC"){
+        if(modelType == "4PLC"){
           viz <- viz + 
             geom_smooth(method = drm, formula = y ~ x, method.args = list(fct = L.4()), se = FALSE, color = "darkgrey")
         } else {
@@ -897,7 +863,7 @@ cortEIAServer <- function(
       output$stdCurveModel <- renderPrint(stdCurve()$coefficients)
       
       # output$standardCurvePlot <- renderPlot(stdCurvePlot())
-      standardCurvePlotClickInfo <- plotServer("standardCurvePlot", stdCurvePlot, paste0(fileName() %>% path_ext_remove(), "_stdCurve"), compType = compType)
+      standardCurvePlotClickInfo <- plotServer("standardCurvePlot", stdCurvePlot, paste0(fileName %>% path_ext_remove(), "_stdCurve"), compType = compType)
       
       output$standardCurvePlotInfo <- renderTable(
         nearPoints(
@@ -1061,7 +1027,7 @@ cortEIAServer <- function(
       # Download the results ----
       output$downloadResults <- downloadHandler(
         filename = function() {
-          paste0(fileName() %>% path_ext_remove(), "_", modelType(), "_", Sys.Date(), ".xlsx")
+          paste0(fileName %>% path_ext_remove(), "_", modelType, "_", Sys.Date(), ".xlsx")
         },
         content = function(file) {
           saveDFsToExcel_shiny(
@@ -1076,7 +1042,7 @@ cortEIAServer <- function(
       # Download the standard curve ----
       output$downloadStdCurve <- downloadHandler(
         filename = function() {
-          paste0(fileName() %>% path_ext_remove(), "_stdCurve_", Sys.Date(), ".", input$imgType)
+          paste0(fileName %>% path_ext_remove(), "_stdCurve_", Sys.Date(), ".", input$imgType)
         },
         content = function(file) {
           flexSave(
@@ -1094,7 +1060,7 @@ cortEIAServer <- function(
       # Download the standard curve with samples ----
       output$downloadSamplesOnCurve <- downloadHandler(
         filename = function() {
-          paste0(fileName() %>% path_ext_remove(), "_samplesOnStdCurve_", Sys.Date(), ".", input$imgType)
+          paste0(fileName %>% path_ext_remove(), "_samplesOnStdCurve_", Sys.Date(), ".", input$imgType)
         },
         content = function(file) {
           flexSave(
@@ -1113,7 +1079,7 @@ cortEIAServer <- function(
       # Download the report ----
       output$downloadReport <- downloadHandler(
         filename = function() {
-          paste0(fileName() %>% path_ext_remove(), "_", modelType(), "_", Sys.Date(), '.', switch(
+          paste0(fileName %>% path_ext_remove(), "_", modelType, "_", Sys.Date(), '.', switch(
             input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
           ))
         },
@@ -1137,16 +1103,16 @@ cortEIAServer <- function(
                 toc = TRUE,
                 df_print = "kable",
                 dev = "cairo_pdf",
-                pandoc_args = c(paste0('--metadata=title:', fileName() %>% path_ext_remove()))
+                pandoc_args = c(paste0('--metadata=title:', fileName %>% path_ext_remove()))
               ), 
               HTML = html_document(
                 toc = TRUE,
                 df_print = "paged",
-                pandoc_args = c(paste0('--metadata=title:', fileName() %>% path_ext_remove()))
+                pandoc_args = c(paste0('--metadata=title:', fileName %>% path_ext_remove()))
               ), 
               Word = word_document(
                 df_print = "kable",
-                pandoc_args = c(paste0('--metadata=title:', fileName() %>% path_ext_remove()))
+                pandoc_args = c(paste0('--metadata=title:', fileName %>% path_ext_remove()))
               )
             )
           )
@@ -1158,113 +1124,160 @@ cortEIAServer <- function(
         as_id("18Q3BzmMcEWdcFvPDCJnnAvuDSngO_Qn50VYYh4XQsDI")
       )
       
-      # Add to Google --------------------------
-      observeEvent(input$addAllToGoogle, {
-        filePath <- input$dataFile$datapath
-        addCSVFileToGoogleSheet(
-          filePath,
-          driveSS,
-          input$plateID
-        )
-        
-        metaDF() %>%
-          addMetaRowToGoogle(
-            driveSS
-            , input$plateID
-            , modelType()
-          )
-        
-        assayPlate_indPlusMean_netOD() %>%
-          addStdsToGoogle(
-            driveSS
-            , input$plateID
-            , modelType()
-          )
-        
-        meanSampleResults() %>%
-          addSamplesToGoogle(
-            driveSS
-            , input$plateID
-            , modelType()
-          )
-      })
       
+      # Add to Google --------------------------
       observeEvent(input$addCSVToGoogle, {
-        filePath <- input$dataFile$datapath
+        
         # Add the CSV for this plate to the Google Doc
         addCSVFileToGoogleSheet(
           filePath,
           driveSS,
           input$plateID
         )
-      }
-      , ignoreInit = TRUE
-      )
+      })
+      
+      # observe(
+      #   input$addMetaToGoogle
+      # ) %>%
+      #   bindEvent(
+      #     {
+      #       print(metaDF())
+      #       
+      #       # Add the overall plate info row
+      #       driveSS %>%
+      #         sheet_append(
+      #           metaDF()
+      #           , sheet = "plateInfo"
+      #         )
+      #     }
+      #     , ignoreInit = TRUE
+      #   )
+      
+      countMe <- 1
       
       observeEvent(input$addMetaToGoogle, {
-        addMetaRowToGoogle(
-          metaDF()
-          , driveSS
-          , input$plateID
-          , modelType()
-        )
+
+        # plateInfo <- driveSS %>%
+        #   read_sheet(
+        #     sheet = "plateInfo"
+        #   )
+        #
+        # # Find previously entered matching values for the plate/model type
+        # matchingRows <- which(plateInfo$plateID == input$plateID & plateInfo$modelType == modelType)
+        #
+        # if(length(matchingRows)>0){
+        #   deleteRows <- matchingRows + 1
+        #   driveSS %>%
+        #     range_delete(
+        #       sheet = "plateInfo"
+        #       , range = cell_rows(deleteRows)
+        #     )
+        # }
+        
+        print(countMe)
+        # countMe <- countMe + 1
+        # df <- data.frame(
+        #   plateID = input$plateID
+        #   , date = input$date
+        #   , initials = input$initials
+        #   , kitLot = input$kitLot
+        #   , cortLot = input$cortLot
+        #   , experiment = input$experiment
+        #   , description = input$description
+        #   , QC_ID = QC_ID()
+        #   , QC_val = QC_val()
+        #   , modelType = modelType
+        # )
+        
+        # print(QC_val()) # this prints twice after loading a new CSV
+        # print(finalResults())
+        
+        # print(filePath)
+        # print()
+
+        # # Add the overall plate info row
+        # driveSS %>%
+        #   sheet_append(
+        #     df
+        #     , sheet = "plateInfo"
+        #   )
       }
       , ignoreInit = TRUE
       )
       
       observeEvent(input$addStdToGoogle, {
-        assayPlate_indPlusMean_netOD() %>%
-          addStdsToGoogle(
-            driveSS
-            , input$plateID
-            , modelType()
+        # Find previously entered matching values for the plate/model type
+        
+        # stdInfo <- driveSS %>%
+        #   read_sheet(
+        #     sheet = "stdInfo"
+        #   )
+        # matchingRows <- which(stdInfo$plateID == input$plateID & stdInfo$modelType == modelType)
+        # 
+        # if(length(matchingRows)>0){
+        #   deleteRows <- matchingRows + 1
+        #   driveSS %>%
+        #     range_delete(
+        #       sheet = "stdInfo"
+        #       , range = cell_rows(deleteRows)
+        #     )
+        # }
+
+        # Add the standard rows
+        driveSS %>%
+          sheet_append(
+            assayPlate_indPlusMean_netOD() %>%
+              filter(type == "STD") %>%
+              select(
+                -mouseID
+                , - time
+              ) %>%
+              rename(
+                stdName = plateID
+              ) %>%
+              mutate(
+                plateID = input$plateID
+                , modelType = modelType
+              )
+            , sheet = "stdInfo"
           )
-      }
-      , ignoreInit = TRUE
-      )
+      })
       
       observeEvent(input$addResultsToGoogle, {
         # Add the samples to a new sheet
         meanSampleResults() %>%
-          addSamplesToGoogle(
-            driveSS
-            , input$plateID
-            , modelType()
+          sheet_write(
+            ss = driveSS
+            , sheet = paste0(modelType, "_", input$plateID)
           )
-      }
-      , ignoreInit = TRUE
-      )
+      })
       
       # Meta data ---------------------------------------
-      observeEvent(
-        input$dataFile,
-      {
-        updateTextInput(
-          session
-          , "plateID"
-          , value = str_extract(fileName(), "[0-9]{4}-[0-9]{2}-[0-9]{2}[A-za-z]")
-        )
-        updateTextInput(
-          session
-          , "plateDate"
-          , value = str_extract(fileName(), "[0-9]{4}-[0-9]{2}-[0-9]{2}")
-        )
-        updateTextInput(
-          session
-          , "initials"
-          , value = str_match(fileName(), "by(.*?)[_.]")[,2]
-        )
-        updateTextInput(
-          session
-          , "kitLot"
-          , value = str_match(fileName(), "kit(.*?)[_.]")[,2]
-        )
-        updateTextInput(
-          session
-          , "cortLot"
-          , value = str_match(fileName(), "_cort(.*?)[_.]")[,2]
-        )
-      })
+      updateTextInput(
+        session
+        , "plateID"
+        , value = str_extract(fileName, "[0-9]{4}-[0-9]{2}-[0-9]{2}[A-za-z]")
+      )
+      updateTextInput(
+        session
+        , "plateDate"
+        , value = str_extract(fileName, "[0-9]{4}-[0-9]{2}-[0-9]{2}")
+      )
+      updateTextInput(
+        session
+        , "initials"
+        , value = str_match(fileName, "by(.*?)[_.]")[,2]
+      )
+      updateTextInput(
+        session
+        , "kitLot"
+        , value = str_match(fileName, "kit(.*?)[_.]")[,2]
+      )
+      updateTextInput(
+        session
+        , "cortLot"
+        , value = str_match(fileName, "_cort(.*?)[_.]")[,2]
+      )
       
       observeEvent(
         input$metaDataFile
@@ -1333,7 +1346,7 @@ cortEIAServer <- function(
         df$description[1] = input$description
         df$QC_ID[1] = QC_ID()
         df$QC_val[1] = QC_val()
-        df$modelType[1] = modelType()
+        df$modelType[1] = modelType
         return(df)
     })
       

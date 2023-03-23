@@ -87,6 +87,23 @@ Demo_dam <- Breeding %>%
 
 Demo_off <- makeFactors(Demo_off, c(damID, mouseID, sex, mouseID_spec))
 
+numMiceOffCages <- Demo_off %>%
+  filter(
+    !is.na(weanCageNumber)
+  ) %>%
+  group_by(
+    weanCageNumber
+  ) %>%
+  summarize(
+    numInCage = n()
+  )
+
+Demo_off <- Demo_off %>%
+  left_join(
+    numMiceOffCages
+    , by = "weanCageNumber"
+  )
+
 damFrames <- damFrames %>%
   makeFactors(damID)
 
@@ -257,6 +274,16 @@ Cort_off_wide <- Cort_off_wide %>%
   left_join(
     Cort_exclude_wide,
     by = "mouseID"
+  ) %>%
+  left_join(
+    Cort_off %>%
+      filter(
+        time == 0 ## assumes on same plate
+      ) %>%
+      select(
+        mouseID,
+        plateQC
+      )
   )
 
 # Add cort data to Sacrifice_off to make AcuteStress_off
