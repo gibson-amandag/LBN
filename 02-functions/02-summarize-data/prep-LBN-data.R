@@ -18,7 +18,7 @@ filterLBN <- function(
         filter(
           across(
             # will remove row where mouseID == 9011, if mouseID column exists in DF
-            any_of("mouseID"), ~ .x != 9011 
+            any_of("mouseID"), ~ .x != 9011
           )
         )
     }
@@ -208,6 +208,7 @@ filterEphysFunc <- function(
     , recHrMin = 13 # time since lights on
     , recHrMax = 20
     , removeNoToInclude = TRUE
+    , removeExclude = FALSE
 ){
   filterFunc <- function(df){
     df <- df %>%
@@ -238,6 +239,9 @@ filterEphysFunc <- function(
       ) %>%
       filterByInclude(
         removeNoToInclude = removeNoToInclude
+      ) %>%
+      filterByExclude(
+        removeExclude = removeExclude
       )
     return(df)
   }

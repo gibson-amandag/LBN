@@ -3842,6 +3842,8 @@ getMouseInfoForSlicingWidget <- function(mouseIDs, df = LBN_data){
 getMouseInfoForSlicingWidget(705)
 getMouseInfoForSlicingWidget(c(705, 708, 702))
 getMouseInfoForSlicingWidget(c(711:726))
+
+getMouseInfoForSlicingWidget(917)
 ```
 
 ```{r}
@@ -8262,7 +8264,7 @@ saveDFsToExcel(
 
 breeding_cohort9 <- Demo_dam %>%
   filter(
-    cohort == 9 | breedDate > as_date("2023-02-01")
+    cohort == 9 | breedDate > as_date("2023-03-01")
     , is.na(Pups_through_wean) | Pups_through_wean
     # , is.na(Sac_or_stop) | Sac_or_stop >= (DOB + 21)
   ) %>%
@@ -8274,8 +8276,8 @@ breeding_cohort9 <- Demo_dam %>%
   ) %>%
   add_row(
     breedDate = c(
-      as_date("2023-02-19")
-      , as_date("2023-03-19")
+      as_date("2023-04-02")
+      , as_date("2023-04-09")
     )
   ) %>%
   arrange(
@@ -8289,6 +8291,9 @@ breeding_cohort9 <- Demo_dam %>%
     PND4 = as_date(ifelse(!is.na(DOB), DOB + 4, DOB_est + 4))
     , PND11 = as_date(ifelse(!is.na(DOB), DOB + 11, DOB_est + 11))
     , PND21 = as_date(ifelse(!is.na(DOB), DOB + 21, DOB_est + 21))
+    , PND35 = as_date(ifelse(!is.na(DOB), DOB + 35, DOB_est + 35))
+    , PND49 = as_date(ifelse(!is.na(DOB), DOB + 49, DOB_est + 49))
+    , PND63 = as_date(ifelse(!is.na(DOB), DOB + 63, DOB_est + 63))
     , PND70 = as_date(ifelse(!is.na(DOB), DOB + 70, DOB_est + 70))
     , PND91 = as_date(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
     , .after = DOB
@@ -8310,10 +8315,80 @@ breeding_cohort9 <- Demo_dam %>%
     DOB
   )
 
+breeding_cohort9
+
 saveDFsToExcel(
   "cohort9breeding"
   , cohort9 = breeding_cohort9
 )
+  
+```
+```{r}
+
+availability_cohort9 <- Demo_dam %>%
+  filter(
+    cohort == 9 | breedDate > as_date("2023-03-01")
+    , is.na(Pups_through_wean) | Pups_through_wean
+    # , is.na(Sac_or_stop) | Sac_or_stop >= (DOB + 21)
+  ) %>%
+  select(
+    damID
+    , earlyLifeTrt
+    , breedDate
+    , DOB
+    , Litter_size
+  ) %>%
+  arrange(
+    DOB, breedDate
+  ) %>%
+  mutate(
+    DOB_est = breedDate + 21
+    , .after = breedDate
+  ) %>%
+  mutate(
+    PND91 = as_date(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
+    , .after = DOB
+  ) %>%
+  left_join(
+    Demo_off %>%
+      filter(
+        sex == "F"
+      ) %>%
+      group_by(
+        damID
+      ) %>%
+      summarize(
+        numFemales = n()
+      )
+    , by = "damID"
+  ) %>%
+  left_join(
+    Demo_off %>%
+      filter(
+        sex == "M"
+      ) %>%
+      group_by(
+        damID
+      ) %>%
+      summarize(
+        numMales = n()
+      )
+    , by = "damID"
+  ) %>%
+  arrange(
+    DOB
+  ) %>%
+  relocate(
+    PND91
+    , numFemales
+    , numMales
+    , .after = earlyLifeTrt
+  )
+
+availability_cohort9 %>%
+  filter(
+    DOB > as_date("2022-12-20")
+  )
   
 ```
 
@@ -9054,4 +9129,215 @@ CRH_needCort
 
 write.table(CRH_needCort, "clipboard", sep="\t", row.names = FALSE)
 ```
+
+```{r}
+cyclesFiltered
+```
+# Cycles calculations
+
+```{r}
+addCycleStartCol <- function(
+  cycleDF_long
+){
+  df <- cycleDF_long %>%
+    arrange(
+      mouseID
+      , day
+    ) %>%
+    group_by(
+      mouseID
+    ) %>%
+    mutate(
+      isStartCycle = ifelse(
+        day != 1 & # don't count an E on first day - this should be taken care of by lag, but just to be safe
+          day - 1 == lag(day) & # make sure that the previous row is actually the day before
+          lag(stage) %in% c(2, 3) &  # check if the day before was either diestrus or proestrus
+          stage == 1 # check if today is estrus
+        , TRUE
+        , FALSE
+      )
+      , .after = stage
+    ) %>%
+    ungroup()
+  return(df)
+}
+
+getCycleLength <- function(
+  cycleDF_long
+){
+  df <- cycleDF_long %>%
+    filter(
+      isStartCycle == TRUE
+    ) %>%
+    arrange(
+      mouseID
+      , day
+    ) %>%
+    group_by(
+      mouseID
+    ) %>%
+    mutate(
+      cycleLength = day - lag(day)
+    ) %>%
+    ungroup()
+  return(df)
+}
+
+summarizeCycles <- function(
+  cyclesDF_long
+  , daysAnalyzed = 21
+){
+  df <- cyclesDF_long %>%
+    group_by(mouseID) %>%
+    summarize(
+      numCycles = n()
+      , cycleLength = mean(cycleLength, na.rm = TRUE)
+      , firstCycleDay = first(day)
+      , lastCycleDay = last(day)
+      , daysNotInCycles = ifelse(numCycles>0, daysAnalyzed - (lastCycleDay-firstCycleDay), daysAnalyzed)
+      , percDaysInCycles = (daysAnalyzed-daysNotInCycles) / daysAnalyzed
+      , .groups = "drop"
+    )
+  return(df)
+}
+
+getCyclesInfo <- function(
+    cyclesDF_long
+){
+  df <- cyclesDF_long %>%
+    addCycleStartCol() %>%
+    getCycleLength() %>%
+    summarizeCycles()
+  return(df)
+}
+```
+
+
+```{r}
+cyclesLong %>%
+  filter(
+    cohort == 9
+  ) %>%
+  addCycleStartCol() %>%
+  getCycleLength() %>%
+  relocate(
+    day
+    , stage
+    , isStartCycle
+    , cycleLength
+  )
+  getCyclesInfo()
+
+cyclesLong %>%
+  filter(
+    cohort == 9
+  ) %>%
+  addCycleStartCol() %>%
+  getCycleLength()%>%
+  select(
+    mouseID
+    , day
+    , stage
+    , isStartCycle
+    , cycleLength
+  ) %>%
+  write.table("clipboard", sep="\t", row.names = FALSE)
+
+cyclesLong %>%
+  filter(
+    cohort == 9
+  ) %>%
+  getCyclesInfo() %>%
+  write.table("clipboard", sep="\t", row.name=FALSE)
+```
+```{r}
+cyclesLong %>%
+  filter(
+    damID == "D062-01"
+  ) %>%
+  relocate(
+    day
+    , stage
+    , .after = "mouseID"
+  ) %>%
+  arrange(
+    mouseID
+    , day
+  ) %>%
+  mutate(
+    isStartCycle = ifelse(
+      day != 1 & # don't count an E on first day
+        day - 1 == lag(day) & # make sure that the previous row is actually the day before
+        lag(stage) %in% c(2, 3) &  # check if the day before was either diestrus or proestrus
+        stage == 1 # check if today is estrus
+      , TRUE
+      , FALSE
+    )
+    , .after = stage
+  )
+```
+
+```{r}
+repCycles_STD_1stL +
+  geom_point(aes(color = isStartCycle, alpha = isStartCycle))+
+  scale_color_manual(values = c("FALSE" = "black", "TRUE" = "red", "STD" = "grey", "LBN" = "black"))+
+  scale_alpha_manual(values = c("FALSE" = .1, "TRUE" = 1))
+
+repCycles_LBN_1stL +
+  geom_point(aes(color = isStartCycle, alpha = isStartCycle))+
+  scale_color_manual(values = c("FALSE" = "black", "TRUE" = "red", "STD" = "grey", "LBN" = "black"))+
+  scale_alpha_manual(values = c("FALSE" = .1, "TRUE" = 1))
+
+
+cyclesLong %>% 
+  filter(mouseID == 901) %>%
+  addCycleStartCol() %>%
+  plotCycleTraces_single() +
+  geom_point(aes(color = isStartCycle, alpha = isStartCycle))+
+  scale_color_manual(values = c("FALSE" = "black", "TRUE" = "red", "STD" = "grey", "LBN" = "black"))+
+  scale_alpha_manual(values = c("FALSE" = .2, "TRUE" = 1))
+
+```
+
+```{r}
+cyclesFiltered %>%
+  scatterPlotLBN(
+    yVar = numCycles
+    , yLab = "# of cycles from P70-P90"
+  )
+
+cyclesFiltered %>%
+  scatterPlotLBN(
+    yVar = cycleLength
+    , yLab = "cycle length (days)"
+  )
+
+cyclesFiltered %>%
+  scatterPlotLBN(
+    yVar = firstCycleDay
+    , yLab = "first cycle day"
+  )
+
+cyclesFiltered %>%
+  scatterPlotLBN(
+    yVar = percDaysInCycles
+    , yLab = "% days in a cycle"
+  )
+
+# t_test(
+#   cyclesFiltered
+#   , cycleLength ~ earlyLifeTrt
+# )
+#
+# t_test(
+#   cyclesFiltered
+#   , numCycles ~ earlyLifeTrt
+# )
+# 
+# cyclesFiltered %>%
+#   runLMM(
+#     numCycles ~ earlyLifeTrt + (1|damID)
+#   )
+```
+
 

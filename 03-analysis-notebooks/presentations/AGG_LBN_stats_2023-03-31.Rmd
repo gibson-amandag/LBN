@@ -1,0 +1,2039 @@
+---
+title: "Limited bedding and nesting statistical analysis"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/05-make-LBN-plots.R")
+source("./01-scripts/06-make-LBN-ANOVAs_noLitter.R")
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+# Set-up
+
+```{r}
+figureNum <- 1
+
+pptBaseName <- makeBaseNameFunc("")
+
+plotFolder <- file.path(plotOutputFolder, "2023-03-31")
+
+imgType <-"png"
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotFolder
+  , compType = currentCompType
+)
+
+exportFullPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 11.5
+  #   , height = 5
+  # )
+}
+
+exportHalfPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 5.67
+  #   , height = 5
+  # )
+}
+
+exportThirdPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 3.6
+  #   , height = 5
+  # )
+}
+
+exportQuarterPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 3.2
+  #   , height = 5
+  # )
+}
+
+editableImgs <- TRUE
+pptAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddOneTable <- function(
+    table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_oneTable(
+    officer_ppt, 
+    title, 
+    table, 
+    dontFormat = dontFormat
+  )
+  return(officer_ppt)
+}
+
+pptUneditAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = FALSE
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphs <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphsMoreLeft <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraphMoreLeft(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddGraphTable <- function(
+    plot
+    , table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_graphTable(
+    officer_ppt, 
+    title, 
+    plot, 
+    table,
+    makeEditable = editableImgs
+    , dontFormat = dontFormat
+    , textSize = textSize
+  )
+  return(officer_ppt)
+}
+
+pptAddFourGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , plot4
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_fourGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    plot4,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddThreeGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_threeGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddStats <- function(
+    statsText
+    , officer_ppt = ppt
+){
+  officer_ppt <- addStatsToBottom(
+    officer_ppt,
+    statsText
+  )
+}
+
+pptAddTwoStats <- function(
+    statsText1
+    , statsText2
+    , officer_ppt = ppt
+){
+  officer_ppt <- addTwoStatsToGraphs(
+    officer_ppt,
+    statsText1,
+    statsText2
+  )
+}
+
+pptAddSectionHead <- function(
+    title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_sectionHead(
+    officer_ppt
+    , title
+  )
+}
+```
+
+```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("genericPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+# layout_properties(ppt, layout="Title Slide")
+
+subText <- "Amanda Gibson\nSBN Data"
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "AGG_LBN_data"
+  , addDate = TRUE
+)
+```
+
+```{r}
+ppt <- pptAddSectionHead("Limited bedding and nesting")
+```
+
+# Dams
+
+```{r}
+damNums <- damFiltered %>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  summarize(
+    n = n()
+  )
+
+LBNdams <- damNums %>%
+  getValWhereOtherValTrue(
+    matchCol = "earlyLifeTrt"
+    , matchVal = "LBN"
+    , valCol = "n"
+  )
+
+STDdams <- damNums %>%
+  getValWhereOtherValTrue(
+    matchCol = "earlyLifeTrt"
+    , matchVal = "STD"
+    , valCol = "n"
+  )
+```
+
+Mouse dams and their pups are assigned to either standard cages (STD) or limited bedding and nesting (LBN) cages from postnatal day 4-11 (P4-11). There are `r STDdams` STD dams and `r LBNdams` LBN dams.
+
+```{r}
+damFilteredInfo <- damFiltered %>%
+    select(
+      - CyclesFolder
+      , - cyclingFolderPath
+      , -ends_with("Duration")
+      ,-ends_with("Num_exits")
+      ,-ends_with("Num_entries")
+      ,-ends_with("_off_nest")
+      ,-ends_with("_on_nest")
+    ) %>%
+    relocate(
+      damID
+      , cohort
+      , litterNum
+      , DOB
+      , Litter_size
+      , earlyLifeTrt
+      , Dam_Mass_P4
+      , Dam_Mass_P11
+      , Dam_Mass_P21
+      , starts_with("Cort_dam")
+    ) %>%
+    arrange(
+      cohort
+      , DOB
+    )
+```
+
+## Dam Behavior
+
+The cages are video monitored to track the behavior of the dams during the paradigm. For some cages, this monitoring only took place from P4-6, and for others this took place throughout the full paradigm. However, there have also been issues with the cameras and recording software, leading to additional missing data.
+
+Dams can be scored as being on or off of the nest, and the number of exits in a given hour can be calculated. Videos were scored at zeitgeber times (ZT) 1, 15, and 19. This is one hour after light transitions and in the middle of the night.
+
+### By PND and ZT
+
+```{r}
+damBehavior_byPND_ZT
+```
+
+These animals have missing time points
+
+```{r}
+damBehavior_byPND_ZT %>%
+  filter(
+    is.na(Num_exits)
+  ) %>%
+  select(
+    damID
+    , PND
+    , ZT
+    , earlyLifeTrt
+    , cohort
+  )
+```
+
+We can plot this behavioral data over time, which each dam's behavior tracked over time by line color. The red triangles are the averages for each group and time
+
+```{r fig.height=7, fig.width=11}
+damBehavior_byPND_ZT %>%
+  filter(
+    !is.na(Num_exits)
+  ) %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "# of exits"
+    , fontSize = 16
+    , addTriangleForMean = TRUE
+    , redMean = TRUE
+    , colorByDam = TRUE
+  )
+```
+
+
+### By PND
+
+The average number of exits for the three hours scored during a day can be quantified for each dam.
+
+```{r}
+damBehavior_byPND
+```
+
+Note that for animals that have at least one time point on that day, an average will be calculated. These animals (if any) are missing all data for a given day
+
+```{r}
+damBehavior_byPND %>%
+  filter(
+    is.na(Num_exits)
+  )
+```
+
+```{r}
+damBehavior_byPND %>%
+  filter(
+    !is.na(Num_exits)
+  ) %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "# of exits"
+    , fontSize = 16
+    , addTriangleForMean = TRUE
+    , redMean = TRUE
+    , colorByDam = TRUE
+  )
+```
+
+
+#### Model - Continuous PND
+
+We want to know if LBN changes the number of exits from the nest. Previous literature on this model would lead us to predict the LBN dams would have more exits from the nest.
+
+Because we have missing data, a linear mixed model should be a better approach than an ANOVA. We want to know if there is an interaction between day and early-life treatment. We also need to be able to keep track of any random effects that are due to variations in the dam herself.
+
+We'll use the model `Num_exits ~ earlyLifeTrt * PND + (1|damID)`.
+
+We'll start with a model where PND is a continuous variable. We'll adjust the PND column so that the first day of the paradigm, PND 4, is recorded as 0 to make it easier to understand the model output.
+
+However, we should evaluate this because it doesn't look like there's a perfectly linear relationship with time.
+
+```{r}
+lmm <- damBehavior_byPND %>%
+  mutate(
+    PND = PND - 4
+  ) %>%
+  runLMM(
+    Num_exits ~ earlyLifeTrt * PND + (1|damID)
+  )
+
+lmm$anova
+
+lmm$formated
+
+coefs <- lmm$coefs
+
+damBehaviorIntercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+damBehaviorLBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+
+damBehaviorPND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "PND"
+    , valCol = "Estimate"
+  )
+
+damBehaviorLBNchangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:PND"
+    , valCol = "Estimate"
+  )
+```
+
+What this model suggests is that for a STD mouse on PND4, the predicted number of exits per hour would be `r round(damBehaviorIntercept, 1)`. For an LBN mouse, this `r ifelse(damBehaviorLBN > 0, "increases", "decreases")` by `r abs(round(damBehaviorLBN, 1))` exits per hour. For each PND, the number of exists is predicted to `r ifelse(damBehaviorPND > 0, "increase", "decrease")` by `r abs(round(damBehaviorPND, 1))`. For LBN dams over time, this slope `r ifelse(damBehaviorLBNchangePND > 0, "increases", "decreases")` by an additional `r abs(round(damBehaviorLBNchangePND, 1))` number of exits per day.
+
+#### Model - Factor PND
+
+If we change it so that PND is a factor instead of continuous, we'll use the same model, without adjusting the PND for the start of the paradigm.
+
+```{r}
+lmm <- damBehavior_byPND %>%
+  makeFactors(c(PND)) %>%
+  runLMM(
+    Num_exits ~ earlyLifeTrt * PND + (1|damID)
+  )
+
+lmm$formated
+
+coefs <- lmm$coefs
+```
+
+This model is much more complex, and we can't make easy claims about how the number of exits changes with time. However, in this model as well, early-life treatment is predicted to increase the number of exits from the nest.
+
+### By dam
+
+At its most simplified state, we could look at the average number of exits from the nest for all scored times for each dam, giving us just a single value for each dam. One concern with this approach is that the Cohort 7 dams that only have monitoring at the start of the paradigm may have a falsely elevated average, given the relationship between PND and number of exits that we observed above.
+
+```{r}
+damBehavior_byDam
+```
+
+```{r}
+damBehavior_byDam %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "# of exits"
+    , fontSize = 16
+    , dotSize = 3
+    , STDFill = "white"
+  )
+```
+
+```{r}
+tTest <- damBehavior_byDam %>%
+  t_test(
+    Num_exits ~ earlyLifeTrt
+  )
+
+tTest
+```
+
+We can evaluate this with a simple t-test. LBN dams have more exits from the nest. *t*~`r round(tTest$df[1], 1)`~=`r round(tTest$statistic[1], 2)`, *p*=`r round(tTest$p[1], 3)`
+
+## Corticosterone
+
+At the end of the paradigm, a tail blood sample is taken from each dam to measure serum corticosterone.
+
+```{r}
+damCort_plot
+```
+
+```{r}
+tTest <- damFiltered %>%
+  filter(
+    !is.na(Cort_dam_P11)
+  ) %>%
+  t_test(
+    Cort_dam_P11 ~ earlyLifeTrt
+  )
+
+tTest
+```
+
+LBN does not lead to elevated dam corticosterone on P11. *t*~`r round(tTest$df[1], 1)`~=`r round(tTest$statistic[1], 2)`, *p*=`r round(tTest$p[1], 3)`
+
+
+## Mass
+
+The mass of dams is taken before the paradigm on P4 and then after the paradigm on P11 and again on P21
+
+```{r}
+damMass_plot
+```
+
+Because there isn't a linear relationship with day, I think that it would be best to make day a factor for this linear mixed model analysis.
+
+
+
+```{r}
+lmm <- damMassFiltered %>%
+  makeFactors(day) %>%
+  runLMM(
+    mass ~ earlyLifeTrt * day + (1|damID)
+  )
+```
+
+When the ANOVA is run on this LMM, there is a significant effect of LBN on dam body mass
+
+```{r}
+lmm$anova
+```
+
+### Question
+When we look at the model coefficients, this is still trending, though it's not significant
+
+```{r}
+lmm$formated
+
+coefs <- lmm$coefs
+
+damMassIntercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+damMassLBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+
+damMassday11 <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "day11"
+    , valCol = "Estimate"
+  )
+
+damMassday21 <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "day21"
+    , valCol = "Estimate"
+  )
+
+damMassLBNchange11 <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:day11"
+    , valCol = "Estimate"
+  )
+
+damMassLBNchange21 <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:day21"
+    , valCol = "Estimate"
+  )
+```
+
+# Body mass
+
+We also take the mass of the offspring.
+
+```{r}
+mass_plot_1stL
+```
+
+There seem to be phases where the pups growth is roughly linear:
+- From P11 to P21
+- From P22 to P35
+- From P35 to P72
+
+### 11-21
+
+```{r}
+mass_plot_1stL +
+  coord_cartesian(x = c(11, 21), y = c(0, 16))
+```
+
+We can run a LMM on this time period, again adjusting the day so that the intercept tells us the body mass at the end of the paradigm.
+
+The formula is `mass ~ earlyLifeTrt * day * sex + (1|damID) + (1|mouseID)`
+
+```{r}
+lmm <- mass_long %>%
+  filter(
+    day >= 11 & day <= 21
+  ) %>%
+  mutate(
+    day = day - 11
+  ) %>%
+  runLMM(
+    mass ~ earlyLifeTrt * day * sex + (1|damID) + (1|mouseID)
+  )
+
+lmm$anova %>% formatLMM_anova()
+
+lmm$formated
+
+coefs <- lmm$coefs
+
+mass11Intercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+mass11LBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+
+mass11Sex <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "sexM"
+    , valCol = "Estimate"
+  )
+
+mass11PND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "day"
+    , valCol = "Estimate"
+  )
+
+mass11LBNchangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:day"
+    , valCol = "Estimate"
+  )
+
+mass11LBNchangeSex <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:sexM"
+    , valCol = "Estimate"
+  )
+
+mass11SexChangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "day:sexM"
+    , valCol = "Estimate"
+  )
+
+mass11SexLBNchangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:day:sexM"
+    , valCol = "Estimate"
+  )
+```
+
+
+What this model suggests is that for a STD female mouse on P11, the predicted body mass is `r round(mass11Intercept, 1)`g. For an LBN female mouse, the predicted mass is `r round(mass11Intercept+mass11LBN, 1)`g. From P11 to P21, female STD pups are expected to gain about `r round(mass11PND*10, 1)`g. Female LBN pups are expected to gain about `r round((mass11PND+mass11LBNchangePND)*10, 1)`g. Male LBN pups have a mass of about `r round(mass11Intercept+mass11LBN+mass11Sex+mass11LBNchangeSex, 1)`g after the paradigm, compared to `r round(mass11Intercept+mass11Sex, 1)`g for STD males. Male STD pups are expected to gain about `r round((mass11PND+mass11SexChangePND)*10, 1)`g between the end of the paradigm and weaning, whereas male LBN pups are expected to gain `r round((mass11PND+mass11SexChangePND+mass11SexLBNchangePND+mass11LBNchangePND)*10, 1)`g over this time.
+
+Overall, body mass of male mice seems to be slightly more affected by LBN treatment, and these animals then have a higher rate of body mass gain in the pre-weaning period.
+
+
+### 22-35
+
+```{r}
+mass_plot_1stL +
+  coord_cartesian(x = c(22, 35), y = c(0, 25))
+```
+
+
+```{r}
+lmm <- mass_long %>%
+  filter(
+    day >= 22 & day <= 35
+  ) %>%
+  mutate(
+    day = day - 22
+  ) %>%
+  runLMM(
+    mass ~ earlyLifeTrt * day * sex + (1|damID) + (1|mouseID)
+  )
+
+lmm$anova %>% formatLMM_anova()
+
+lmm$formated
+
+coefs <- lmm$coefs
+
+mass22Intercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+mass22LBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+
+mass22Sex <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "sexM"
+    , valCol = "Estimate"
+  )
+
+mass22PND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "day"
+    , valCol = "Estimate"
+  )
+
+mass22LBNchangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:day"
+    , valCol = "Estimate"
+  )
+
+mass22LBNchangeSex <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:sexM"
+    , valCol = "Estimate"
+  )
+
+mass22SexChangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "day:sexM"
+    , valCol = "Estimate"
+  )
+
+mass22SexLBNchangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:day:sexM"
+    , valCol = "Estimate"
+  )
+```
+
+What this model suggests is that for a STD female mouse on P22, the predicted body mass is `r round(mass22Intercept, 1)`g. For an LBN female mouse, the predicted mass is `r round(mass22Intercept+mass22LBN, 1)`g. From P22 to P35, female STD pups are expected to gain about `r round(mass22PND*13, 1)`g. Female LBN pups are expected to gain about `r round((mass22PND+mass22LBNchangePND)*13, 1)`g. Male LBN pups have a mass of about `r round(mass22Intercept+mass22LBN+mass22Sex+mass22LBNchangeSex, 1)`g the day after weaning, compared to `r round(mass22Intercept+mass22Sex, 1)`g for STD males. Male STD pups are expected to gain about `r round((mass22PND+mass22SexChangePND)*13, 1)`g from P22 to P35, similar to male LBN pups that are expected to gain `r round((mass22PND+mass22SexChangePND+mass22SexLBNchangePND+mass22LBNchangePND)*13, 1)`g over this time.
+
+In this immediate post-weaning period, LBN females do not seem to gain as much mass as expected for STD females, but LBN males have a similar rate of growth.
+
+### 42-72
+
+```{r}
+mass_plot_1stL +
+  coord_cartesian(x = c(42, 72))
+```
+
+
+```{r}
+lmm <- mass_long %>%
+  filter(
+    day >= 42
+  ) %>%
+  mutate(
+    day = day - 42
+  ) %>%
+  runLMM(
+    mass ~ earlyLifeTrt * day * sex + (1|damID) + (1|mouseID)
+  )
+
+lmm$anova %>% formatLMM_anova()
+
+lmm$formated
+
+coefs <- lmm$coefs
+
+mass42Intercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+mass42LBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+
+mass42Sex <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "sexM"
+    , valCol = "Estimate"
+  )
+
+mass42PND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "day"
+    , valCol = "Estimate"
+  )
+
+mass42LBNchangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:day"
+    , valCol = "Estimate"
+  )
+
+mass42LBNchangeSex <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:sexM"
+    , valCol = "Estimate"
+  )
+
+mass42SexChangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "day:sexM"
+    , valCol = "Estimate"
+  )
+
+mass42SexLBNchangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:day:sexM"
+    , valCol = "Estimate"
+  )
+```
+
+What this model suggests is that for a STD female mouse on P42, the predicted body mass is `r round(mass42Intercept, 1)`g. For an LBN female mouse, the predicted mass is `r round(mass42Intercept+mass42LBN, 1)`g. From P42 to P72, female STD pups are expected to gain about `r round(mass42PND*7, 1)`g per week, and female LBN pups are also expected to gain about `r round((mass42PND+mass42LBNchangePND)*7, 1)`g per week. Male LBN pups have a mass of about `r round(mass42Intercept+mass42LBN+mass42Sex+mass42LBNchangeSex, 1)`g after the paradigm, compared to `r round(mass42Intercept+mass42Sex, 1)`g for STD males. Male STD pups are expected to gain about `r round((mass42PND+mass42SexChangePND)*7, 1)`g per week, whereas male LBN pups are expected to gain `r round((mass42PND+mass42SexChangePND+mass42SexLBNchangePND+mass42LBNchangePND)*7, 1)`g per week over this time.
+
+# Maturation
+
+In females, we monitor vaginal opening and first estrus as external markers of puberty. In males, we monitor preputial separation. For each milestone, we record age and body mass.
+
+```{r}
+maturationFiltered %>%
+  filter(
+    sex == "F"
+  )
+
+maturationFiltered %>%
+  filter(
+    sex == "M"
+  )
+```
+
+
+For plotting these data, we have taken the average age/mass within a litter to plot as a single point. In the model evaluating the effect of LBN on these parameters, litter is taken into account by incorporating the dam as a random effect.
+
+## VO
+
+```{r}
+VO_age_plot
+
+VO_mass_plot
+```
+
+### Model
+
+```{r}
+lmm <- maturationFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  runLMM(
+    VO_age ~ earlyLifeTrt + (1|damID)
+  )
+
+lmm$anova %>% formatLMM_anova()
+
+lmm$formated
+
+VO_ageIntercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+VO_ageLBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+```
+
+There is not a difference in the expected age at vaginal opening based on LBN treatment.
+
+```{r}
+lmm <- maturationFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  runLMM(
+    VO_mass ~ earlyLifeTrt + (1|damID)
+  )
+
+lmm$anova %>% formatLMM_anova()
+
+lmm$formated
+
+VO_massIntercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+VO_massLBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+```
+
+There is not a difference in the mass at vaginal opening.
+
+## First Estrus
+
+```{r}
+Estrus_age_plot
+
+Estrus_mass_plot
+```
+
+### Model
+
+```{r}
+lmm <- maturationFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  runLMM(
+    Estrus_age ~ earlyLifeTrt + (1|damID)
+  )
+
+lmm$anova %>% formatLMM_anova()
+
+lmm$formated
+
+Estrus_ageIntercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+Estrus_ageLBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+```
+
+There is not a difference in the age at first estrus based on LBN treatment.
+
+
+```{r}
+lmm <- maturationFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  runLMM(
+    Estrus_mass ~ earlyLifeTrt + (1|damID)
+  )
+
+lmm$anova %>% formatLMM_anova()
+
+lmm$formated
+
+Estrus_massIntercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+Estrus_massLBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+```
+
+There is not a difference in the mass at first estrus.
+
+
+## Preputial Separation
+
+```{r}
+PreputialSep_age_plot
+
+PreputialSep_mass_plot
+```
+
+
+### Model
+
+```{r}
+lmm <- maturationFiltered %>%
+  filter(
+    sex == "M"
+  ) %>%
+  runLMM(
+    PreputialSep_age ~ earlyLifeTrt + (1|damID)
+  )
+
+lmm$anova %>% formatLMM_anova()
+
+lmm$formated
+
+PreputialSep_ageIntercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+PreputialSep_ageLBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+```
+
+There is no difference in the age at preputial separation
+
+
+```{r}
+lmm <- maturationFiltered %>%
+  filter(
+    sex == "M"
+  ) %>%
+  runLMM(
+    PreputialSep_mass ~ earlyLifeTrt + (1|damID)
+  )
+
+lmm$anova %>% formatLMM_anova()
+
+lmm$formated
+
+PreputialSep_massIntercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+PreputialSep_massLBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+```
+
+There is no difference in the mass at preputial separation
+
+## Cumulative Frequency
+
+### First litter
+
+```{r}
+VO_cumFreq_plot_1stL
+
+Estrus_cumFreq_plot_1stL
+
+PreputialSep_cumFreq_plot_1stL
+
+```
+
+
+# Cycles - TO-DO
+
+
+```{r}
+repCycles_STD_1stL
+
+repCycles_LBN_1stL
+
+percDaysStage_1stL
+```
+
+
+# Corticosterone Response to ALPS
+
+```{r}
+LMM <- cortFilteredPro_no723 %>%
+  runLMM(
+    cort ~ time *earlyLifeTrt * adultTrt + (1|mouseID)
+  )
+
+LMM$anova %>%
+  formatLMM_anova()
+
+LMM$formated
+```
+
+```{r}
+ppt <- addSlide_oneTable(ppt, "Pro cort LMM ANOVA", LMM$anova%>%formatLMM_anova(16), dontFormat = TRUE)
+ppt <- addSlide_oneTable(ppt, "Pro cort LMM coef", LMM$coefs%>%formatLMM_fixedEffects(16), dontFormat = TRUE)
+```
+
+
+
+```{r}
+anova(
+  lmer(
+    cort ~ time * sex * earlyLifeTrt * adultTrt + (1|mouseID)
+    , data = 
+      cortFiltered_M_DiPro %>%
+      filter(
+        Sac_cycle == "proestrus" | sex == "M"
+      )
+  )
+)
+
+anova(
+  lmer(
+    cort ~ time *earlyLifeTrt * adultTrt + (1|mouseID)
+    , data = 
+      cortFiltered_M_DiPro %>%
+      filter(
+        Sac_cycle == "proestrus"
+        , mouseID != 723
+      )
+  )
+)
+anova(
+  lmer(
+    cort ~ time *earlyLifeTrt * adultTrt + (1|mouseID)
+    , data = 
+      cortFiltered_M_DiPro %>%
+      filter(
+        Sac_cycle == "proestrus"
+        # , mouseID != 723
+      )
+  )
+)
+
+acuteStressFilteredPro %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+meanSummary(cort_hr5)
+
+mean2SD <- 244.63+2*222.6
+mean2SD
+
+acuteStressFilteredPro %>%
+  select(
+    mouseID
+    , cort_hr5
+  ) %>%
+  filter(
+    mouseID == 723
+  )
+
+cortFilteredPro %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , within = time
+    , between = c(earlyLifeTrt, adultTrt)
+  ) %>%
+  formatAnova()
+
+cortFilteredPro %>%
+  filter(
+    mouseID != 723
+  ) %>%
+  group_by(
+    time
+  ) %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = c(earlyLifeTrt, adultTrt)
+  ) %>%
+  get_anova_table() %>%
+  as_tibble() %>%
+  mutate(
+    p.adj = p * 2 # doing two cycle stage comparisons
+  )
+
+cortFilteredPro %>%
+  filter(
+    mouseID != 723
+    , time == 5
+  ) %>%
+  group_by(
+    adultTrt
+  ) %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = earlyLifeTrt
+  ) %>%
+  get_anova_table() %>%
+  as_tibble() %>%
+  mutate(
+    p.adj = p * 2 # doing two cycle stage comparisons
+  )
+
+
+GABApscsFilteredFiring %>%
+  anova_test(
+    dv = frequency
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+
+GABApscsFilteredFiring %>%
+  anova_test(
+    dv = relPeak
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+
+
+acuteStressFilteredPro %>%
+  group_by(
+    earlyLifeTrt,
+    adultTrt
+  ) %>%
+  meanSummary(cort_hr5)
+
+cortFilteredPro %>%
+  group_by(
+    time
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  meanSummary(
+    cort
+  )
+
+```
+
+```{r}
+cortFilteredPro_no723 <- cortFilteredPro %>%
+  filter(
+    mouseID != 723
+  )
+
+anova(
+  lmer(
+    cort ~ earlyLifeTrt * adultTrt * time + (1|mouseID)
+    , cortFilteredPro
+  )
+)
+
+lmm_proCort_no723 <- lmer(
+    cort ~ earlyLifeTrt * adultTrt * time + (1|mouseID)
+    , cortFilteredPro_no723
+  )
+
+summary(lmm_proCort_no723)
+anova(
+  lmm_proCort_no723
+)
+
+cortFilteredPro %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = c(earlyLifeTrt, adultTrt)
+    , within = time
+  ) %>%
+  formatAnova()
+
+proANOVA <- cortFilteredPro_no723 %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = c(earlyLifeTrt, adultTrt)
+    , within = time
+  ) %>%
+  formatAnova(16)
+
+ppt <- addSlide_oneTable(ppt, "Pro cort ANOVA", proANOVA, dontFormat = TRUE)
+
+proANOVA_byTime <- cortFilteredPro_no723 %>%
+  group_by(
+    time
+  ) %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = c(earlyLifeTrt, adultTrt)
+  ) %>%
+  get_anova_table() %>%
+  as_tibble() %>%
+  mutate(
+    p.adj = p * 2 # doing two cycle stage comparisons
+  ) %>%
+  formatAdjAnova(16)
+
+ppt <- addSlide_oneTable(ppt, "Pro cort ANOVA grouped by time", proANOVA_byTime, dontFormat = TRUE)
+
+proANOVA_hr5_byALPS <- cortFilteredPro_no723 %>%
+  filter(
+    time == 5
+  ) %>%
+  group_by(
+    adultTrt
+  ) %>%
+  anova_test(
+    dv = cort
+    , between = c(earlyLifeTrt)
+  ) %>%
+  get_anova_table() %>%
+  as_tibble() %>%
+  mutate(
+    p.adj = p * 2 # doing two cycle stage comparisons
+  ) %>%
+  formatAdjAnova(16)
+ppt <- addSlide_oneTable(ppt, "Pro cort ANOVA hr5 by ALPS", proANOVA_hr5_byALPS, dontFormat = TRUE)
+
+cortFilteredPro_no723 %>%
+ group_by(
+    time
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  meanSummary(
+    cort
+  )
+
+cortFilteredPro_no723 %>%
+  filter(
+    time == 5
+    , adultTrt == "ALPS"
+  ) %>%
+  t_test(
+    cort ~ earlyLifeTrt
+  )
+```
+
+```{r}
+res.aov <- cortFilteredPro_no723 %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = c(earlyLifeTrt, adultTrt)
+    , within = time
+  )
+
+get_anova_table(res.aov)
+
+cortFilteredPro_no723 %>%
+  anova_test(
+    cort ~ earlyLifeTrt*adultTrt*time + Error(mouseID/time)
+  )
+
+cortFilteredPro_no723 %>%
+  group_by(
+    time, adultTrt
+  ) %>%
+  emmeans_test(
+    cort ~ earlyLifeTrt
+  )
+
+pwc <- cortFilteredPro_no723 %>%
+  group_by(
+    time, adultTrt 
+  ) %>%
+  pairwise_t_test(
+    cort ~ earlyLifeTrt
+    , p.adjust.method = "holm"
+  )
+pwc
+
+pwc %>%
+  filter(
+    time == 5
+    , adultTrt == "ALPS"
+  )
+
+saveDFsToExcel(
+  "acuteStressPro"
+  , "cort" = acuteStressFilteredPro %>% filter(mouseID != 723)
+)
+
+saveDFsToExcel(
+  "cortProLong"
+  , "cort" = cortFilteredPro_no723
+)
+
+
+```
+
+```{r}
+pro.lm <- lm(cort ~ earlyLifeTrt*adultTrt*time + Error(mouseID/time), data = cortFilteredPro_no723)
+anova(pro.lm)
+```
+
+
+```{r}
+cortFilteredPro_no723 %>%
+  
+```
+
+
+```{r}
+tbl <- coef(summary(lmer(
+  mass ~ sex * earlyLifeTrt * day + (1 | mouseID) + (1 | damID)
+  , data = mass_long %>%
+    filter(
+      day <= 21 & day >= 11
+    )
+))) %>%
+  as.data.frame() %>%
+  rownames_to_column("effect") %>%
+  flextable() %>%
+  colformat_double(digits = 3)
+
+tbl$`Pr(>|t|)`
+```
+
+```{r}
+mass_long %>%
+  filter(
+    day <= 21 & day >= 11
+  ) %>%
+  runLMM(
+    mass ~ sex * earlyLifeTrt * day + (1 | mouseID) + (1 | damID)
+  )
+```
+
+```{r}
+ppt <- pptAddSectionHead("Response to adult stress")
+```
+
+## Plots
+
+### Males
+
+```{r}
+maleCortPlot
+fileBaseName <- "maleCortPlot"
+exportFullPPTSlide()
+slideTitle <- "LBN did not alter response to ALPS in males"
+ppt <- pptAddOneGraph()
+
+ppt <- pptAddStats(maleCort_3wayANOVA_par)
+```
+
+### Females
+
+##### Uterine mass
+
+```{r}
+uterineMassByGroup_byStage_bothL
+
+fileBaseName <- "uterineMassByGroup_byStage_bothL"
+exportFullPPTSlide()
+
+slideTitle <- "Uterine mass distribution by cycle stage and treatment"
+ppt <- pptAddOneGraph()
+```
+
+```{r eval=FALSE, include=FALSE}
+uterineMassByGroup_byStage_1stL
+
+fileBaseName <- "uterineMassByGroup_byStage_1stL"
+exportFullPPTSlide()
+
+slideTitle <- "Uterine mass distribution by cycle stage and treatment - first litter successes"
+ppt <- pptAddOneGraph()
+```
+
+```{r eval=FALSE, include=FALSE}
+uterineMassByGroup_byStage_2ndL
+
+fileBaseName <- "uterineMassByGroup_byStage_2ndL"
+exportFullPPTSlide()
+
+slideTitle <- "Uterine mass distribution by cycle stage and treatment - second litter successes"
+ppt <- pptAddOneGraph()
+```
+
+```{r eval=FALSE, include=FALSE}
+diCortPlot
+fileBaseName <- "diCortPlot"
+exportFullPPTSlide()
+slideTitle <- "LBN-ALPS mice have a higher corticosterone response than STD-ALPS on diestrus"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+proCortPlot_no723 <- cortFilteredPro %>%
+  filter(
+    mouseID != 723
+  ) %>%
+  plotCort_bothL()
+proCortPlot_no723
+fileBaseName <- "proCortPlot_no723"
+exportFullPPTSlide()
+
+
+proCortPlot
+fileBaseName <- "proCortPlot"
+exportFullPPTSlide()
+slideTitle <- "LBN did not alter response to ALPS on proestrus"
+ppt <- pptAddOneGraph()
+```
+
+#### ANOVAs
+
+```{r}
+
+cort3way_pro
+
+ppt <- addSlide_oneTable(
+  ppt,
+  "Corticosterone response of LBN proestrus, first litter mice",
+  cort3way_byCycle,
+  dontFormat = TRUE
+)
+
+```
+
+<!-- 4-way ANOVA - LBN x ALPS x Cycle Stage x Time -->
+
+<!-- ```{r} -->
+
+<!-- cort4wayANOVA -->
+
+<!-- # ppt <- addSlide_oneTable( -->
+
+<!-- #   ppt, -->
+
+<!-- #   "Females - 4way ANOVA of early-life trt x adult trt x time x stage", -->
+
+<!-- #   cort4wayANOVA, -->
+
+<!-- #   dontFormat = TRUE -->
+
+<!-- # ) -->
+
+<!-- getFText(cort4wayANOVA_df, "earlyLifeTrt:adultTrt:Sac_cycle:time") -->
+
+<!-- ``` -->
+
+<!-- There is a significant 4-way interaction, so do the 3-way interaction of  -->
+
+<!-- LBN x ALPS x Time for each cycle stage. Correct for two comparisons -->
+
+<!-- ```{r} -->
+
+<!-- cort3way_byCycle -->
+
+<!-- # ppt <- addSlide_oneTable( -->
+
+<!-- #   ppt, -->
+
+<!-- #   "LBN diestrous mice with respond differently to CON vs ALPS than than STD diestrous", -->
+
+<!-- #   cort3way_byCycle, -->
+
+<!-- #   dontFormat = TRUE -->
+
+<!-- # ) -->
+
+<!-- cort3way_byCycle_df %>% -->
+
+<!--   filter( -->
+
+<!--     Sac_cycle == "diestrus" -->
+
+<!--   ) %>% -->
+
+<!--   getFText( -->
+
+<!--     "earlyLifeTrt:adultTrt:time", -->
+
+<!--     doAdj = TRUE -->
+
+<!--   ) -->
+
+<!-- cort3way_byCycle_df %>% -->
+
+<!--   filter( -->
+
+<!--     Sac_cycle == "proestrus" -->
+
+<!--   ) %>% -->
+
+<!--   getFText( -->
+
+<!--     "adultTrt:time", -->
+
+<!--     doAdj = TRUE -->
+
+<!--   ) -->
+
+<!-- ``` -->
+
+<!-- For diestrous mice, there is a 3-way interaction of LBN x ALPS x time -->
+
+<!-- For proestrous mice, there is a 2-way interaction of ALPS x time -->
+
+<!-- Follow-up the diestrous mice with a 2-way interaction between  -->
+
+<!-- LBN x ALPS at each time. Adjust the p-values for two levels of time -->
+
+<!-- ```{r} -->
+
+<!-- diCort2way_byTime -->
+
+<!-- # ppt <- addSlide_oneTable( -->
+
+<!-- #   ppt, -->
+
+<!-- #   "Early-life and adult trt interact to affect post-trt cort values in diestrous mice", -->
+
+<!-- #   diCort2way_byTime, -->
+
+<!-- #   dontFormat = TRUE -->
+
+<!-- # ) -->
+
+<!-- diCort2way_byTime_df %>% -->
+
+<!--   filter( -->
+
+<!--     time == 5 -->
+
+<!--   ) %>% -->
+
+<!--   getFText( -->
+
+<!--     "earlyLifeTrt:adultTrt" -->
+
+<!--     , doAdj = TRUE -->
+
+<!--   ) -->
+
+<!-- ``` -->
+
+<!-- At the end of the paradigm, there is an interaction between LBN and ALPS for -->
+
+<!-- the diestrous mice. This means that LBN changes the way that the mice -->
+
+<!-- respond to the ALPS paradigm in diestrous mice. -->
+
+<!-- For the diestrous mice at the end of the paradigm, group by adult treatment -->
+
+<!-- and see if the early-life mice are significantly different. -->
+
+<!-- Adjust for making two treatment comparisons -->
+
+<!-- ```{r} -->
+
+<!-- diCortPost_byALPS -->
+
+<!-- # ppt <- addSlide_oneTable( -->
+
+<!-- #   ppt, -->
+
+<!-- #   "STD and LBN diestrous mice differ in cort after ALPS trt", -->
+
+<!-- #   diCortPost_byALPS, -->
+
+<!-- #   dontFormat = TRUE -->
+
+<!-- # ) -->
+
+<!-- diCortPost_byALPS_df %>% -->
+
+<!--   filter( -->
+
+<!--     adultTrt == "ALPS" -->
+
+<!--   ) %>% -->
+
+<!--   getFText( -->
+
+<!--     "earlyLifeTrt", -->
+
+<!--     doAdj = TRUE -->
+
+<!--   ) -->
+
+<!-- diCortPost_byALPS_df %>% -->
+
+<!--   filter( -->
+
+<!--     adultTrt == "CON" -->
+
+<!--   ) %>% -->
+
+<!--   getFText( -->
+
+<!--     "earlyLifeTrt", -->
+
+<!--     doAdj = TRUE -->
+
+<!--   ) -->
+
+<!-- ``` -->
+
+<!-- For the proestrous mice, follow up the ALPS x time interaction. -->
+
+<!-- Group by time, see if there is an effect of ALPS -->
+
+<!-- ```{r} -->
+
+<!-- proCort_byTime -->
+
+<!-- # ppt <- addSlide_oneTable( -->
+
+<!-- #   ppt, -->
+
+<!-- #   "ALPS proestrous mice have higher post-trt cort than CON mice", -->
+
+<!-- #   proCort_byTime, -->
+
+<!-- #   dontFormat = TRUE -->
+
+<!-- # ) -->
+
+<!-- proCort_byTime_df %>% -->
+
+<!--   filter( -->
+
+<!--     time == "5" -->
+
+<!--   ) %>% -->
+
+<!--   getFText( -->
+
+<!--     "adultTrt" -->
+
+<!--     , doAdj = TRUE -->
+
+<!--   ) -->
+
+<!-- ``` -->
+
+# LH response to ALPS
+
+<!-- ## Second litter -->
+
+<!-- ```{r} -->
+
+<!-- LHplot_pro_2ndL -->
+
+<!-- fileBaseName <- "proLHresponse_2ndL" -->
+
+<!-- exportFullPPTSlide() -->
+
+<!-- slideTitle <- "Effect of LBN and ALPS on proestrous LH release in second litters" -->
+
+<!-- ppt <- pptAddOneGraph() -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+
+<!-- LHamp_2ndL_plot -->
+
+<!-- fileBaseName <- "LHamp_2ndL" -->
+
+<!-- exportFullPPTSlide() -->
+
+<!-- fileBaseName <- "LHamp_2ndL_half" -->
+
+<!-- exportHalfPPTSlide() -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+
+<!-- percSurgedPlot_2ndL -->
+
+<!-- fileBaseName <- "LHsurged_2ndL" -->
+
+<!-- exportHalfPPTSlide() -->
+
+<!-- slideTitle <- "More second litter LBN-ALPS mice exhibited an LH surge than STD-ALPS mice" -->
+
+<!-- ppt <- pptAddTwoGraphsMoreLeft( -->
+
+<!--   LHamp_2ndL_plot -->
+
+<!--   , percSurgedPlot_2ndL -->
+
+<!-- ) -->
+
+<!-- ``` -->
+
+## First litter
+
+```{r}
+LHplot_pro_1stL
+
+fileBaseName <- "proLHresponse_1stL"
+exportFullPPTSlide()
+
+slideTitle <- "Effect of LBN and ALPS on proestrous LH release in first litters up to 2h before lights out"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+LHamp_1stL_plot
+
+fileBaseName <- "LHamp_1stL"
+exportFullPPTSlide()
+fileBaseName <- "LHamp_1stL_half"
+exportHalfPPTSlide()
+```
+
+```{r}
+percSurgedPlot_1stL
+
+fileBaseName <- "LHsurged_1stL"
+exportHalfPPTSlide()
+
+slideTitle <- "LBN may be delaying the start of the LH surge"
+ppt <- pptAddTwoGraphsMoreLeft(
+  LHamp_1stL_plot
+  , percSurgedPlot_1stL
+)
+```
+
+# Cort administration
+
+```{r}
+source(file.path(scriptsFolder, "cortAdmin-get-datasets.R"))
+source(file.path(scriptsFolder, "07-make-cortAdmin-plots.R"))
+
+```
+
+```{r}
+BD_ALPS_plot
+fileBaseName <- "BD_ALPS_plot"
+exportFullPPTSlide()
+
+slideTitle <- "ALPS increases corticosterone - add BD pic"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+BD_comboNutALPS_plot
+fileBaseName <- "BD_comboNutALPS_plot"
+exportFullPPTSlide()
+
+slideTitle <- "Feeding corticosterone recapitulates its pattern during ALPS - add BD pic"
+ppt <- pptAddOneGraph()
+```
+
+# GABA PSCs
+
+```{r}
+ppt <- pptAddSectionHead("GABA PSCs to GnRH neurons on proestrus")
+```
+
+## Passives
+
+```{r}
+RinputPlot
+fileBaseName <- "Rinput"
+exportQuarterPPTSlide()
+
+
+RseriesPlot
+fileBaseName <- "Rseries"
+exportQuarterPPTSlide()
+
+capacitancePlot
+
+fileBaseName <- "capacitance"
+exportQuarterPPTSlide()
+
+holdingCurrPlot
+fileBaseName <- "holdingCurr"
+exportQuarterPPTSlide()
+
+
+slideTitle <- "Passive properties for GABA recordings"
+ppt <- pptAddFourGraphs(
+  RseriesPlot
+  , RinputPlot
+  , capacitancePlot
+  , holdingCurrPlot
+)
+```
+
+```{r}
+RseriesANOVA
+
+slideTitle <- "Series resistance does not differ with LBN or ALPS"
+ppt <- pptAddOneGraph(
+  plot = RseriesPlot
+)
+
+ppt <- pptAddStats(RseriesANOVA_par)
+
+RinputANOVA
+
+slideTitle <- "LBN cells have a lower input resistance than STD cells"
+ppt <- pptAddOneGraph(
+  plot = RinputPlot
+)
+
+ppt <- pptAddStats(RinputANOVA_par)
+
+
+capacitanceANOVA
+slideTitle <- "Capacitance does not differ with LBN or ALPS"
+ppt <- pptAddOneGraph(
+  plot = capacitancePlot
+) 
+
+ppt <- pptAddStats(capacitanceANOVA_par)
+
+holdingCurrANOVA
+slideTitle <- "There is a trend for lower holding current in LBN cells"
+ppt <- pptAddOneGraph(
+  plot = holdingCurrPlot
+)
+
+ppt <- pptAddStats(holdingCurrANOVA_par)
+```
+
+```{r}
+GABAfreqPlot
+fileBaseName <- "GABAfreqPlot"
+exportFullPPTSlide()
+
+GABAfreqANOVA
+
+slideTitle <- "Frequency of GABA PSCs does not differ with early-life or adult treatment"
+ppt <- pptAddOneGraph(
+  plot = GABAfreqPlot
+)
+
+ppt <- pptAddStats(GABAfreqANOVA_par)
+
+GABAampPlot
+fileBaseName <- "GABAampPlot"
+exportFullPPTSlide()
+
+GABAampANOVA
+slideTitle <- "Amplitude of GABA PSCs does not differ with early-life or adult treatment"
+ppt <- pptAddOneGraph(
+  plot = GABAampPlot
+)
+
+ppt <- pptAddStats(GABAampANOVA_par)
+```

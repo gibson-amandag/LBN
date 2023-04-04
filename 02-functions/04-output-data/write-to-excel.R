@@ -6,7 +6,7 @@ writeToWorkbook = function(sheetName, df, wb, tableStyle = "TableStyleMedium2"){
 saveDFsToExcel <- function(
   fileBaseName,
   prefix = filePrefix,
-  addDate = dateToday,
+  addDate = Sys.Date(),
   saveFolder = dataOutputFolder,
   ... # use sheetName = df, sheetName2 = df2, sheetName3 = df3 for each df you want to add to a new sheet
 ){
@@ -23,6 +23,20 @@ saveDFsToExcel <- function(
   print(filePath)
   
   saveWorkbook(wb, filePath, overwrite = TRUE)
+}
+
+saveDFsToCSV <- function(
+  prefix = filePrefix,
+  addDate = Sys.Date(),
+  saveFolder = dataOutputFolder,
+  ... # use sheetName = df, sheetName2 = df2, sheetName3 = df3 for each df you want to add to a new sheet
+){
+  dfList <- list(...)
+  
+  for(sheetName in names(dfList)){
+    fileName <- paste0(prefix, sheetName, ".csv")
+    write.csv(dfList[[sheetName]], file.path(saveFolder, fileName), row.names=FALSE)
+  }
 }
 
 saveDFsToExcel_shiny <- function(

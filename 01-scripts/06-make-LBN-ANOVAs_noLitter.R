@@ -159,6 +159,8 @@ cort3way_pro_df <- cortFilteredPro %>%
   get_anova_table() %>%
   as_tibble()
 
+hValTable <- 0
+
 cort3way_pro <- cort3way_pro_df %>%
   formatAnova(fontSize = textSize, addHVal = hValTable)
 

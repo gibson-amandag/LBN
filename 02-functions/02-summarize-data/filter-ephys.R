@@ -100,3 +100,16 @@ filterByInclude <- function(
   }
   return(df)
 }
+
+filterByExclude <- function(
+  df
+  , removeExclude = FALSE
+){
+  if(removeExclude){
+    df <- df %>%
+      filter(
+        exclude == FALSE | is.na(exclude)
+      )
+  }
+  return(df)
+}

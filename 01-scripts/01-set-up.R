@@ -30,6 +30,8 @@ if(!require(lemon))install.packages('lemon')
 if(!require(rvg))install.packages('rvg')
 if(!require(googledrive))install.packages('googledrive')
 if(!require(googlesheets4))install.packages('googlesheets4')
+if(!require(lme4))install.packages('lme4')
+if(!require(lmerTest))install.packages('lmerTest')
 
 
 
@@ -65,6 +67,8 @@ library(lemon)
 library(rvg)
 library(googledrive)
 library(googlesheets4)
+library(lme4)
+library(lmerTest)
 
 drive_auth(email = "*@umich.edu")
 gs4_auth(token = drive_token())

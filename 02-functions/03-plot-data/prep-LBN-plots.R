@@ -222,6 +222,8 @@ plotDamMass_func <- function(
     , zoom_y = TRUE
     , zoom_y_min = 0
     , zoom_y_max = 40
+    , indivLineSize = 0.8
+    , meanLineSize = 1.4
 ){
   plotFunc <- function(df){
     plot <- df %>%
@@ -244,9 +246,9 @@ plotDamMass_func <- function(
         ymin = zoom_y_min,
         ymax = zoom_y_max,
         indivLineAlpha = .3,
-        indivLineSize = 0.8,
+        indivLineSize = indivLineSize,
         errorBarWidth = 0,
-        meanLineSize = 1.4,
+        meanLineSize = meanLineSize,
         meanAlpha = 1,
         errorBarSize = 1,
         # errorBarColor = "grey10",
@@ -429,7 +431,7 @@ cumFreq_plot <- function(
 
 # Vaginal opening ---------------------------------------------------------
 
-plotVaginalOpeningAgeFunc <- function(fontSize = 16, dotSize = 3){
+plotVaginalOpeningAgeFunc <- function(fontSize = 16, dotSize = 3, facetLitter = FALSE){
   plotFunc <- function(df){
     plot <- df %>%
       scatterPlotLBN(
@@ -438,12 +440,16 @@ plotVaginalOpeningAgeFunc <- function(fontSize = 16, dotSize = 3){
         , textSize = fontSize
         , dotSize = dotSize
       )
+    if(facetLitter){
+      plot <- plot +
+        facetForLitterNum
+    }
     return(plot)
   }
   return(plotFunc)
 }
 
-plotVaginalOpeningMassFunc <- function(fontSize = 16, dotSize = 3){
+plotVaginalOpeningMassFunc <- function(fontSize = 16, dotSize = 3, facetLitter = FALSE){
   plotFunc <- function(df){
     plot <- df %>%
       scatterPlotLBN(
@@ -452,6 +458,10 @@ plotVaginalOpeningMassFunc <- function(fontSize = 16, dotSize = 3){
         , textSize = fontSize
         , dotSize = dotSize
       )
+    if(facetLitter){
+      plot <- plot +
+        facetForLitterNum
+    }
     return(plot)
   }
   return(plotFunc)
@@ -482,7 +492,7 @@ plotVOAgeCumFreqFunc <- function(
 
 # First estrus ------------------------------------------------------------
 
-plotEstrusAgeFunc <- function(fontSize = 16, dotSize = 3){
+plotEstrusAgeFunc <- function(fontSize = 16, dotSize = 3, facetLitter = FALSE){
   plotFunc <- function(df){
     plot <- df %>%
       scatterPlotLBN(
@@ -491,12 +501,16 @@ plotEstrusAgeFunc <- function(fontSize = 16, dotSize = 3){
         , textSize = fontSize
         , dotSize = dotSize
       )
+    if(facetLitter){
+      plot <- plot +
+        facetForLitterNum
+    }
     return(plot)
   }
   return(plotFunc)
 }
 
-plotEstrusMassFunc <- function(fontSize = 16, dotSize = 3){
+plotEstrusMassFunc <- function(fontSize = 16, dotSize = 3, facetLitter = FALSE){
   plotFunc <- function(df){
     plot <- df %>%
       scatterPlotLBN(
@@ -505,6 +519,10 @@ plotEstrusMassFunc <- function(fontSize = 16, dotSize = 3){
         , textSize = fontSize
         , dotSize = dotSize
       )
+    if(facetLitter){
+      plot <- plot +
+        facetForLitterNum
+    }
     return(plot)
   }
   return(plotFunc)
@@ -535,7 +553,7 @@ plotEstrusAgeCumFreqFunc <- function(
 
 # Preputial separation ----------------------------------------------------
 
-plotPreputialSepAgeFunc <- function(fontSize = 16, dotSize = 3){
+plotPreputialSepAgeFunc <- function(fontSize = 16, dotSize = 3, facetLitter = FALSE){
   plotFunc <- function(df){
     plot <- df %>%
       scatterPlotLBN(
@@ -544,12 +562,16 @@ plotPreputialSepAgeFunc <- function(fontSize = 16, dotSize = 3){
         , textSize = fontSize
         , dotSize = dotSize
       )
+    if(facetLitter){
+      plot <- plot +
+        facetForLitterNum
+    }
     return(plot)
   }
   return(plotFunc)
 }
 
-plotPreputialSepMassFunc <- function(fontSize = 16, dotSize = 3){
+plotPreputialSepMassFunc <- function(fontSize = 16, dotSize = 3, facetLitter = FALSE){
   plotFunc <- function(df){
     plot <- df %>%
       scatterPlotLBN(
@@ -558,6 +580,10 @@ plotPreputialSepMassFunc <- function(fontSize = 16, dotSize = 3){
         , textSize = fontSize
         , dotSize = dotSize
       )
+    if(facetLitter){
+      plot <- plot +
+        facetForLitterNum
+    }
     return(plot)
   }
   return(plotFunc)
@@ -613,7 +639,8 @@ plotRepCyclesFunc <- function(
       )
     
     dfToUse <- df_filtered[sample(nrow(df_filtered))[1:numMice], ] %>%
-      makeCyclesLong()
+      makeCyclesLong() %>%
+      addCycleStartCol()
     
     plot <- plotCycleTraces(
       dfToUse
@@ -662,7 +689,8 @@ plotCortFunc <- function(
     litterNums
     , zoom_y = TRUE
     , ymin = 0
-    , ymax = 1025 # changed 2022-12-07
+    # , ymax = 1025 # changed 2022-12-07
+    , ymax = 500 #2023-04-01
     , zoom_x = TRUE
     , xmin = -2
     , xmax = 7

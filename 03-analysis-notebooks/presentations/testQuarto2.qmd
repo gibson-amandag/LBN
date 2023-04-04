@@ -1,0 +1,58 @@
+---
+title: "testQuarto"
+author: "Amanda Gibson"
+format: pptx
+editor: visual
+knitr:
+  opts_knit:
+    root.dir: "../../"
+reference-doc: "../../quartoPPT.pptx"
+execute:
+  echo: false
+  warning: false
+fig-width: 11.5
+fig-height: 5
+df-print: kable
+fig-format: svg
+# fig-dpi: 300
+---
+
+## A figure and a column of text
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+library(dplyr)
+library(ggplot2)
+mtcars %>%
+  ggplot(
+    aes(x = cyl, y = mpg)
+  ) +
+  geom_point()
+```
+
+:::
+
+::: {.column width="50%"}
+
+::: {.incremental}
+
+- more text
+- additional text
+
+:::
+
+:::
+
+::::
+
+## incremental lists
+
+::: {.incremental}
+
+- a list
+- second item
+
+:::

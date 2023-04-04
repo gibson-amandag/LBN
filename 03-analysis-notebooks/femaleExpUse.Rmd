@@ -232,8 +232,19 @@ sumDamInfo <- damInfo %>%
 
 
 ```{r}
-# sumGabaInfo <- GABApscs %>%
-#   countMiceAndLitters()
+sumGabaInfo <- GABApscsFilteredFiring %>%
+  addLocation() %>%
+  countMiceAndLitters(
+    groupingVars = vars(earlyLifeTrt, adultTrt, litterNum, moved)
+  )
+sumGabaInfo
+
+
+GABApscsFilteredFiring %>%
+  group_by(mouseID) %>%
+  summarize(
+    uterineMass = ReproTract_mass
+  )
 ```
 
 ## Count unused and available
@@ -244,6 +255,7 @@ cohort9_available <- LBN_data %>%
     , is.na(Pups_through_wean) | Pups_through_wean == TRUE
     , sex == "F"
     , is.na(Sac_date)
+    , mouseID != 918 # screwed up and forgot to add scent
   ) %>%
   group_by(
     earlyLifeTrt
@@ -252,6 +264,57 @@ cohort9_available <- LBN_data %>%
     n = n()
     , .groups = "drop"
   )
+cohort9_available
+
+LBN_data %>%
+  filter(
+    cohort == 9
+    , is.na(Pups_through_wean) | Pups_through_wean == TRUE
+    , sex == "F"
+    , is.na(Sac_date)
+    , mouseID != 918 # screwed up and forgot to add scent
+  ) %>%
+  arrange(
+    mouseID
+  )
+```
+
+# Males 
+
+```{r}
+malesUsed <- acuteStressFilteredMales %>%
+  filter(
+    cohort %in% c(7, 9)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    n()
+    , numLitters = length(unique(damID))
+  )
+
+malesUsed
+```
+
+```{r}
+cohort9_males_available <- LBN_data %>%
+  filter(
+    cohort == 9
+    , is.na(Pups_through_wean) | Pups_through_wean == TRUE
+    , sex == "M"
+    , is.na(Sac_date)
+    , is.na(numInCage) | numInCage > 1
+  ) %>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  summarize(
+    n = n()
+    , .groups = "drop"
+  )
+cohort9_males_available 
 ```
 
 
@@ -266,7 +329,10 @@ saveUseInfoDFsToExcel(
   "diestrus" = diFemalesUse,
   "proLH" = proLHFemalesUse,
   "proEphys" = proEphysFemalesUse
-  , "cohort9_Avail" = cohort9_available
+  , "GABApscs" = sumGabaInfo
+  , "female_avail" = cohort9_available
+  , "maleUsed" = malesUsed
+  , "male_avail" = cohort9_males_available
 )
 
 saveDFsToExcel(
@@ -277,23 +343,14 @@ saveDFsToExcel(
   "diestrus" = diFemalesUse,
   "proLH" = proLHFemalesUse,
   "proEphys" = proEphysFemalesUse
-  , "cohort9_Avail" = cohort9_available
+  , "GABApscs" = sumGabaInfo
+  , "female_avail" = cohort9_available
+  , "maleUsed" = malesUsed
+  , "male_avail" = cohort9_males_available
 )
 ```
 
-```{r}
-acuteStressFilteredMales %>%
-  # filter(
-  #   cohort %in% c(7, 9)
-  # ) %>%
-  group_by(
-    earlyLifeTrt
-    , adultTrt
-  ) %>%
-  summarize(
-    n()
-  )
-```
+
 
 
 

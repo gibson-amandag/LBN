@@ -15,6 +15,8 @@ cortPlot <- function(
   lineTypeGuide = c("dotted", "dotted", "solid", "solid"),
   positionDodge = 1.2,
   groupVar = comboTrt
+  , meanWidth = 1.4
+  , meanFollowsLineType = TRUE
 ){
   viz <- ggplot(
     df_long,
@@ -54,17 +56,27 @@ cortPlot <- function(
     guides()#linetype = "none")
   
   if(plotMean){
-    viz <- viz + addMeanHorizontalBar(
-      width = 1.4, 
-      addLineType = TRUE,
-      lineTypeName = "treatment",
-      # lineTypeGuide = c("dotted", "dotted", "solid", "solid"),
-      lineTypeGuide = lineTypeGuide,
-      typeVar= {{ groupVar }},
-      color= {{ groupVar }}
-    )
+    if(meanFollowsLineType){
+      viz <- viz + addMeanHorizontalBar(
+        width = meanWidth, 
+        addLineType = meanFollowsLineType,
+        lineTypeName = "treatment",
+        lineTypeGuide = lineTypeGuide,
+        typeVar= {{ groupVar }},
+        color= {{ groupVar }}
+      )
+    } else {
+      viz <- viz + addMeanHorizontalBar(
+        width = meanWidth
+        , addLineType = FALSE
+        , color = {{ groupVar }}
+      ) +
+        labs(linetype = "treatment") +
+        scale_linetype_manual("treatment", values = lineTypeGuide)
+    }
   } else {
-    viz <- viz + labs(linetype = "treatment")
+    viz <- viz + labs(linetype = "treatment") + 
+      scale_linetype_manual("treatment", lineTypeGuide)
   }
   
   if(plotSE){

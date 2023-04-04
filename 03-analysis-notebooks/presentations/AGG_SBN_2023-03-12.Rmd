@@ -42,14 +42,14 @@ exportFullPPTSlide <- function(
     , baseName = fileBaseName
     , figNum = figureNum
 ){
-  # exportImg(
-  #   plot = plot
-  #   , fileBaseName = baseName
-  #   , figNum = figNum
-  #   , units = "in"
-  #   , width = 11.5
-  #   , height = 5
-  # )
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 11.5
+    , height = 5
+  )
 }
 
 exportHalfPPTSlide <- function(
@@ -418,6 +418,10 @@ saveDFsToExcel(
 
 
 # Dam Behavior
+```{r}
+damBehavior_plot
+```
+
 
 <!-- ## P5-P6 analysis -->
 
@@ -518,10 +522,46 @@ figureNum <- figureNum + 1
 
 ## First litter
 
-```{r eval=FALSE, include=FALSE}
+```{r}
 mass_plot_1stL
 
 fileBaseName = "mass_litter1"
+slideTitle <- "Effect of LBN on body mass in first litter offspring"
+
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+### 11-21
+
+```{r}
+mass_plot_1stL +
+  coord_cartesian(x = c(11, 21), y = c(0, 16))
+
+fileBaseName = "mass_litter1_P21"
+slideTitle <- "Effect of LBN on body mass in first litter offspring"
+
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+### 22-35
+
+```{r}
+mass_plot_1stL +
+  coord_cartesian(x = c(22, 35), y = c(0, 25))
+
+fileBaseName = "mass_litter1_P35"
+slideTitle <- "Effect of LBN on body mass in first litter offspring"
+
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+### 42-72
+
+```{r}
+mass_plot_1stL +
+  coord_cartesian(x = c(42, 72))
+
+fileBaseName = "mass_litter1_P72"
 slideTitle <- "Effect of LBN on body mass in first litter offspring"
 
 exportFullPPTSlide()
@@ -549,6 +589,41 @@ figureNum <- figureNum + 1
 ```{r}
 ppt <- pptAddSectionHead("Offspring maturation")
 ```
+
+```{r}
+maturationFiltered %>%
+  countMiceAndLitters(filterByVar = VO_age, groupingVars = vars(sex, earlyLifeTrt))
+maturationFiltered %>%
+  countMiceAndLitters(filterByVar = Estrus_age, groupingVars = vars(sex, earlyLifeTrt))
+maturationFiltered %>%
+  countMiceAndLitters(filterByVar = PreputialSep_age, groupingVars = vars(sex, earlyLifeTrt))
+
+maturationFiltered %>%
+  filter(
+    sex == "F"
+    , earlyLifeTrt == "STD"
+    , !is.na(VO_age)
+  )
+
+VO_age_lmm <- lmer(
+  VO_age ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered %>% filter(sex == "F")
+)
+
+print(anova(VO_age_lmm))
+summary(VO_age_lmm) 
+
+maturationFiltered %>% filter(sex == "F") %>%
+  group_by(earlyLifeTrt) %>%
+  meanSummary(VO_age)
+
+maturationFiltered %>%
+  filter(
+    sex == "F"
+    , is.na(Estrus_age) & !is.na(VO_age)
+  )
+```
+
 
 
 ## VO
@@ -632,7 +707,7 @@ figureNum <- figureNum + 1
 ## Cumulative Frequency
 
 ### First litter
-```{r eval=FALSE, include=FALSE}
+```{r}
 VO_cumFreq_plot_1stL
 fileBaseName <- "VO_freq_plot_1stL"
 
@@ -755,6 +830,254 @@ figureNum <- figureNum + 1
 # Corticosterone Response to ALPS
 
 ```{r}
+anova(
+  lmer(
+    cort ~ time * sex * earlyLifeTrt * adultTrt + (1|mouseID)
+    , data = 
+      cortFiltered_M_DiPro %>%
+      filter(
+        Sac_cycle == "proestrus" | sex == "M"
+      )
+  )
+)
+
+anova(
+  lmer(
+    cort ~ time *earlyLifeTrt * adultTrt + (1|mouseID)
+    , data = 
+      cortFiltered_M_DiPro %>%
+      filter(
+        Sac_cycle == "proestrus"
+        , mouseID != 723
+      )
+  )
+)
+anova(
+  lmer(
+    cort ~ time *earlyLifeTrt * adultTrt + (1|mouseID)
+    , data = 
+      cortFiltered_M_DiPro %>%
+      filter(
+        Sac_cycle == "proestrus"
+        # , mouseID != 723
+      )
+  )
+)
+
+acuteStressFilteredPro %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+meanSummary(cort_hr5)
+
+mean2SD <- 244.63+2*222.6
+mean2SD
+
+acuteStressFilteredPro %>%
+  select(
+    mouseID
+    , cort_hr5
+  ) %>%
+  filter(
+    mouseID == 723
+  )
+
+cortFilteredPro %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , within = time
+    , between = c(earlyLifeTrt, adultTrt)
+  ) %>%
+  formatAnova()
+
+cortFilteredPro %>%
+  filter(
+    mouseID != 723
+  ) %>%
+  group_by(
+    time
+  ) %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = c(earlyLifeTrt, adultTrt)
+  ) %>%
+  get_anova_table() %>%
+  as_tibble() %>%
+  mutate(
+    p.adj = p * 2 # doing two cycle stage comparisons
+  )
+
+cortFilteredPro %>%
+  filter(
+    mouseID != 723
+    , time == 5
+  ) %>%
+  group_by(
+    adultTrt
+  ) %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = earlyLifeTrt
+  ) %>%
+  get_anova_table() %>%
+  as_tibble() %>%
+  mutate(
+    p.adj = p * 2 # doing two cycle stage comparisons
+  )
+
+
+GABApscsFilteredFiring %>%
+  anova_test(
+    dv = frequency
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+
+GABApscsFilteredFiring %>%
+  anova_test(
+    dv = relPeak
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+
+
+acuteStressFilteredPro %>%
+  group_by(
+    earlyLifeTrt,
+    adultTrt
+  ) %>%
+  meanSummary(cort_hr5)
+
+cortFilteredPro %>%
+  group_by(
+    time
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  meanSummary(
+    cort
+  )
+
+```
+
+
+```{r}
+cortFilteredPro_no723 <- cortFilteredPro %>%
+  filter(
+    mouseID != 723
+  )
+
+anova(
+  lmer(
+    cort ~ earlyLifeTrt * adultTrt * time + (1|mouseID)
+    , cortFilteredPro
+  )
+)
+
+lmm_proCort_no723 <- lmer(
+    cort ~ earlyLifeTrt * adultTrt * time + (1|mouseID)
+    , cortFilteredPro_no723
+  )
+
+summary(lmm_proCort_no723)
+anova(
+  lmm_proCort_no723
+)
+
+cortFilteredPro %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = c(earlyLifeTrt, adultTrt)
+    , within = time
+  ) %>%
+  formatAnova()
+
+cortFilteredPro_no723 %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = c(earlyLifeTrt, adultTrt)
+    , within = time
+  ) %>%
+  formatAnova()
+
+cortFilteredPro_no723 %>%
+  group_by(
+    time
+  ) %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = c(earlyLifeTrt, adultTrt)
+  ) %>%
+  get_anova_table() %>%
+  as_tibble() %>%
+  mutate(
+    p.adj = p * 2 # doing two cycle stage comparisons
+  ) %>%
+  formatAdjAnova()
+
+cortFilteredPro_no723 %>%
+  filter(
+    time == 5
+  ) %>%
+  group_by(
+    adultTrt
+  ) %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = c(earlyLifeTrt)
+  ) %>%
+  get_anova_table() %>%
+  as_tibble() %>%
+  mutate(
+    p.adj = p * 2 # doing two cycle stage comparisons
+  ) %>%
+  formatAdjAnova()
+
+cortFilteredPro_no723 %>%
+ group_by(
+    time
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  meanSummary(
+    cort
+  )
+```
+
+```{r}
+tbl <- coef(summary(lmer(
+  mass ~ sex * earlyLifeTrt * day + (1 | mouseID) + (1 | damID)
+  , data = mass_long %>%
+    filter(
+      day <= 21 & day >= 11
+    )
+))) %>%
+  as.data.frame() %>%
+  rownames_to_column("effect") %>%
+  flextable() %>%
+  colformat_double(digits = 3)
+
+tbl$`Pr(>|t|)`
+```
+
+```{r}
+mass_long %>%
+  filter(
+    day <= 21 & day >= 11
+  ) %>%
+  runLMM(
+    mass ~ sex * earlyLifeTrt * day + (1 | mouseID) + (1 | damID)
+  )
+```
+
+
+
+```{r}
 ppt <- pptAddSectionHead("Response to adult stress")
 ```
 
@@ -816,6 +1139,16 @@ ppt <- pptAddOneGraph()
 ```
 
 ```{r}
+proCortPlot_no723 <- cortFilteredPro %>%
+  filter(
+    mouseID != 723
+  ) %>%
+  plotCort_bothL()
+proCortPlot_no723
+fileBaseName <- "proCortPlot_no723"
+exportFullPPTSlide()
+
+
 proCortPlot
 fileBaseName <- "proCortPlot"
 exportFullPPTSlide()

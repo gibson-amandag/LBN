@@ -5,192 +5,18 @@ facetMatByLitter <- FALSE
 # Dam behavior ------------------------------------------------------------
 
 
-  # ## P4-P11, ZT1 and 15 -----------------------------------------------------
-  # 
-  # 
-  # ### First litter ------------------------------------------------------------
-  # 
-  # 
-  # plotDamBehavior_days_1stL <- plotDamBehavior_daysFunc(
-  #   c(1),
-  #   fontSize = textSize,
-  #   dotSize = dotSize,
-  #   facet = TRUE,
-  #   facetInfo = facetForLBN,
-  #   addTriangleForMean = TRUE,
-  #   redMean = TRUE,
-  #   colorByDam = TRUE,
-  #   showDots = FALSE,
-  #   removeLegend = TRUE,
-  #   addVertErrorBars = TRUE
-  # )
-  # 
-  # damBehavior_plot_days_1stL <- plotDamBehavior_days_1stL(damBehaviorFiltered_ZTs)+
-  #   expand_limits(y = 90)
-  # 
-  # damBehavior_plot_days_1stL_cohort9 <- damBehaviorFiltered_ZTs %>%
-  #   filter(
-  #     cohort == 9
-  #   ) %>%
-  #   plotDamBehavior_days_1stL() +
-  #   expand_limits(y=90)
-  # 
-  # 
-  # ### Second litter -----------------------------------------------------------
-  # 
-  # plotDamBehavior_days_2ndL <- plotDamBehavior_daysFunc(
-  #   c(2),
-  #   fontSize = textSize,
-  #   dotSize = dotSize,
-  #   facet = FALSE,
-  #   addTriangleForMean = TRUE
-  # )
-  # 
-  # damBehavior_plot_days_2ndL <- plotDamBehavior_days_2ndL(damBehaviorFiltered_ZTs)+
-  #   expand_limits(y = 90)
-  # 
-  # 
-  # ## P5, P6 ------------------------------------------------------------------
-  # 
-  # 
-  # ### First litter ------------------------------------------------------------
-  # 
-  # plotDamBehavior_time_1stL <- plotDamBehavior_daysFunc(
-  #   c(1),
-  #   fontSize = textSize,
-  #   dotSize = dotSize,
-  #   facet = TRUE,
-  #   facetInfo = facetForLBN,
-  #   addTriangleForMean = TRUE,
-  #   redMean = TRUE
-  # )
-  # 
-  # damBehavior_plot_time_1stL <- plotDamBehavior_time_1stL(damBehaviorFiltered_P5_P6) +
-  #   expand_limits(y = 70) +
-  #   scale_x_datetime(
-  #     breaks = c(
-  #       as_datetime(ymd_h("2000-01-05 14")),
-  #       as_datetime(ymd_h("2000-01-05 19")),
-  #       as_datetime(ymd_h("2000-01-06 0")),
-  #       as_datetime(ymd_h("2000-01-06 4"))
-  #     ), 
-  #     date_labels = "%d\n%H"
-  #   )
-  # 
-  # 
-  # plotDamBehavior_indivLines_time_1stL <- plotDamBehavior_daysFunc(
-  #   c(1),
-  #   fontSize = textSize,
-  #   dotSize = dotSize,
-  #   facet = TRUE,
-  #   facetInfo = facetForLBN,
-  #   addTriangleForMean = TRUE,
-  #   redMean = TRUE,
-  #   colorByDam = TRUE,
-  #   showDots = FALSE,
-  #   removeLegend = TRUE,
-  #   addDarkBox = TRUE
-  # )
-  # 
-  # damBehavior_plot_indivLines_time_1stL <- plotDamBehavior_indivLines_time_1stL(damBehaviorFiltered_P5_P6) +
-  #   expand_limits(y = 70) +
-  #   scale_x_datetime(
-  #     breaks = c(
-  #       as_datetime(ymd_h("2000-01-05 14")),
-  #       as_datetime(ymd_h("2000-01-05 19")),
-  #       as_datetime(ymd_h("2000-01-06 0")),
-  #       as_datetime(ymd_h("2000-01-06 4"))
-  #     ), 
-  #     date_labels = "%d\n%H"
-  #   )
-  # 
-  # 
-  # damBehavior_plot_indivLines_time_1stL_no9 <- damBehaviorFiltered_P5_P6 %>%
-  #   filter(
-  #     cohort != 9
-  #   ) %>%
-  #   plotDamBehavior_indivLines_time_1stL() +
-  #   expand_limits(y = 70) +
-  #   scale_x_datetime(
-  #     breaks = c(
-  #       as_datetime(ymd_h("2000-01-05 14")),
-  #       as_datetime(ymd_h("2000-01-05 19")),
-  #       as_datetime(ymd_h("2000-01-06 0")),
-  #       as_datetime(ymd_h("2000-01-06 4"))
-  #     ), 
-  #     date_labels = "%d\n%H"
-  #   )
-  # 
-  # 
-  # ### Second litter -----------------------------------------------------------
-  # 
-  # plotDamBehavior_time_2ndL <- plotDamBehavior_daysFunc(
-  #   c(2),
-  #   fontSize = textSize,
-  #   dotSize = dotSize,
-  #   facet = TRUE,
-  #   facetInfo = facetForLBN,
-  #   addTriangleForMean = TRUE,
-  #   redMean = TRUE
-  # )
-  # 
-  # damBehavior_plot_time_2ndL <- plotDamBehavior_time_2ndL(damBehaviorFiltered_P5_P6) +
-  #   expand_limits(y = 70) +
-  #   scale_x_datetime(
-  #     breaks = c(
-  #       as_datetime(ymd_h("2000-01-05 14")),
-  #       as_datetime(ymd_h("2000-01-05 19")),
-  #       as_datetime(ymd_h("2000-01-06 0")),
-  #       as_datetime(ymd_h("2000-01-06 4"))
-  #     ), 
-  #     date_labels = "%d\n%H"
-  #   )
-  # 
-  # plotDamBehavior_indivLines_time_2ndL <- plotDamBehavior_daysFunc(
-  #   c(2),
-  #   fontSize = textSize,
-  #   dotSize = dotSize,
-  #   facet = TRUE,
-  #   facetInfo = facetForLBN,
-  #   addTriangleForMean = TRUE,
-  #   redMean = TRUE,
-  #   colorByDam = TRUE,
-  #   showDots = FALSE,
-  #   removeLegend = TRUE,
-  #   addDarkBox = TRUE
-  # )
-  # 
-  # damBehavior_plot_indivLines_time_2ndL <- plotDamBehavior_indivLines_time_2ndL(damBehaviorFiltered_P5_P6) +
-  #   expand_limits(y = 70) +
-  #   scale_x_datetime(
-  #     breaks = c(
-  #       as_datetime(ymd_h("2000-01-05 14")),
-  #       as_datetime(ymd_h("2000-01-05 19")),
-  #       as_datetime(ymd_h("2000-01-06 0")),
-  #       as_datetime(ymd_h("2000-01-06 4"))
-  #     ), 
-  #     date_labels = "%d\n%H"
-  #   )
-  # 
-  # damBehavior_plot_indivLines_time_2ndL_no9 <- damBehaviorFiltered_P5_P6 %>%
-  #   filter(
-  #     cohort != 9
-  #   ) %>%
-  #   plotDamBehavior_indivLines_time_2ndL() +
-  #   expand_limits(y = 70) +
-  #   scale_x_datetime(
-  #     breaks = c(
-  #       as_datetime(ymd_h("2000-01-05 14")),
-  #       as_datetime(ymd_h("2000-01-05 19")),
-  #       as_datetime(ymd_h("2000-01-06 0")),
-  #       as_datetime(ymd_h("2000-01-06 4"))
-  #     ), 
-  #     date_labels = "%d\n%H"
-  #   )
-  # 
-  # 
-
-## First litter, grouped by PND
+damBehavior_byPND_plot <- damBehavior_byPND %>%
+  filter(
+    !is.na(Num_exits)
+  ) %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "# of exits"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = 1
+  )
 
 
 
@@ -208,21 +34,19 @@ damCort_plot <- damFiltered %>%
     zoom_y = TRUE,
     ymin = 0,
     ymax = 120
-  ) # + # 2023-04-03 - brut force removed
- # facetForLitterNum
+  )
 
 # Dam Mass ------------------------------------------------------
 
 
 plotDamMass <- plotDamMass_func(
-  # c(1:2)
   c(1)
   , fontSize = textSize
+  , indivLineSize = 0.5
 )
 
 damMass_plot <- damFiltered %>%
-  plotDamMass() # +
-  # facetForLitterNum
+  plotDamMass()
 
 
 # Offspring mass ----------------------------------------------------------
@@ -236,18 +60,6 @@ plotOffspringMass_1stL <- plotOffspringMass(
 )
 
 mass_plot_1stL <- plotOffspringMass_1stL(massFiltered)
-
-
-## Second litter -----------------------------------------------------------
-
-plotOffspringMass_2ndL <- plotOffspringMass(
-  litterNums = c(2)
-  , fontSize = textSize
-)
-
-mass_plot_2ndL <- plotOffspringMass_2ndL(massFiltered)
-
-
 
 # Maturation --------------------------------------------------------------
 
@@ -284,14 +96,7 @@ plotVOCumFreq_1stL <- plotVOAgeCumFreqFunc(
   , fontSize = textSize
 )
 
-plotVOCumFreq_2ndL <- plotVOAgeCumFreqFunc(
-  c(2)
-  , maxAge = indivMaxAge
-  , fontSize = textSize
-)
-
 VO_cumFreq_plot_1stL <- plotVOCumFreq_1stL(maturationFiltered)
-VO_cumFreq_plot_2ndL <- plotVOCumFreq_2ndL(maturationFiltered)
 
 
 ## First estrus ------------------------------------------------------------
@@ -319,14 +124,7 @@ plotEstrusCumFreq_1stL <- plotEstrusAgeCumFreqFunc(
   , fontSize = textSize
 )
 
-plotEstrusCumFreq_2ndL <- plotEstrusAgeCumFreqFunc(
-  c(2)
-  , maxAge = indivMaxAge
-  , fontSize = textSize
-)
-
 Estrus_cumFreq_plot_1stL <- plotEstrusCumFreq_1stL(maturationFiltered)
-Estrus_cumFreq_plot_2ndL <- plotEstrusCumFreq_2ndL(maturationFiltered)
 
 
 ## Preputial separation ----------------------------------------------------
@@ -354,14 +152,7 @@ plotPreputialSepCumFreq_1stL <- plotPreputialSepAgeCumFreqFunc(
   , fontSize = textSize
 )
 
-plotPreputialSepCumFreq_2ndL <- plotPreputialSepAgeCumFreqFunc(
-  c(2)
-  , maxAge = indivMaxAge
-  , fontSize = textSize
-)
-
 PreputialSep_cumFreq_plot_1stL <- plotPreputialSepCumFreq_1stL(maturationFiltered)
-PreputialSep_cumFreq_plot_2ndL <- plotPreputialSepCumFreq_2ndL(maturationFiltered)
 
 
 

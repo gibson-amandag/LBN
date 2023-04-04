@@ -1,5 +1,5 @@
-cohorts <- c(2, 4, 6, 7, 8, 9)
-# cohorts <- c(7, 9)
+# cohorts <- c(2, 4, 6, 7, 8, 9)
+cohorts <- c(7, 9)
 minLitterSize <- 5
 damBehaviorTimes <- c(1, 15, 19)
 surgeMin <- 3
@@ -284,6 +284,11 @@ damFramesAndBehavior_byPNDLightDark <- damFrames_byPNDLightDark %>%
     , damID
     , desc(lightDark)
   )
+
+## Dam Mass ---------------------------------------------------------------
+
+damMassFiltered <- damFiltered %>%
+  makeDamMassLong()
   
 
 # Mass --------------------------------------------------------------------
@@ -322,13 +327,32 @@ maturation_byDam_m <- maturationFiltered %>%
 # Cycles ------------------------------------------------------------------
 
 cyclesFiltered <- Cycles_off %>%
-  filterLBNCohorts()
+  filterLBNCohorts() %>%
+  filter(
+    !is.na(Day21)
+  ) %>%
+  select(
+    -numCycles
+    , -Cycle_length
+  )
 
 cyclesAllFiltered <- Cycles_off_all %>%
   filterLBNCohorts()
 
 cyclesLong <- cyclesFiltered %>%
   makeCyclesLong()
+
+cyclesSum <- cyclesLong %>%
+  getCyclesInfo()
+
+cyclesFiltered <- cyclesFiltered %>%
+  left_join(
+    cyclesSum
+    , by = "mouseID"
+  )
+
+cyclesLong <- cyclesLong %>%
+  addCycleStartCol()
 
 cyclesPercLong <- cyclesFiltered %>%
   makeCyclesPercLong()
@@ -590,7 +614,11 @@ surgedDF <- acuteStressFilteredPro %>%
 # GABA PSCs ---------------------------------------------------------------
 
 GABApscsFiltered <- GABApscs %>%
-  filterLBNCohorts()
+  filterLBNCohorts() %>%
+  filter(
+    !is.na(adultTrt)
+  ) %>%
+  filterAcuteStressPro() # added 2023-03-26
 
 filterByRseries <- TRUE
 RseriesMin <- 0
@@ -615,6 +643,7 @@ recHrMin <- 13 # time since lights on
 recHrMax <- 20
 
 removeNoToInclude <- TRUE
+removeExclude <- TRUE
 
 filterEphys <- filterEphysFunc(
   filterByRseries = filterByRseries
@@ -637,6 +666,7 @@ filterEphys <- filterEphysFunc(
   , recHrMin =  recHrMin# time since lights on
   , recHrMax = recHrMax
   , removeNoToInclude = removeNoToInclude
+  , removeExclude = removeExclude
 )
 
 GABApscsFilteredProps <- GABApscsFiltered %>%

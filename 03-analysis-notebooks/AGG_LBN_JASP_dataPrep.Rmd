@@ -1,0 +1,167 @@
+---
+title: "Test Jasp"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/05-make-LBN-plots.R")
+source("./01-scripts/06-make-LBN-ANOVAs_noLitter.R")
+```
+
+
+
+
+```{r}
+damBehaviorFiltered
+
+damFilteredInfo <- damFiltered %>%
+    select(
+      - CyclesFolder
+      , - cyclingFolderPath
+      , -ends_with("Duration")
+      ,-ends_with("Num_exits")
+      ,-ends_with("Num_entries")
+      ,-ends_with("_off_nest")
+      ,-ends_with("_on_nest")
+    ) %>%
+    relocate(
+      damID
+      , cohort
+      , litterNum
+      , DOB
+      , Litter_size
+      , earlyLifeTrt
+      , Dam_Mass_P4
+      , Dam_Mass_P11
+      , Dam_Mass_P21
+      , starts_with("Cort_dam")
+    ) %>%
+    arrange(
+      cohort
+      , DOB
+    )
+
+damMassFiltered
+
+saveDFsToCSV(
+  "damBehavior" = damBehaviorFiltered
+  , "damInfo" = damFilteredInfo
+  , "damMass" = damMassFiltered %>%
+    relocate(
+      day
+      , mass
+      , .before = litterNum
+    )
+  , "mass" = mass_long %>%
+    select(
+      -cyclingFolderPath
+    )
+  , "maturation" = maturationFiltered %>%
+    select(
+      -cyclingFolderPath
+    )
+  , "cort" = cortFiltered_M_DiPro %>%
+    select(
+      -cyclingFolderPath
+    )
+  , "acuteStress" = acuteStressFiltered_M_DiPro %>%
+    select(
+      -cyclingFolderPath
+    )
+  , "GABApscs" = GABApscsFilteredFiring %>%
+    select(
+      -cyclingFolderPath
+    )
+)
+
+cyclesFiltered
+
+saveDFsToCSV(
+  "cycles" = cyclesFiltered
+)
+
+cyclesLong
+
+saveDFsToCSV(
+  "cyclesLong" = cyclesLong
+)
+
+saveDFsToCSV(
+  "cort" = cortFiltered_M_DiPro %>%
+    select(
+      -cyclingFolderPath
+    )
+)
+
+saveDFsToCSV(
+  "maturation" = maturationFiltered %>%
+    select(
+      -cyclingFolderPath
+    )
+)
+```
+
+```{r}
+mass_plot_1stL
+
+maturationFiltered %>%
+  filter(
+    AGD_adult > 100
+  )
+```
+
+# Equivalence to the LMM in JASP
+
+```{r}
+mass_P21_lmer <- lmer(
+  mass ~ sex * earlyLifeTrt * day + (1|mouseID) + (1|damID)
+  , data = mass_long %>%
+    filter(
+      day != 4
+      , day <= 21
+    )
+)
+
+# summary(mass_P21_lmer)
+print(anova(mass_P21_lmer))
+```
+
+
+```{r}
+STD_female_loess <- loess(mass ~ day, data = mass_long %>% filter(sex == "F", earlyLifeTrt == "STD"))
+smooth_STD_female_loess <- predict(STD_female_loess)
+
+mass_long %>%
+  ggplot(
+    aes(
+      x = day
+      , y = mass
+      , color = earlyLifeTrt
+    )
+  ) +
+  geom_smooth(
+    method = "lm"
+    # method = "loess"
+    # method = "gam"
+  ) +
+  facet_wrap(
+    ~ sex
+  ) +
+  boxTheme() +
+  textTheme(size = 16)+
+  earlyLifeColor(
+    
+  # ) +
+  # coord_cartesian(x = c(11, 21), y = c(0, 15)
+                  )
+```
+
+

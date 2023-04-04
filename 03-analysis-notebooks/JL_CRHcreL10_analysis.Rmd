@@ -72,6 +72,7 @@ saveDFsToExcel(
 )
 ```
 
+
 ```{r}
 JL_LH
 ```
@@ -93,11 +94,30 @@ JL_stressInfo <- JL_acuteStress %>%
   filter(
     !is.na(perfusionHr)
   )
+```
+```{r}
+JL_cortInfo <- JL_cort %>%
+  select(
+    mouseID
+    , Sampling_date
+    , Sac_cycle
+    , perfusionHr
+    , Dosage
+    , adultTrt
+    , cort
+    , time
+  ) %>%
+  filter(
+    !is.na(perfusionHr)
+  )
+
+JL_cortInfo
 
 saveDFsToExcel(
   "stressInfo"
   , prefix = JL_filePrefix
-  , "stressInfo" = JL_stressInfo
+  , "stressInfo" = JL_stressInfo %>% arrange(perfusionHr, adultTrt)
+  , "cortInfo" = JL_cortInfo %>% arrange(perfusionHr, adultTrt)
 )
 ```
 
@@ -125,6 +145,74 @@ flexSave(
   , fileType = "png"
   , width = JL_width
   , height = JL_height
+)
+```
+```{r}
+is5hr <- JL_acuteStress %>%
+  mutate(
+    is5hr = ifelse(!is.na(LH_hr5), TRUE, FALSE)
+  ) %>%
+  select(
+    mouseID
+    , is5hr
+  )
+
+JL_LH_plot <- JL_LH %>%
+  left_join(
+    is5hr
+    , by = "mouseID"
+  ) %>%
+  filter(
+    !is.na(perfusionHr)
+    , !is.na(cycleID)
+    # , time == 0
+    , is5hr == TRUE
+  ) %>%
+  LHPlot_adultTrt(
+    dotSize = 3
+    , fontSize = 16
+  ) +
+  facet_wrap(
+    vars(adultTrt)
+    , nrow = 1
+  ) +
+  scale_x_continuous(
+    breaks = c(0, 5)
+    # , limits = c("0", "5")
+    # , name = "time (hr)"
+  ) +
+  xlab(
+    "time (hr)"
+  )
+
+JL_LH_plot
+
+flexSave(
+  "LH"
+  , JL_filePrefix
+  , fileType = "png"
+  , width = JL_width
+  , height = JL_height
+)
+
+saveDFsToCSV(
+  prefix = "JL_CRH_"
+  , "LH" = JL_LH %>%
+  left_join(
+    is5hr
+    , by = "mouseID"
+  ) %>%
+  filter(
+    !is.na(perfusionHr)
+    , !is.na(cycleID)
+    # , time == 0
+    , is5hr == TRUE
+  )
+  , "LH_long" = JL_acuteStress %>%
+    filter(!is.na(LH_hr5)
+           , !is.na(perfusionHr)
+           , !is.na(cycleID)
+          )
 )
 ```
 
@@ -178,5 +266,532 @@ JL_acuteStress %>%
   filter(
     is.na(cort_hr0)
   )
+```
+# Facet by perfusion time, x axis by hour
+
+```{r}
+JL_cort %>%
+  filter(
+    sex == "F"
+    , !is.na(perfusionHr)
+    , is.na(Dosage)
+  ) %>%
+  cortPlot(
+    xBreaks = c(0, 1.5, 2.5, 5)
+    , xLabels = c(0, 1.5, 2.5, 5)
+    ,  lineTypeGuide = c("dotted", "solid")
+    , positionDodge = 0.6
+    , groupVar = adultTrt
+    , pointSize = 2
+  ) +
+  facet_grid(
+    cols = vars(perfusionHr)
+    # , rows = vars(adultTrt)
+    , labeller = labeller(perfusionHr = c("1.5" = "1.5h", "2.5" = "2.5h", "5" = "5h"))
+  ) +
+  adultTrtFillShape()
+  # + theme(legend.position = "none")
+```
+
+# Facet by perfusion time, x axis pre/post
+```{r}
+JL_cort %>%
+  filter(
+    sex == "F"
+    , !is.na(perfusionHr)
+    , is.na(Dosage)
+  ) %>%
+  mutate(
+    time = ifelse(time == 0, 0, 5)
+  ) %>%
+  cortPlot(
+    xBreaks = c(0, 5)
+    , xLabels = c("pre", "post")
+    ,  lineTypeGuide = c("dotted", "solid")
+    , positionDodge = 1.05
+    , groupVar = adultTrt
+    , pointSize = 2
+  ) +
+  facet_grid(
+    cols = vars(perfusionHr)
+    # , rows = vars(adultTrt)
+    , labeller = labeller(perfusionHr = c("1.5" = "1.5h", "2.5" = "2.5h", "5" = "5h"))
+  ) +
+  adultTrtFillShape()
+  # + theme(legend.position = "none")
+```
+
+# Facet by perfusion hr and treatment - x axis by time
+
+```{r}
+JL_cort %>%
+  filter(
+    sex == "F"
+    , !is.na(perfusionHr)
+    , is.na(Dosage)
+  ) %>%
+  cortPlot(
+    xBreaks = c(0, 1.5, 2.5, 5)
+    , xLabels = c(0, 1.5, 2.5, 5)
+    ,  lineTypeGuide = c("dotted", "solid")
+    , positionDodge = 0.6
+    , groupVar = adultTrt
+    , pointSize = 2
+  ) +
+  facet_grid(
+    cols = vars(perfusionHr)
+    , rows = vars(adultTrt)
+    , labeller = labeller(perfusionHr = c("1.5" = "1.5h", "2.5" = "2.5h", "5" = "5h"))
+  ) +
+  adultTrtFillShape()+
+  theme(legend.position = "none")
+```
+
+# Facet by perfusion hr and treatment, x pre/post
+```{r}
+JL_cort %>%
+  filter(
+    sex == "F"
+    , !is.na(perfusionHr)
+    , is.na(Dosage)
+  ) %>%
+  mutate(
+    time = ifelse(time == 0, 0, 5)
+  ) %>%
+  cortPlot(
+    xBreaks = c(0, 5)
+    , xLabels = c("pre", "post")
+    ,  lineTypeGuide = c("dotted", "solid")
+    , positionDodge = 1.05
+    , groupVar = adultTrt
+    , pointSize = 2
+  ) +
+  facet_grid(
+    cols = vars(perfusionHr)
+    , rows = vars(adultTrt)
+    , labeller = labeller(perfusionHr = c("1.5" = "1.5h", "2.5" = "2.5h", "5" = "5h"))
+  ) +
+  adultTrtFillShape()+
+  theme(legend.position = "none")
+```
+
+# Facet by treatment - x axis by time
+
+```{r}
+JL_cort %>%
+  filter(
+    sex == "F"
+    , !is.na(perfusionHr)
+    , is.na(Dosage)
+  ) %>%
+  cortPlot(
+    xBreaks = c(0, 1.5, 2.5, 5)
+    , xLabels = c(0, 1.5, 2.5, 5)
+    ,  lineTypeGuide = c("dotted", "solid")
+    , positionDodge = 0.4
+    , groupVar = adultTrt
+    , pointSize = 2
+  ) +
+  facet_grid(
+    cols = vars(adultTrt)
+    , labeller = labeller(perfusionHr = c("1.5" = "1.5h", "2.5" = "2.5h", "5" = "5h"))
+  ) +
+  adultTrtFillShape()+
+  theme(legend.position = "none")
+```
+
+# Rebuilding function
+
+```{r}
+
+JL_cort %>%
+  filter(
+    sex == "F"
+    , !is.na(perfusionHr)
+    , is.na(Dosage)
+  ) %>%
+  ggplot(
+    aes(
+      x = time,
+      y = cort
+    )
+    ,
+    group = adultTrt
+  ) +
+  geom_line(
+    alpha = 0.4,
+    aes(group = mouseID, linetype = adultTrt, color = adultTrt)
+    , position = position_dodge(0.5)
+  ) + 
+  geom_point(
+    alpha = 1
+    , aes(
+      fill = adultTrt
+      , group=mouseID, 
+      shape= adultTrt, color= adultTrt
+      ), 
+      position = position_dodge(0.5), 
+      size = 2
+  ) +
+  theme_pubr() +
+  expand_limits(y=0) +
+  labs(y = "corticosterone (ng/mL)", x = "time") +
+  scale_x_continuous(
+    breaks = c(0, 1.5, 2.5, 5)
+  ) +
+  textTheme(size = 16) +
+  boxTheme() + 
+  addMeanHorizontalBar(
+    width = 0.5, 
+    addLineType = TRUE,
+    lineTypeName = "treatment",
+    lineTypeGuide = c("solid", "dashed"),
+    typeVar= adultTrt,
+    color= adultTrt
+  ) + 
+  addMeanSE_vertBar(color= adultTrt) +
+  labs(color = "treatment", shape = "treatment", fill = "treatment")
+
+```
+# Output - By perfusion hr
+
+```{r}
+JL_cortPlot_byPerfusionHr <- JL_cort %>%
+  filter(
+    sex == "F"
+    , !is.na(perfusionHr)
+    , is.na(Dosage)
+  ) %>%
+  mutate(
+    time = ifelse(time == 0, 0, 5)
+  ) %>%
+  cortPlot(
+    pointSize = 2
+    , fontSize = 16
+    , plotMean = TRUE
+    , plotSE = TRUE
+    , xBreaks = c(0, 5)
+    , xLabels = c("pre", "post")
+    , lineTypeGuide = c("dotted", "solid")
+    , positionDodge = 1
+    , groupVar = adultTrt
+    , meanWidth = 1.4
+    , meanFollowsLineType = FALSE
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 800
+  ) +
+  adultTrtFillShape() +
+  facet_grid(
+    cols = vars(perfusionHr)
+    , labeller = labeller(perfusionHr = c("1.5" = "1.5h", "2.5" = "2.5h", "5" = "5h"))
+  )
+
+flexSave(
+  "JL_cortPlot_byPerfusionHr"
+  , JL_filePrefix
+  , plot = JL_cortPlot_byPerfusionHr
+  , fileType = "png"
+  , width = 7.5
+  , height = 5
+)
+```
+
+```{r}
+JL_cort %>%
+  filter(
+    sex == "F"
+    , !is.na(perfusionHr)
+    , is.na(Dosage)
+  ) %>%
+  mutate(
+    time = ifelse(time == 0, 0, 5)
+  ) %>%
+  cortPlot(
+    pointSize = 2
+    , fontSize = 16
+    , plotMean = TRUE
+    , plotSE = TRUE
+    , xBreaks = c(0, 5)
+    , xLabels = c("pre", "post")
+    , lineTypeGuide = c("dotted", "solid")
+    , positionDodge = 1
+    , groupVar = adultTrt
+    , meanWidth = 1.4
+    , meanFollowsLineType = FALSE
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 800
+  ) +
+  adultTrtFillShape(
+  #   
+  # ) +
+  # facet_grid(
+  #   cols = vars(perfusionHr)
+  #   , labeller = labeller(perfusionHr = c("1.5" = "1.5h", "2.5" = "2.5h", "5" = "5h"))
+  )
+```
+# output - CNO
+
+```{r}
+JL_cortPlot_CNO <- JL_cort %>%
+  filter(
+    sex == "F"
+    , perfusionHr == 1.5
+  ) %>%
+  mutate(
+    time = ifelse(time == 0, 0, 5)
+    , Dosage = ifelse(is.na(Dosage), "NA", Dosage)
+  ) %>%
+  cortPlot(
+    pointSize = 2
+    , fontSize = 16
+    , plotMean = TRUE
+    , plotSE = TRUE
+    , xBreaks = c(0, 5)
+    , xLabels = c("pre", "post")
+    , lineTypeGuide = c("solid", "dotted", "solid")
+    , positionDodge = 1
+    , groupVar = interaction(adultTrt, Dosage)
+    , meanWidth = 1.4
+    , meanFollowsLineType = FALSE
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 800
+  ) +
+  scale_color_manual(
+    "treatment"
+    , values = c("CON.0.5"= "red"
+        , "CON.NA" = "black"
+        , "ALPS.NA" = "black")
+    , labels = c(
+      "CON.0.5"= "0.5mg/kg CNO"
+      , "CON.NA" = "CON"
+      , "ALPS.NA" = "ALPS"
+    )
+  )+
+  scale_fill_manual(
+    "treatment"
+    , values = c("CON.0.5"= "red"
+        , "CON.NA" = "white"
+        , "ALPS.NA" = "black")
+    , labels = c(
+      "CON.0.5"= "0.5mg/kg CNO"
+      , "CON.NA" = "CON"
+      , "ALPS.NA" = "ALPS"
+    )
+  )+
+  scale_shape_manual(
+    "treatment"
+    , values = c(
+      "CON.0.5"= 22
+        , "CON.NA" = 21
+        , "ALPS.NA" = 23
+    )
+    , labels = c(
+      "CON.0.5"= "0.5mg/kg CNO"
+      , "CON.NA" = "CON"
+      , "ALPS.NA" = "ALPS"
+    )
+  ) +
+  scale_linetype_manual(
+    "treatment"
+    , values = c(
+      "CON.0.5"= "solid"
+        , "CON.NA" = "dashed"
+        , "ALPS.NA" = "solid"
+    )
+    , labels = c(
+      "CON.0.5"= "0.5mg/kg CNO"
+      , "CON.NA" = "CON"
+      , "ALPS.NA" = "ALPS"
+    )
+  ) +
+  facet_grid(
+    cols = vars(Dosage)
+    , labeller = labeller(Dosage = c("0.5" = "0.5mg/kg CNO", "NA" = "stress paradigm"))
+  )
+
+flexSave(
+  "JL_cortPlot_CNO"
+  , JL_filePrefix
+  , plot = JL_cortPlot_CNO
+  , fileType = "png"
+  , width = 7.5
+  , height = 5
+)
+```
+```{r}
+JL_cortPlot_males <- JL_cort %>%
+  filter(
+    sex == "M"
+    , !is.na(perfusionHr)
+    , is.na(Dosage)
+  ) %>%
+  mutate(
+    time = ifelse(time == 0, 0, 5)
+  ) %>%
+  cortPlot(
+    pointSize = 2
+    , fontSize = 16
+    , plotMean = TRUE
+    , plotSE = TRUE
+    , xBreaks = c(0, 5)
+    , xLabels = c("pre", "post")
+    , lineTypeGuide = c("dotted", "solid")
+    , positionDodge = 1
+    , groupVar = adultTrt
+    , meanWidth = 1.4
+    , meanFollowsLineType = FALSE
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 800
+  ) +
+  adultTrtFillShape() +
+  facet_grid(
+    cols = vars(perfusionHr)
+    , labeller = labeller(perfusionHr = c("1.5" = "1.5h", "2.5" = "2.5h", "5" = "5h"))
+  )
+
+JL_cortPlot_males
+flexSave(
+  "JL_cortPlot_males"
+  , JL_filePrefix
+  , plot = JL_cortPlot_males
+  , fileType = "png"
+  , width = 7.5
+  , height = 5
+)
+```
+```{r}
+JL_cort %>%
+  filter(
+    sex == "M"
+    , !is.na(perfusionHr)
+    , is.na(Dosage)
+  ) %>%
+  cortPlot(
+    pointSize = 2
+    , fontSize = 16
+    , plotMean = TRUE
+    , plotSE = TRUE
+    , xBreaks = c(0, 1.5, 2.5, 5)
+    , xLabels = c(0, 1.5, 2.5, 5)
+    , lineTypeGuide = c("dotted", "solid")
+    , positionDodge = 0.5
+    , groupVar = adultTrt
+    , meanWidth = 0.6
+  ) +
+  adultTrtFillShape()
+```
+```{r}
+JL_cort %>%
+  filter(
+    sex == "F"
+    , !is.na(perfusionHr)
+    , is.na(Dosage)
+  ) %>%
+  mutate(
+    time = ifelse(time == 0, 0, 5)
+  ) %>%
+  cortPlot(
+    pointSize = 2
+    , fontSize = 16
+    , plotMean = TRUE
+    , plotSE = TRUE
+    , xBreaks = c(0, 5)
+    , xLabels = c("pre", "post")
+    , lineTypeGuide = c("dotted", "solid")
+    , positionDodge = 1
+    , groupVar = adultTrt
+    , meanWidth = 1.4
+    , meanFollowsLineType = FALSE
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 800
+  # ) +
+  # adultTrtFillShape() +
+  # facet_grid(
+  #   cols = vars(perfusionHr)
+  #   , labeller = labeller(perfusionHr = c("1.5" = "1.5h", "2.5" = "2.5h", "5" = "5h"))
+  )
+```
+```{r}
+JL_cort %>%
+  filter(
+    sex == "F"
+    , !is.na(perfusionHr)
+    , is.na(Dosage)
+  ) %>%
+  mutate(
+    time = ifelse(time == 0, 0, 5)
+  ) %>%
+  cortPlot(
+    pointSize = 2
+    , fontSize = 16
+    , plotMean = TRUE
+    , plotSE = TRUE
+    , xBreaks = c(0, 5)
+    , xLabels = c("pre", "post")
+    , lineTypeGuide = c("dotted", "solid")
+    , positionDodge = 1
+    , groupVar = NULL
+    , meanWidth = 1.4
+    , meanFollowsLineType = FALSE
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 800
+  ) +
+  # adultTrtFillShape() +
+  facet_grid(
+    cols = vars(perfusionHr)
+    , labeller = labeller(perfusionHr = c("1.5" = "1.5h", "2.5" = "2.5h", "5" = "5h"))
+  )
+```
+
+```{r}
+JL_cort %>%
+  filter(
+    sex == "F"
+    , !is.na(perfusionHr)
+    , is.na(Dosage)
+  ) %>%
+  mutate(
+    time = ifelse(time == 0, 0, 5)
+  ) %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = c(perfusionHr, adultTrt)
+    , within = c(time)
+  )
+```
+
+```{r}
+JL_LH_plot <- JL_LH %>%
+  filter(
+    !is.na(perfusionHr)
+    , !is.na(cycleID)
+    # , time == 0
+  ) %>%
+  LHPlot_adultTrt(
+    dotSize = 3
+    , fontSize = 16
+  ) +
+  facet_grid(
+    rows = vars(perfusionHr)
+    , cols = vars(adultTrt)
+    , labeller = labeller("perfusionHr" = c("2.5" = "2.5h", "5" = "5h"))
+  )
+
+JL_LH_plot
+
+flexSave(
+  "LH"
+  , JL_filePrefix
+  , fileType = "png"
+  , width = 7.5
+  , height = 7
+)
 ```
 
