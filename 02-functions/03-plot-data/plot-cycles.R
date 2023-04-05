@@ -79,6 +79,8 @@ plotCycleTraces <- function(
   removeLegend = TRUE,
   scales = "fixed",
   fontSize = 12
+  , breakSeq = seq(7, 400, 7)
+  , facetDir = "h"
 ){
   viz <- ggplot(df, aes(x = {{ day }}, y = {{ stage }}, color = {{ lineColorVar }})) +
     geom_line() +
@@ -87,17 +89,14 @@ plotCycleTraces <- function(
       ncol = ncol,
       nrow = nrow,
       scales = scales
+      , dir = facetDir
     ) +
     scale_y_continuous(
       breaks = c(1, 2, 3), #axis ticks only at 1, 2, 3
       labels = c("E", "D", "P") #replace with E, D, and P
     ) +
     scale_x_continuous(
-      breaks = seq(
-        7,
-        400,
-        7
-      ) #labels every third integer
+      breaks = breakSeq #labels every third integer
     # ) +
     # expand_limits(
     #   y = 0
@@ -209,9 +208,9 @@ plotCyclesPercent <- function(
     labs(y = ylabel)+
     fillScale +
     # scale_fill_manual(values = c("white", "black"))+
+    jitterGeom(size = dotSize)+
     addMeanHorizontalBar(width = 0.85, size = 0.4) +
     addMeanSE_vertBar(size = 0.4)+
-    jitterGeom(size = dotSize)+
     expand_limits(y = 0) +
     theme_pubr()+
     rremove(

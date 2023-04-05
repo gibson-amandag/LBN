@@ -375,11 +375,13 @@ LHFiltered <- LH_off %>%
 proUterineMin = 125
 diUterineMax = 100
 exclude653 = TRUE
+exclude723 = TRUE
 
 filterAcuteStressAll <- filterAcuteStressFunc(
   c("M", "F")
   , c("proestrus", "diestrus") #cycle stages
   , exclude653 = exclude653
+  , exclude723 = exclude723
   , filterUterineMass = FALSE
 )
 
@@ -387,6 +389,7 @@ filterAcuteStress_M_DiPro <- filterAcuteStressFunc(
   c("M", "F")
   , c("proestrus", "diestrus") #cycle stages
   , exclude653 = exclude653
+  , exclude723 = exclude723
   , filterUterineMass = TRUE
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
@@ -402,6 +405,7 @@ filterAcuteStressFemales_all <- filterAcuteStressFunc(
   , c("proestrus", "diestrus")
   , filterUterineMass = FALSE
   , exclude653 = exclude653
+  , exclude723 = exclude723
 )
 
 filterUterineMass <- TRUE
@@ -413,6 +417,7 @@ filterAcuteStressFemales <- filterAcuteStressFunc(
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
   , exclude653 = exclude653
+  , exclude723 = exclude723
 )
 
 
@@ -420,6 +425,7 @@ filterAcuteStressPro <- filterAcuteStressFunc(
   "F"
   , c("proestrus") #cycle stages
   , exclude653 = exclude653
+  , exclude723 = exclude723
   , filterUterineMass = filterUterineMass
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
@@ -429,6 +435,7 @@ filterAcuteStressDi <- filterAcuteStressFunc(
   "F"
   , c("diestrus") #cycle stages
   , exclude653 = exclude653
+  , exclude723 = exclude723
   , filterUterineMass = filterUterineMass
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
@@ -465,6 +472,7 @@ filterCortAll <- filterCortFunc(
   c("M", "F")
   , c("proestrus", "diestrus") #cycle stages
   , exclude653 = exclude653
+  , exclude723 = exclude723
   , filterUterineMass = FALSE
   , cortMax = cortMax # make everything higher than this 500ng/mL
   , cortMin = cortMin # make everything lower than this 1.95 ng/mL
@@ -474,6 +482,7 @@ filterCort_M_DiPro <- filterCortFunc(
   c("M", "F")
   , c("proestrus", "diestrus") #cycle stages
   , exclude653 = exclude653
+  , exclude723 = exclude723
   , filterUterineMass = TRUE
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
@@ -493,6 +502,7 @@ filterCortFemales_all <- filterCortFunc(
   , c("proestrus", "diestrus")
   , filterUterineMass = FALSE
   , exclude653 = exclude653
+  , exclude723 = exclude723
   , cortMax = cortMax # make everything higher than this 500ng/mL
   , cortMin = cortMin # make everything lower than this 1.95 ng/mL
 )
@@ -506,6 +516,7 @@ filterCortFemales <- filterCortFunc(
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
   , exclude653 = exclude653
+  , exclude723 = exclude723
   , cortMax = cortMax # make everything higher than this 500ng/mL
   , cortMin = cortMin # make everything lower than this 1.95 ng/mL
 )
@@ -515,6 +526,7 @@ filterCortPro <- filterCortFunc(
   "F"
   , c("proestrus") #cycle stages
   , exclude653 = exclude653
+  , exclude723 = exclude723
   , filterUterineMass = filterUterineMass
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
@@ -526,6 +538,7 @@ filterCortDi <- filterCortFunc(
   "F"
   , c("diestrus") #cycle stages
   , exclude653 = exclude653
+  , exclude723 = exclude723
   , filterUterineMass = filterUterineMass
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
@@ -561,6 +574,7 @@ filterLHFemales_all <- filterLHFunc(
   c("proestrus", "diestrus")
   , filterUterineMass = FALSE
   , exclude653 = exclude653
+  , exclude723 = exclude723
 )
 
 filterLHFemales <- filterLHFunc(
@@ -569,6 +583,7 @@ filterLHFemales <- filterLHFunc(
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
   , exclude653 = exclude653
+  , exclude723 = exclude723
 )
 
 filterLHPro <- filterLHFunc(
@@ -577,6 +592,7 @@ filterLHPro <- filterLHFunc(
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
   , exclude653 = exclude653
+  , exclude723 = exclude723
 )
 
 filterLHDi <- filterLHFunc(
@@ -585,6 +601,7 @@ filterLHDi <- filterLHFunc(
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
   , exclude653 = exclude653
+  , exclude723 = exclude723
 )
 
 

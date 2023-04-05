@@ -5,7 +5,7 @@ facetMatByLitter <- FALSE
 # Dam behavior ------------------------------------------------------------
 
 
-damBehavior_byPND_plot <- damBehavior_byPND %>%
+figDamsB <- damBehavior_byPND %>%
   filter(
     !is.na(Num_exits)
   ) %>%
@@ -16,13 +16,14 @@ damBehavior_byPND_plot <- damBehavior_byPND %>%
     , addTriangleForMean = FALSE
     , colorByDam = TRUE
     , dotSize = 1
+    # , facetByTrt = FALSE
   )
 
 
 
 # Dam corticosterone ------------------------------------------------------
 
-damCort_plot <- damFiltered %>%
+figDamsD <- damFiltered %>%
   filter(
     !is.na(Cort_dam_P11)
   ) %>%
@@ -39,27 +40,78 @@ damCort_plot <- damFiltered %>%
 # Dam Mass ------------------------------------------------------
 
 
-plotDamMass <- plotDamMass_func(
-  c(1)
-  , fontSize = textSize
-  , indivLineSize = 0.5
-)
-
-damMass_plot <- damFiltered %>%
-  plotDamMass()
-
+figDamsC <- damFiltered %>%
+  plot_dam_mass_lines(
+    useLineType = FALSE, # TRUE/FALSE
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = damID,
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = TRUE, # plot individual lines
+    meanLines = TRUE, # plot mean lines with SE
+    zoom_x = TRUE, # Zoom to part of x axis
+    xmin = 0,
+    xmax = 21,
+    indivLineAlpha = .3,
+    indivLineSize = 0.5,
+    errorBarWidth = 0,
+    meanLineSize = 1,
+    meanAlpha = 1,
+    errorBarSize = 1,
+    # errorBarColor = "grey10",
+    errorBarAlpha = 1,
+    textSize = textSize,
+    axisSize = 0.5,
+    legendPosition = c(0.75, 0.2),
+    STDColor = "#4D4D4D",
+    LBNColor = "#008B8B"
+  ) +
+  theme(
+    legend.key = element_rect(fill = NA)
+  )
 
 # Offspring mass ----------------------------------------------------------
 
 
 ## First litter ------------------------------------------------------------
 
-plotOffspringMass_1stL <- plotOffspringMass(
-  litterNums = c(1)
-  , fontSize = textSize
-)
-
-mass_plot_1stL <- plotOffspringMass_1stL(massFiltered)
+figOffA <- massFiltered %>%
+  plot_mass_lines(
+    groupByDam = TRUE,
+    facetBySex = TRUE,
+    useLineType = FALSE,
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = damID,
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = TRUE, # plot individual lines
+    meanLines = TRUE, # plot mean lines with SE
+    zoom_x = FALSE, # Zoom to part of x axis
+    xmin = 0,
+    xmax = 72,
+    zoom_y = FALSE, # Zoom to part of y axis
+    ymin = 0,
+    ymax = 35,
+    indivLineAlpha = .3,
+    indivLineSize = 0.5,
+    errorBarWidth = 0,
+    meanLineSize = 0.6,
+    meanAlpha = 1,
+    errorBarSize = .6,
+    # errorBarColor = "grey10",
+    errorBarAlpha = 1,
+    textSize = textSize,
+    axisSize = 0.5,
+    # legendPosition = "bottom",
+    legendPosition = c(0.85, 0.2),
+    STDColor = "#4D4D4D",
+    LBNColor = "#008B8B"
+  ) +
+  theme(
+    legend.key = element_rect(fill = NA)
+  )
 
 # Maturation --------------------------------------------------------------
 
@@ -73,87 +125,79 @@ indivMaxAge <- matVals_indiv$max_age
 
 ## Vaginal opening ---------------------------------------------------------
 
-plotVOAge <- plotVaginalOpeningAgeFunc(
-  fontSize = textSize
-  , dotSize = dotSize
-  , facetLitter = facetMatByLitter
-)
-plotVOMass <- plotVaginalOpeningMassFunc(
-  fontSize = textSize
-  , dotSize = dotSize
-  , facetLitter = facetMatByLitter
-)
+figOffB <- maturation_byDam_f %>%
+  scatterPlotLBN(
+    yVar = VO_age
+    , "vaginal opening\nage (days)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = max_age
+  )
 
-VO_age_plot <- plotVOAge(maturation_byDam_f) +
-  expand_limits(y = max_age)
+figOffC <- maturation_byDam_f %>%
+  scatterPlotLBN(
+    yVar = VO_mass
+    , "vaginal opening\nmass (g)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = max_mass
+  )
 
-VO_mass_plot <- plotVOMass(maturation_byDam_f)+
-  expand_limits(y = max_mass)
-
-plotVOCumFreq_1stL <- plotVOAgeCumFreqFunc(
-  c(1)
-  , maxAge = indivMaxAge
-  , fontSize = textSize
-)
-
-VO_cumFreq_plot_1stL <- plotVOCumFreq_1stL(maturationFiltered)
 
 
 ## First estrus ------------------------------------------------------------
 
-plotEstrusAge <- plotEstrusAgeFunc(
-  fontSize = textSize
-  , dotSize = dotSize
-  , facetLitter = facetMatByLitter
-)
-plotEstrusMass <- plotEstrusMassFunc(
-  fontSize = textSize
-  , dotSize = dotSize
-  , facetLitter = facetMatByLitter
-)
 
-Estrus_age_plot <- plotEstrusAge(maturation_byDam_f) +
-  expand_limits(y = max_age)
+figOffD <- maturation_byDam_f %>%
+  scatterPlotLBN(
+    yVar = Estrus_age
+    , "first estrus\nage (days)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = max_age
+  )
 
-Estrus_mass_plot <- plotEstrusMass(maturation_byDam_f)+
-  expand_limits(y = max_mass)
-
-plotEstrusCumFreq_1stL <- plotEstrusAgeCumFreqFunc(
-  c(1)
-  , maxAge = indivMaxAge
-  , fontSize = textSize
-)
-
-Estrus_cumFreq_plot_1stL <- plotEstrusCumFreq_1stL(maturationFiltered)
+figOffE <- maturation_byDam_f %>%
+  scatterPlotLBN(
+    yVar = Estrus_mass
+    , "first estrus\nmass (g)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = max_mass
+  )
 
 
 ## Preputial separation ----------------------------------------------------
 
-plotPreputialSepAge <- plotPreputialSepAgeFunc(
-  fontSize = textSize
-  , dotSize = dotSize
-  , facetLitter = facetMatByLitter
-)
-plotPreputialSepMass <- plotPreputialSepMassFunc(
-  fontSize = textSize
-  , dotSize = dotSize
-  , facetLitter = facetMatByLitter
-)
+figOffF <- maturation_byDam_m %>%
+  scatterPlotLBN(
+    yVar = PreputialSep_age
+    , "preputial separation\nage (days)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = max_age
+  )
 
-PreputialSep_age_plot <- plotPreputialSepAge(maturation_byDam_m) +
-  expand_limits(y = max_age)
-
-PreputialSep_mass_plot <- plotPreputialSepMass(maturation_byDam_m)+
-  expand_limits(y = max_mass)
-
-plotPreputialSepCumFreq_1stL <- plotPreputialSepAgeCumFreqFunc(
-  c(1)
-  , maxAge = indivMaxAge
-  , fontSize = textSize
-)
-
-PreputialSep_cumFreq_plot_1stL <- plotPreputialSepCumFreq_1stL(maturationFiltered)
-
+figOffG <- maturation_byDam_m %>%
+  scatterPlotLBN(
+    yVar = PreputialSep_mass
+    , "preputial separation\nmass (g)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = max_mass
+  )
 
 
 # Cycles ------------------------------------------------------------------
@@ -161,84 +205,133 @@ PreputialSep_cumFreq_plot_1stL <- plotPreputialSepCumFreq_1stL(maturationFiltere
 
 ## Representative Plots ----------------------------------------------------
 
-plotRepCycles_STD_1stL <- plotRepCyclesFunc(
-  c("STD")
-  , c(1)
-  , fontSize = textSize 
-)
-plotRepCycles_LBN_1stL <- plotRepCyclesFunc(
-  c("LBN")
-  , c(1)
-  , fontSize = textSize 
-)
-plotRepCycles_STD_2ndL <- plotRepCyclesFunc(
-  c("STD")
-  , c(2)
-  , fontSize = textSize 
-)
-plotRepCycles_LBN_2ndL <- plotRepCyclesFunc(
-  c("LBN")
-  , c(2)
-  , fontSize = textSize 
-)
+stdCycles <- cyclesFiltered %>%
+  filter(
+    earlyLifeTrt == "STD"
+  )
+lbnCycles <- cyclesFiltered %>%
+  filter(
+    earlyLifeTrt == "LBN"
+  )
+stdMice <- stdCycles[sample(nrow(stdCycles))[1:4],]$mouseID
+lbnMice <- lbnCycles[sample(nrow(lbnCycles))[1:4],]$mouseID
 
-repCycles_STD_1stL <- plotRepCycles_STD_1stL(cyclesFiltered)
-repCycles_LBN_1stL <- plotRepCycles_LBN_1stL(cyclesFiltered)
-repCycles_STD_2ndL <- plotRepCycles_STD_2ndL(cyclesFiltered)
-repCycles_LBN_2ndL <- plotRepCycles_LBN_2ndL(cyclesFiltered)
+figCyclesA <-  cyclesFiltered %>%
+  filter(
+    mouseID %in% stdMice | mouseID %in% lbnMice
+  ) %>%
+  arrange(
+    earlyLifeTrt
+  ) %>%
+  mutate(
+    mouseByRow = row_number()
+  ) %>%
+  makeCyclesLong() %>%
+  addCycleStartCol() %>%
+  addPNDForCyles() %>%
+  plotCycleTraces(
+    colorValues = c("grey30", "cyan4")
+    , fontSize = textSize
+    , removeFacets = TRUE
+    , ncol = 4
+    , nrow = 2
+    , day = PND
+    , breakSeq = seq(70, 90, 5)
+    , MouseID = mouseByRow
+    , facetDir = "v"
+  ) + theme(
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+  )
+
+## cycle features -------------------------------------------------------------
+
+figCyclesB <- cyclesFiltered %>%
+  scatterPlotLBN(
+    yVar = numCycles
+    , yLab = "# of cycles from P70-90"
+    , textSize = textSize
+    , dotSize = dotSize
+  )
+
+figCyclesC <- cyclesFiltered %>%
+  scatterPlotLBN(
+    yVar = cycleLength
+    , yLab = "cycle length (days)"
+    , textSize = textSize
+    , dotSize = dotSize
+  )
 
 
 ## Percent days in stage ---------------------------------------------------
 
-plotCyclesPerc_1stL <- plotCyclesPercentFunc(
-  c(1)
-  , fontSize = textSize 
-  , dotSize = dotSize
-)
-plotCyclesPerc_2ndL <- plotCyclesPercentFunc(
-  c(2)
-  , fontSize = textSize 
-  , dotSize = dotSize
-)
-
-percDaysStage_1stL <- plotCyclesPerc_1stL(cyclesPercLong)
-percDaysStage_2ndL <- plotCyclesPerc_2ndL(cyclesPercLong)
-
+figCyclesD <- cyclesPercLong %>%
+  plotCyclesPercent(
+    fontSize = textSize
+    , dotSize = dotSize
+    , strip.position = "top"
+  )
 
 # ALPS --------------------------------------------------------------------
 
 
 ## Cort --------------------------------------------------------------------
 
-plotCort_bothL <- plotCortFunc(c(1, 2))
+plotCort_onlyLBN <- manuscriptCortPlotFunc(
+  onlyLBN = TRUE 
+  , fontSize = textSize
+  , dotSize = dotSize
+  , yUnitsNewLine = TRUE
+  , jitterPosition = 1.8
+  , wrapLegend = TRUE
+  , useALPSLineType = TRUE
+)
 
-plotCort_1stL <- plotCortFunc(c(1))
-plotCort_2ndL <- plotCortFunc(c(2))
+plotCort_onlyLBN_longYLab <- manuscriptCortPlotFunc(
+  onlyLBN = TRUE 
+  , fontSize = textSize
+  , dotSize = dotSize
+  , yUnitsNewLine = FALSE
+  , jitterPosition = 1.8
+  , wrapLegend = FALSE
+  , meanWidth = 2.5
+  , useALPSLineType = TRUE
+)
 
-maleCortPlot <- cortFilteredMales %>%
-  plotCort_bothL()
+plotCort_long <- manuscriptCortPlotFunc(
+  fontSize = textSize
+  , dotSize = dotSize
+  , yUnitsNewLine = TRUE
+  , jitterPosition = 1.8
+)
 
-maleCortPlot_1stL <- cortFilteredMales %>%
-  plotCort_1stL()
-maleCortPlot_2ndL <- cortFilteredMales %>%
-  plotCort_2ndL()
 
-diCortPlot <- cortFilteredDi %>%
-  plotCort_bothL()
 
-diCortPlot_1stL <- cortFilteredDi %>%
-  plotCort_1stL()
-diCortPlot_2ndL <- cortFilteredDi %>%
-  plotCort_2ndL()
+figCort_opt1A <- cortFilteredMales %>%
+  plotCort_onlyLBN()
 
-proCortPlot <- cortFilteredPro %>%
-  plotCort_bothL()
+figCort_opt2A <- cortFilteredMales %>%
+  plotCort_long()
 
-proCortPlot_1stL <- cortFilteredPro %>%
-  plotCort_1stL()
-proCortPlot_2ndL <- cortFilteredPro %>%
-  plotCort_2ndL()
+figCort_opt3A <- cortFilteredMales %>%
+  plotCort_onlyLBN_longYLab()
 
+figCort_opt1B <- cortFilteredDi %>%
+  plotCort_onlyLBN()
+
+figCort_opt2B <- cortFilteredDi %>%
+  plotCort_long()
+
+figCort_opt3B <- cortFilteredDi %>%
+  plotCort_onlyLBN_longYLab()
+
+figCort_opt1C <- cortFilteredPro %>%
+  plotCort_onlyLBN()
+
+figCort_opt2C <- cortFilteredPro %>%
+  plotCort_long()
+
+figCort_opt3C <- cortFilteredPro %>%
+  plotCort_onlyLBN_longYLab()
 
 ## Uterine mass ------------------------------------------------------------
 

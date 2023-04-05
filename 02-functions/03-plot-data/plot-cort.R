@@ -17,7 +17,14 @@ cortPlot <- function(
   groupVar = comboTrt
   , meanWidth = 1.4
   , meanFollowsLineType = TRUE
+  , yUnitsNewLine = FALSE
 ){
+  if(yUnitsNewLine){
+    yLab <- "corticosterone\n(ng/mL)"
+  } else {
+    yLab <- "corticosterone (ng/mL)"
+  }
+  
   viz <- ggplot(
     df_long,
     aes(
@@ -44,7 +51,7 @@ cortPlot <- function(
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
     # rremove("xlab") + ## seems like can't add back after if do this
     labs(
-      y = "corticosterone (ng/mL)",
+      y = yLab,
       x = NULL
     ) +
     scale_x_continuous(
@@ -199,15 +206,26 @@ longCortPlot <- function(
   zoom_y = FALSE, #Zoom to a part of y axis
   ymin = NULL,
   ymax = NULL
+  , onlyLBN = FALSE
 ){
-  longPlot <- basePlot +
-    facet_wrap(
-      # ~ comboTrt,
-      ~ earlyLifeTrt + adultTrt,
-      strip.position = "bottom",
-      ncol = 4,
-      nrow = 1
-    ) +
+  if(onlyLBN){
+    longPlot <- basePlot +
+      facet_wrap(
+        ~ earlyLifeTrt
+        , strip.position = "bottom"
+        , ncol = 2
+      )
+  } else {
+    longPlot <- basePlot +
+      facet_wrap(
+        # ~ comboTrt,
+        ~ earlyLifeTrt + adultTrt,
+        strip.position = "bottom",
+        ncol = 4,
+        nrow = 1
+      )
+  }
+  longPlot <- longPlot +
     expand_limits(y = 0) +
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
     rremove(

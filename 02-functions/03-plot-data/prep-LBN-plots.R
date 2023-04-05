@@ -626,6 +626,7 @@ plotRepCyclesFunc <- function(
     , ncol = 2
     , nrow = 3
     , fontSize = 16
+    , breakSeq = seq(7, 400, 7)
 ){
   if(ncol*nrow!=numMice){
     print("WARNING: number of mice selected doesn't match layout")
@@ -640,7 +641,8 @@ plotRepCyclesFunc <- function(
     
     dfToUse <- df_filtered[sample(nrow(df_filtered))[1:numMice], ] %>%
       makeCyclesLong() %>%
-      addCycleStartCol()
+      addCycleStartCol() %>%
+      addPNDForCyles()
     
     plot <- plotCycleTraces(
       dfToUse
@@ -649,6 +651,8 @@ plotRepCyclesFunc <- function(
       , removeFacets = ifelse(length(trts)==1, TRUE, FALSE)
       , ncol = ncol
       , nrow = nrow
+      , day = PND
+      , breakSeq = breakSeq
     ) + theme(
       panel.border = element_rect(color = "lightgrey", fill = NA)
     )
@@ -685,6 +689,88 @@ plotCyclesPercentFunc <- function(
 
 ## cort --------------------------------------------------------------------
 
+manuscriptCortPlotFunc <- function(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 450
+    , zoom_x = TRUE
+    , xmin = -2
+    , xmax = 7
+    , fontSize = 11
+    , dotSize = 2
+    , yUnitsNewLine = TRUE
+    , onlyLBN = FALSE
+    , jitterPosition = 1
+    , meanWidth = 1.4
+    , wrapLegend = TRUE
+    , useALPSLineType = FALSE
+    , ALPSdodge = 1
+){
+  if(useALPSLineType){
+    lineGuide <-  c("STD-CON"="dotted", "STD-ALPS"="solid", "LBN-CON"="dotted", "LBN-ALPS"="solid")
+  } else{
+    lineGuide <- c("solid", "solid", "solid", "solid")
+  }
+  
+  
+  plotFunc <- function(df){
+    if(onlyLBN){
+      df <- df %>%
+        mutate(
+          time = ifelse(
+            adultTrt == "CON"
+            , time - ALPSdodge
+            , time + ALPSdodge
+          )
+        )
+    }
+    
+    plot <- df %>%
+      cortPlot(
+        pointSize = dotSize
+        , fontSize = fontSize
+        , zoom_y = zoom_y
+        , ymin = ymin
+        , ymax = ymax
+        , zoom_x = zoom_x
+        , xmin = xmin
+        , xmax = xmax
+        , positionDodge = jitterPosition
+        , meanWidth = meanWidth
+        , yUnitsNewLine = yUnitsNewLine
+        , lineTypeGuide = lineGuide
+      )
+    
+    if(onlyLBN){
+      plot <- plot + facet_wrap(
+        ~ earlyLifeTrt
+        , nrow = 1
+        , strip.position = "bottom"
+      )
+      if(wrapLegend){
+        plot <- plot +
+          guides(
+            linetype = guide_legend(nrow = 2)
+            , color = guide_legend(nrow = 2)
+            , shape = guide_legend(nrow = 2)
+            , fill = guide_legend(nrow = 2)
+          )
+      }
+    } else {
+      plot <- plot + facet_wrap(
+        ~ earlyLifeTrt + adultTrt
+        , nrow = 1
+        , strip.position = "bottom"
+      )
+      plot <- plot +
+        rremove("legend")
+    }
+    return(plot)
+  }
+  
+  return(plotFunc)
+}
+
 plotCortFunc <- function(
     litterNums
     , zoom_y = TRUE
@@ -699,6 +785,7 @@ plotCortFunc <- function(
     , breaks = c(0, 200, 400, 600, 800, 1000)
     # , breaks = c(0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000)
     , yUnitsNewLine = FALSE
+    , onlyLBN = FALSE
 ){
   plotFunc <- function(df){
     df <- df %>%
@@ -723,11 +810,13 @@ plotCortFunc <- function(
         , zoom_x = zoom_x
         , xmin = xmin
         , xmax = xmax
+        , onlyLBN = onlyLBN
       ) +
       ylab(yLab) +
       scale_y_continuous(
         breaks = breaks
       )
+    
     return(plot)
   }
   

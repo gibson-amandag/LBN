@@ -9340,4 +9340,33 @@ cyclesFiltered %>%
 #   )
 ```
 
+```{r warning=TRUE}
+df_filtered <- cyclesFiltered %>%
+      filter(
+        earlyLifeTrt %in% c("STD")
+        , litterNum %in% c(1)
+      )
+
+df_filtered %>%
+  select(
+    starts_with("day")
+  )
+    
+    dfToUse <- df_filtered[sample(nrow(df_filtered))[1:6], ] %>%
+      makeCyclesLong() %>%
+      addCycleStartCol()
+    
+    plot <- plotCycleTraces(
+      dfToUse
+      , colorValues = c("grey30", "cyan4")
+      , fontSize = 12
+      , removeFacets = ifelse(length(c("STD"))==1, TRUE, FALSE)
+      , ncol = 2
+      , nrow = 3
+    ) + theme(
+      panel.border = element_rect(color = "lightgrey", fill = NA)
+    )
+    
+plotRepCycles_STD_1stL(cyclesFiltered)
+```
 

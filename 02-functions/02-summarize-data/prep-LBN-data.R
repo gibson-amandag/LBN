@@ -50,6 +50,7 @@ filterCortFunc <- function(
   , proUterineMin = 125
   , diUterineMax = 100
   , exclude653 = TRUE
+  , exclude723 = TRUE
   , adjMaxMin = TRUE
   , cortMax = 500
   , cortMin = 1.95
@@ -98,6 +99,13 @@ filterCortFunc <- function(
         )
     }
     
+    if(exclude723){
+      df <- df %>%
+        filter(
+          mouseID != 723
+        )
+    }
+    
     return(df)
   }
   return(filterFunc)
@@ -109,6 +117,7 @@ filterLHFunc <- function(
   , proUterineMin = 125
   , diUterineMax = 100
   , exclude653 = TRUE
+  , exclude723 = TRUE
 ){
   filterFunc <- function(df){
     df <- df %>%
@@ -139,6 +148,13 @@ filterLHFunc <- function(
         )
     }
     
+    if(exclude723){
+      df <- df %>%
+        filter(
+          mouseID != 723
+        )
+    }
+    
     return(df)
   }
   return(filterFunc)
@@ -151,6 +167,7 @@ filterAcuteStressFunc <- function(
     , proUterineMin = 125
     , diUterineMax = 100
     , exclude653 = TRUE
+    , exclude723 = TRUE
 ){
   filterFunc <- function(df){
     df <- df %>%
@@ -174,6 +191,13 @@ filterAcuteStressFunc <- function(
       df <- df %>%
         filter(
           mouseID != 653
+        )
+    }
+    
+    if(exclude723){
+      df <- df %>%
+        filter(
+          mouseID != 723
         )
     }
     

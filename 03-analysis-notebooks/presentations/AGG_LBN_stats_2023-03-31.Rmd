@@ -658,6 +658,8 @@ We can run a LMM on this time period, again adjusting the day so that the interc
 
 The formula is `mass ~ earlyLifeTrt * day * sex + (1|damID) + (1|mouseID)`
 
+?Question - does include damID to account for the litter also lead to some of the earlyLifeTrt differences being absorbed into the random variation?
+
 ```{r}
 lmm <- mass_long %>%
   filter(

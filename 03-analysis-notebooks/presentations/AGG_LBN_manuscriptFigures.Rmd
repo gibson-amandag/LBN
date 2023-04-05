@@ -34,98 +34,9 @@ oneCol <- 8.5
 
 # Figure 1 - Dams figDams
 
-## Dam behavior
-
-to-do: move this to 05-plots file
-
-```{r}
-figDamsB <- damBehavior_byPND_plot
-figDamsB
-```
-
-LBN increases the # of exits from the nest. # of exits decreases with time
-
-```{r}
-lmm <- damBehavior_byPND %>%
-  mutate(
-    PND = PND - 4
-  ) %>%
-  runLMM(
-    Num_exits ~ earlyLifeTrt * PND + (1|damID)
-  )
-
-lmm$anova %>% formatLMM_ppt()
-```
-
-The linear mixed model allows us to estimate the effect of LBN and day on # of exits
-
-```{r}
-lmm$coefs %>% formatLMM_ppt()
-
-coefs <- lmm$coefs
-
-damBehaviorIntercept <- coefs %>%
-  getValWhereOtherValTrue(
-    matchCol = "effect"
-    , matchVal = "(Intercept)"
-    , valCol = "Estimate"
-  )
-
-damBehaviorLBN <- coefs %>%
-  getValWhereOtherValTrue(
-    matchCol = "effect"
-    , matchVal = "earlyLifeTrtLBN"
-    , valCol = "Estimate"
-  )
-
-damBehaviorPND <- coefs %>%
-  getValWhereOtherValTrue(
-    matchCol = "effect"
-    , matchVal = "PND"
-    , valCol = "Estimate"
-  )
-
-damBehaviorLBNchangePND <- coefs %>%
-  getValWhereOtherValTrue(
-    matchCol = "effect"
-    , matchVal = "earlyLifeTrtLBN:PND"
-    , valCol = "Estimate"
-  )
-```
-
-## Dam mass
-
-```{r}
-figDamsC <- damMass_plot
-figDamsC
-```
-
-```{r}
-lmm <- damMassFiltered %>%
-  makeFactors(day) %>%
-  runLMM(
-    mass ~ earlyLifeTrt * day + (1|damID)
-  )
-```
-
-LBN dams had a higher body mass at the start of the paradigm
-
-```{r}
-lmm$anova %>% formatLMM_ppt()
-```
-
-## Dam corticosterone
-
-```{r}
-figDamsD <- damCort_plot
-figDamsD
-```
-
-## Plot grid
-
 ```{r}
 # trying to fix font errors
-# set_null_device("png")
+# set_null_device("pdf")
 ```
 
 
