@@ -42,6 +42,8 @@ niceNames <- loadExcelSheet(dataFolder, LBN_DataName, "plotLabels")
 
 slicingInfo <- loadExcelSheet(dataFolder, LBN_DataName, "Slicing_off")
 GABApscs <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs")
+GABApscs_120 <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs_120")
+GABApscs_240 <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs_240")
 cellInfo <- loadExcelSheet(dataFolder, LBN_DataName, "cellInfo")
 cellExclusion <- loadExcelSheet(dataFolder, LBN_DataName, "cellExclusion")
 
@@ -164,6 +166,8 @@ slicingInfo <- makeFactors(slicingInfo, c(mouseID))
 cellInfo <- makeFactors(cellInfo, c(mouseID, cellID))
 cellExclusion <- makeFactors(cellExclusion, c(cellID))
 GABApscs <- makeFactors(GABApscs, c(cellID))
+GABApscs_120 <- makeFactors(GABApscs_120, c(cellID))
+GABApscs_240 <- makeFactors(GABApscs_240, c(cellID))
 
 # behaviorDFs <- list(
 #   behavior_ZT9
@@ -388,6 +392,66 @@ GABApscs <- GABApscs %>%
     -time, timeHr
   )
 
+GABApscs_120 <- GABApscs_120 %>%
+  select(-group) %>%
+  left_join(
+    cellExclusion %>%
+      select(
+        cellID, incCell, exclude
+      )
+    , by = "cellID"
+  ) %>%
+  left_join(
+    cellInfo,
+    by = "cellID"
+  ) %>%
+  left_join(
+    slicingInfo,
+    by = "mouseID"
+  ) %>%
+  mutate(
+    timeHr = ifelse(!is.na(time), time * 24, NA),
+    .after = time
+  ) %>%
+  mutate(
+    recHr = ifelse(Daylight_Savings == "Y", timeHr - 4, timeHr - 3), # hours since lights on
+    timeSinceSac = recHr - Sac_hr,
+    .after = timeHr
+  ) %>%
+  select(
+    -time, timeHr
+  )
+
+GABApscs_240 <- GABApscs_240 %>%
+  select(-group) %>%
+  left_join(
+    cellExclusion %>%
+      select(
+        cellID, incCell, exclude
+      )
+    , by = "cellID"
+  ) %>%
+  left_join(
+    cellInfo,
+    by = "cellID"
+  ) %>%
+  left_join(
+    slicingInfo,
+    by = "mouseID"
+  ) %>%
+  mutate(
+    timeHr = ifelse(!is.na(time), time * 24, NA),
+    .after = time
+  ) %>%
+  mutate(
+    recHr = ifelse(Daylight_Savings == "Y", timeHr - 4, timeHr - 3), # hours since lights on
+    timeSinceSac = recHr - Sac_hr,
+    .after = timeHr
+  ) %>%
+  select(
+    -time, timeHr
+  )
+
 # COMBINE ALL DFS INTO ONE ------------------------------------------------
 
 LBN_all <- Demo_off %>%
@@ -490,6 +554,16 @@ AcuteStress_off <- AcuteStress_off %>%
   calcAgeInDays()
 
 GABApscs <- GABApscs %>%
+  left_join(
+    AcuteStress_off,
+    by = "mouseID"
+  )
+GABApscs_120 <- GABApscs_120 %>%
+  left_join(
+    AcuteStress_off,
+    by = "mouseID"
+  )
+GABApscs_240 <- GABApscs_240 %>%
   left_join(
     AcuteStress_off,
     by = "mouseID"

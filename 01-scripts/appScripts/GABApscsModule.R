@@ -6,12 +6,34 @@
 
 GABApscsUI <- function(
   id,
-  GABApscs
+  GABApscs,
+  GABApscs_120,
+  GABApscs_240
 ){
   ns <- NS(id)
   tagList(
 
     h3("GABA PSCs"),
+    
+    fluidRow(
+      div(
+        class = "col-xs-4",
+        radioButtons(
+          ns("whichDF")
+          , "Which dataset?"
+          , choices = c("All", "120s", "240s")
+          , selected = "All"
+        )
+      ),
+      div(
+        class = "col-xs-4"
+        , numericInput(
+          ns("minDur")
+          , "minimum duration (s)"
+          , value = 100
+        )
+      )
+    ),
     
   # Filtering ---------------------------------------------------------------
     filteringDFUI(ns("GABA_filter"), GABApscs),
@@ -144,6 +166,8 @@ GABApscsUI <- function(
 GABApscsServer <- function(
   id,
   GABApscs,
+  GABApscs_120,
+  GABApscs_240,
   AcuteStress_off,
   LH_off,
   Cort_off,
@@ -157,8 +181,22 @@ GABApscsServer <- function(
 
 
       ## Filtering -------------------------------------------------------------
-
-      GABApscs_react <- filteringDFServer("GABA_filter", GABApscs)
+      
+      # tried adding, but problems with filtering reactive - incorporated below
+      # GABApscs_react <- reactive({
+      #   if(input$whichDF == "All"){
+      #     df <- filteringDFServer("GABA_filter", GABApscs)
+      #   } else if(input$whichDF == "120s"){
+      #     df <- filteringDFServer("GABA_filter", GABApscs_120)
+      #   } else {
+      #     df <- filteringDFServer("GABA_filter", GABApscs_240)
+      #   }
+      #   return(df)
+      # })
+      
+      #original
+      # GABApscs_react <- filteringDFServer("GABA_filter", GABApscs)
+      
       AcuteStress_off_react <- filteringDFServer("GABA_filter", AcuteStress_off)
       LH_off_react <- filteringDFServer("GABA_filter", LH_off)
       Cort_off_react <- filteringDFServer("GABA_filter", Cort_off)
@@ -181,6 +219,18 @@ GABApscsServer <- function(
       }
       
       GABApscs_filtered_step1_react <- reactive({
+        
+        # added
+        if(input$whichDF == "All"){
+          GABApscs_react <- filteringDFServer("GABA_filter", GABApscs)
+        } else if(input$whichDF == "120s"){
+          GABApscs_react <- filteringDFServer("GABA_filter", GABApscs_120)
+        } else {
+          GABApscs_react <- filteringDFServer("GABA_filter", GABApscs_240)
+        }
+        
+        # original
+        
         df <- GABApscs_react() %>%
           filter(
             sex == "F",
@@ -199,6 +249,13 @@ GABApscsServer <- function(
           df <- df %>%
             filter(
               incCell != "no" | is.na(incCell)
+            )
+        }
+        
+        if(input$whichDF != "120s"){
+          df <- df %>%
+            filter(
+              duration >= input$minDur
             )
         }
         

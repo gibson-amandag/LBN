@@ -636,13 +636,25 @@ GABApscsFiltered <- GABApscs %>%
     !is.na(adultTrt)
   ) %>%
   filterAcuteStressPro() # added 2023-03-26
+GABApscs_120Filtered <- GABApscs_120 %>%
+  filterLBNCohorts() %>%
+  filter(
+    !is.na(adultTrt)
+  ) %>%
+  filterAcuteStressPro() # added 2023-03-26
+GABApscs_240Filtered <- GABApscs_240 %>%
+  filterLBNCohorts() %>%
+  filter(
+    !is.na(adultTrt)
+  ) %>%
+  filterAcuteStressPro() # added 2023-03-26
 
 filterByRseries <- TRUE
 RseriesMin <- 0
 RseriesMax <- 20
 filterByRinput <- TRUE
 RinputMin <- 500
-RinputMax <- 1500
+RinputMax <- 4000 # changed from 1500 2023-04-05
 filterByHoldingCurr <- FALSE
 holdingCurrMin <- -50
 holdingCurrMax <- 10
@@ -688,6 +700,10 @@ filterEphys <- filterEphysFunc(
 
 GABApscsFilteredProps <- GABApscsFiltered %>%
   filterEphys()
+GABApscs_120FilteredProps <- GABApscs_120Filtered %>%
+  filterEphys()
+GABApscs_240FilteredProps <- GABApscs_240Filtered %>%
+  filterEphys()
 
 filterByFreq <- TRUE
 
@@ -702,6 +718,10 @@ filterByFrequency <- function(df, doFilterByFreq = filterByFreq){
 }
 
 GABApscsFilteredFiring <- GABApscsFilteredProps %>%
+  filterByFrequency()
+GABApscs_120FilteredFiring <- GABApscs_120FilteredProps %>%
+  filterByFrequency()
+GABApscs_240FilteredFiring <- GABApscs_240FilteredProps %>%
   filterByFrequency()
 
 
