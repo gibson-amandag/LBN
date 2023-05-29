@@ -324,7 +324,7 @@ behaviorDamServer <- function(
           filter(
             PND %in% input$days
             , ZT %in% input$ZTs
-            , !is.na(!! input$singleVar )
+            # , !is.na(!! input$singleVar ) # remove 2023-05-12. Don't want to connect missing vals
           )
         
         if(useDF() == "behavior"){

@@ -69,6 +69,7 @@ plotDamBehavior <- function(
     , zoom_y = FALSE # Zoom to part of y axis
     , ymin = NULL
     , ymax = NULL
+    , showMean = TRUE
 ){
   df <- df %>%
     rename(
@@ -271,20 +272,22 @@ plotDamBehavior <- function(
       )
   }
   
-  if(colorMean){
-    viz <- viz + addMeanHorizontalBar(
-      addLineType = FALSE
-      , group = earlyLifeTrt
-      , color = earlyLifeTrt
-      , barPosition = position_dodge(dodgeVal)
-    )
-  } else {
-    viz <- viz +
-      addMeanHorizontalBar(
+  if(showMean){
+    if(colorMean){
+      viz <- viz + addMeanHorizontalBar(
         addLineType = FALSE
         , group = earlyLifeTrt
+        , color = earlyLifeTrt
         , barPosition = position_dodge(dodgeVal)
       )
+    } else {
+      viz <- viz +
+        addMeanHorizontalBar(
+          addLineType = FALSE
+          , group = earlyLifeTrt
+          , barPosition = position_dodge(dodgeVal)
+        )
+    }
   }
   
   viz <- viz +
