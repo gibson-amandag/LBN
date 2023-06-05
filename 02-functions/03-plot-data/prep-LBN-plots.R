@@ -705,6 +705,7 @@ manuscriptCortPlotFunc <- function(
     , wrapLegend = TRUE
     , useALPSLineType = FALSE
     , ALPSdodge = 1
+    , stripPosition = "bottom"
 ){
   if(useALPSLineType){
     lineGuide <-  c("STD-CON"="dotted", "STD-ALPS"="solid", "LBN-CON"="dotted", "LBN-ALPS"="solid")
@@ -745,7 +746,7 @@ manuscriptCortPlotFunc <- function(
       plot <- plot + facet_wrap(
         ~ earlyLifeTrt
         , nrow = 1
-        , strip.position = "bottom"
+        , strip.position = stripPosition
       )
       if(wrapLegend){
         plot <- plot +
@@ -760,7 +761,7 @@ manuscriptCortPlotFunc <- function(
       plot <- plot + facet_wrap(
         ~ earlyLifeTrt + adultTrt
         , nrow = 1
-        , strip.position = "bottom"
+        , strip.position = stripPosition
       )
       plot <- plot +
         rremove("legend")

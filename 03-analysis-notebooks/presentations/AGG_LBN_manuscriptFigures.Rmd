@@ -8,7 +8,7 @@ df-print: kable
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
-knitr::opts_chunk$set(fig.width=11.5, fig.height=5) 
+# knitr::opts_chunk$set(fig.width=11.5, fig.height=5) 
 # options(digits=3)
 ```
 
@@ -36,43 +36,393 @@ oneCol <- 8.5
 
 ```{r}
 # trying to fix font errors
+# this seems to work for not putting the axis label on top of the tick labels
+# but the axes don't actually align with align_plots
+# update - Maybe works???? IDK WHAT I DID!
+set_null_device("png") 
+
+# # this works for aligning the axes with align_plots
+# # but then faceted plot yaxis label overlaps
 # set_null_device("pdf")
+# 
+# # this works for aligning the axes with align_plots
+# # but then faceted plot yaxis label overlaps
+# set_null_device("cairo_pdf")
 ```
 
 
 ```{r}
-figDamsPlots <- align_plots(figDamsB, figDamsC, align = "v", axis = "l")
+figDamsPlots <- cowplot::align_plots(figDamsB, figDamsC, align = "v", axis = "l")
 
 figDams <- plot_grid(
   NULL
   , figDamsPlots[[1]]
+  , NULL
   , plot_grid(
     figDamsPlots[[2]]
     , figDamsD
     , ncol = 2
     , labels = c("C", "D")
-    , align = "vh"
-    , axis = "bt"
     , label_fontfamily = "Arial"
     , label_size = textSize
   )
-  , nrow = 3
-  , labels = c("A", "B", NULL)
-  # , align = "hv"
-  # , axis = "lb"
+  , nrow = 4
+  , labels = c("A", NULL, "B", NULL)
   , label_fontfamily = "Arial"
   , label_size = textSize
-  , rel_heights = c(0.5, 1, 1)
+  , rel_heights = c(0.5, 1, .1, 1)
 )
-
 figDams
+```
 
+
+```{r}
 flexSave(
   "figDams"
+  , plot = figDams
   , width = twoCols
   , heigh = 28/3*2
   , units = "cm"
 )
+```
+
+# Figure 2 - Offspring maturation figOff
+
+```{r}
+figOffLeftPlots <- cowplot::align_plots(
+  figOffA
+  , figOffB
+  , figOffC
+  , align = "v", axis = "l"
+)
+
+figOffMidPlots <- cowplot::align_plots(
+  figOffD
+  , figOffE
+  , align = "v", axis = "l"
+)
+
+figOffRightPlots <- cowplot::align_plots(
+  figOffF
+  , figOffG
+  , align = "v", axis = "l"
+)
+
+figOffRow2 <- plot_grid(
+  figOffLeftPlots[[2]]
+  , figOffMidPlots[[1]]
+  , figOffRightPlots[[1]]
+  , ncol = 3
+  , labels = c("Bi", "Ci", "Di")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figOffRow3 <- plot_grid(
+  figOffLeftPlots[[3]]
+  , figOffMidPlots[[2]]
+  , figOffRightPlots[[2]]
+  , ncol = 3
+  , labels = c("Bii", "Cii", "Dii")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figOff <- plot_grid(
+  figOffLeftPlots[[1]]
+  , figOffRow2
+  , figOffRow3
+  , nrow = 3
+  , labels = c("A", NULL, NULL)
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , rel_heights = c(1.5, 1, 1)
+)
+figOff
+```
+
+```{r}
+flexSave(
+  "figOff"
+  , plot = figOff
+  , width = twoCols
+  , heigh = 28/3*2
+  , units = "cm"
+)
+```
+
+# Figure 3 - Cycles
+
+```{r}
+figCyclesLeftPlots <- cowplot::align_plots(
+  figCyclesA
+  , figCyclesB
+  , align = "v", axis = "l"
+)
+
+figCycles2ndRow <- plot_grid(
+  figCyclesLeftPlots[[2]]
+  , figCyclesC
+  , figCyclesD
+  , ncol = 3
+  , labels = c("B", "C", "D")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , align = "h"
+  , axis = "bt"
+  , rel_widths = c(1, 1, 2)
+)
+
+figCycles <- plot_grid(
+  figCyclesLeftPlots[[1]]
+  , figCycles2ndRow
+  , nrow = 2
+  , rel_heights = c(2.2, 3)
+  , labels = c("A", NULL)
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+figCycles
+```
+
+```{r}
+flexSave(
+  "figCycles"
+  , plot = figCycles
+  , width = twoCols
+  , height = 28/3
+  , units = "cm"
+)
+```
+
+# Figure 4 - Corticosterone
+
+```{r}
+figCort_opt1 <- plot_grid(
+  get_legend(figCort_opt1A)
+  , figCort_opt1A + rremove("legend")
+  , figCort_opt1B + rremove("legend")
+  , figCort_opt1C + rremove("legend")
+  , nrow = 4
+  , labels = c("", "A", "B", "C")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , align = "v"
+  , axis = "lr"
+  , rel_heights = c(0.2, 1, 1, 1)
+)
+
+figCort_opt1
+```
+
+```{r}
+flexSave(
+  "figCort_opt1"
+  , plot = figCort_opt1
+  , width = oneCol
+  , height = 28/3*2
+  , units = "cm"
+)
+```
+
+```{r}
+figCort_opt2 <- plot_grid(
+  figCort_opt2A
+  , figCort_opt2B
+  , figCort_opt2C
+  , nrow = 3
+  , labels = c("A", "B", "C")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , align = "v"
+  , axis = "lr"
+)
+figCort_opt2
+```
+
+```{r}
+flexSave(
+  "figCort_opt2"
+  , plot = figCort_opt2
+  , width = twoCols
+  , height = 28/3 *2
+  , units = "cm"
+)
+```
+
+```{r}
+figCort_opt3_graphs <- plot_grid(
+  figCort_opt3A + rremove("legend")
+  , figCort_opt3B + rremove("legend")
+  , figCort_opt3C + rremove("legend")
+  , ncol = 3
+  , labels = c("A", "B", "C")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , align = "h"
+  , axis = "tb"
+)
+
+figCort_opt3 <- plot_grid(
+  figCort_opt3_graphs
+  , get_legend(figCort_opt3A)
+  , nrow = 2
+  , rel_heights = c(1, .03)
+)
+
+figCort_opt3
+```
+
+```{r}
+flexSave(
+  "figCort_opt3"
+  , plot = figCort_opt3
+  , width = twoCols
+  , height = 28/3
+  , units = "cm"
+)
+```
+
+# Figure 5 - LH
+
+
+# Figure 6 - GABA PSCs
+
+```{r}
+figGABA1stCol <- cowplot::align_plots(
+  figGABAa
+  , figGABAe
+  , align = "v", axis = "l"
+)
+
+figGABA2ndCol <- cowplot::align_plots(
+  figGABAb
+  , figGABAf
+  , align = "v", axis = "l"
+)
+
+# eventually 3rd col
+
+figGABA1stRow <- plot_grid(
+  figGABA1stCol[[1]]
+  , figGABA2ndCol[[1]]
+  , figGABAc
+  , figGABAd
+  , ncol = 4
+  , labels = c("A", "B", "C", "D")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , align = "h"
+  , axis = "bt"
+)
+
+figGABA2ndRow <- plot_grid(
+  figGABA1stCol[[2]]
+  , figGABA2ndCol[[2]]
+  , NULL
+  , ncol = 3
+  , labels = c("E", "F", "G - avg trace?")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , align = "h"
+  , axis = "bt"
+  , rel_widths = c(1, 1, 2)
+)
+
+figGABA <- plot_grid(
+  figGABA1stRow
+  , figGABA2ndRow
+  , nrow = 2
+  # , rel_heights = c(2, 3)
+)
+
+figGABA
+```
+
+```{r}
+flexSave(
+  "figGABA"
+  , plot = figGABA
+  , width = twoCols
+  , height = 28/2
+  , units = "cm"
+)
+```
+
+```{r eval=FALSE, include=FALSE}
+# testing alignment... don't know what I acutally learned or didn't from these...
+figDamsPlots <- cowplot::align_plots(figDamsC, figDamsB + facet_wrap(~earlyLifeTrt, nrow =1), align = "v", axis = "l", greedy = FALSE)
+plot_grid(
+  # figDamsB
+  # , figDamsC
+  # , align = "v"
+  # , axis = "l"
+  figDamsPlots[[1]]
+  , figDamsPlots[[2]]
+  , nrow = 2
+  , labels = c("B", "C")
+)
+
+figDamsPlots <- cowplot::align_plots(
+  figDamsC
+  , figDamsB + facet_wrap(~earlyLifeTrt, nrow =1)
+  # , figDamsB
+  , align = "v"
+  , axis = "l"
+  , greedy = TRUE
+)
+plot_grid(
+  # figDamsB
+  # , figDamsC
+  # , align = "v"
+  # , axis = "l"
+  figDamsPlots[[1]]
+  , figDamsPlots[[2]]
+  , nrow = 2
+  , labels = c("B", "C")
+)
+
+figDamsPlots <- cowplot::align_plots(
+  figDamsC
+  # , figDamsB + facet_wrap(~earlyLifeTrt, nrow =1)
+  , figDamsB
+  , align = "v"
+  , axis = "l"
+  , greedy = TRUE
+)
+plot_grid(
+  # figDamsB
+  # , figDamsC
+  # , align = "v"
+  # , axis = "l"
+  figDamsPlots[[1]]
+  , figDamsPlots[[2]]
+  , nrow = 2
+  , labels = c("B", "C")
+)
+
+
+```
+
+```{r eval=FALSE, include=FALSE}
+install.packages("patchwork")
+library(patchwork)
+```
+
+```{r eval=FALSE, include=FALSE}
+plot_spacer() / (figDamsB + facet_wrap(~earlyLifeTrt, nrow =1)) / (figDamsC | figDamsD) +
+  plot_layout(
+    heights = c(0.5, 1, 1)
+  )
+
+layout <- "
+##
+AA
+BC
+"
+
+figDamsB + facet_wrap(~earlyLifeTrt, nrow = 1) + figDamsC + figDamsD +
+  plot_layout(design = layout)
 ```
 
 

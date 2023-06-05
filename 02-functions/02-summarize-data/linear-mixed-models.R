@@ -135,5 +135,6 @@ runLMM <- function(
     "coefs" = coefs
     , "formated" = formatted
     , "anova" = anova
+    , "model" = mod
   ))
 }

@@ -7104,6 +7104,234 @@ saveDFsToExcel(
 )
 ```
 
+# 2023-04-12 - ZT15, ZT19, and ZT1 times and dates for Cohort 9 after D097-01
+
+```{r}
+damBehaveDates <- Demo_dam %>%
+  filter(
+    Litter_size >= 5
+    , cohort == 9
+    , is.na(Sac_or_stop) | Sac_or_stop > DOB + 20
+    , DOB > as_date("2023-03-01")
+  ) %>%
+  arrange(
+    cohort,
+    DOB
+  ) %>%
+  select(
+    damID
+    , cohort
+    , DOB
+  ) %>%
+  mutate(
+    P4_ZT15 = getZT_DateTime(DOB, PND = 4, ZT = 15)
+    , P4_ZT15_done = NA
+    , P4_ZT15_who = NA
+    , P4_ZT15_notes = NA,
+    P4_ZT19 = getZT_DateTime(DOB, PND = 4, ZT = 19)
+    , P4_ZT19_done = NA
+    , P4_ZT19_who = NA
+    , P4_ZT19_notes = NA,
+    P5_ZT1 = getZT_DateTime(DOB, PND = 5, ZT = 1)
+    , P5_ZT1_done = NA
+    , P5_ZT1_who = NA
+    , P5_ZT1_notes = NA,
+    P5_ZT15 = getZT_DateTime(DOB, PND = 5, ZT = 15)
+    , P5_ZT15_done = NA
+    , P5_ZT15_who = NA
+    , P5_ZT15_notes = NA,
+    P5_ZT19 = getZT_DateTime(DOB, PND = 5, ZT = 19)
+    , P5_ZT19_done = NA
+    , P5_ZT19_who = NA
+    , P5_ZT19_notes = NA,
+    P6_ZT1 = getZT_DateTime(DOB, PND = 6, ZT = 1)
+    , P6_ZT1_done = NA
+    , P6_ZT1_who = NA
+    , P6_ZT1_notes = NA,
+    P6_ZT15 = getZT_DateTime(DOB, PND = 6, ZT = 15)
+    , P6_ZT15_done = NA
+    , P6_ZT15_who = NA
+    , P6_ZT15_notes = NA,
+    P6_ZT19 = getZT_DateTime(DOB, PND = 6, ZT = 19)
+    , P6_ZT19_done = NA
+    , P6_ZT19_who = NA
+    , P6_ZT19_notes = NA,
+    P7_ZT1 = getZT_DateTime(DOB, PND = 7, ZT = 1)
+    , P7_ZT1_done = NA
+    , P7_ZT1_who = NA
+    , P7_ZT1_notes = NA,
+    P7_ZT15 = getZT_DateTime(DOB, PND = 7, ZT = 15)
+    , P7_ZT15_done = NA
+    , P7_ZT15_who = NA
+    , P7_ZT15_notes = NA,
+    P7_ZT19 = getZT_DateTime(DOB, PND = 7, ZT = 19)
+    , P7_ZT19_done = NA
+    , P7_ZT19_who = NA
+    , P7_ZT19_notes = NA,
+    P8_ZT1 = getZT_DateTime(DOB, PND = 8, ZT = 1)
+    , P8_ZT1_done = NA
+    , P8_ZT1_who = NA
+    , P8_ZT1_notes = NA,
+    P8_ZT15 = getZT_DateTime(DOB, PND = 8, ZT = 15)
+    , P8_ZT15_done = NA
+    , P8_ZT15_who = NA
+    , P8_ZT15_notes = NA,
+    P8_ZT19 = getZT_DateTime(DOB, PND = 8, ZT = 19)
+    , P8_ZT19_done = NA
+    , P8_ZT19_who = NA
+    , P8_ZT19_notes = NA,
+    P9_ZT1 = getZT_DateTime(DOB, PND = 9, ZT = 1)
+    , P9_ZT1_done = NA
+    , P9_ZT1_who = NA
+    , P9_ZT1_notes = NA,
+    P9_ZT15 = getZT_DateTime(DOB, PND = 9, ZT = 15)
+    , P9_ZT15_done = NA
+    , P9_ZT15_who = NA
+    , P9_ZT15_notes = NA,
+    P9_ZT19 = getZT_DateTime(DOB, PND = 9, ZT = 19)
+    , P9_ZT19_done = NA
+    , P9_ZT19_who = NA
+    , P9_ZT19_notes = NA,
+    P10_ZT1 = getZT_DateTime(DOB, PND = 10, ZT = 1)
+    , P10_ZT1_done = NA
+    , P10_ZT1_who = NA
+    , P10_ZT1_notes = NA,
+    P10_ZT15 = getZT_DateTime(DOB, PND = 10, ZT = 15)
+    , P10_ZT15_done = NA
+    , P10_ZT15_who = NA
+    , P10_ZT15_notes = NA,
+    P10_ZT19 = getZT_DateTime(DOB, PND = 10, ZT = 19)
+    , P10_ZT19_done = NA
+    , P10_ZT19_who = NA
+    , P10_ZT19_notes = NA,
+    P11_ZT1 = getZT_DateTime(DOB, PND = 11, ZT = 1)
+    , P11_ZT1_done = NA
+    , P11_ZT1_who = NA
+    , P11_ZT1_notes = NA
+  )
+
+damBehaveDates
+
+saveDFsToExcel(
+  "damBehaviorDates_ZT15_ZT19_ZT1",
+  dates = damBehaveDates
+)
+```
+
+# 2023-04-27 - ZT15, ZT19, and ZT1 times and dates for D104-01
+
+```{r}
+damBehaveDates <- Demo_dam %>%
+  filter(
+    Litter_size >= 5
+    , cohort == 9
+    , is.na(Sac_or_stop) | Sac_or_stop > DOB + 20
+    , damID == "D104-01"
+  ) %>%
+  arrange(
+    cohort,
+    DOB
+  ) %>%
+  select(
+    damID
+    , cohort
+    , DOB
+  ) %>%
+  mutate(
+    P4_ZT15 = getZT_DateTime(DOB, PND = 4, ZT = 15)
+    , P4_ZT15_done = NA
+    , P4_ZT15_who = NA
+    , P4_ZT15_notes = NA,
+    P4_ZT19 = getZT_DateTime(DOB, PND = 4, ZT = 19)
+    , P4_ZT19_done = NA
+    , P4_ZT19_who = NA
+    , P4_ZT19_notes = NA,
+    P5_ZT1 = getZT_DateTime(DOB, PND = 5, ZT = 1)
+    , P5_ZT1_done = NA
+    , P5_ZT1_who = NA
+    , P5_ZT1_notes = NA,
+    P5_ZT15 = getZT_DateTime(DOB, PND = 5, ZT = 15)
+    , P5_ZT15_done = NA
+    , P5_ZT15_who = NA
+    , P5_ZT15_notes = NA,
+    P5_ZT19 = getZT_DateTime(DOB, PND = 5, ZT = 19)
+    , P5_ZT19_done = NA
+    , P5_ZT19_who = NA
+    , P5_ZT19_notes = NA,
+    P6_ZT1 = getZT_DateTime(DOB, PND = 6, ZT = 1)
+    , P6_ZT1_done = NA
+    , P6_ZT1_who = NA
+    , P6_ZT1_notes = NA,
+    P6_ZT15 = getZT_DateTime(DOB, PND = 6, ZT = 15)
+    , P6_ZT15_done = NA
+    , P6_ZT15_who = NA
+    , P6_ZT15_notes = NA,
+    P6_ZT19 = getZT_DateTime(DOB, PND = 6, ZT = 19)
+    , P6_ZT19_done = NA
+    , P6_ZT19_who = NA
+    , P6_ZT19_notes = NA,
+    P7_ZT1 = getZT_DateTime(DOB, PND = 7, ZT = 1)
+    , P7_ZT1_done = NA
+    , P7_ZT1_who = NA
+    , P7_ZT1_notes = NA,
+    P7_ZT15 = getZT_DateTime(DOB, PND = 7, ZT = 15)
+    , P7_ZT15_done = NA
+    , P7_ZT15_who = NA
+    , P7_ZT15_notes = NA,
+    P7_ZT19 = getZT_DateTime(DOB, PND = 7, ZT = 19)
+    , P7_ZT19_done = NA
+    , P7_ZT19_who = NA
+    , P7_ZT19_notes = NA,
+    P8_ZT1 = getZT_DateTime(DOB, PND = 8, ZT = 1)
+    , P8_ZT1_done = NA
+    , P8_ZT1_who = NA
+    , P8_ZT1_notes = NA,
+    P8_ZT15 = getZT_DateTime(DOB, PND = 8, ZT = 15)
+    , P8_ZT15_done = NA
+    , P8_ZT15_who = NA
+    , P8_ZT15_notes = NA,
+    P8_ZT19 = getZT_DateTime(DOB, PND = 8, ZT = 19)
+    , P8_ZT19_done = NA
+    , P8_ZT19_who = NA
+    , P8_ZT19_notes = NA,
+    P9_ZT1 = getZT_DateTime(DOB, PND = 9, ZT = 1)
+    , P9_ZT1_done = NA
+    , P9_ZT1_who = NA
+    , P9_ZT1_notes = NA,
+    P9_ZT15 = getZT_DateTime(DOB, PND = 9, ZT = 15)
+    , P9_ZT15_done = NA
+    , P9_ZT15_who = NA
+    , P9_ZT15_notes = NA,
+    P9_ZT19 = getZT_DateTime(DOB, PND = 9, ZT = 19)
+    , P9_ZT19_done = NA
+    , P9_ZT19_who = NA
+    , P9_ZT19_notes = NA,
+    P10_ZT1 = getZT_DateTime(DOB, PND = 10, ZT = 1)
+    , P10_ZT1_done = NA
+    , P10_ZT1_who = NA
+    , P10_ZT1_notes = NA,
+    P10_ZT15 = getZT_DateTime(DOB, PND = 10, ZT = 15)
+    , P10_ZT15_done = NA
+    , P10_ZT15_who = NA
+    , P10_ZT15_notes = NA,
+    P10_ZT19 = getZT_DateTime(DOB, PND = 10, ZT = 19)
+    , P10_ZT19_done = NA
+    , P10_ZT19_who = NA
+    , P10_ZT19_notes = NA,
+    P11_ZT1 = getZT_DateTime(DOB, PND = 11, ZT = 1)
+    , P11_ZT1_done = NA
+    , P11_ZT1_who = NA
+    , P11_ZT1_notes = NA
+  )
+
+damBehaveDates
+
+saveDFsToExcel(
+  "damBehaviorDates_ZT15_ZT19_ZT1",
+  dates = damBehaveDates
+)
+```
+
 ```{r}
 Demo_dam %>%
   filter(damID == "D056-01")
@@ -8274,12 +8502,12 @@ breeding_cohort9 <- Demo_dam %>%
     , DOB
     , Litter_size
   ) %>%
-  add_row(
-    breedDate = c(
-      as_date("2023-04-02")
-      , as_date("2023-04-09")
-    )
-  ) %>%
+  # add_row(
+  #   breedDate = c(
+  #     as_date("2023-04-02")
+  #     , as_date("2023-04-09")
+  #   )
+  # ) %>%
   arrange(
     DOB, breedDate
   ) %>%
@@ -9368,5 +9596,745 @@ df_filtered %>%
     )
     
 plotRepCycles_STD_1stL(cyclesFiltered)
+```
+
+
+# Anogenital distance
+
+There's no difference w/ LBN
+
+```{r}
+maturationFiltered %>%
+  getAvgByDam(bySex = TRUE) %>%
+  scatterPlotLBN(
+    yVar = AGD_adult
+    , yLab = "anogenital distance (mm)"
+    , textSize = textSize
+    , dotSize = dotSize
+  ) +
+  facet_wrap(
+    ~ sex, nrow = 1
+  )
+
+maturationFiltered %>%
+  runLMM(
+    AGD_adult ~ earlyLifeTrt * sex + (1|damID)
+  )
+```
+
+
+```{r}
+stdCycles <- cyclesFiltered %>%
+  filter(
+    earlyLifeTrt == "STD"
+  )
+lbnCycles <- cyclesFiltered %>%
+  filter(
+    earlyLifeTrt == "LBN"
+  )
+stdMice <- stdCycles[sample(nrow(stdCycles))[1:4],]$mouseID
+lbnMice <- lbnCycles[sample(nrow(lbnCycles))[1:4],]$mouseID
+
+cyclesFiltered %>%
+  filter(
+    mouseID %in% stdMice | mouseID %in% lbnMice
+  ) %>%
+  arrange(
+    earlyLifeTrt
+  ) %>%
+  mutate(
+    mouseByRow = row_number()
+  ) %>%
+  makeCyclesLong() %>%
+  addCycleStartCol() %>%
+  addPNDForCyles() %>%
+  plotCycleTraces(
+    colorValues = c("grey30", "cyan4")
+    , fontSize = textSize
+    , removeFacets = TRUE
+    , ncol = 4
+    , nrow = 2
+    , day = PND
+    , breakSeq = seq(70, 90, 5)
+    , MouseID = mouseByRow
+    , facetDir = "v"
+  ) + theme(
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+  )
+```
+
+
+```{r}
+cortFilteredMales %>%
+  makeFactors(
+    time
+  ) %>%
+  ggplot(
+    aes(
+      x = time,
+      y = cort,
+      group = comboTrt
+    )
+  ) +
+  geom_line(
+    alpha = 0.4
+    , aes(
+      group = mouseID
+      , lineype = comboTrt
+      , color = comboTrt
+    )
+    # , position = position_jitterdodge(seed = 21)
+    # , position = position_dodge(0.4)
+    , position = position_jitterdodge(0.4)
+  ) +
+  geom_point(
+    alpha = 1
+    , aes(
+      group = mouseID
+      , fill = comboTrt
+      , shape = comboTrt
+      , color = comboTrt
+    )
+    , position = position_dodge(0.4)
+    , size = 3
+  ) +
+  theme_pubr() +
+  comboTrtFillShape(
+    
+  # )+
+  # addMeanHorizontalBar(
+  #   width = 2
+  #   # , barPosition = position_jitterdodge()
+  )
+```
+
+```{r}
+cortFilteredMales %>%
+  makeFactors(
+    time
+  ) %>%
+  ggplot(
+    aes(
+      x = time,
+      y = cort,
+      group = comboTrt
+    )
+  ) +
+  geom_line(
+    alpha = 0.4
+    , aes(
+      group = mouseID
+      , lineype = comboTrt
+      , color = comboTrt
+    )
+    # , position = position_jitterdodge(seed = 21)
+    # , position = position_dodge(0.4)
+    , position = position_jitterdodge(0.4)
+  ) +
+  geom_point(
+    alpha = 1
+    , aes(
+      group = mouseID
+      , fill = comboTrt
+      , shape = comboTrt
+      , color = comboTrt
+    )
+    , position = position_dodge(0.4)
+    , size = 3
+  ) +
+  theme_pubr() +
+  comboTrtFillShape(
+    
+  # )+
+  # addMeanHorizontalBar(
+  #   width = 2
+  #   # , barPosition = position_jitterdodge()
+  )
+```
+
+```{r}
+set.seed(596)
+dsub <- diamonds[sample(nrow(diamonds), 1000), ]
+ggplot(dsub, aes(x = cut, y = carat, fill = clarity)) +
+  # geom_boxplot(outlier.size = 0) +
+  geom_point(pch = 21, position = position_jitterdodge())
+```
+
+# Position_jitterdodge
+
+https://github.com/tidyverse/ggplot2/issues/4108
+
+There doesn't seem to be a good way to get consistent jitter and position dodge
+when you have to connect the lines between two points
+
+Using the lemon::geom_pointline() function does work, but there seems to then
+be some limits in terms of how much editing you can do of the lines, and
+they also end up on top of the dots
+
+```{r}
+cortFilteredMales %>%
+  makeFactors(
+    time
+  ) %>%
+  ggplot(
+    aes(
+      x = time
+      , y = cort
+      # , fill = comboTrt
+      , group = comboTrt
+    )
+  ) +
+  # lemon::geom_pointpath(
+  lemon::geom_pointline(
+    linecolor = alpha("grey", 0.4)
+    , aes(
+      colour=comboTrt
+      , shape = comboTrt
+      , fill = comboTrt
+      , group=interaction(mouseID, comboTrt)
+    )
+    , position = position_jitterdodge()
+    , distance = 1
+    , size = 3
+  ) +
+  comboTrtFillShape()+
+  theme_pubr()+
+  facet_wrap(
+    ~earlyLifeTrt, nrow = 1
+  ) + 
+  textTheme() +
+  boxTheme()
+  
+  # geom_point(
+  #   aes(
+  #     fill = comboTrt
+  #     # , group = mouseID # this is what breaks the position_jitterdodge
+  #     , shape = comboTrt
+  #     , color = comboTrt
+  #   )
+  #   , position = position_jitterdodge()) +
+  # geom_line(
+  #   aes(
+  #     # group = mouseID
+  #     linetype = comboTrt
+  #     , color = comboTrt
+  #   )
+  #   , position = position_jitterdodge()
+  # ) + 
+  # comboTrtFillShape()
+```
+
+
+https://stackoverflow.com/questions/44656299/lines-connecting-jittered-points-dodging-by-multiple-groups
+
+Another option is to manually dodge and add jitter to the groups, this seems to work most simply for the data as I have it
+
+```{r}
+cortFilteredMales %>%
+  mutate(
+    time = ifelse(
+      adultTrt == "CON"
+      , time - 1
+      , time + 1
+    )
+  ) %>%
+  plotCort_onlyLBN()
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  scatterPlotComboTrt(
+    yVar = AgeInDays
+    , yLab = "age in days"
+  )
+
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    AgeInDays ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+acuteStressFilteredMales %>%
+  scatterPlotComboTrt(
+    yVar = Body_mass_AM
+    , yLab = "body mass AM (g)"
+  )
+
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    Body_mass_AM ~ earlyLifeTrt * adultTrt * AgeInDays + (1|damID)
+    # Body_mass_AM ~ earlyLifeTrt * adultTrt  + (1|damID)
+    # Body_mass_AM ~ earlyLifeTrt + (1|damID)
+  )
+
+acuteStressFilteredMales %>%
+  anova_test(
+    Body_mass_AM ~ earlyLifeTrt * adultTrt
+    , type = 3
+  )
+
+acuteStressFilteredMales %>%
+  getAvgByDam() %>%
+  anova_test(
+    Body_mass_AM ~ earlyLifeTrt
+    , type = 3
+  )
+
+ReproTract_mass_perBodyAM_g
+
+maturation_byDam_f %>%
+  t_test(
+    Estrus_age ~ earlyLifeTrt
+  )
+
+maturation_byDam_m %>%
+  t_test(
+    PreputialSep_age ~ earlyLifeTrt
+  )
+maturationFiltered %>%
+  filter(
+    sex == "M"
+  ) %>%
+  t_test(
+    PreputialSep_age ~ earlyLifeTrt
+  )
+
+maturationFiltered %>%
+  runLMM(
+    PreputialSep_age ~ earlyLifeTrt + (1|damID)
+  )
+```
+
+
+```{r}
+acuteStressFilteredMales %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = Body_mass_AM
+    , yLab = "body mass AM (g)"
+    , xVar = AgeInDays
+    , xLab = "age (days)"
+    , zoom_x = TRUE
+    , xmin = 80
+    , xmax = 125
+  ) + geom_smooth(method = "lm", se = FALSE, aes(color = comboTrt))
+```
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    Body_mass_AM ~ AgeInDays + (1|damID)
+    # Body_mass_AM ~ earlyLifeTrt * adultTrt  + (1|damID)
+    # Body_mass_AM ~ earlyLifeTrt + (1|damID)
+  )
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    AgeInDays < 100
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  summarize(
+    n = n()
+  )
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    AgeInDays < 100
+  ) %>%
+  scatterPlotComboTrt(
+    # yVar = Body_mass_AM
+    # , yLab = "body mass AM (g)"
+    yVar = earTag
+    , yLab = "earTage"
+  )
+
+acuteStressFilteredMales %>%
+  filter(
+    AgeInDays < 100
+  ) %>%
+  runLMM(
+    # Body_mass_AM ~ earlyLifeTrt * adultTrt  + (1|damID)
+  )
+```
+
+```{r}
+LBN_all %>%
+  filter(
+    sex == "F"
+    , cohort == 9
+    , Sac_date <= as_date("2023-03-21")
+  ) %>%
+  mutate(
+    adultDi = ifelse(
+      !is.na(Sac_cycle),
+      ifelse(Sac_cycle == "diestrus", TRUE, FALSE),
+      NA
+    ),
+    adultProLH = ifelse(
+      !is.na(Sac_cycle),
+      ifelse(Sac_cycle == "proestrus" & is.na(Sac_hr), TRUE, FALSE),
+      NA
+    ),
+    adultProEphys = ifelse(
+      !is.na(Sac_cycle),
+      ifelse(Sac_cycle == "proestrus" & !is.na(Sac_hr), TRUE, FALSE),
+      NA
+    ),
+    hitCycle = ifelse(
+      !is.na(Sac_cycle),
+      ifelse(
+        (Sac_cycle == "proestrus" & ReproTract_mass >= proUterineMin) |
+        (Sac_cycle == "diestrus" & ReproTract_mass <= diUterineMax),
+        TRUE,
+        FALSE
+      ),
+      NA
+    ),
+    otherUse = ifelse(
+      !is.na(Sac_hr) & is.na(Sac_cycle),
+      TRUE,
+      NA
+    )
+  ) %>%
+  arrange(
+    -adultDi,
+    -adultProLH,
+    -adultProEphys,
+    -hitCycle,
+    -otherUse,
+    earlyLifeTrt,
+    adultTrt,
+    litterNum,
+    mouseID
+  ) %>%
+  mutate(
+    use = ifelse(
+      adultDi == TRUE,
+      "diestrus"
+      , ifelse(
+        adultProLH == TRUE
+        , "proLH"
+        , ifelse(
+          adultProEphys == TRUE
+          , "proEphys"
+          , ""
+        )
+      )
+    )
+  ) %>%
+  group_by(
+    use
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    n = n()
+  )
+```
+
+```{r}
+LBN_data %>%
+  filterLBNCohorts() %>%
+  filter(
+    sex == "M"
+    , is.na(Sac_date)
+    , DOB <= as_date("2023-02-01")
+    , cohort == 9
+  )
+
+acuteStressFilteredMales %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    n = n()
+  )
+```
+
+# Randomize Cohort 9 for cort plate order
+
+2023-04-24
+
+```{r}
+cohort9_needCort <- acuteStressFiltered %>%
+  filter(
+    !is.na(comboTrt)
+    , is.na(cort_hr0)
+    , cohort == 9
+  )%>%
+  group_by(
+    mouseID
+  ) %>%
+  summarize(
+    num_ID = mean(num_ID, na.rm = TRUE)
+  )
+
+set.seed(49)
+rows <- sample(nrow(cohort9_needCort))
+cohort9_needCort <- cohort9_needCort[rows, ] %>%
+  mutate(
+    plateOrder = row_number()
+  ) %>%
+  select(
+    -num_ID
+  )
+
+cohort9_needCort
+
+write.table(cohort9_needCort, "clipboard", sep="\t", row.names = FALSE)
+
+```
+
+```{r}
+dams_needCort <- Demo_dam %>%
+  filter(
+    !is.na(earlyLifeTrt)
+    , is.na(Cort_dam_P11) & is.na(Cort_dam_P21)
+    , cohort %in% c(9)
+  )%>%
+  select(
+    damID
+    , cohort
+  )
+
+dams_needCort
+
+set.seed(73)
+rows <- sample(nrow(dams_needCort))
+dams_needCortRand <- dams_needCort[rows, ] %>%
+  mutate(
+    plateOrder = row_number()
+  ) %>%
+  select(
+    -cohort
+  )
+
+dams_needCortRand
+
+write.table(dams_needCortRand, "clipboard", sep="\t", row.names = FALSE)
+
+```
+
+
+Is there a correlation between LH and GABA PSC freq? Not really notably
+```{r}
+GABApscsFiltered %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = frequency
+    , yLab = "frequency"
+    , xVar = maxLH
+    , xLab = "max evening LH (ng/mL)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 5
+  )
+```
+
+
+```{r}
+imgType <-"png"
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotOutputFolder
+  , compType = currentCompType
+)
+
+exportFullPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 11.5
+    , height = 5
+  )
+}
+```
+
+```{r}
+acuteStressFilteredPro %>%
+  filter(
+    is.na(LH_hr6.5)
+  ) %>%
+  plotLHAmp_comboTrt(surgeMin = 3, textSize = 16, dotSize = 3)
+
+exportFullPPTSlide(
+  baseName = "maxLH_usedForEphys"
+)
+```
+
+```{r}
+
+plotLHWithLine <- plotLHFunc(
+    c(1,2)
+    , addSurgeLine = TRUE
+  )
+
+ LHFilteredPro %>%
+  left_join(
+    acuteStressFilteredPro %>%
+      mutate(
+        forEphys = ifelse(is.na(LH_hr6.5) & !is.na(LH_hr5.5), TRUE, FALSE)
+      ) %>%
+      select(
+        mouseID
+        , forEphys
+      )
+    , by = "mouseID"
+  ) %>%
+  filter(
+    forEphys == TRUE
+  ) %>%
+  plotLHWithLine()
+ 
+exportFullPPTSlide(
+  baseName = "LHprofile_usedForEphys"
+)
+```
+
+```{r}
+acuteStressFilteredPro %>%
+  filter(
+    !is.na(LH_hr6.5)
+  ) %>%
+  plotLHAmp_comboTrt(surgeMin = 3, textSize = 16, dotSize = 3)
+
+exportFullPPTSlide(
+  baseName = "maxLH_sampling"
+)
+```
+
+```{r}
+ LHFilteredPro %>%
+  left_join(
+    acuteStressFilteredPro %>%
+      mutate(
+        forEphys = ifelse(is.na(LH_hr6.5) & !is.na(LH_hr5.5), TRUE, FALSE)
+      ) %>%
+      select(
+        mouseID
+        , forEphys
+      )
+    , by = "mouseID"
+  ) %>%
+  filter(
+    forEphys == FALSE
+  ) %>%
+  plotLHWithLine()
+ 
+exportFullPPTSlide(
+  baseName = "LHprofile_sampling"
+)
+```
+
+```{r}
+
+surgedDF <- acuteStressFilteredPro %>%
+  filter(
+    !is.na(LH_hr6.5)
+  ) %>%
+  mutate(
+    surged = maxLH > 3
+  )
+
+plot <- surgedDF %>%
+  propSurgedPlot(fontSize = 16)
+
+plot
+
+exportFullPPTSlide(
+  baseName = "propSurged_sampling"
+)
+```
+```{r}
+surgedDF <- acuteStressFilteredPro %>%
+  filter(
+    is.na(LH_hr6.5)
+  ) %>%
+  mutate(
+    surged = maxLH > 3
+  )
+
+plot <- surgedDF %>%
+  propSurgedPlot(fontSize = 16)
+
+plot
+
+exportFullPPTSlide(
+  baseName = "propSurged_forEphys"
+)
+```
+
+```{r}
+LH_off %>%
+  filter(
+    litterNum == 2
+    , ReproTract_mass >= 125
+    , Sac_cycle == "proestrus"
+    , Litter_size >= 5
+  ) %>%
+  plotLHWithLine()
+ 
+exportFullPPTSlide(
+  baseName = "LHprofile_sampling_secondLitter"
+)
+```
+
+```{r}
+AcuteStress_off %>%
+  filter(
+    litterNum == 2
+    , ReproTract_mass >= 125
+    , Sac_cycle == "proestrus"
+    , Litter_size >= 5
+  ) %>%
+  plotLHAmp_comboTrt(surgeMin = 3, textSize = 16, dotSize = 3)
+ 
+exportFullPPTSlide(
+  baseName = "maxLH_sampling_secondLitter"
+)
+```
+```{r}
+AcuteStress_off %>%
+  filter(
+    litterNum == 2
+    , ReproTract_mass >= 125
+    , Sac_cycle == "proestrus"
+    , Litter_size >= 5
+  ) %>%
+  mutate(
+    surged = maxLH > 3
+  ) %>%
+  propSurgedPlot(fontSize = 16)
+ 
+exportFullPPTSlide(
+  baseName = "propSurged_sampling_secondLitter"
+)
+```
+
+```{r}
+damBehavior_byPND_ZT %>%
+  filter(
+    is.na(Duration)
+  )
 ```
 

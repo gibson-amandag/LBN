@@ -45,7 +45,7 @@ figDamsC <- damFiltered %>%
     useLineType = FALSE, # TRUE/FALSE
     lineTypeVar = earlyLifeTrt,
     lineGroupVar = damID,
-    xtitle = "postnatal day", #x axis label
+    xtitle = "PND", #x axis label
     ytitle = "mass (g)", #y axis label
     title = NULL, # plot title
     individualLines = TRUE, # plot individual lines
@@ -94,12 +94,12 @@ figOffA <- massFiltered %>%
     zoom_y = FALSE, # Zoom to part of y axis
     ymin = 0,
     ymax = 35,
-    indivLineAlpha = .3,
-    indivLineSize = 0.5,
+    indivLineAlpha = .15,
+    indivLineSize = 0.3,
     errorBarWidth = 0,
-    meanLineSize = 0.6,
+    meanLineSize = 0.5,
     meanAlpha = 1,
-    errorBarSize = .6,
+    errorBarSize = .5,
     # errorBarColor = "grey10",
     errorBarAlpha = 1,
     textSize = textSize,
@@ -283,7 +283,7 @@ plotCort_onlyLBN <- manuscriptCortPlotFunc(
   , yUnitsNewLine = TRUE
   , jitterPosition = 1.8
   , wrapLegend = TRUE
-  , useALPSLineType = TRUE
+  , useALPSLineType = FALSE
 )
 
 plotCort_onlyLBN_longYLab <- manuscriptCortPlotFunc(
@@ -294,7 +294,7 @@ plotCort_onlyLBN_longYLab <- manuscriptCortPlotFunc(
   , jitterPosition = 1.8
   , wrapLegend = FALSE
   , meanWidth = 2.5
-  , useALPSLineType = TRUE
+  , useALPSLineType = FALSE
 )
 
 plotCort_long <- manuscriptCortPlotFunc(
@@ -556,17 +556,17 @@ plotGABAamp <- plotCatVarFunc(
   , dotSize = dotSize
 )
 
-capacitancePlot <- GABApscsFilteredFiring %>%
+figGABAa <- GABApscsFilteredFiring %>%
   plotCapacitance()
-RseriesPlot <- GABApscsFilteredFiring %>%
+figGABAc <- GABApscsFilteredFiring %>%
   plotRseries()
-RinputPlot <- GABApscsFilteredFiring %>%
+figGABAb <- GABApscsFilteredFiring %>%
   plotRinput()
-holdingCurrPlot <- GABApscsFilteredFiring %>%
+figGABAd <- GABApscsFilteredFiring %>%
   plotHoldingCurr()
-GABAfreqPlot <- GABApscsFilteredFiring %>%
+figGABAe <- GABApscsFilteredFiring %>%
   plotGABAfreq()
-GABAampPlot <- GABApscsFilteredFiring %>%
+figGABAf <- GABApscsFilteredFiring %>%
   plotGABAamp()
 
 

@@ -14,8 +14,8 @@ BD_comboNutALPS <- rbind(
 
 BD_comboNutALPS_plot <- BD_comboNutALPS %>%
   cortPlot(
-    pointSize = 3,
-    fontSize = 16,
+    pointSize = dotSize,
+    fontSize = textSize,
     plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
     plotSE = FALSE,
     groupVar = cortNutTrt, # group by the dosage; this is why it needs to be a factor
@@ -90,8 +90,8 @@ BD_ALPS_plot <- BD_comboNutALPS %>%
     cortNutTrt == "ALPS"
   ) %>%
   cortPlot(
-    pointSize = 3,
-    fontSize = 16,
+    pointSize = dotSize,
+    fontSize = textSize,
     plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
     plotSE = FALSE,
     groupVar = cortNutTrt, # group by the dosage; this is why it needs to be a factor

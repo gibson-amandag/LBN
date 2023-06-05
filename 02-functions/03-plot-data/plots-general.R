@@ -252,12 +252,19 @@ scatterPlotComboTrt <- function(
         shape = comboTrt
       )
     ) +
-    jitterGeom(size = dotSize) +
+    geom_jitter(
+      alpha = 1,
+      width = 0.35,
+      height = 0
+      , size = dotSize
+    ) + 
+    # jitterGeom(size = dotSize) + # this defaults to shape 21
     labs(y = yLab)+
     comboTrtFillShape() +
     theme_pubr()+
     expand_limits(y=0)+
-    coord_cartesian(if(zoom_y){ylim = c(ymin, ymax)}) +
+    coord_cartesian(if(FALSE){xlim = c(NULL, NULL)}, if(zoom_y){ylim = c(ymin, ymax)}) +
+    # coord_cartesian(if(zoom_y){ylim = c(ymin, ymax)}) +
     theme(
       axis.title.x = element_blank(),
       legend.position = "none"

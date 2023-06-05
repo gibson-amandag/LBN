@@ -9,9 +9,9 @@
 
 library(shiny)
 
-# source("./01-scripts/01-set-up.R")
-# source(file.path(scriptsFolder, "02-get-datasets.R"))
-# source(file.path(scriptsFolder, "04-filter-datasets.R"))
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source(file.path(scriptsFolder, "04-filter-datasets.R"))
 library(shinyFiles)
 
 
@@ -120,7 +120,7 @@ ui <- navbarPage(
             ), #End cycles tabPanel
             ### GABA PSCs ----
             tabPanel("GABA PSCs",
-                     GABApscsUI("GABApscs", GABApscs)
+                     GABApscsUI("GABApscs", GABApscs, GABApscs_120, GABApscs_240)
             ), #End GABA PSCs
             tabPanel(
                 "Sampling PPTs",
@@ -257,6 +257,8 @@ server <- function(input, output) {
     GABApscsServer(
         "GABApscs",
         GABApscs,
+        GABApscs_120,
+        GABApscs_240,
         AcuteStress_off,
         LH_off,
         Cort_off,

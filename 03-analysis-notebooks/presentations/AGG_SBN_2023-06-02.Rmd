@@ -1,0 +1,430 @@
+---
+title: "AGG Comittee Meeting 2022-11-01"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/05-make-LBN-plots.R")
+source("./01-scripts/06-make-LBN-ANOVAs_noLitter.R")
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+# Set-up
+```{r}
+figureNum <- 1
+
+pptBaseName <- makeBaseNameFunc("")
+
+plotFolder <- file.path(plotOutputFolder, "SBN_2023")
+
+imgType <-"pdf"
+
+figWidth = 21.4629
+figHeight = 6.75
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotFolder
+  , compType = currentCompType
+)
+
+exportRow <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+    , rowWidth = figWidth
+    , rowHeight = figHeight
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = rowWidth
+    , height = rowHeight
+  )
+}
+
+exportTwoThirds <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 14.169
+    , height = figHeight
+  )
+}
+
+exportOneThird <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 6.875
+    , height = figHeight
+  )
+}
+
+exportOneQuarter <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 5.0409
+    , height = figHeight
+  )
+}
+
+exportOneHalf <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 10.522
+    , height = figHeight
+  )
+}
+```
+
+# Dams
+
+```{r}
+damFilteredInfo <- damFiltered %>%
+    select(
+      - CyclesFolder
+      , - cyclingFolderPath
+      , -ends_with("Duration")
+      ,-ends_with("Num_exits")
+      ,-ends_with("Num_entries")
+      ,-ends_with("_off_nest")
+      ,-ends_with("_on_nest")
+    ) %>%
+    relocate(
+      damID
+      , cohort
+      , litterNum
+      , DOB
+      , Litter_size
+      , earlyLifeTrt
+      , Dam_Mass_P4
+      , Dam_Mass_P11
+      , Dam_Mass_P21
+      , starts_with("Cort_dam")
+    ) %>%
+    arrange(
+      cohort
+      , DOB
+    )
+
+damFilteredInfo
+```
+
+## Corticosterone
+
+```{r}
+damCortANOVA_df
+
+damCortSummary <- damFiltered %>%
+  group_by(
+    litterNum
+    , earlyLifeTrt
+  ) %>%
+  meanSummary(Cort_dam_P11)
+
+damCortSummary
+```
+
+
+```{r}
+saveDFsToExcel(
+  "damInfo",
+  "damInfo" = damFilteredInfo,
+  "damCort" = damCortSummary,
+  "damCortAnova" = damCortANOVA_df,
+  saveFolder = plotFolder
+)
+```
+## Dam cort stats 
+
+```{r}
+damFiltered %>%
+  t_test(
+    Cort_dam_P11 ~ earlyLifeTrt
+  )
+```
+
+
+## Dam Behavior
+
+P4 - p = 0.09, P5 - p = 0.12, P6 - p = 0.001, P7 - p = 0.008
+
+```{r}
+lmm <- damBehavior_byPND %>%
+  makeFactors(PND) %>%
+  runLMM(
+    Num_exits ~ earlyLifeTrt * PND + (1|damID)
+  )
+
+EMM <- emmeans(
+  lmm$model
+  , ~ earlyLifeTrt * PND
+)
+EMM
+
+test(pairs(EMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+
+# Dams - Row 1
+
+```{r}
+figDamsPlots <- cowplot::align_plots(figDamsA, figDamsB, align = "vh", axis = "lbt")
+
+figDams <- plot_grid(
+  figDamsPlots[[1]]
+  , figDamsPlots[[2]]
+  , nrow = 1
+  , label_fontfamily = "Arial"
+  , rel_widths = c(0.66, 0.33)
+)
+
+figDams
+fileBaseName <- "damFig"
+exportRow()
+
+figBehavior <- plot_grid(
+  figDamsPlots[[1]]
+)
+figBehavior
+fileBaseName <- "damBehavior"
+exportTwoThirds()
+
+figCortAlign <- plot_grid(
+  figDamsPlots[[2]]
+)
+figCortAlign
+fileBaseName <- "damCort"
+exportOneThird()
+```
+# ALPS - Row 2
+
+```{r}
+figureNum <- 2
+```
+
+```{r}
+figALPSPlots <- cowplot::align_plots(figCort, ephys_percSurgedPlot, align = "h", axis = "bt")
+
+figALPS <- plot_grid(
+  figALPSPlots[[1]]
+  , figALPSPlots[[2]]
+  , nrow = 1
+  , label_fontfamily = "Arial"
+  , rel_widths = c(0.66, 0.33)
+)
+
+figALPS
+fileBaseName <- "ALPS"
+exportRow()
+
+figProCort <- plot_grid(figALPSPlots[[1]])
+figProCort
+fileBaseName <- "cort"
+exportTwoThirds()
+
+figPropSurged <- plot_grid(figALPSPlots[[2]])
+figPropSurged
+fileBaseName <- "propSurged"
+exportOneThird()
+```
+
+## Cort stats 
+
+Did simple comparison with early-life treatment, since we already know that ALPS increases cort. What we really want to know is if LBN changes cort at pre/post time points 
+```{r}
+lmm <- cortFilteredPro %>%
+  runLMM(
+    cort ~ earlyLifeTrt * adultTrt * time + (1|damID) + (1|mouseID)
+  )
+
+EMM <- emmeans(
+  lmm$model
+  , ~ earlyLifeTrt * adultTrt * time
+)
+EMM
+
+test(pairs(EMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+# GABA - Row 3
+14.169
+
+```{r}
+figureNum <- 3
+```
+
+
+```{r}
+figGABAPlots <- cowplot::align_plots(figGABAe, figGABAf, align = "hv", axis = "lrbt")
+
+figGABA <- plot_grid(
+  figGABAPlots[[1]]
+  , figGABAPlots[[2]]
+  , nrow = 1
+  , label_fontfamily = "Arial"
+  , rel_widths = c(0.5, 0.5)
+)
+
+figFreq <- plot_grid(figGABAPlots[[1]])
+figFreq
+fileBaseName <- "GABAfreq"
+exportOneThird()
+
+figAmp <- plot_grid(figGABAPlots[[2]])
+figAmp
+fileBaseName <- "GABAAmp"
+exportOneThird()
+
+figGABA
+fileBaseName <- "GABA"
+exportRow( rowWidth = 14.169
+)
+```
+
+```{r}
+GABApscsFilteredFiring %>%
+  filter(
+    frequency > 5
+  )
+```
+
+# Passives - Row 4, but not including
+
+```{r}
+figureNum <- 4
+```
+
+
+```{r}
+figPassivePlots <- cowplot::align_plots(figGABAa, figGABAb, figGABAc, figGABAd, align = "h", axis = "bt")
+
+figCap <- plot_grid(figPassivePlots[[1]])
+figCap
+fileBaseName <- "cap"
+exportOneQuarter()
+
+figHolding <- plot_grid(figPassivePlots[[4]])
+figHolding
+fileBaseName <- "holding"
+exportOneQuarter()
+
+figRseries <- plot_grid(figPassivePlots[[3]])
+figRseries
+fileBaseName <- "Rseries"
+exportOneQuarter()
+
+figInput <- plot_grid(figPassivePlots[[2]])
+figInput
+fileBaseName <- "input"
+exportOneQuarter()
+
+```
+
+# Cort administration
+
+```{r}
+nutellaALPS_cortPlot
+figureNum <- 0
+fileBaseName <- "cortAdminPilot"
+
+flexSave(
+  "cortAdmin"
+  , "0_"
+  , filePath = plotFolder
+  , width = 10.25
+  , height = 5.25
+)
+```
+# Row 5 - really four
+
+```{r}
+figureNum <- 5
+```
+
+```{r}
+cortAdmin_cort
+
+figCortAdminPlots <- cowplot::align_plots(cortAdmin_cort, cortAdmin_LHplot, BD_ovulation_plot, align = "h", axis = "bt")
+
+figCortAdmin_cort <- plot_grid(figCortAdminPlots[[1]])
+figCortAdmin_cort
+fileBaseName <- "cortAdmin_cort"
+exportOneQuarter()
+
+figCortAdmin_LHplot <- plot_grid(figCortAdminPlots[[2]])
+figCortAdmin_LHplot
+fileBaseName <- "cortAdmin_LHplot"
+exportOneHalf()
+
+figCortAdmin_ovulation <- plot_grid(figCortAdminPlots[[3]])
+figCortAdmin_ovulation
+fileBaseName <- "cortAdmin_ovulation"
+exportOneQuarter()
+```
+
+
+## Cort stats 
+
+
+```{r}
+lmm <- cortAdminCortDF %>%
+  runLMM(
+    cort ~ dosage * time + (1|mouseID)
+  )
+
+lmm$formated
+
+EMM <- emmeans(
+  lmm$model
+  , ~ dosage * time
+)
+EMM
+
+test(pairs(
+  EMM
+  # , simple = "dosage"
+  ), by = NULL, adjust = "bonferroni")
+```
+

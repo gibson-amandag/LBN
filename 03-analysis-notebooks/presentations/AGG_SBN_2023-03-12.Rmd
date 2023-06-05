@@ -1444,6 +1444,19 @@ ppt <- pptAddFourGraphs(
 
 ```{r}
 RseriesANOVA
+RinputANOVA
+capacitanceANOVA
+holdingCurrANOVA
+GABAfreqANOVA
+GABAampANOVA
+
+GABApscsFilteredFiring %>%
+  countMiceAndLitters(frequency, vars(earlyLifeTrt, adultTrt))
+```
+
+
+```{r}
+RseriesANOVA
 
 slideTitle <- "Series resistance does not differ with LBN or ALPS"
 ppt <- pptAddOneGraph(

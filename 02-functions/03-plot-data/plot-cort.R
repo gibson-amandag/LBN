@@ -40,9 +40,12 @@ cortPlot <- function(
       position = position_dodge(positionDodge)
     ) +
     geom_point(
-      # shape = 21, 
+      # shape = 21,
       alpha = 1, 
-      aes(fill= {{ groupVar }},group=mouseID, shape= {{ groupVar }}, color= {{ groupVar }}), 
+      aes(fill= {{ groupVar }}
+          ,group=mouseID
+          , shape= {{ groupVar }}
+          , color= {{ groupVar }}), 
       position = position_dodge(positionDodge), 
       size = pointSize
     ) +
@@ -91,7 +94,8 @@ cortPlot <- function(
   }
   
   if(deparse(substitute(groupVar)) == "comboTrt"){
-    viz <- viz + comboTrtFillShape()
+    viz <- viz + 
+    comboTrtFillShape()
   } else {
     viz <- viz + labs(color = "treatment", shape = "treatment", fill = "treatment")
   }
@@ -352,8 +356,8 @@ LHPlot <- function(
       x = "time (hr) relative to lights out"
     ) +
     scale_x_continuous(
-      breaks = c(0, 5, 5.5, 6.5, 7.5, 8.5),
-      labels = c(-7.5, "", -2, -1, 0, 1)
+      breaks = c(0, 5, 5.5, 6.5, 7.5, 8.5, 9.5),
+      labels = c(-7.5, "", -2, -1, 0, 1, 2)
     )+
     textTheme(size = fontSize)+
     boxTheme()+
@@ -404,6 +408,68 @@ LHPlot_noMean <- function(
       breaks = c(0, 5, 5.5, 6.5, 7.5, 8.5),
       labels = c(-7.5, "", -2, -1, 0, 1)
     )+
+    textTheme(size = fontSize)+
+    boxTheme()+
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) + #this just zooms in on the graph, versus scale_[]_continuous actually eliminates data not in the range
+    guides(linetype = "none")
+}
+
+LHPlot_adultTrt_color <- function(
+  df_long,
+  trtVar = adultTrt,
+  trtName = "adult trt",
+  trtLineGuide = c("CON" = "dotted", "ALPS" = "solid"),
+  fontSize = 11,
+  dotSize = 1.2,
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL
+){
+  ggplot(
+    df_long,
+    aes(
+      x = time,
+      y = LH,
+      group = {{ trtVar }}
+    )
+  ) +
+    geom_line(
+      alpha = 0.4,
+      aes(group = mouseID, color = mouseID),
+      position = position_dodge(0.4)
+      , size = 1
+    ) +
+    geom_point(
+      shape = 21,
+      alpha = 1, 
+      aes(fill=mouseID
+          , color = mouseID
+          ,group=mouseID
+          # ,shape={{ trtVar }}
+          ), 
+      position = position_dodge(0.4), 
+      size = dotSize
+    ) +
+    addMeanHorizontalBar(
+      width = 0.85, 
+      addLineType = TRUE,
+      lineTypeName = trtName,
+      lineTypeGuide = trtLineGuide,
+      typeVar = {{ trtVar }}
+    )+
+    addMeanSE_vertBar()+
+    labs(
+      y = "LH (ng/mL)",
+      x = "time (h) relative to lights out"
+    ) +
+    scale_x_continuous(
+      breaks = c(0, 5, 5.5, 6.5, 7.5, 8.5, 9.5),
+      labels = c(-7.5, "", -2, -1, 0, 1, 2)
+    )+
+    theme_pubr() +
     textTheme(size = fontSize)+
     boxTheme()+
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) + #this just zooms in on the graph, versus scale_[]_continuous actually eliminates data not in the range
@@ -500,10 +566,11 @@ propOvulatedPlot <- function(
   df,
   xVar = comboTrt,
   fontSize = 11
+  , labelFontSize = 10
 ){
   viz <- ggplot(df, aes(x = {{ xVar }}, fill = ovulated))+
     geom_bar(position = "fill", color = "black") +
-    geom_text(aes(label = ..count..), stat = "count", vjust = 1.3, colour = "darkgrey", position = "fill", size=10)+
+    geom_text(aes(label = ..count..), stat = "count", vjust = 1.3, colour = "darkgrey", position = "fill", size=labelFontSize)+
     labs(y = "% with oocytes") + 
     scale_y_continuous(labels = scales::percent)+
     scale_fill_manual(values = c("white", "black")) +
@@ -560,6 +627,27 @@ propSurgedPlotCombo <- function(
       boxTheme()+
       rremove("legend") +
       rremove("xlab")
+  return(viz)
+}
+propSurgedPlotCombo_forSBN <- function(
+  df,
+  fontSize = 11
+){
+  viz <- df %>%
+    ggplot(aes(x = comboTrt, fill = interaction(comboTrt, surged), color = interaction(comboTrt, surged)))+
+      geom_bar(position = "fill") +
+      labs(y = "% with LH surge") + 
+      scale_color_manual(values = c("white", "white", "darkcyan", "black", "black", "darkcyan", "darkcyan"))+
+      scale_fill_manual(values = c("white", "white", "white", "grey90", "black", "lightblue1", "darkcyan")) +
+      theme_pubr() +
+      textTheme(size = fontSize)+
+      boxTheme()+
+      rremove("legend") +
+      rremove("xlab") +
+      scale_y_continuous(
+        breaks = c(0, 0.25, 0.5, 0.75, 1)
+        , labels = c("0", "25","50", "75", "100")
+      )
   return(viz)
 }
 
@@ -667,6 +755,7 @@ plotLHAmp_dosage <- function(
   surgeMin, 
   textSize = 11, 
   dotSize = 2
+  , textAngle = 45
 ){
   plot <- df %>%
     mutate(
@@ -721,7 +810,7 @@ plotLHAmp_dosage <- function(
     theme(
       legend.position = "none",
       axis.title.x = element_blank(),
-      axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)
+      axis.text.x = element_text(angle = textAngle, vjust = 1, hjust=1)
     )
   return(plot)
 }

@@ -649,20 +649,22 @@ GABApscs_240Filtered <- GABApscs_240 %>%
   ) %>%
   filterAcuteStressPro() # added 2023-03-26
 
+
+# Passive properties updated 2023-06-02
 filterByRseries <- TRUE
 RseriesMin <- 0
 RseriesMax <- 20
 filterByRinput <- TRUE
 RinputMin <- 500
-RinputMax <- 4000 # changed from 1500 2023-04-05
+RinputMax <- 2000
 filterByHoldingCurr <- FALSE
 holdingCurrMin <- -50
 holdingCurrMax <- 10
 filterByCapacitance <- TRUE
-capacitanceMin <- 5
-capacitanceMax <- 20
+capacitanceMin <- 8
+capacitanceMax <- 30
 
-filterByNumCells <- TRUE
+filterByNumCells <- FALSE
 maxCellNum <- 3
 
 filterBySacHr <- TRUE
@@ -717,8 +719,19 @@ filterByFrequency <- function(df, doFilterByFreq = filterByFreq){
   return(df)
 }
 
+filterByMinRecDuration <- TRUE
+minRecDuration <- 230 # buffer because not exact
+
 GABApscsFilteredFiring <- GABApscsFilteredProps %>%
-  filterByFrequency()
+  filterByFrequency() 
+
+if(filterByMinRecDuration){
+  GABApscsFilteredFiring <- GABApscsFilteredFiring %>%
+    filter(
+      duration >= minRecDuration
+    )
+}
+
 GABApscs_120FilteredFiring <- GABApscs_120FilteredProps %>%
   filterByFrequency()
 GABApscs_240FilteredFiring <- GABApscs_240FilteredProps %>%
