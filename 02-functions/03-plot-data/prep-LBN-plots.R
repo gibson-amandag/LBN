@@ -336,10 +336,13 @@ getMaxMatVals <- function(df_f, df_m) {
   max_estrus_mass <- getMax(df_f, expr(Estrus_mass))
   max_PPS_age <- getMax(df_m, expr(PreputialSep_age))
   max_PPS_mass <- getMax(df_m, expr(PreputialSep_mass))
+  max_AGD_f <- getMax(df_f, expr(AGD_adult))
+  max_AGD_m <- getMax(df_m, expr(AGD_adult))
   
   # Buffer for plotting
   max_age <- max(max_VO_age, max_estrus_age, max_PPS_age, na.rm = TRUE) + 3
   max_mass <- max(max_VO_mass, max_estrus_mass, max_PPS_mass, na.rm = TRUE) + 3
+  max_AGD <- max(max_AGD_f, max_AGD_m, na.rm = TRUE) + 1
 
   return(
     list(
@@ -351,6 +354,9 @@ getMaxMatVals <- function(df_f, df_m) {
       max_estrus_mass = max_estrus_mass,
       max_PPS_age = max_PPS_age,
       max_PPS_mass = max_PPS_mass
+      , max_AGD = max_AGD
+      , max_AGD_f = max_AGD_f
+      , max_AGD_m = max_AGD_m
     )
   )  
 }
@@ -759,7 +765,8 @@ manuscriptCortPlotFunc <- function(
       }
     } else {
       plot <- plot + facet_wrap(
-        ~ earlyLifeTrt + adultTrt
+        # ~ earlyLifeTrt + adultTrt
+        ~ comboTrt
         , nrow = 1
         , strip.position = stripPosition
       )
@@ -996,9 +1003,18 @@ plotCatVarFunc <- function(
     , dotSize = 3
     , twoLineXLabs = FALSE
     , useFacetLabels = TRUE
+    , useSpecYLab = FALSE
+    , thisYLab = ""
+    , addLegend = FALSE
+    , removeXTicks = FALSE
+    , alpha = 0.7
 ){
   yVar <- as.character(singleVar)
-  yLabel <- getNiceName(yVar)
+  if(!useSpecYLab){
+    yLabel <- getNiceName(yVar)
+  } else {
+    yLabel <- thisYLab
+  }
   plotFunc <- function(
     df
     , zoom_y = FALSE
@@ -1018,18 +1034,24 @@ plotCatVarFunc <- function(
         , zoom_y = zoom_y
         , ymin = ymin
         , ymax = ymax
+        , alpha = alpha
       )
     
     if(twoLineXLabs){
-      plot <- plot + scale_x_discrete(
-        labels = c(
-          "STD-CON" = "STD\nCON"
-          , "STD-ALPS" = "STD\nALPS"
-          , "LBN-CON" = "LBN\nCON"
-          , "LBN-ALPS" = "LBN\nALPS"
-          
+      plot <- plot + 
+        # scale_x_discrete(
+        #   labels = c(
+        #     "STD-CON" = "STD\nCON"
+        #     , "STD-ALPS" = "STD\nALPS"
+        #     , "LBN-CON" = "LBN\nCON"
+        #     , "LBN-ALPS" = "LBN\nALPS"
+        #     
+        #   )
+        # ) + 
+        theme(
+          axis.text.x = element_text(angle = 35, vjust = 1, hjust=1)
         )
-      )
+      
     }
     
     if(useFacetLabels){
@@ -1043,6 +1065,20 @@ plotCatVarFunc <- function(
         axis.text.x = element_blank()
         , strip.text = element_text(face = "plain")
       )
+    }
+    
+    if(addLegend){
+      plot <- plot +
+        theme(
+          legend.position = "top"
+        )
+    }
+    
+    if(removeXTicks){
+      plot <- plot +
+        theme(
+          axis.text.x = element_blank()
+        )
     }
     return(plot)
   }

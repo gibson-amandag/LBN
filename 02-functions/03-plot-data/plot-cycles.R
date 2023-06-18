@@ -186,7 +186,7 @@ plotCyclesPercent <- function(
   df,
   xVar = earlyLifeTrt,
   ylabel = "% days in stage",
-  alpha = 1,
+  alpha = 0.7, # changed 2023-06-18
   dotSize = 1.2,
   barWidth = 0.7,
   barSize = 0.4,
@@ -208,7 +208,7 @@ plotCyclesPercent <- function(
     labs(y = ylabel)+
     fillScale +
     # scale_fill_manual(values = c("white", "black"))+
-    jitterGeom(size = dotSize)+
+    jitterGeom(size = dotSize, alpha = alpha)+
     addMeanHorizontalBar(width = 0.85, size = 0.4) +
     addMeanSE_vertBar(size = 0.4)+
     expand_limits(y = 0) +

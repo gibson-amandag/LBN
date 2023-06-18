@@ -531,6 +531,7 @@ JL_cort %>%
   #   , labeller = labeller(perfusionHr = c("1.5" = "1.5h", "2.5" = "2.5h", "5" = "5h"))
   )
 ```
+
 # output - CNO
 
 ```{r}
@@ -621,6 +622,205 @@ flexSave(
   , height = 5
 )
 ```
+
+# output - CNO + all times, female
+
+```{r}
+JL_cortPlot_CNO_ALPS <- JL_cort %>%
+  filter(
+    sex == "F"
+    , !is.na(perfusionHr)
+  ) %>%
+  mutate(
+    time = ifelse(time == 0, 0, 5)
+    , Dosage = ifelse(is.na(Dosage), "NA", Dosage)
+  ) %>%
+  cortPlot(
+    pointSize = 5
+    , fontSize = 36
+    , plotMean = TRUE
+    , plotSE = TRUE
+    , xBreaks = c(0, 5)
+    , xLabels = c("pre", "post")
+    , lineTypeGuide = c("solid", "dotted", "solid")
+    , positionDodge = 1
+    , groupVar = interaction(adultTrt, Dosage)
+    , meanWidth = 1.4
+    , meanFollowsLineType = FALSE
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 800
+    , zoom_x = TRUE
+    , xmin = -1
+    , xmax = 6
+  ) +
+  scale_color_manual(
+    "treatment"
+    , values = c("CON.0.5"= "red"
+        , "CON.NA" = "black"
+        , "ALPS.NA" = "black")
+    , labels = c(
+      "CON.0.5"= "0.5mg/kg CNO"
+      , "CON.NA" = "CON"
+      , "ALPS.NA" = "ALPS"
+    )
+  )+
+  scale_fill_manual(
+    "treatment"
+    , values = c("CON.0.5"= "red"
+        , "CON.NA" = "white"
+        , "ALPS.NA" = "black")
+    , labels = c(
+      "CON.0.5"= "0.5mg/kg CNO"
+      , "CON.NA" = "CON"
+      , "ALPS.NA" = "ALPS"
+    )
+  )+
+  scale_shape_manual(
+    "treatment"
+    , values = c(
+      "CON.0.5"= 22
+        , "CON.NA" = 21
+        , "ALPS.NA" = 23
+    )
+    , labels = c(
+      "CON.0.5"= "0.5mg/kg CNO"
+      , "CON.NA" = "CON"
+      , "ALPS.NA" = "ALPS"
+    )
+  ) +
+  scale_linetype_manual(
+    "treatment"
+    , values = c(
+      "CON.0.5"= "solid"
+        , "CON.NA" = "dashed"
+        , "ALPS.NA" = "solid"
+    )
+    , labels = c(
+      "CON.0.5"= "0.5mg/kg CNO"
+      , "CON.NA" = "CON"
+      , "ALPS.NA" = "ALPS"
+    )
+  ) +
+  facet_grid(
+    cols = vars(Dosage, perfusionHr)
+    , labeller = labeller(
+      Dosage = c("0.5" = "0.5mg/kg CNO", "NA" = "stress paradigm")
+      , perfusionHr = c("1.5" = "1.5h", "2.5" = "2.5h", "5" = "5h")
+    )
+  )
+
+JL_cortPlot_CNO_ALPS
+
+```
+```{r}
+JL_cortPlot_CNO_ALPS2 <- JL_cort %>%
+  filter(
+    sex == "F"
+    , !is.na(perfusionHr)
+  ) %>%
+  mutate(
+    time = ifelse(time == 0, 0, 5)
+    , Dosage = ifelse(is.na(Dosage), "NA", Dosage)
+  ) %>%
+  mutate(
+    time = ifelse(
+      adultTrt == "CON" & Dosage %in% c("NA")
+      , time - 0.7
+      , time + 0.7
+    )
+  ) %>%
+  cortPlot(
+    pointSize = 5
+    , fontSize = 36
+    , plotMean = TRUE
+    , plotSE = TRUE
+    , xBreaks = c(0, 5)
+    , xLabels = c("pre", "post")
+    , lineTypeGuide = c("solid", "dotted", "solid")
+    , positionDodge = 1
+    , groupVar = interaction(adultTrt, Dosage)
+    , meanWidth = 1.4
+    , meanFollowsLineType = FALSE
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 800
+    , zoom_x = TRUE
+    , xmin = -1.5
+    , xmax = 6.5
+  ) +
+  scale_color_manual(
+    "treatment"
+    , values = c("CON.0.5"= "red"
+        , "CON.NA" = "black"
+        , "ALPS.NA" = "black")
+    , labels = c(
+      "CON.0.5"= "0.5mg/kg CNO"
+      , "CON.NA" = "CON"
+      , "ALPS.NA" = "ALPS"
+    )
+  )+
+  scale_fill_manual(
+    "treatment"
+    , values = c("CON.0.5"= "red"
+        , "CON.NA" = "white"
+        , "ALPS.NA" = "black")
+    , labels = c(
+      "CON.0.5"= "0.5mg/kg CNO"
+      , "CON.NA" = "CON"
+      , "ALPS.NA" = "ALPS"
+    )
+  )+
+  scale_shape_manual(
+    "treatment"
+    , values = c(
+      "CON.0.5"= 22
+        , "CON.NA" = 21
+        , "ALPS.NA" = 23
+    )
+    , labels = c(
+      "CON.0.5"= "0.5mg/kg CNO"
+      , "CON.NA" = "CON"
+      , "ALPS.NA" = "ALPS"
+    )
+  ) +
+  scale_linetype_manual(
+    "treatment"
+    , values = c(
+      "CON.0.5"= "solid"
+        , "CON.NA" = "dashed"
+        , "ALPS.NA" = "solid"
+    )
+    , labels = c(
+      "CON.0.5"= "0.5mg/kg CNO"
+      , "CON.NA" = "CON"
+      , "ALPS.NA" = "ALPS"
+    )
+  ) +
+  facet_grid(
+    cols = vars(Dosage, perfusionHr)
+    , labeller = labeller(
+      Dosage = c("0.5" = "0.5mg/kg CNO", "NA" = "stress paradigm")
+      , perfusionHr = c("1.5" = "1.5h", "2.5" = "2.5h", "5" = "5h")
+    )
+  ) + theme(legend.position="bottom")
+
+JL_cortPlot_CNO_ALPS2
+
+```
+
+```{r}
+flexSave(
+  "JL_cortPlot_CNO_ALPS_legendBottom"
+  , JL_filePrefix
+  , plot = JL_cortPlot_CNO_ALPS2
+  , fileType = "pdf"
+  , width = 14
+  , height = 9.5
+)
+```
+
+
 ```{r}
 JL_cortPlot_males <- JL_cort %>%
   filter(

@@ -915,6 +915,74 @@ BD_ovulation_plot
 
 
 
+
+
+```{r}
+BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+scatterPlot_general(
+  xVar = cort_hr5,
+  xLab = "corticosterone (ng/mL)",
+  yVar = maxLH,
+  yLab = "LH (ng/mL)",
+  fillVar = dosage,
+  fillLimits = c(0, 2),
+  fillValues = c("white", "black")
+)
+
+BD_sampling %>%
+  filter(
+    cort_hr5 > 400
+  )
+```
+# number of oocytes
+
+```{r}
+numOocytesDF <- BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+  group_by(
+    dosage
+  ) %>%
+  meanSummary(numOocytes)
+
+numOocytesStats <- BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+  filter(
+    !is.na(numOocytes)
+  ) %>%
+  t_test(
+    numOocytes ~ dosage
+  )
+
+numOocytesDF
+
+numOocytesStats
+```
+
+```{r}
+BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+  scatterPlot_general(
+    xVar = dosage
+    , xLab = "dosage (mg/kg)"
+    , yVar = numOocytes
+    , yLab = "# of oocytes"
+    , fillVar = dosage
+    , fillLimits = c(0, 2)
+    , fillValues = c("white", "black")
+  )
+```
+
+
+
 ```{r}
 saveDFsToExcel(
   "nutellaCortAdmin"
@@ -937,27 +1005,8 @@ saveDFsToExcel(
   , "mean_peakTime_bySurged" = cortAdmin_LHtime_bySurged_meanSum
   , "propSurged_chi" = propSurged.Chi.Sq.res
   , "propSurged_chi_descriptives" = propSurged.Chi.Sq.descriptives
+  , "numOocytes" = numOocytesDF
+  , "numOocytes_tTest" = numOocytesStats
 )
-```
-
-```{r}
-BD_sampling %>%
-  filter(
-    trust == TRUE
-  ) %>%
-scatterPlot_general(
-  xVar = cort_hr5,
-  xLab = "corticosterone (ng/mL)",
-  yVar = maxLH,
-  yLab = "LH (ng/mL)",
-  fillVar = dosage,
-  fillLimits = c(0, 2),
-  fillValues = c("white", "black")
-)
-
-BD_sampling %>%
-  filter(
-    cort_hr5 > 400
-  )
 ```
 

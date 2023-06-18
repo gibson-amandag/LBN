@@ -129,7 +129,8 @@ figGABAe <- GABApscsFilteredFiring %>%
     , labels = c("0", "1.0", "2.0", "3.0", "4.0", "5.0")
   )
 figGABAf <- GABApscsFilteredFiring %>%
-  plotGABAamp()
+  plotGABAamp() +
+  ylab("amplitude (pA)")
 
 # Cort admin ---------------------
 

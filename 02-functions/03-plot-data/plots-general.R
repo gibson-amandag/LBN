@@ -97,7 +97,7 @@ scatterPlotLBN <- function(
   ymin = NULL,
   ymax = NULL,
   dotSize = 1.5,
-  fillAlpha = 1,
+  fillAlpha = 0.7, # changed 2023-06-18 from 1
   jitterWidth = 0.35,
   jitterHeight = 0,
   title = NULL
@@ -239,6 +239,8 @@ scatterPlotComboTrt <- function(
   zoom_y = FALSE, # Zoom to part of y axis
   ymin = NULL,
   ymax = NULL
+  , jitterWidth = 0.35
+  , alpha = 0.7 # changed 2023-06-18 from 1
 ){
   viz <- df %>%
     filter(
@@ -252,13 +254,18 @@ scatterPlotComboTrt <- function(
         shape = comboTrt
       )
     ) +
-    geom_jitter(
-      alpha = 1,
-      width = 0.35,
-      height = 0
-      , size = dotSize
-    ) + 
+    # geom_jitter(
+    #   alpha = 1,
+    #   width = jitterWidth,
+    #   height = 0
+    #   , size = dotSize
+    # ) + 
     # jitterGeom(size = dotSize) + # this defaults to shape 21
+    jitterGeom_shapeAes(
+      size = dotSize
+      , width = jitterWidth
+      , alpha = alpha
+    ) +
     labs(y = yLab)+
     comboTrtFillShape() +
     theme_pubr()+

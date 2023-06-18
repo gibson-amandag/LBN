@@ -10338,3 +10338,418 @@ damBehavior_byPND_ZT %>%
   )
 ```
 
+```{r}
+GABApscsFilteredFiring %>%
+  scatterPlotComboTrt(
+    yVar = frequency
+    , yLab = "frequency"
+  )
+```
+
+```{r}
+surgedDF %>%
+  filter(
+    is.na(LH_hr7.5) & !is.na(LH_hr5.5)
+  ) %>%
+propSurgedPlotCombo_forSBN(
+  fontSize = textSize
+)
+```
+
+# Number of oocytes
+
+```{r}
+meansOocytes <- BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+  mutate(
+    avgOocytes = rowMeans(select(., oocytes1, oocytes2), na.rm = TRUE)
+    , .after = numOocytes
+  ) %>%
+  group_by(
+    dosage
+  ) %>%
+  meanSummary(
+    avgOocytes
+  )
+
+meanOocytesStats <- BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+  mutate(
+    avgOocytes = rowMeans(select(., oocytes1, oocytes2), na.rm = TRUE)
+    , .after = numOocytes
+  ) %>%
+  t_test(
+    avgOocytes ~ dosage
+  )
+
+saveDFsToExcel(
+  "numOocytes"
+  , prefix = "cortAdmin"
+  , means = meansOocytes
+  , stats = meanOocytesStats
+)
+```
+
+```{r}
+Anova(lmm$model, type = 3)
+anova(lmm$model)
+```
+
+
+```{r}
+cohort9_Male_available <- LBN_data %>%
+  filter(
+    cohort == 9
+    , is.na(Pups_through_wean) | Pups_through_wean == TRUE
+    , sex == "M"
+    , is.na(Sac_date)
+    , is.na(Sac_stop_off)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  summarize(
+    n = n()
+    , .groups = "drop"
+  )
+
+cohort9_Male_available
+
+availMales <- LBN_data %>%
+  filter(
+    cohort == 9
+    , is.na(Pups_through_wean) | Pups_through_wean == TRUE
+    , sex == "M"
+    , is.na(Sac_date)
+    , is.na(Sac_stop_off)
+  ) %>%
+  select(
+    mouseID, damID, earlyLifeTrt, DOB
+  ) %>%
+  mutate(
+    ageJuly14 = as_date("2023-07-14") - DOB
+  )
+
+availMales %>%
+  write.table("clipboard", sep="\t", row.names=FALSE, col.names = TRUE)
+```
+
+
+
+```{r}
+damFiltered %>%
+  filter(
+    cohort == 9
+  ) %>%
+  group_by(earlyLifeTrt) %>%
+  summarize(
+    n()
+  )
+```
+
+```{r}
+maturationFiltered %>%
+  getAvgByDam(bySex = FALSE) %>%
+  select(
+    damID
+    , ends_with("_mass")
+  ) %>%
+  rename(
+    `mass_vaginal opening` = VO_mass
+    , `mass_first estrus` = Estrus_mass
+    , `mass_preputial separation` = PreputialSep_mass
+  ) %>%
+  pivot_longer(
+    cols = starts_with("mass_")
+    , names_to = "matType"
+    , names_prefix = "mass_"
+    , values_to = "mass"
+    , values_drop_na = TRUE
+  ) %>%
+  mutate(
+    matType = factor(matType, levels = c("vaginal opening", "first estrus", "preputial separation"))
+  ) %>%
+  addDamDemoData(damDemo_forOff = Demo_dam_for_offspring) %>%
+  select(
+    -cyclingFolderPath
+  ) %>%
+  scatterPlotLBN(
+    yVar = mass
+    , yLab = "mean mass (g)"
+  ) +
+  facet_wrap(
+    ~ matType
+  )
+```
+```{r}
+maturationFiltered %>%
+  getAvgByDam(bySex = FALSE) %>%
+  select(
+    damID
+    , ends_with("_age")
+  ) %>%
+  rename(
+    `age_vaginal opening` = VO_age
+    , `age_first estrus` = Estrus_age
+    , `age_preputial separation` = PreputialSep_age
+  ) %>%
+  pivot_longer(
+    cols = starts_with("age_")
+    , names_to = "matType"
+    , names_prefix = "age_"
+    , values_to = "age"
+    , values_drop_na = TRUE
+  ) %>%
+  mutate(
+    matType = factor(matType, levels = c("vaginal opening", "first estrus", "preputial separation"))
+  ) %>%
+  addDamDemoData(damDemo_forOff = Demo_dam_for_offspring) %>%
+  select(
+    -cyclingFolderPath
+  ) %>%
+  scatterPlotLBN(
+    yVar = age
+    , yLab = "mean age (days)"
+  ) +
+  facet_wrap(
+    ~ matType
+  )
+```
+
+```{r}
+View(maturation_byDam_f)
+```
+
+```{r}
+testMatFig <- maturationFiltered %>%
+  getAvgByDam(
+    bySex = TRUE
+  ) %>%
+  scatterPlotLBN(
+    yVar = AGD_adult
+    , yLab = "mean anogenital distance (mm)"
+    , textSize = textSize
+    , dotSize = dotSize
+  ) + facet_wrap(
+    ~ sex
+    , nrow = 2
+    , scales = "free_x"
+    , labeller = labeller(sex = c("F" = "female", "M" = "male"))
+  )
+
+testMatFig
+```
+
+```{r}
+maturationFiltered %>%
+  runLMM(
+    AGD_adult ~ earlyLifeTrt * sex + (1|damID)
+  )
+```
+```{r}
+maturationFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  runLMM(
+    AGD_adult ~ earlyLifeTrt + (1|damID)
+  )
+maturationFiltered %>%
+  filter(
+    sex == "M"
+  ) %>%
+  runLMM(
+    AGD_adult ~ earlyLifeTrt + (1|damID)
+  )
+```
+
+
+```{r}
+maturation_byDam_f %>%
+  scatterPlotLBN(
+    yVar = AGD_adult
+    , yLab = "mean AGD ("
+  )
+```
+
+```{r}
+maturation_byDam_m %>%
+  arrange(
+    - AGD_adult
+  ) %>%
+  select(
+    AGD_adult
+  )
+```
+
+# Beeswarm plotting package
+
+```{r}
+install.packages("ggbeeswarm")
+```
+
+
+```{r}
+library(ggbeeswarm)
+```
+
+```{r}
+maturation_byDam_f %>%
+  ggplot(
+    aes(
+      x = earlyLifeTrt
+      , y = VO_age
+      , color = earlyLifeTrt
+      , fill = earlyLifeTrt
+    )
+  ) + 
+  geom_quasirandom(
+    shape = 21
+  ) +
+  earlyLifeFill() +
+  earlyLifeColor()
+```
+```{r}
+maturation_byDam_f %>%
+  scatterPlotLBN(
+    yVar = VO_age
+    , yLab = "age (days)"
+  )
+
+damFiltered %>%
+  scatterPlotLBN(
+    yVar = Cort_dam_P11
+    , yLab = "corticosterone (ng/mL)"
+  )
+```
+
+```{r}
+GABApscs_240FilteredFiring %>%
+  plotCatVarFunc()
+  scatterPlotComboTrt(
+    yVar = frequency
+    , yLab = "frequency (Hz)"
+    , dotSize = 4
+  )
+```
+
+```{r}
+ cortFilteredMales%>%
+  ggplot(
+    aes(
+      x = time
+      , y = cort
+      , group = interaction(mouseID, time) # this works for geom_point with position_quasirandom, but not geom_line, because have to only group by mouseID
+      , group = mouseID
+    )
+  ) + 
+  # geom_quasirandom(
+  # 
+  # )
+  geom_point(
+    position = position_quasirandom()
+  ) +
+  geom_line(
+    # aes(group = mouseID)
+    position = position_quasirandom()
+  )
+```
+
+```{r}
+mpg$after2000 = mpg$year > 2000
+data = aggregate(
+    hwy ~ manufacturer + model + after2000 + drv,
+    mpg,
+    mean
+)
+(
+    testLineQuasirandom <- ggplot(data, aes(x=after2000, y=hwy))
+    + geom_violin()
+    + geom_line(
+       aes(group=interaction(manufacturer, model)),
+       color='grey',
+       position=ggbeeswarm::position_quasirandom()
+    )
+    + ggbeeswarm::geom_quasirandom(aes(color=drv))
+    + scale_color_discrete(
+        labels=c(
+            'f'='front-wheel drive',
+            'r'='rear-wheel drive',
+            '4'='four-weel drive'
+        ),
+        name='the type of drive train'
+    )
+    + ylab('highway miles per gallon')
+    + theme_bw()
+)
+
+flexSave(
+  "testLineQuairandom"
+  , thisFilePrefix = ""
+)
+testLineQuasirandom
+```
+
+
+
+```{r}
+cortFilteredMales %>%
+  makeFactors(time) %>%
+ggplot(
+    aes(
+      x = time,
+      y = cort,
+      group =  comboTrt
+    )
+  ) +
+    geom_line(
+      alpha = 0.4,
+      # color = "black",
+      aes(group = mouseID, linetype =  comboTrt, color =  comboTrt),
+      position = position_quasirandom()
+    ) #+
+    geom_quasirandom(
+      alpha = 1, 
+      aes(fill= {{ groupVar }}
+          ,group=mouseID
+          , shape= {{ groupVar }}
+          , color= {{ groupVar }}), 
+      # position = position_dodge(positionDodge), 
+      size = pointSize
+    ) + 
+    # geom_point(
+    #   # shape = 21,
+    #   alpha = 1, 
+    #   aes(fill= {{ groupVar }}
+    #       ,group=mouseID
+    #       , shape= {{ groupVar }}
+    #       , color= {{ groupVar }}), 
+    #   position = position_dodge(positionDodge), 
+    #   size = pointSize
+    # ) +
+    theme_pubr() +
+    expand_limits(y = 0) +
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
+    # rremove("xlab") + ## seems like can't add back after if do this
+    labs(
+      y = yLab,
+      x = NULL
+    ) +
+    scale_x_continuous(
+      breaks = xBreaks, #c(0, 5),
+      labels = xLabels, #c("pre", "post")
+    ) +
+    textTheme(size = fontSize)+
+    boxTheme()+
+    guides()#linetype = "none")
+```
+
+```{r}
+```
+
+
+# Afex

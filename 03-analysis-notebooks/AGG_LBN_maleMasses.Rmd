@@ -1,0 +1,785 @@
+---
+title: "Male LBN-ALPS data"
+output:
+  word_document: default
+  html_notebook: default
+df-print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# knitr::opts_chunk$set(fig.width=11.5, fig.height=5) 
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/05-make-LBN-plots-manuscript.R")
+source("./01-scripts/06-make-LBN-ANOVAs_noLitter.R")
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+These mice had very small testicular mass
+
+```{r}
+acuteStressFilteredMales <- acuteStressFilteredMales %>%
+  filter(
+    ! mouseID %in% c(7012, 7032)
+  )
+
+maleMatUsedForALPS <- maturationFiltered %>%
+  filter(
+    mouseID %in% acuteStressFilteredMales$mouseID
+  )
+```
+
+
+# AGD for males used for ALPS studies
+```{r}
+maleMatUsedForALPS %>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  summarize(
+    n()
+    , litters = length(unique(damID))
+  )
+```
+
+```{r}
+maleMatUsedForALPS %>%
+  scatterPlotLBN(
+    yVar = AGD_adult
+    , yLab = getNiceName(expr(AGD_adult))
+    , textSize = 16
+    , dotSize = 3
+  )
+```
+```{r}
+lmm <- maleMatUsedForALPS %>%
+  runLMM(
+    AGD_adult ~ earlyLifeTrt + (1|damID)
+  )
+
+summary(lmm$model)
+
+lmm$anova %>% formatLMM_anova()
+```
+
+
+
+
+
+```{r}
+acuteStressFilteredMales %>%
+  group_by(comboTrt) %>%
+  summarize(
+    n()
+    , litters = length(unique(damID))
+  )
+```
+
+# Body mass am
+
+There's an effect of early-life treatment according to the ANOVA, not quite significant with the coefficients t-test. Double check the degrees of feedom calculation here
+
+There's a highly significant result of effect of adult treatment, which there shouldn't be because treatment hasn't occurred yet. It's not a massive difference biologically, but because the dam is factored in, I think the differences within the litter get magnified in terms of being able to attribute the differences to adult treatment in the model. Unfortunate, but I think it's real in terms of the stats. 
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  meanSummary(
+    Body_mass_AM
+  )
+```
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  plotCatVarFunc(
+    expr(Body_mass_AM)
+  )()
+```
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    Body_mass_AM ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+summary(lmm$model)
+
+lmm$formated
+
+lmm$anova %>% formatLMM_anova()
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  anova_test(
+    dv = Body_mass_AM
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+```
+
+```{r}
+
+```
+
+
+
+# Body mass PM
+
+Here, the effect of adult trt goes away, early-life is still significant
+But, I don't think that this is the presentation that makes the most sense because we know that the paradigm changes body mass
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  meanSummary(
+    Body_mass_sac
+  )
+```
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  plotCatVarFunc(
+    expr(Body_mass_sac)
+  )()
+```
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    Body_mass_sac ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+summary(lmm$model)
+
+lmm$formated
+
+lmm$anova %>% formatLMM_anova()
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  anova_test(
+    dv = Body_mass_sac
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  anova_test(
+    dv = Body_mass_sac
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+```
+
+# Body mass change
+
+Adult stress mice lose more mass during the day. No interaction with LBN
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  meanSummary(
+    bodyMass_diff
+  )
+```
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  plotCatVarFunc(
+    expr(bodyMass_diff)
+  )()
+```
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    bodyMass_diff ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+summary(lmm$model)
+
+lmm$formated
+
+lmm$anova %>% formatLMM_anova()
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  anova_test(
+    dv = bodyMass_diff
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+```
+
+# Adrenal mass
+
+The mass itself without accounting for body mass is not different with treatments
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  meanSummary(
+    Adrenal_mass
+  )
+```
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  plotCatVarFunc(
+    expr(Adrenal_mass)
+  )()
+```
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    Adrenal_mass ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+summary(lmm$model)
+
+lmm$formated
+
+lmm$anova %>% formatLMM_anova()
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  anova_test(
+    dv = Adrenal_mass
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+```
+
+## Adrenal mass by AM body mass
+
+Adrenal mass corrected for AM body mass is not different
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  meanSummary(
+    Adrenal_mass_perBodyAM_g
+  )
+```
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  plotCatVarFunc(
+    expr(Adrenal_mass_perBodyAM_g)
+  )()
+```
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    Adrenal_mass_perBodyAM_g ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+summary(lmm$model)
+
+lmm$formated
+
+lmm$anova %>% formatLMM_anova()
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  anova_test(
+    dv = Adrenal_mass_perBodyAM_g
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+```
+## Adrenal mass by PM body mass
+
+Adrenal mass corrected for PM body mass is not different
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  meanSummary(
+    Adrenal_mass_perBody_g
+  )
+```
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  plotCatVarFunc(
+    expr(Adrenal_mass_perBody_g)
+  )()
+```
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    Adrenal_mass_perBody_g ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+summary(lmm$model)
+
+lmm$formated
+
+lmm$anova %>% formatLMM_anova()
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  anova_test(
+    dv = Adrenal_mass_perBody_g
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+```
+
+# Testicular mass
+
+There are two mice with very small testicular masses. Going to filter them out - did above, so that they're not included in any of these calculations. Determine if that's what we want to do long-term
+
+mouseIDs 7012 and 7032
+
+There's an effect of both adult treatment and early-life treatment, but no interaction
+
+```{r eval=FALSE, include=FALSE}
+acuteStressFilteredMales %>%
+  filter(
+    Gonad_mass < 150
+  )
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  meanSummary(
+    Gonad_mass
+  ) %>%
+  myDisplay()
+```
+```{r fig.height=4, fig.width=10}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  plotCatVarFunc(
+    expr(Gonad_mass)
+    , fontSize = 14
+    , dotSize = 2.5
+  )() +
+  ylab("testicular mass (mg)")
+
+flexSave(
+  "testicularMass"
+  , width = 3
+  , height = 4
+)
+```
+Here, there's a very big difference between the significance with the coefficients and the main effects with the ANOVA. I think that this is because the coefficients basically give you the value for just one of the groups, and then you have to adjust with the interaction coefficient, so if there's not an interaction, it could mess with seeing the main effect if both main effects are significant
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    Gonad_mass ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+# summary(lmm$model)
+# 
+# lmm$formated
+
+lmm$anova %>% formatLMM_anova()
+```
+
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  anova_test(
+    dv = Gonad_mass
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+```
+
+## Testicular mass by AM body mass
+
+Standardizing for AM body mass removes the difference with early-life treatment, but the effect of adult treatment remains
+
+Chronic stress, but reduction in testis size + mass: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4710837/
+Reduction in mass: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4971559/
+
+No difference with 30 days restraint in rats: https://obgyn.onlinelibrary.wiley.com/doi/abs/10.1016/0020-7292(88)90277-9
+
+Chronic, abs testes mass decreases, but relative did not change: https://www.nature.com/articles/s41598-017-09943-2
+
+2h restraint for 7 days, no change testes: https://academic.oup.com/humrep/article/14/7/1806/2913158
+
+
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  meanSummary(
+    Gonad_mass_perBodyAM_g
+  ) %>%
+  myDisplay()
+```
+```{r fig.height=4, fig.width=10}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  plotCatVarFunc(
+    expr(Gonad_mass_perBodyAM_g)
+    , fontSize = 14
+    , dotSize = 2.5
+  )() +
+  ylab("testicular mass / body mass (mg/g)")
+
+flexSave(
+  "testicularMass_byBodyMass"
+  , width = 3
+  , height = 4
+)
+```
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    Gonad_mass_perBodyAM_g ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+summary(lmm$model)
+
+lmm$formated
+
+lmm$anova %>% formatLMM_anova()
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  anova_test(
+    dv = Gonad_mass_perBodyAM_g
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+```
+
+## Testicular mass by PM body mass
+
+Standardizing for PM body mass removes the difference with early-life treatment, but the effect of adult treatment remains
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  meanSummary(
+    Gonad_mass_perBody_g
+  ) %>%
+  myDisplay()
+```
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  plotCatVarFunc(
+    expr(Gonad_mass_perBody_g)
+  )()
+```
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    Gonad_mass_perBody_g ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+summary(lmm$model)
+
+lmm$formated
+
+lmm$anova %>% formatLMM_anova()
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  anova_test(
+    dv = Gonad_mass_perBody_g
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+```
+
+# Seminal vesicle mass
+
+The mass itself without accounting for body mass is not different with treatments
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  meanSummary(
+    ReproTract_mass
+  )
+```
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  plotCatVarFunc(
+    expr(ReproTract_mass)
+  )()
+```
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    ReproTract_mass ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+summary(lmm$model)
+
+lmm$formated
+
+lmm$anova %>% formatLMM_anova()
+```
+
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  anova_test(
+    dv = ReproTract_mass
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+```
+
+## Seminal vesicle mass by AM body mass
+
+seminal vesicle mass corrected for AM body mass is higher in LBN males
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  meanSummary(
+    ReproTract_mass_perBodyAM_g
+  )
+```
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  plotCatVarFunc(
+    expr(ReproTract_mass_perBodyAM_g)
+  )()
+```
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    ReproTract_mass_perBodyAM_g ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+summary(lmm$model)
+
+lmm$formated
+
+lmm$anova %>% formatLMM_anova()
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  anova_test(
+    dv = ReproTract_mass_perBodyAM_g
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+```
+
+## Seminal vesicle mass by PM body mass
+
+Seminal vesicle mass standarized for PM body mass is higher in LBN animals
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  meanSummary(
+    ReproTract_mass_perBody_g
+  )
+```
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  plotCatVarFunc(
+    expr(ReproTract_mass_perBody_g)
+  )()
+```
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  runLMM(
+    ReproTract_mass_perBody_g ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+summary(lmm$model)
+
+lmm$formated
+
+lmm$anova %>% formatLMM_anova()
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    !is.na(comboTrt)
+  ) %>%
+  anova_test(
+    dv = ReproTract_mass_perBody_g
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+```

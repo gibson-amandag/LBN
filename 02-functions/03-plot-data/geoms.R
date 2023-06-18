@@ -18,13 +18,54 @@ jitterGeom <- function(
   width = 0.35,
   height = 0
 ){
-  geom_jitter(
-    shape = 21,
-    size = size,
-    alpha = alpha,
-    width = width,
-    height = height
-  ) 
+  # geom_jitter(
+  #   shape = 21,
+  #   size = size,
+  #   alpha = alpha,
+  #   width = width,
+  #   height = height
+  # )
+  geom_quasirandom(
+    shape = 21
+    , size = size
+    , alpha = alpha
+    , width = width
+  )
+  # geom_beeswarm(
+  #   shape = 21
+  #   , size = size
+  #   , alpha = alpha
+  #   # , width = width
+  # )
+}
+
+jitterGeom_shapeAes <- function(
+  size = 1.5,
+  alpha = 1,
+  width = 0.35,
+  height = 0
+){
+  # geom_jitter(
+  #   size = size,
+  #   alpha = alpha,
+  #   width = width,
+  #   height = height
+  # )
+  
+  #shows the distribution of the data
+  geom_quasirandom(
+    size = size
+    , alpha = alpha
+    , width = width
+  )
+  
+  # tries to align everything in the center, then distribute so no overlap
+  
+  # geom_beeswarm(
+  #   size = size
+  #   , alpha = alpha
+  #   # , width = width
+  # )
 }
 
 addMeanHorizontalBar <- function(

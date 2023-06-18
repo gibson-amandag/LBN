@@ -324,6 +324,58 @@ maturation_byDam_m <- maturationFiltered %>%
   getAvgByDam()
 
 
+maturationMassLong <- maturationFiltered %>%
+  getAvgByDam(bySex = FALSE) %>%
+  select(
+    damID
+    , ends_with("_mass")
+  ) %>%
+  rename(
+    `mass_vaginal opening` = VO_mass
+    , `mass_first estrus` = Estrus_mass
+    , `mass_preputial separation` = PreputialSep_mass
+  ) %>%
+  pivot_longer(
+    cols = starts_with("mass_")
+    , names_to = "matType"
+    , names_prefix = "mass_"
+    , values_to = "mass"
+    , values_drop_na = TRUE
+  ) %>%
+  mutate(
+    matType = factor(matType, levels = c("vaginal opening", "first estrus", "preputial separation"))
+  )
+
+maturationAgeLong <- maturationFiltered %>%
+  getAvgByDam(bySex = FALSE) %>%
+  select(
+    damID
+    , ends_with("_age")
+  ) %>%
+  rename(
+    `age_vaginal opening` = VO_age
+    , `age_first estrus` = Estrus_age
+    , `age_preputial separation` = PreputialSep_age
+  ) %>%
+  pivot_longer(
+    cols = starts_with("age_")
+    , names_to = "matType"
+    , names_prefix = "age_"
+    , values_to = "age"
+    , values_drop_na = TRUE
+  ) %>%
+  mutate(
+    matType = factor(matType, levels = c("vaginal opening", "first estrus", "preputial separation"))
+  )
+
+maturationByDamLong <- maturationAgeLong %>%
+  left_join(
+    maturationMassLong
+    , by = c("damID", "matType")
+  ) %>%
+  addDamDemoData(damDemo_forOff = Demo_dam_for_offspring)
+
+
 # Cycles ------------------------------------------------------------------
 
 cyclesFiltered <- Cycles_off %>%
@@ -376,28 +428,32 @@ proUterineMin = 125
 diUterineMax = 100
 exclude653 = TRUE
 exclude723 = TRUE
+excludeSmallTesticularMass <- TRUE
 
 filterAcuteStressAll <- filterAcuteStressFunc(
-  c("M", "F")
-  , c("proestrus", "diestrus") #cycle stages
+  incSex = c("M", "F")
+  , stages = c("proestrus", "diestrus") #cycle stages
   , exclude653 = exclude653
   , exclude723 = exclude723
   , filterUterineMass = FALSE
+  , excludeSmallTesticularMass = excludeSmallTesticularMass
 )
 
 filterAcuteStress_M_DiPro <- filterAcuteStressFunc(
-  c("M", "F")
-  , c("proestrus", "diestrus") #cycle stages
-  , exclude653 = exclude653
-  , exclude723 = exclude723
+  incSex = c("M", "F")
+  , stages = c("proestrus", "diestrus") #cycle stages
   , filterUterineMass = TRUE
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
+  , exclude653 = exclude653
+  , excludeSmallTesticularMass = excludeSmallTesticularMass
+  , exclude723 = exclude723
 )
 
 filterAcuteStressMales <- filterAcuteStressFunc(
   "M"
   , "" #cycle stages
+  , excludeSmallTesticularMass = excludeSmallTesticularMass
 )
 
 filterAcuteStressFemales_all <- filterAcuteStressFunc(

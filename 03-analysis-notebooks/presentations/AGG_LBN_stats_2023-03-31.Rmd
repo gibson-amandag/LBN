@@ -1174,320 +1174,320 @@ percDaysStage_1stL
 
 # Corticosterone Response to ALPS
 
-```{r}
-LMM <- cortFilteredPro_no723 %>%
-  runLMM(
-    cort ~ time *earlyLifeTrt * adultTrt + (1|mouseID)
-  )
+<!-- ```{r} -->
+<!-- LMM <- cortFilteredPro_no723 %>% -->
+<!--   runLMM( -->
+<!--     cort ~ time *earlyLifeTrt * adultTrt + (1|mouseID) -->
+<!--   ) -->
 
-LMM$anova %>%
-  formatLMM_anova()
+<!-- LMM$anova %>% -->
+<!--   formatLMM_anova() -->
 
-LMM$formated
-```
+<!-- LMM$formated -->
+<!-- ``` -->
 
-```{r}
-ppt <- addSlide_oneTable(ppt, "Pro cort LMM ANOVA", LMM$anova%>%formatLMM_anova(16), dontFormat = TRUE)
-ppt <- addSlide_oneTable(ppt, "Pro cort LMM coef", LMM$coefs%>%formatLMM_fixedEffects(16), dontFormat = TRUE)
-```
-
-
-
-```{r}
-anova(
-  lmer(
-    cort ~ time * sex * earlyLifeTrt * adultTrt + (1|mouseID)
-    , data = 
-      cortFiltered_M_DiPro %>%
-      filter(
-        Sac_cycle == "proestrus" | sex == "M"
-      )
-  )
-)
-
-anova(
-  lmer(
-    cort ~ time *earlyLifeTrt * adultTrt + (1|mouseID)
-    , data = 
-      cortFiltered_M_DiPro %>%
-      filter(
-        Sac_cycle == "proestrus"
-        , mouseID != 723
-      )
-  )
-)
-anova(
-  lmer(
-    cort ~ time *earlyLifeTrt * adultTrt + (1|mouseID)
-    , data = 
-      cortFiltered_M_DiPro %>%
-      filter(
-        Sac_cycle == "proestrus"
-        # , mouseID != 723
-      )
-  )
-)
-
-acuteStressFilteredPro %>%
-  group_by(
-    earlyLifeTrt, adultTrt
-  ) %>%
-meanSummary(cort_hr5)
-
-mean2SD <- 244.63+2*222.6
-mean2SD
-
-acuteStressFilteredPro %>%
-  select(
-    mouseID
-    , cort_hr5
-  ) %>%
-  filter(
-    mouseID == 723
-  )
-
-cortFilteredPro %>%
-  anova_test(
-    dv = cort
-    , wid = mouseID
-    , within = time
-    , between = c(earlyLifeTrt, adultTrt)
-  ) %>%
-  formatAnova()
-
-cortFilteredPro %>%
-  filter(
-    mouseID != 723
-  ) %>%
-  group_by(
-    time
-  ) %>%
-  anova_test(
-    dv = cort
-    , wid = mouseID
-    , between = c(earlyLifeTrt, adultTrt)
-  ) %>%
-  get_anova_table() %>%
-  as_tibble() %>%
-  mutate(
-    p.adj = p * 2 # doing two cycle stage comparisons
-  )
-
-cortFilteredPro %>%
-  filter(
-    mouseID != 723
-    , time == 5
-  ) %>%
-  group_by(
-    adultTrt
-  ) %>%
-  anova_test(
-    dv = cort
-    , wid = mouseID
-    , between = earlyLifeTrt
-  ) %>%
-  get_anova_table() %>%
-  as_tibble() %>%
-  mutate(
-    p.adj = p * 2 # doing two cycle stage comparisons
-  )
+<!-- ```{r} -->
+<!-- ppt <- addSlide_oneTable(ppt, "Pro cort LMM ANOVA", LMM$anova%>%formatLMM_anova(16), dontFormat = TRUE) -->
+<!-- ppt <- addSlide_oneTable(ppt, "Pro cort LMM coef", LMM$coefs%>%formatLMM_fixedEffects(16), dontFormat = TRUE) -->
+<!-- ``` -->
 
 
-GABApscsFilteredFiring %>%
-  anova_test(
-    dv = frequency
-    , between = c(earlyLifeTrt, adultTrt)
-  )
 
-GABApscsFilteredFiring %>%
-  anova_test(
-    dv = relPeak
-    , between = c(earlyLifeTrt, adultTrt)
-  )
+<!-- ```{r} -->
+<!-- anova( -->
+<!--   lmer( -->
+<!--     cort ~ time * sex * earlyLifeTrt * adultTrt + (1|mouseID) -->
+<!--     , data =  -->
+<!--       cortFiltered_M_DiPro %>% -->
+<!--       filter( -->
+<!--         Sac_cycle == "proestrus" | sex == "M" -->
+<!--       ) -->
+<!--   ) -->
+<!-- ) -->
 
+<!-- anova( -->
+<!--   lmer( -->
+<!--     cort ~ time *earlyLifeTrt * adultTrt + (1|mouseID) -->
+<!--     , data =  -->
+<!--       cortFiltered_M_DiPro %>% -->
+<!--       filter( -->
+<!--         Sac_cycle == "proestrus" -->
+<!--         , mouseID != 723 -->
+<!--       ) -->
+<!--   ) -->
+<!-- ) -->
+<!-- anova( -->
+<!--   lmer( -->
+<!--     cort ~ time *earlyLifeTrt * adultTrt + (1|mouseID) -->
+<!--     , data =  -->
+<!--       cortFiltered_M_DiPro %>% -->
+<!--       filter( -->
+<!--         Sac_cycle == "proestrus" -->
+<!--         # , mouseID != 723 -->
+<!--       ) -->
+<!--   ) -->
+<!-- ) -->
 
-acuteStressFilteredPro %>%
-  group_by(
-    earlyLifeTrt,
-    adultTrt
-  ) %>%
-  meanSummary(cort_hr5)
+<!-- acuteStressFilteredPro %>% -->
+<!--   group_by( -->
+<!--     earlyLifeTrt, adultTrt -->
+<!--   ) %>% -->
+<!-- meanSummary(cort_hr5) -->
 
-cortFilteredPro %>%
-  group_by(
-    time
-    , earlyLifeTrt
-    , adultTrt
-  ) %>%
-  meanSummary(
-    cort
-  )
+<!-- mean2SD <- 244.63+2*222.6 -->
+<!-- mean2SD -->
 
-```
+<!-- acuteStressFilteredPro %>% -->
+<!--   select( -->
+<!--     mouseID -->
+<!--     , cort_hr5 -->
+<!--   ) %>% -->
+<!--   filter( -->
+<!--     mouseID == 723 -->
+<!--   ) -->
 
-```{r}
-cortFilteredPro_no723 <- cortFilteredPro %>%
-  filter(
-    mouseID != 723
-  )
+<!-- cortFilteredPro %>% -->
+<!--   anova_test( -->
+<!--     dv = cort -->
+<!--     , wid = mouseID -->
+<!--     , within = time -->
+<!--     , between = c(earlyLifeTrt, adultTrt) -->
+<!--   ) %>% -->
+<!--   formatAnova() -->
 
-anova(
-  lmer(
-    cort ~ earlyLifeTrt * adultTrt * time + (1|mouseID)
-    , cortFilteredPro
-  )
-)
+<!-- cortFilteredPro %>% -->
+<!--   filter( -->
+<!--     mouseID != 723 -->
+<!--   ) %>% -->
+<!--   group_by( -->
+<!--     time -->
+<!--   ) %>% -->
+<!--   anova_test( -->
+<!--     dv = cort -->
+<!--     , wid = mouseID -->
+<!--     , between = c(earlyLifeTrt, adultTrt) -->
+<!--   ) %>% -->
+<!--   get_anova_table() %>% -->
+<!--   as_tibble() %>% -->
+<!--   mutate( -->
+<!--     p.adj = p * 2 # doing two cycle stage comparisons -->
+<!--   ) -->
 
-lmm_proCort_no723 <- lmer(
-    cort ~ earlyLifeTrt * adultTrt * time + (1|mouseID)
-    , cortFilteredPro_no723
-  )
-
-summary(lmm_proCort_no723)
-anova(
-  lmm_proCort_no723
-)
-
-cortFilteredPro %>%
-  anova_test(
-    dv = cort
-    , wid = mouseID
-    , between = c(earlyLifeTrt, adultTrt)
-    , within = time
-  ) %>%
-  formatAnova()
-
-proANOVA <- cortFilteredPro_no723 %>%
-  anova_test(
-    dv = cort
-    , wid = mouseID
-    , between = c(earlyLifeTrt, adultTrt)
-    , within = time
-  ) %>%
-  formatAnova(16)
-
-ppt <- addSlide_oneTable(ppt, "Pro cort ANOVA", proANOVA, dontFormat = TRUE)
-
-proANOVA_byTime <- cortFilteredPro_no723 %>%
-  group_by(
-    time
-  ) %>%
-  anova_test(
-    dv = cort
-    , wid = mouseID
-    , between = c(earlyLifeTrt, adultTrt)
-  ) %>%
-  get_anova_table() %>%
-  as_tibble() %>%
-  mutate(
-    p.adj = p * 2 # doing two cycle stage comparisons
-  ) %>%
-  formatAdjAnova(16)
-
-ppt <- addSlide_oneTable(ppt, "Pro cort ANOVA grouped by time", proANOVA_byTime, dontFormat = TRUE)
-
-proANOVA_hr5_byALPS <- cortFilteredPro_no723 %>%
-  filter(
-    time == 5
-  ) %>%
-  group_by(
-    adultTrt
-  ) %>%
-  anova_test(
-    dv = cort
-    , between = c(earlyLifeTrt)
-  ) %>%
-  get_anova_table() %>%
-  as_tibble() %>%
-  mutate(
-    p.adj = p * 2 # doing two cycle stage comparisons
-  ) %>%
-  formatAdjAnova(16)
-ppt <- addSlide_oneTable(ppt, "Pro cort ANOVA hr5 by ALPS", proANOVA_hr5_byALPS, dontFormat = TRUE)
-
-cortFilteredPro_no723 %>%
- group_by(
-    time
-    , earlyLifeTrt
-    , adultTrt
-  ) %>%
-  meanSummary(
-    cort
-  )
-
-cortFilteredPro_no723 %>%
-  filter(
-    time == 5
-    , adultTrt == "ALPS"
-  ) %>%
-  t_test(
-    cort ~ earlyLifeTrt
-  )
-```
-
-```{r}
-res.aov <- cortFilteredPro_no723 %>%
-  anova_test(
-    dv = cort
-    , wid = mouseID
-    , between = c(earlyLifeTrt, adultTrt)
-    , within = time
-  )
-
-get_anova_table(res.aov)
-
-cortFilteredPro_no723 %>%
-  anova_test(
-    cort ~ earlyLifeTrt*adultTrt*time + Error(mouseID/time)
-  )
-
-cortFilteredPro_no723 %>%
-  group_by(
-    time, adultTrt
-  ) %>%
-  emmeans_test(
-    cort ~ earlyLifeTrt
-  )
-
-pwc <- cortFilteredPro_no723 %>%
-  group_by(
-    time, adultTrt 
-  ) %>%
-  pairwise_t_test(
-    cort ~ earlyLifeTrt
-    , p.adjust.method = "holm"
-  )
-pwc
-
-pwc %>%
-  filter(
-    time == 5
-    , adultTrt == "ALPS"
-  )
-
-saveDFsToExcel(
-  "acuteStressPro"
-  , "cort" = acuteStressFilteredPro %>% filter(mouseID != 723)
-)
-
-saveDFsToExcel(
-  "cortProLong"
-  , "cort" = cortFilteredPro_no723
-)
+<!-- cortFilteredPro %>% -->
+<!--   filter( -->
+<!--     mouseID != 723 -->
+<!--     , time == 5 -->
+<!--   ) %>% -->
+<!--   group_by( -->
+<!--     adultTrt -->
+<!--   ) %>% -->
+<!--   anova_test( -->
+<!--     dv = cort -->
+<!--     , wid = mouseID -->
+<!--     , between = earlyLifeTrt -->
+<!--   ) %>% -->
+<!--   get_anova_table() %>% -->
+<!--   as_tibble() %>% -->
+<!--   mutate( -->
+<!--     p.adj = p * 2 # doing two cycle stage comparisons -->
+<!--   ) -->
 
 
-```
+<!-- GABApscsFilteredFiring %>% -->
+<!--   anova_test( -->
+<!--     dv = frequency -->
+<!--     , between = c(earlyLifeTrt, adultTrt) -->
+<!--   ) -->
 
-```{r}
-pro.lm <- lm(cort ~ earlyLifeTrt*adultTrt*time + Error(mouseID/time), data = cortFilteredPro_no723)
-anova(pro.lm)
-```
+<!-- GABApscsFilteredFiring %>% -->
+<!--   anova_test( -->
+<!--     dv = relPeak -->
+<!--     , between = c(earlyLifeTrt, adultTrt) -->
+<!--   ) -->
 
 
-```{r}
-cortFilteredPro_no723 %>%
-  
-```
+<!-- acuteStressFilteredPro %>% -->
+<!--   group_by( -->
+<!--     earlyLifeTrt, -->
+<!--     adultTrt -->
+<!--   ) %>% -->
+<!--   meanSummary(cort_hr5) -->
+
+<!-- cortFilteredPro %>% -->
+<!--   group_by( -->
+<!--     time -->
+<!--     , earlyLifeTrt -->
+<!--     , adultTrt -->
+<!--   ) %>% -->
+<!--   meanSummary( -->
+<!--     cort -->
+<!--   ) -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- cortFilteredPro_no723 <- cortFilteredPro %>% -->
+<!--   filter( -->
+<!--     mouseID != 723 -->
+<!--   ) -->
+
+<!-- anova( -->
+<!--   lmer( -->
+<!--     cort ~ earlyLifeTrt * adultTrt * time + (1|mouseID) -->
+<!--     , cortFilteredPro -->
+<!--   ) -->
+<!-- ) -->
+
+<!-- lmm_proCort_no723 <- lmer( -->
+<!--     cort ~ earlyLifeTrt * adultTrt * time + (1|mouseID) -->
+<!--     , cortFilteredPro_no723 -->
+<!--   ) -->
+
+<!-- summary(lmm_proCort_no723) -->
+<!-- anova( -->
+<!--   lmm_proCort_no723 -->
+<!-- ) -->
+
+<!-- cortFilteredPro %>% -->
+<!--   anova_test( -->
+<!--     dv = cort -->
+<!--     , wid = mouseID -->
+<!--     , between = c(earlyLifeTrt, adultTrt) -->
+<!--     , within = time -->
+<!--   ) %>% -->
+<!--   formatAnova() -->
+
+<!-- proANOVA <- cortFilteredPro_no723 %>% -->
+<!--   anova_test( -->
+<!--     dv = cort -->
+<!--     , wid = mouseID -->
+<!--     , between = c(earlyLifeTrt, adultTrt) -->
+<!--     , within = time -->
+<!--   ) %>% -->
+<!--   formatAnova(16) -->
+
+<!-- ppt <- addSlide_oneTable(ppt, "Pro cort ANOVA", proANOVA, dontFormat = TRUE) -->
+
+<!-- proANOVA_byTime <- cortFilteredPro_no723 %>% -->
+<!--   group_by( -->
+<!--     time -->
+<!--   ) %>% -->
+<!--   anova_test( -->
+<!--     dv = cort -->
+<!--     , wid = mouseID -->
+<!--     , between = c(earlyLifeTrt, adultTrt) -->
+<!--   ) %>% -->
+<!--   get_anova_table() %>% -->
+<!--   as_tibble() %>% -->
+<!--   mutate( -->
+<!--     p.adj = p * 2 # doing two cycle stage comparisons -->
+<!--   ) %>% -->
+<!--   formatAdjAnova(16) -->
+
+<!-- ppt <- addSlide_oneTable(ppt, "Pro cort ANOVA grouped by time", proANOVA_byTime, dontFormat = TRUE) -->
+
+<!-- proANOVA_hr5_byALPS <- cortFilteredPro_no723 %>% -->
+<!--   filter( -->
+<!--     time == 5 -->
+<!--   ) %>% -->
+<!--   group_by( -->
+<!--     adultTrt -->
+<!--   ) %>% -->
+<!--   anova_test( -->
+<!--     dv = cort -->
+<!--     , between = c(earlyLifeTrt) -->
+<!--   ) %>% -->
+<!--   get_anova_table() %>% -->
+<!--   as_tibble() %>% -->
+<!--   mutate( -->
+<!--     p.adj = p * 2 # doing two cycle stage comparisons -->
+<!--   ) %>% -->
+<!--   formatAdjAnova(16) -->
+<!-- ppt <- addSlide_oneTable(ppt, "Pro cort ANOVA hr5 by ALPS", proANOVA_hr5_byALPS, dontFormat = TRUE) -->
+
+<!-- cortFilteredPro_no723 %>% -->
+<!--  group_by( -->
+<!--     time -->
+<!--     , earlyLifeTrt -->
+<!--     , adultTrt -->
+<!--   ) %>% -->
+<!--   meanSummary( -->
+<!--     cort -->
+<!--   ) -->
+
+<!-- cortFilteredPro_no723 %>% -->
+<!--   filter( -->
+<!--     time == 5 -->
+<!--     , adultTrt == "ALPS" -->
+<!--   ) %>% -->
+<!--   t_test( -->
+<!--     cort ~ earlyLifeTrt -->
+<!--   ) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- res.aov <- cortFilteredPro_no723 %>% -->
+<!--   anova_test( -->
+<!--     dv = cort -->
+<!--     , wid = mouseID -->
+<!--     , between = c(earlyLifeTrt, adultTrt) -->
+<!--     , within = time -->
+<!--   ) -->
+
+<!-- get_anova_table(res.aov) -->
+
+<!-- cortFilteredPro_no723 %>% -->
+<!--   anova_test( -->
+<!--     cort ~ earlyLifeTrt*adultTrt*time + Error(mouseID/time) -->
+<!--   ) -->
+
+<!-- cortFilteredPro_no723 %>% -->
+<!--   group_by( -->
+<!--     time, adultTrt -->
+<!--   ) %>% -->
+<!--   emmeans_test( -->
+<!--     cort ~ earlyLifeTrt -->
+<!--   ) -->
+
+<!-- pwc <- cortFilteredPro_no723 %>% -->
+<!--   group_by( -->
+<!--     time, adultTrt  -->
+<!--   ) %>% -->
+<!--   pairwise_t_test( -->
+<!--     cort ~ earlyLifeTrt -->
+<!--     , p.adjust.method = "holm" -->
+<!--   ) -->
+<!-- pwc -->
+
+<!-- pwc %>% -->
+<!--   filter( -->
+<!--     time == 5 -->
+<!--     , adultTrt == "ALPS" -->
+<!--   ) -->
+
+<!-- saveDFsToExcel( -->
+<!--   "acuteStressPro" -->
+<!--   , "cort" = acuteStressFilteredPro %>% filter(mouseID != 723) -->
+<!-- ) -->
+
+<!-- saveDFsToExcel( -->
+<!--   "cortProLong" -->
+<!--   , "cort" = cortFilteredPro_no723 -->
+<!-- ) -->
+
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- pro.lm <- lm(cort ~ earlyLifeTrt*adultTrt*time + Error(mouseID/time), data = cortFilteredPro_no723) -->
+<!-- anova(pro.lm) -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!-- cortFilteredPro_no723 %>% -->
+
+<!-- ``` -->
 
 
 ```{r}

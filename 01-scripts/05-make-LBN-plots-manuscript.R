@@ -115,13 +115,73 @@ figOffA <- massFiltered %>%
 
 # Maturation --------------------------------------------------------------
 
+figOffAge <- maturationByDamLong %>%
+  scatterPlotLBN(
+    yVar = age
+    , "mean age (days)"
+    , textSize = textSize
+    , dotSize = dotSize
+  ) +
+  facet_wrap(
+    ~ matType
+  )
+
+figOffMass <- maturationByDamLong %>%
+  scatterPlotLBN(
+    yVar = mass
+    , "mean mass (g)"
+    , textSize = textSize
+    , dotSize = dotSize
+  ) +
+  facet_wrap(
+    ~ matType
+  )
+
 matVals <- getMaxMatVals(maturation_byDam_f, maturation_byDam_m)
 
 max_mass <- matVals$max_mass
 max_age <- matVals$max_age
+max_AGD <- matVals$max_AGD
 
 matVals_indiv <- getMaxMatVals(maturationFiltered, maturationFiltered)
 indivMaxAge <- matVals_indiv$max_age
+
+figOffH <- maturation_byDam_f %>%
+  mutate(
+    sex = "F"
+  ) %>%
+  scatterPlotLBN(
+    yVar = AGD_adult
+    , yLab = "mean AGD (mm)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = max_AGD
+  ) +
+  facet_wrap(
+    ~ sex
+    , labeller = labeller(sex = c("F" = "female", "M" = "male"))
+  )
+
+figOffI <- maturation_byDam_m %>%
+  mutate(
+    sex = "M"
+  ) %>%
+  scatterPlotLBN(
+    yVar = AGD_adult
+    , yLab = "mean AGD (mm)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = max_AGD
+  ) +
+  facet_wrap(
+    ~ sex
+    , labeller = labeller(sex = c("F" = "female", "M" = "male"))
+  )
+
 
 ## Vaginal opening ---------------------------------------------------------
 
@@ -246,29 +306,38 @@ figCyclesA <-  cyclesFiltered %>%
 ## cycle features -------------------------------------------------------------
 
 figCyclesB <- cyclesFiltered %>%
+  getAvgByDam() %>% # 2023-06-18 - reduce the density, average by litter
   scatterPlotLBN(
     yVar = numCycles
-    , yLab = "# of cycles from P70-90"
+    , yLab = "mean # cycles P70-90"
     , textSize = textSize
     , dotSize = dotSize
   )
 
 figCyclesC <- cyclesFiltered %>%
+  getAvgByDam() %>%
   scatterPlotLBN(
     yVar = cycleLength
-    , yLab = "cycle length (days)"
+    , yLab = "mean length (days)"
     , textSize = textSize
     , dotSize = dotSize
+  ) +
+  scale_y_continuous(
+    breaks = c(0, 2, 4, 6, 8)
   )
 
 
 ## Percent days in stage ---------------------------------------------------
 
 figCyclesD <- cyclesPercLong %>%
+  getAvgByDam(
+    byStage = TRUE
+  ) %>%
   plotCyclesPercent(
     fontSize = textSize
     , dotSize = dotSize
     , strip.position = "top"
+    , ylabel = "mean % days in stage"
   )
 
 # ALPS --------------------------------------------------------------------
@@ -276,62 +345,237 @@ figCyclesD <- cyclesPercLong %>%
 
 ## Cort --------------------------------------------------------------------
 
-plotCort_onlyLBN <- manuscriptCortPlotFunc(
-  onlyLBN = TRUE 
-  , fontSize = textSize
-  , dotSize = dotSize
-  , yUnitsNewLine = TRUE
-  , jitterPosition = 1.8
-  , wrapLegend = TRUE
-  , useALPSLineType = FALSE
-)
-
-plotCort_onlyLBN_longYLab <- manuscriptCortPlotFunc(
-  onlyLBN = TRUE 
-  , fontSize = textSize
-  , dotSize = dotSize
-  , yUnitsNewLine = FALSE
-  , jitterPosition = 1.8
-  , wrapLegend = FALSE
-  , meanWidth = 2.5
-  , useALPSLineType = FALSE
-)
+# plotCort_onlyLBN <- manuscriptCortPlotFunc(
+#   onlyLBN = TRUE 
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , yUnitsNewLine = TRUE
+#   , jitterPosition = 1.8
+#   , wrapLegend = TRUE
+#   , useALPSLineType = FALSE
+# )
+# 
+# plotCort_onlyLBN_longYLab <- manuscriptCortPlotFunc(
+#   onlyLBN = TRUE 
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , yUnitsNewLine = FALSE
+#   , jitterPosition = 1.8
+#   , wrapLegend = FALSE
+#   , meanWidth = 2.5
+#   , useALPSLineType = FALSE
+# )
 
 plotCort_long <- manuscriptCortPlotFunc(
   fontSize = textSize
   , dotSize = dotSize
-  , yUnitsNewLine = TRUE
+  # , yUnitsNewLine = TRUE
+  , yUnitsNewLine = FALSE
   , jitterPosition = 1.8
 )
 
 
-
-figCort_opt1A <- cortFilteredMales %>%
-  plotCort_onlyLBN()
-
-figCort_opt2A <- cortFilteredMales %>%
+figCortA <- cortFilteredMales %>%
+  plotCort_long()
+figCortB <- cortFilteredDi %>%
+  plotCort_long()
+figCortC <- cortFilteredPro %>%
   plotCort_long()
 
-figCort_opt3A <- cortFilteredMales %>%
-  plotCort_onlyLBN_longYLab()
+# figCort_opt2A <- cortFilteredMales %>%
+#   plotCort_long()
+# figCort_opt2B <- cortFilteredDi %>%
+#   plotCort_long()
+# figCort_opt2C <- cortFilteredPro %>%
+#   plotCort_long()
 
-figCort_opt1B <- cortFilteredDi %>%
-  plotCort_onlyLBN()
+# figCort_opt1A <- cortFilteredMales %>%
+#   plotCort_onlyLBN()
 
-figCort_opt2B <- cortFilteredDi %>%
-  plotCort_long()
 
-figCort_opt3B <- cortFilteredDi %>%
-  plotCort_onlyLBN_longYLab()
+# figCort_opt3A <- cortFilteredMales %>%
+#   plotCort_onlyLBN_longYLab()
 
-figCort_opt1C <- cortFilteredPro %>%
-  plotCort_onlyLBN()
+# figCort_opt1B <- cortFilteredDi %>%
+#   plotCort_onlyLBN()
 
-figCort_opt2C <- cortFilteredPro %>%
-  plotCort_long()
 
-figCort_opt3C <- cortFilteredPro %>%
-  plotCort_onlyLBN_longYLab()
+# figCort_opt3B <- cortFilteredDi %>%
+#   plotCort_onlyLBN_longYLab()
+# 
+# figCort_opt1C <- cortFilteredPro %>%
+#   plotCort_onlyLBN()
+
+# 
+# figCort_opt3C <- cortFilteredPro %>%
+#   plotCort_onlyLBN_longYLab()
+
+## Masses -----
+
+plotBodyMassAM <- plotCatVarFunc(
+  expr(Body_mass_AM)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "body mass (g)"
+  , addLegend = TRUE
+  , removeXTicks = TRUE
+)
+
+plotChangeBodyMass <- plotCatVarFunc(
+  expr(bodyMass_diff)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "\u0394 body mass (g)"
+  , removeXTicks = TRUE
+)
+
+plotRelAdrenalMass <- plotCatVarFunc(
+  expr(Adrenal_mass_perBodyAM_g)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "rel. adrenal mass\n(mg/g)"
+  # , thisYLab = "rel. mass (mg/g)"
+  , removeXTicks = TRUE
+)
+
+plotRelReproTractMass <- plotCatVarFunc(
+  expr(ReproTract_mass_perBodyAM_g)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "rel. repro. tract mass\n(mg/g)"
+  # , thisYLab = "rel. mass (mg/g)"
+  , removeXTicks = TRUE
+)
+
+plotRelSeminalVesicleMass <- plotCatVarFunc(
+  expr(ReproTract_mass_perBodyAM_g)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  # , thisYLab = "rel. seminal vesicle mass\n(mg/g)"
+  , thisYLab = "rel. mass (mg/g)"
+)
+
+plotRelUterineMass <- plotCatVarFunc(
+  expr(ReproTract_mass_perBodyAM_g)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  # , thisYLab = "rel. uterine mass\n(mg/g)"
+  , thisYLab = "rel. mass (mg/g)"
+)
+
+plotRelTesticularMass <- plotCatVarFunc(
+  expr(Gonad_mass_perBodyAM_g)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  # , thisYLab = "rel. testicular mass\n(mg/g)"
+  , thisYLab = "rel. mass (mg/g)"
+)
+
+figMassA <- acuteStressFilteredMales %>%
+  plotBodyMassAM()
+
+figMassB <- acuteStressFilteredDi %>%
+  plotBodyMassAM()
+
+figMassC <- acuteStressFilteredPro %>%
+  plotBodyMassAM()
+
+figMassD <- acuteStressFilteredMales %>%
+  plotChangeBodyMass()
+
+figMassE <- acuteStressFilteredDi %>%
+  plotChangeBodyMass()
+
+figMassF <- acuteStressFilteredPro %>%
+  plotChangeBodyMass()
+
+figMassG <- acuteStressFilteredMales %>%
+  plotRelAdrenalMass()
+
+figMassH <- acuteStressFilteredDi %>%
+  plotRelAdrenalMass()
+
+figMassI <- acuteStressFilteredPro %>%
+  plotRelAdrenalMass()
+
+figMassJ <- acuteStressFilteredMales %>%
+  plotRelSeminalVesicleMass(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 9
+  )
+
+figMassK <- acuteStressFilteredDi %>%
+  plotRelUterineMass(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 9
+  )
+
+figMassL <- acuteStressFilteredPro %>%
+  plotRelUterineMass(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 9
+  )
+
+acuteStressForMasses <- acuteStressFiltered_M_DiPro %>%
+  mutate(
+    steroid = 
+      ifelse(
+        sex == "M"
+        , "male"
+        , Sac_cycle
+      )
+  ) %>%
+  mutate(
+    steroid = factor(steroid, c("male", "diestrus", "proestrus"))
+  )
+
+facetBySteroid <- facet_wrap(
+  ~ steroid
+  , nrow = 1
+)
+
+figMassFacetA <- acuteStressForMasses %>%
+  plotBodyMassAM() +
+  facetBySteroid
+
+figMassFacetB <- acuteStressForMasses %>%
+  plotChangeBodyMass() +
+  facetBySteroid
+
+figMassFacetC <- acuteStressForMasses %>%
+  plotRelAdrenalMass() +
+  facetBySteroid
+
+figMassFacetD <- acuteStressForMasses %>%
+  plotRelReproTractMass() +
+  facetBySteroid
+  
+
+
 
 ## Uterine mass ------------------------------------------------------------
 
@@ -524,50 +768,75 @@ plotCapacitance <- plotCatVarFunc(
   expr(capacitance)
   , fontSize = textSize
   , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
 )
 
 plotRseries <- plotCatVarFunc(
   expr(Rseries)
   , fontSize = textSize
   , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
 )
 
 plotRinput <- plotCatVarFunc(
   expr(Rinput)
   , fontSize = textSize
   , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
 )
 
 plotHoldingCurr <- plotCatVarFunc(
   expr(holdingCurrent)
   , fontSize = textSize
   , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
 )
 
 plotGABAfreq <- plotCatVarFunc(
   expr(frequency)
   , fontSize = textSize
   , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
 )
 
 plotGABAamp <- plotCatVarFunc(
   expr(relPeak)
   , fontSize = textSize
   , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
 )
 
-figGABAa <- GABApscsFilteredFiring %>%
+figGABAa <- GABApscs_240FilteredFiring %>%
   plotCapacitance()
-figGABAc <- GABApscsFilteredFiring %>%
+figGABAc <- GABApscs_240FilteredFiring %>%
   plotRseries()
-figGABAb <- GABApscsFilteredFiring %>%
+figGABAb <- GABApscs_240FilteredFiring %>%
   plotRinput()
-figGABAd <- GABApscsFilteredFiring %>%
+figGABAd <- GABApscs_240FilteredFiring %>%
   plotHoldingCurr()
-figGABAe <- GABApscsFilteredFiring %>%
+figGABAe <- GABApscs_240FilteredFiring %>%
   plotGABAfreq()
-figGABAf <- GABApscsFilteredFiring %>%
+figGABAf <- GABApscs_240FilteredFiring %>%
   plotGABAamp()
+
+# figGABAa <- GABApscsFilteredFiring %>%
+#   plotCapacitance()
+# figGABAc <- GABApscsFilteredFiring %>%
+#   plotRseries()
+# figGABAb <- GABApscsFilteredFiring %>%
+#   plotRinput()
+# figGABAd <- GABApscsFilteredFiring %>%
+#   plotHoldingCurr()
+# figGABAe <- GABApscsFilteredFiring %>%
+#   plotGABAfreq()
+# figGABAf <- GABApscsFilteredFiring %>%
+#   plotGABAamp()
 
 
 

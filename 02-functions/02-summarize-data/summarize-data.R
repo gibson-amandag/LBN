@@ -55,11 +55,12 @@ quartilesSummary <- function(df, col){
 #' @export
 #'
 #' @examples
-groupByDam <- function(df, bySex = FALSE){
+groupByDam <- function(df, bySex = FALSE, byStage = FALSE){
   df_byDam <- df %>%
     group_by(
       damID,
       !! if(bySex){expr(sex)}
+      , !! if(byStage){expr(stage)}
       )
   return(df_byDam)
 }
@@ -76,9 +77,10 @@ groupByDam <- function(df, bySex = FALSE){
 #' @export
 #'
 #' @examples
-getAvgByDam <- function(df, bySex = FALSE, damDemo_forOff = Demo_dam_for_offspring){
+getAvgByDam <- function(df, bySex = FALSE, damDemo_forOff = Demo_dam_for_offspring, byStage = FALSE){
   avgDF <- df %>%
-    groupByDam(bySex) %>%
+    groupByDam(bySex = bySex, 
+               byStage = byStage) %>%
     summarise(
       across(
         where(is.numeric),

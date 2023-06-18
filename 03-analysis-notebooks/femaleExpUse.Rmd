@@ -1,6 +1,8 @@
 ---
 title: "LBN Female Use"
-output: html_notebook
+output:
+  word_document: default
+  html_notebook: default
 ---
 
 ```{r setup, include=FALSE}
@@ -255,6 +257,7 @@ cohort9_available <- LBN_data %>%
     , is.na(Pups_through_wean) | Pups_through_wean == TRUE
     , sex == "F"
     , is.na(Sac_date)
+    , is.na(Sac_stop_off)
     , mouseID != 918 # screwed up and forgot to add scent
   ) %>%
   group_by(
@@ -272,6 +275,7 @@ LBN_data %>%
     , is.na(Pups_through_wean) | Pups_through_wean == TRUE
     , sex == "F"
     , is.na(Sac_date)
+    , is.na(Sac_stop_off)
     , mouseID != 918 # screwed up and forgot to add scent
   ) %>%
   arrange(

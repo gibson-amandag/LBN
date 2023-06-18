@@ -32,6 +32,7 @@ if(!require(googledrive))install.packages('googledrive')
 if(!require(googlesheets4))install.packages('googlesheets4')
 if(!require(lme4))install.packages('lme4')
 if(!require(lmerTest))install.packages('lmerTest')
+if(!require(ggbeeswarm))install.packages('ggbeeswarm')
 
 
 
@@ -69,6 +70,7 @@ library(googledrive)
 library(googlesheets4)
 library(lme4)
 library(lmerTest)
+library(ggbeeswarm)
 
 drive_auth(email = "*@umich.edu")
 gs4_auth(token = drive_token())

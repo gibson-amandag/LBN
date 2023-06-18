@@ -187,13 +187,19 @@ test(pairs(EMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
 
 # Dams - Row 1
 
-
 ```{r}
 set_null_device("png") 
 ```
 
+
 ```{r}
-figDamsPlots <- cowplot::align_plots(figDamsA, figDamsB, align = "vh", axis = "lbt")
+rColFigs <- cowplot::align_plots(figDamsB, ephys_percSurgedPlot, figGABAf, figGABAe, align = "v", axis = "lr")
+lColFigs <- cowplot::align_plots(figDamsA, figCort, cortAdmin_cort, align = "v", axis = "l")
+```
+
+
+```{r}
+figDamsPlots <- cowplot::align_plots(lColFigs[[1]], rColFigs[[1]], align = "h", axis = "bt")
 
 figDams <- plot_grid(
   figDamsPlots[[1]]
@@ -228,7 +234,7 @@ figureNum <- 2
 ```
 
 ```{r}
-figALPSPlots <- cowplot::align_plots(figCort, ephys_percSurgedPlot, align = "h", axis = "bt")
+figALPSPlots <- cowplot::align_plots(lColFigs[[2]], rColFigs[[2]], align = "h", axis = "bt")
 
 figALPS <- plot_grid(
   figALPSPlots[[1]]
@@ -280,7 +286,7 @@ figureNum <- 3
 
 
 ```{r}
-figGABAPlots <- cowplot::align_plots(figGABAe, figGABAf, align = "hv", axis = "lrbt")
+figGABAPlots <- cowplot::align_plots(rColFigs[[4]], rColFigs[[3]], align = "h", axis = "bt")
 
 figGABA <- plot_grid(
   figGABAPlots[[1]]
@@ -369,7 +375,7 @@ figureNum <- 5
 ```{r}
 cortAdmin_cort
 
-figCortAdminPlots <- cowplot::align_plots(cortAdmin_cort, cortAdmin_LHplot, BD_ovulation_plot, align = "h", axis = "bt")
+figCortAdminPlots <- cowplot::align_plots(lColFigs[[3]], cortAdmin_LHplot, BD_ovulation_plot, align = "h", axis = "bt")
 
 figCortAdmin_cort <- plot_grid(figCortAdminPlots[[1]])
 figCortAdmin_cort

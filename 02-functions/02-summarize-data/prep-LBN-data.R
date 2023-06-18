@@ -168,12 +168,14 @@ filterAcuteStressFunc <- function(
     , diUterineMax = 100
     , exclude653 = TRUE
     , exclude723 = TRUE
+    , excludeSmallTesticularMass = FALSE
 ){
   filterFunc <- function(df){
     df <- df %>%
       filter(
         sex %in% incSex
         , (sex == "M" | Sac_cycle %in% stages)
+        , !is.na(comboTrt) # 2023-06-16
       )
     
     if(filterUterineMass){
@@ -198,6 +200,13 @@ filterAcuteStressFunc <- function(
       df <- df %>%
         filter(
           mouseID != 723
+        )
+    }
+    
+    if(excludeSmallTesticularMass){
+      df <- df %>%
+        filter(
+          sex == "F" | Gonad_mass > 150
         )
     }
     

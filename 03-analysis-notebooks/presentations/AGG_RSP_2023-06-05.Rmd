@@ -25,12 +25,12 @@ figureNum <- 1
 
 pptBaseName <- makeBaseNameFunc("")
 
-plotFolder <- file.path(plotOutputFolder, "SBN_2023")
+plotFolder <- file.path(plotOutputFolder, "RSP_2023")
 
 imgType <-"pdf"
 
 figWidth = 21.4629
-figHeight = 6.75
+figHeight = 5.9
 
 exportImg <- exportImg_forPurposeFunc(
   imgType = imgType
@@ -66,8 +66,7 @@ exportTwoThirds <- function(
     , fileBaseName = baseName
     , figNum = figNum
     , units = "in"
-    , width = 13.9988
-    # , width = 14.169
+    , width = 14.833333
     , height = figHeight
   )
 }
@@ -82,8 +81,7 @@ exportOneThird <- function(
     , fileBaseName = baseName
     , figNum = figNum
     , units = "in"
-    # , width = 6.8777
-    , width = 6.8718
+    , width = 7.1667
     , height = figHeight
   )
 }
@@ -98,8 +96,7 @@ exportOneQuarter <- function(
     , fileBaseName = baseName
     , figNum = figNum
     , units = "in"
-    # , width = 5.0409
-    , width = 5.0881
+    , width = 5.25
     , height = figHeight
   )
 }
@@ -114,8 +111,7 @@ exportOneHalf <- function(
     , fileBaseName = baseName
     , figNum = figNum
     , units = "in"
-    , width = 10.4345
-    # , width = 10.522
+    , width = 11
     , height = figHeight
   )
 }
@@ -356,8 +352,8 @@ flexSave(
   "cortAdmin"
   , "0_"
   , filePath = plotFolder
-  , width = 10.25
-  , height = 5.25
+  , width = 11
+  , height = 5.9
 )
 ```
 # Row 5 - really four

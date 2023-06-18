@@ -38,15 +38,29 @@ cortPlot <- function(
       # color = "black",
       aes(group = mouseID, linetype =  {{ groupVar }}, color =  {{ groupVar }}),
       position = position_dodge(positionDodge)
+      # https://github.com/eclarke/ggbeeswarm/issues/55
+      # position = position_quasirandom() # 2023-06-18, I think there's an error here, and that this is the right path for this to work
     ) +
+    
+    # 2023-06-23: See above error note. Also, might be possible to still use geom_point with the position_quasirandom function instead
+    # geom_quasirandom(
+    #   alpha = 1, 
+    #   aes(fill= {{ groupVar }}
+    #       ,group=mouseID
+    #       , shape= {{ groupVar }}
+    #       , color= {{ groupVar }}), 
+    #   # position = position_dodge(positionDodge), 
+    #   size = pointSize
+    # ) + 
+  
     geom_point(
       # shape = 21,
-      alpha = 1, 
+      alpha = 1,
       aes(fill= {{ groupVar }}
           ,group=mouseID
           , shape= {{ groupVar }}
-          , color= {{ groupVar }}), 
-      position = position_dodge(positionDodge), 
+          , color= {{ groupVar }}),
+      position = position_dodge(positionDodge),
       size = pointSize
     ) +
     theme_pubr() +
@@ -572,7 +586,11 @@ propOvulatedPlot <- function(
     geom_bar(position = "fill", color = "black") +
     geom_text(aes(label = ..count..), stat = "count", vjust = 1.3, colour = "darkgrey", position = "fill", size=labelFontSize)+
     labs(y = "% with oocytes") + 
-    scale_y_continuous(labels = scales::percent)+
+    scale_y_continuous(
+      breaks = c(0, 0.25, 0.5, 0.75, 1)
+      , labels = c("0", "25","50", "75", "100")
+      # labels = scales::percent
+    )+
     scale_fill_manual(values = c("white", "black")) +
     theme_pubr() +
     textTheme(size = fontSize)+
@@ -637,8 +655,26 @@ propSurgedPlotCombo_forSBN <- function(
     ggplot(aes(x = comboTrt, fill = interaction(comboTrt, surged), color = interaction(comboTrt, surged)))+
       geom_bar(position = "fill") +
       labs(y = "% with LH surge") + 
-      scale_color_manual(values = c("white", "white", "darkcyan", "black", "black", "darkcyan", "darkcyan"))+
-      scale_fill_manual(values = c("white", "white", "white", "grey90", "black", "lightblue1", "darkcyan")) +
+      scale_color_manual(values = c(
+        "STD-CON.FALSE"="white",
+        "STD-ALPS.FALSE"="white",
+        "LBN-CON.FALSE"="white",
+        "LBN-ALPS.FALSE"="darkcyan", ## so that can have a line at zero. Edit illustrator
+        "STD-CON.TRUE"="black",
+        "STD-ALPS.TRUE"="black",
+        "LBN-CON.TRUE"="darkcyan"
+      )) +
+      scale_fill_manual(values = c(
+        "STD-CON.FALSE"="white",
+        "STD-ALPS.FALSE"="white",
+        "LBN-CON.FALSE"="white",
+        "LBN-ALPS.FALSE"="white",
+        "STD-CON.TRUE"="grey90",
+        "STD-ALPS.TRUE"="black",
+        "LBN-CON.TRUE"="lightblue1",
+        "LBN-ALPS.TRUE"="darkcyan"
+        # "white", "white", "white", "grey90", "black", "lightblue1", "darkcyan"
+      )) +
       theme_pubr() +
       textTheme(size = fontSize)+
       boxTheme()+
@@ -647,7 +683,15 @@ propSurgedPlotCombo_forSBN <- function(
       scale_y_continuous(
         breaks = c(0, 0.25, 0.5, 0.75, 1)
         , labels = c("0", "25","50", "75", "100")
-      )
+      ) +
+      scale_x_discrete(
+        labels = c(
+          "STD-CON" = "STD\nCON"
+          , "STD-ALPS" = "STD\nALPS"
+          , "LBN-CON" = "LBN\nCON"
+          , "LBN-ALPS" = "LBN\nALPS"
+        
+      ))
   return(viz)
 }
 

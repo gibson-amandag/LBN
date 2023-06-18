@@ -138,3 +138,17 @@ runLMM <- function(
     , "model" = mod
   ))
 }
+
+
+## NOTE: emmeans used a different DF calculation (Kenward-Rogers) with mixed model than 
+## the default for anova from lmerTest (Satterthwaite) - can change either of them, but should probably pick one
+## https://stats.stackexchange.com/a/296405
+
+## This GLMM FAQ summarizing LMM df approximation suggests that KR is the more reliable option
+## One quote from Stroup (2014) that suggests you may be able to use KR dfs for GLMMs
+# https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html#what-are-the-p-values-listed-by-summaryglmerfit-etc.-are-they-reliable
+
+
+## Power analysis for GLMM
+# https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html#what-are-the-p-values-listed-by-summaryglmerfit-etc.-are-they-reliable
+# provides some other resources
