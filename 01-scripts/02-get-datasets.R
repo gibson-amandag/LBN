@@ -326,9 +326,21 @@ LH_max <- LH_off %>%
     valAtMaxColName = timeAtMax
   )
 
+LH_AUC <- LH_off %>%
+  group_by(
+    mouseID
+  ) %>%
+  summarize(
+    LH_AUC = AUC(time, LH)
+  )
+
 LH_off <- LH_off %>%
   left_join(
     LH_max,
+    by = "mouseID"
+  ) %>%
+  left_join(
+    LH_AUC,
     by = "mouseID"
   )
 
@@ -342,6 +354,10 @@ LH_off_wide <- LH_off %>%
   ) %>%
   left_join( # Add max column
     LH_max,
+    by = "mouseID"
+  ) %>%
+  left_join(
+    LH_AUC,
     by = "mouseID"
   )
 

@@ -9,18 +9,18 @@
 
 library(shiny)
 
-# source("./01-scripts/01-set-up.R")
-# source(file.path(scriptsFolder, "02-get-datasets.R"))
-# # library(shinyFiles)
+# # source("./01-scripts/01-set-up.R")
+# # source(file.path(scriptsFolder, "02-get-datasets.R"))
+# # # library(shinyFiles)
+# # 
+# # moduleFiles <- list.files(
+# #   appScriptsFolder, 
+# #   full.names = TRUE,
+# #   recursive = TRUE, 
+# #   pattern = "*.R"
+# # )
 # 
-# moduleFiles <- list.files(
-#   appScriptsFolder, 
-#   full.names = TRUE,
-#   recursive = TRUE, 
-#   pattern = "*.R"
-# )
-
-# sapply(moduleFiles, source)
+# # sapply(moduleFiles, source)
 
 
 # Define UI for application

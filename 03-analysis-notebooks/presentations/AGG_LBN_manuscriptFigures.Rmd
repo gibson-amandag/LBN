@@ -267,12 +267,12 @@ flexSave(
 # Figure 4 - Corticosterone
 
 ```{r}
-figCort_leftCol <- cowplot::align_plots(
-  figCortA
-  , figCortB
-  , figCortC
-  , align = "v", axis = "lr"
-)
+# figCort_leftCol <- cowplot::align_plots(
+#   figCortA
+#   , figCortB
+#   , figCortC
+#   , align = "v", axis = "lr"
+# )
 
 figCort <- plot_grid(
   figCortA
@@ -280,6 +280,9 @@ figCort <- plot_grid(
   , figCortC
   , nrow = 3
   , align = "vh", axis = "ltrb"
+  , labels = c("A", "B", "C")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
 )
 
 figCort
@@ -287,6 +290,15 @@ figCort
 ```
 
 
+```{r}
+flexSave(
+  "figCort"
+  , plot = figCort
+  , width = twoCols
+  , height = 28/3 * 2
+  , units = "cm"
+)
+```
 
 
 ```{r}
@@ -715,12 +727,53 @@ damBehavior_byPND %>%
 
 ### Stats
 
+```{r}
+numExitsGLMM <- mixed(
+  Num_exits ~ earlyLifeTrt * PND + (1|damID)
+   , data = damBehavior_byPND_ZT %>% makeFactors(c(PND, ZT))
+  , family = "poisson"
+  , nAGQ = 0
+  , method = "PB"
+)
+
+
+numExitsEMM <- emmeans(numExitsGLMM, "earlyLifeTrt", by = "PND", type = "response")
+
+numExitsGLMM
+numExitsEMM
+test(pairs(numExitsEMM, simple = "earlyLifeTrt"), by = NULL, adjust = "holm")
+test(pairs(numExitsEMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+```{r}
+numExitsGLMM_LRT <- mixed(
+  Num_exits ~ earlyLifeTrt * PND + (1|damID)
+   , data = damBehavior_byPND_ZT %>% makeFactors(c(PND, ZT))
+  , family = "poisson"
+  , nAGQ = 0
+  , method = "LRT"
+)
+
+numExitsEMM_LRT <- emmeans(numExitsGLMM_LRT, "earlyLifeTrt", by = "PND", type = "response")
+
+test(pairs(numExitsEMM_LRT, simple = "earlyLifeTrt"), by = NULL, adjust = "holm")
+test(pairs(numExitsEMM_LRT, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+
+
+
+
+
 StatQ: 
 - Is there a way to deal with the difference in variance?
 - How to interpret the overall model - is it just that exits increase with LBN and decrease with day? No significant interaction
   - Should there be any post-hoc tests?
   - Why is the emmeans test significant, while the factor interactions aren't? Is it because the emmeans comparisons pull together the overall effect of LBN into the day comparisons?
   - Variance isn't equal between the groups
+
+
+  
 
 
 ```{r}
@@ -1003,6 +1056,135 @@ StatQ:
   - Slope is different but not different any the specific time points?
   
 ##### females
+
+```{r}
+library(lspline)
+```
+
+```{r}
+mixed(
+  mass ~ earlyLifeTrt * lspline(day, c(21, 35)) + (1|damID) + (1|mouseID)
+  , data = mass_long %>%
+  filter(
+    day >= 11
+  )
+  , method = "KR"
+)
+```
+```{r}
+offMassLMM <- mixed(
+  mass ~ earlyLifeTrt * lspline(day, c(21, 35)) + (1|damID) + (1|mouseID)
+  , data = mass_long %>%
+  filter(
+    day >= 11
+    , sex == "F"
+  )
+  , method = "KR"
+)
+```
+
+```{r}
+offMassLMM$anova_table
+
+summary(offMassLMM)
+```
+
+```{r}
+offMassEMM <- emmeans(
+  offMassLMM
+  , ~ earlyLifeTrt * lspline(day, c(21, 35))
+  , data = mass_long %>%
+  filter(
+    day >= 11
+    , sex == "F"
+  )
+  , at = list(day = c(11, 21, 35, 70))
+)
+
+test(pairs(offMassEMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+```{r}
+offMassEMM <- emmeans(
+  offMassLMM
+  , ~ earlyLifeTrt * lspline(day, c(21, 35))
+  , data = mass_long %>%
+  filter(
+    day >= 11
+    , sex == "F"
+  )
+  # , at = list(day = c(11, 21, 35, 70))
+)
+
+# When "at" isn't provided, it's just a single comparison value
+
+test(pairs(offMassEMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+```{r}
+offMassLMM_male <- mixed(
+  mass ~ earlyLifeTrt * lspline(day, c(21, 35)) + (1|damID) + (1|mouseID)
+  , data = mass_long %>%
+  filter(
+    day >= 11
+    , sex == "M"
+  )
+  , method = "KR"
+)
+```
+
+```{r}
+offMassLMM_male$anova_table
+
+summary(offMassLMM_male)
+```
+
+```{r}
+offMassEMM <- emmeans(
+  offMassLMM
+  , ~ earlyLifeTrt * lspline(day, c(21, 35))
+  , data = mass_long %>%
+  filter(
+    day >= 11
+    , sex == "M"
+  )
+  , at = list(day = c(11, 21, 35, 70))
+)
+
+test(pairs(offMassEMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+```{r}
+offMassEMM_male <- emmeans(
+  offMassLMM
+  , ~ earlyLifeTrt * lspline(day, c(21, 35))
+  , data = mass_long %>%
+  filter(
+    day >= 11
+    , sex == "M"
+  )
+  # , at = list(day = c(11, 21, 35, 70))
+)
+
+# When "at" isn't provided, it's just a single comparison value
+
+test(pairs(offMassEMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+Don't know how to get emtrends to work with the splines, to understand where the sig diffs are combine from in the overall model
+
+```{r eval=FALSE, include=FALSE}
+emtrends(
+  offMassLMM
+  
+  , data = mass_long %>%
+  filter(
+    day >= 11
+    , sex == "F"
+  )
+  
+)
+```
+
 
 ```{r}
 lmm <- mass_long %>%

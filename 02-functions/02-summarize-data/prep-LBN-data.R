@@ -206,7 +206,7 @@ filterAcuteStressFunc <- function(
     if(excludeSmallTesticularMass){
       df <- df %>%
         filter(
-          sex == "F" | Gonad_mass > 150
+          sex == "F" | is.na(Gonad_mass) | Gonad_mass > 150 # added is.na 2023-07-04
         )
     }
     

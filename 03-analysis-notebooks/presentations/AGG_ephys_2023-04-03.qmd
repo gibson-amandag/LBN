@@ -1,5 +1,5 @@
 ---
-title: "AGG Ephys Meeting 2023-04-03"
+title: "AGG Statistics consultation 2023-04-11"
 author: "Amanda Gibson"
 format: pptx
 editor: visual
@@ -217,6 +217,12 @@ lmm <- damMassFiltered %>%
 lmm$anova %>% formatLMM_ppt()
 ```
 
+## LBN dams had a higher body mass at the start of the paradigm
+
+```{r}
+lmm$coefs %>% formatLMM_ppt()
+```
+
 # Offspring
 
 ## Body mass of offspring seems to follow three roughly linear patterns: P11-P21, P22-P35, P42-P72
@@ -319,7 +325,7 @@ mass11SexLBNchangePND <- coefs %>%
 
 - Predicted body mass on P11:
   - STD female: `r round(mass11Intercept, 1)`g. 
-  - LBN female: `r round(mass11Intercept+mass11LBN, 1)`g. 
+  - LBN female: `r round(mass11Intercept+mass11LBN, 1)`g
   - STD male: `r round(mass11Intercept+mass11Sex, 1)`g
   - LBN male: `r round(mass11Intercept+mass11LBN+mass11Sex+mass11LBNchangeSex, 1)`g
 - Predicted change in body mass from P11 to P21:
@@ -427,7 +433,7 @@ mass22SexLBNchangePND <- coefs %>%
   - LBN male: `r round(mass22Intercept+mass22LBN+mass22Sex+mass22LBNchangeSex, 1)`g
 - Change in body mass from P22 to P35:
   - STD female: `r round(mass22PND*13, 1)`g
-  - LBN female: `r round((mass22PND+mass22LBNchangePND)*13, 1)`g. 
+  - LBN female: `r round((mass22PND+mass22LBNchangePND)*13, 1)`g
   - STD male: `r round((mass22PND+mass22SexChangePND)*13, 1)`g
   - LBN male: `r round((mass22PND+mass22SexChangePND+mass22SexLBNchangePND+mass22LBNchangePND)*13, 1)`g
   
@@ -532,7 +538,7 @@ mass42SexLBNchangePND <- coefs %>%
   - LBN male: `r round(mass42Intercept+mass42LBN+mass42Sex+mass42LBNchangeSex, 1)`g
 - Change in body mass per week from P42 to P72:
   - STD female: `r round(mass42PND*7, 1)`g
-  - LBN female: `r round((mass42PND+mass42LBNchangePND)*7, 1)`g. 
+  - LBN female: `r round((mass42PND+mass42LBNchangePND)*7, 1)`g 
   - STD male: `r round((mass42PND+mass42SexChangePND)*7, 1)`g
   - LBN male: `r round((mass42PND+mass42SexChangePND+mass42SexLBNchangePND+mass42LBNchangePND)*7, 1)`g
   
@@ -907,6 +913,44 @@ maleLBNALPS5h <- femaleLBNALPS5h + cortMaleLBNALPSTime *5
   - pro LBN-ALPS: `r femaleLBNALPS5h`
   - male STD-ALPS: `r maleSTDALPS5h` - note that this is not different than pro STD-ALPS
   - male LBN-ALPS: `r maleLBNALPS5h`
+  
+# Body mass and ALPS
+
+## By chance, males that would receive ALPS had a higher body mass before treatment
+
+```{r}
+acuteStressFilteredMales %>%
+  scatterPlotComboTrt(
+    yVar = Body_mass_AM
+    , yLab = "body mass AM (g)"
+    , dotSize = dotSize
+    , fontSize = textSize
+  )
+```
+
+## By chance, males that would receive ALPS had a higher body mass before treatment
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  runLMM(
+    Body_mass_AM ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+lmm$coefs %>% formatLMM_ppt()
+```
+
+## By chance, males that would receive ALPS had a higher body mass before treatment
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  runLMM(
+    Body_mass_AM ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+lmm$anova %>% formatLMM_ppt()
+```
+
+
 
 # GABA PSCs
 

@@ -11,7 +11,7 @@ figDamsB <- damBehavior_byPND %>%
   ) %>%
   plotDamBehavior(
     yVar = Num_exits
-    , yLab = "# of exits"
+    , yLab = "mean # of exits"
     , fontSize = textSize
     , addTriangleForMean = FALSE
     , colorByDam = TRUE
@@ -32,9 +32,9 @@ figDamsD <- damFiltered %>%
     yLab = "corticosterone (ng/mL)",
     textSize = textSize,
     dotSize = dotSize,
-    zoom_y = TRUE,
-    ymin = 0,
-    ymax = 120
+    zoom_y = FALSE,
+    # ymin = 0,
+    # ymax = 120
   )
 
 # Dam Mass ------------------------------------------------------
@@ -369,8 +369,8 @@ figCyclesD <- cyclesPercLong %>%
 plotCort_long <- manuscriptCortPlotFunc(
   fontSize = textSize
   , dotSize = dotSize
-  # , yUnitsNewLine = TRUE
-  , yUnitsNewLine = FALSE
+  , yUnitsNewLine = TRUE
+  # , yUnitsNewLine = FALSE
   , jitterPosition = 1.8
 )
 
@@ -442,7 +442,7 @@ plotRelAdrenalMass <- plotCatVarFunc(
   , twoLineXLabs = TRUE
   , useFacetLabels = FALSE
   , useSpecYLab = TRUE
-  , thisYLab = "rel. adrenal mass\n(mg/g)"
+  , thisYLab = "normalized adrenal\nmass (mg/g)"
   # , thisYLab = "rel. mass (mg/g)"
   , removeXTicks = TRUE
 )
@@ -454,7 +454,7 @@ plotRelReproTractMass <- plotCatVarFunc(
   , twoLineXLabs = TRUE
   , useFacetLabels = FALSE
   , useSpecYLab = TRUE
-  , thisYLab = "rel. repro. tract mass\n(mg/g)"
+  , thisYLab = "normalized repro. tract\nmass (mg/g)"
   # , thisYLab = "rel. mass (mg/g)"
   , removeXTicks = TRUE
 )
@@ -466,8 +466,8 @@ plotRelSeminalVesicleMass <- plotCatVarFunc(
   , twoLineXLabs = TRUE
   , useFacetLabels = FALSE
   , useSpecYLab = TRUE
-  # , thisYLab = "rel. seminal vesicle mass\n(mg/g)"
-  , thisYLab = "rel. mass (mg/g)"
+  , thisYLab = "normalized seminal\nvesicle mass (mg/g)"
+  # , thisYLab = "rel. mass (mg/g)"
 )
 
 plotRelUterineMass <- plotCatVarFunc(
@@ -477,8 +477,8 @@ plotRelUterineMass <- plotCatVarFunc(
   , twoLineXLabs = TRUE
   , useFacetLabels = FALSE
   , useSpecYLab = TRUE
-  # , thisYLab = "rel. uterine mass\n(mg/g)"
-  , thisYLab = "rel. mass (mg/g)"
+  , thisYLab = "normalized uterine\nmass (mg/g)"
+  # , thisYLab = "rel. mass (mg/g)"
 )
 
 plotRelTesticularMass <- plotCatVarFunc(
@@ -567,11 +567,33 @@ figMassFacetB <- acuteStressForMasses %>%
   facetBySteroid
 
 figMassFacetC <- acuteStressForMasses %>%
-  plotRelAdrenalMass() +
+  plotRelAdrenalMass(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 0.4
+  ) +
   facetBySteroid
 
-figMassFacetD <- acuteStressForMasses %>%
-  plotRelReproTractMass() +
+figMassFacetD_male <- acuteStressForMasses %>%
+  filter(
+    sex == "M"
+  ) %>%
+  plotRelSeminalVesicleMass(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  ) +
+  facetBySteroid
+
+figMassFacetD_female <- acuteStressForMasses %>%
+  filter(
+    sex == "F"
+  ) %>%
+  plotRelUterineMass(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  ) +
   facetBySteroid
   
 

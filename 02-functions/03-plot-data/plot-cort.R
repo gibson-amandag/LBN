@@ -582,7 +582,7 @@ propOvulatedPlot <- function(
   fontSize = 11
   , labelFontSize = 10
 ){
-  viz <- ggplot(df, aes(x = {{ xVar }}, fill = ovulated))+
+  viz <- ggplot(df, aes(x = {{ xVar }}, fill = ovulated, linetype = ovulated))+
     geom_bar(position = "fill", color = "black") +
     geom_text(aes(label = ..count..), stat = "count", vjust = 1.3, colour = "darkgrey", position = "fill", size=labelFontSize)+
     labs(y = "% with oocytes") + 
@@ -592,6 +592,7 @@ propOvulatedPlot <- function(
       # labels = scales::percent
     )+
     scale_fill_manual(values = c("white", "black")) +
+    scale_linetype_manual(values = c("dotted", "solid"))+
     theme_pubr() +
     textTheme(size = fontSize)+
     boxTheme()+
@@ -652,17 +653,40 @@ propSurgedPlotCombo_forSBN <- function(
   fontSize = 11
 ){
   viz <- df %>%
-    ggplot(aes(x = comboTrt, fill = interaction(comboTrt, surged), color = interaction(comboTrt, surged)))+
+    ggplot(aes(
+      x = comboTrt
+      , fill = interaction(comboTrt, surged)
+      , color = interaction(comboTrt, surged)
+      , linetype = interaction(comboTrt, surged)
+    ))+
       geom_bar(position = "fill") +
+      geom_text(
+        aes(label = ..count..),
+        stat = "count",
+        vjust = 1.3,
+        colour = "grey80",
+        position = "fill",
+        size = 12
+      )+
       labs(y = "% with LH surge") + 
+      # scale_color_manual(values = c(
+      #   "STD-CON.FALSE"="white",
+      #   "STD-ALPS.FALSE"="white",
+      #   "LBN-CON.FALSE"="white",
+      #   "LBN-ALPS.FALSE"="darkcyan", ## so that can have a line at zero. Edit illustrator
+      #   "STD-CON.TRUE"="black",
+      #   "STD-ALPS.TRUE"="black",
+      #   "LBN-CON.TRUE"="darkcyan"
+      # )) +
       scale_color_manual(values = c(
-        "STD-CON.FALSE"="white",
-        "STD-ALPS.FALSE"="white",
-        "LBN-CON.FALSE"="white",
-        "LBN-ALPS.FALSE"="darkcyan", ## so that can have a line at zero. Edit illustrator
+        "STD-CON.FALSE"="grey20",
+        "STD-ALPS.FALSE"="grey20",
+        "LBN-CON.FALSE"="grey20",
+        "LBN-ALPS.FALSE"="grey20",
         "STD-CON.TRUE"="black",
         "STD-ALPS.TRUE"="black",
-        "LBN-CON.TRUE"="darkcyan"
+        "LBN-CON.TRUE"="darkcyan",
+        "LBN-ALPS.TRUE"="darkcyan"
       )) +
       scale_fill_manual(values = c(
         "STD-CON.FALSE"="white",
@@ -674,6 +698,16 @@ propSurgedPlotCombo_forSBN <- function(
         "LBN-CON.TRUE"="lightblue1",
         "LBN-ALPS.TRUE"="darkcyan"
         # "white", "white", "white", "grey90", "black", "lightblue1", "darkcyan"
+      )) +
+      scale_linetype_manual(values = c(
+        "STD-CON.FALSE"="dotted",
+        "STD-ALPS.FALSE"="dotted",
+        "LBN-CON.FALSE"="dotted",
+        "LBN-ALPS.FALSE"="dotted",
+        "STD-CON.TRUE"="solid",
+        "STD-ALPS.TRUE"="solid",
+        "LBN-CON.TRUE"="solid",
+        "LBN-ALPS.TRUE"="solid"
       )) +
       theme_pubr() +
       textTheme(size = fontSize)+
@@ -844,17 +878,26 @@ plotLHAmp_dosage <- function(
     textTheme(textSize) +
     ylab("LH (ng/mL)")+
     scale_x_discrete(
-      labels = c(
-        "0 mg/kg \nsurge"
-        , "0 mg/kg\nno surge"
-        , "2 mg/kg \nsurge"
-        , "2 mg/kg\nno surge"
-      )
+      labels = ifelse(
+          textAngle > 0
+          , { c(
+            "0 mg/kg \nsurge"
+            , "0 mg/kg\nno surge"
+            , "2 mg/kg \nsurge"
+            , "2 mg/kg\nno surge"
+          )}
+          , {c(
+            "0 mg/kg\nsurge"
+            , "0 mg/kg\nno surge"
+            , "2 mg/kg\nsurge"
+            , "2 mg/kg\nno surge"
+          )}
+        )
     )+
     theme(
       legend.position = "none",
       axis.title.x = element_blank(),
-      axis.text.x = element_text(angle = textAngle, vjust = 1, hjust=1)
+      if(textAngle > 0){axis.text.x = element_text(angle = textAngle, vjust = 1, hjust=1)}
     )
   return(plot)
 }

@@ -10752,4 +10752,429 @@ ggplot(
 ```
 
 
-# Afex
+# Afex plotting
+
+
+```{r}
+install.packages("afex")
+```
+
+```{r}
+library(afex)
+```
+
+```{r}
+maturationFiltered %>% filter(sex == "F") %>%
+  getAvgByDam() %>%
+  select(
+    damID
+    , Litter_size
+  )
+```
+
+
+```{r}
+runLMM(
+  maturationFiltered %>% filter(sex == "F")
+  , VO_age ~ earlyLifeTrt * Litter_size + (1|damID)
+)
+```
+
+
+```{r}
+lmm <- mixed(
+  VO_age ~ earlyLifeTrt * Litter_size + (1|damID)
+  , maturationFiltered %>% filter(sex == "F")
+  , method = "KR"
+)
+
+# lmm
+# 
+# summary(lmm)
+
+# anova(lmm) %>% as.data.frame() %>% rownames_to_column("effect")
+# 
+# lmm %>% getLMM_ANOVA()
+
+lmm
+
+nice(lmm)
+
+
+anova(lmm)
+```
+
+```{r}
+lmm %>%
+  afex_plot(
+    "earlyLifeTrt"
+    , mapping = c("color", "fill")
+    , shape = 21
+    , data_geom = ggbeeswarm::geom_quasirandom
+    , error_arg = list(color = "black")
+    , return = "data"
+  ) +
+  earlyLifeColor() +
+  earlyLifeFill() +
+  theme_pubr() +
+  expand_limits(y = 0) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = "none"
+  )+
+  boxTheme()
+```
+
+```{r}
+lmm %>%
+  afex_plot(
+    "earlyLifeTrt"
+    , return = "data"
+  )
+```
+
+```{r}
+data(obk.long, package = "afex")
+a1 <- aov_car(value ~ treatment * gender + Error(id/(phase*hour)),
+data = obk.long, observed = "gender")
+
+afex_plot(a1, ~hour, ~treatment, ~gender+phase,
+dodge = 0.65,
+data_arg = list(
+position =
+ggplot2::position_jitterdodge(
+jitter.width = 0,
+jitter.height = 0.2,
+dodge.width = 0.65 ## needs to be same as dodge
+),
+color = "darkgrey")) +
+ggplot2::theme_bw()
+
+
+cbind(
+afex_plot(a1, ~phase, ~treatment,
+error = "model", return = "data")$means[,c("phase", "treatment", "y", "SE")],
+multivariate = afex_plot(a1, ~phase, ~treatment,
+error = "model", return = "data")$means$error,
+mean = afex_plot(a1, ~phase, ~treatment,
+error = "mean", return = "data")$means$error,
+within = afex_plot(a1, ~phase, ~treatment,
+error = "within", return = "data")$means$error,
+between = afex_plot(a1, ~phase, ~treatment,
+error = "between", return = "data")$means$error)
+```
+
+```{r}
+X <- afex_plot(a1, ~phase, ~hour, error = "model", return = "data")
+
+X$means$
+afex_plot(a1, ~phase, ~hour, error = "model", return = "data")$means[,c("phase", "hour", "y", "SE")]
+afex_plot(a1, ~phase, ~hour, error = "model", return = "data")$means$error
+```
+
+
+VO age with linear mixed model 
+```{r}
+lmm <- mixed(
+  VO_age ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered %>% filter(sex == "F")
+  , method = "KR"
+)
+
+anova(lmm)
+```
+
+```{r}
+anova_test(
+  maturation_byDam_f
+  , dv = VO_age
+  , between = earlyLifeTrt
+  , type = 3
+)
+```
+```{r}
+anova_test(
+  maturationFiltered %>% filter(sex == "F")
+  , dv = VO_age
+  , between = earlyLifeTrt
+  , type = 3
+)
+```
+
+```{r}
+aov_ez(
+  "damID"
+  , dv = "VO_age"
+  , between = "earlyLifeTrt"
+  , data = maturation_byDam_f
+)
+```
+
+
+```{r}
+maturationFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  scatterPlotLBN(
+    yVar = VO_age
+    , yLab = "age (days)"
+    , dotSize = 3
+    , textSize = 11
+  )
+
+flexSave(
+  "VO_age_indiv"
+  , width = 3
+  , height = 4
+)
+
+maturation_byDam_f %>%
+  scatterPlotLBN(
+    yVar = VO_age
+    , yLab = "age (days)"
+    , dotSize = 3
+    , textSize = 11
+  )
+
+flexSave(
+  "VO_age_grouped"
+  , width = 3
+  , height = 4
+)
+```
+```{r}
+maturationFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  ggplot(
+      aes(
+        x = earlyLifeTrt,
+        y = VO_age
+      )
+    ) +
+    geom_quasirandom(
+      aes(
+        fill = damID
+      )
+      , size = 3
+      , alpha = 0.7
+      , shape = 21
+    )+
+    addMeanHorizontalBar() +
+    addMeanSE_vertBar()+
+    labs(y = "age (days)", title = NULL)+
+    theme_pubr()+
+    expand_limits(y=0)+
+    theme(
+      axis.title.x = element_blank()
+      , legend.position = "right"
+    )+
+    textTheme(size = 11)+
+    boxTheme()
+
+flexSave(
+  "VO_age_indiv_color"
+  , width = 6
+  , height = 4
+)
+```
+
+
+```{r}
+library(afex)
+```
+
+```{r}
+cortLMM <- mixed(
+  cort ~ earlyLifeTrt*adultTrt*time + (1|damID/mouseID)
+  , method = "KR"
+  , data = cortFilteredMales
+)
+summary(cortLMM)
+```
+
+```{r}
+cortLMM <- mixed(
+  cort ~ earlyLifeTrt*adultTrt*time + (1|damID) + (1|mouseID)
+  , method = "KR"
+  , data = cortFilteredMales %>%
+    filter(mouseID != 7015)
+)
+summary(cortLMM)
+```
+
+```{r}
+cortLMM_onlyMouse <- mixed(
+  cort ~ earlyLifeTrt*adultTrt*time + (1|mouseID)
+  , method = "KR"
+  , data = cortFilteredMales %>%
+    filter(mouseID != 7015)
+)
+summary(cortLMM_onlyMouse)
+```
+
+```{r}
+
+anova(cortLMM)
+anova(cortLMM_onlyMouse)
+```
+
+
+```{r}
+aov_ez(
+  id = "mouseID"
+  , dv = "cort"
+  , data = cortFilteredMales %>%
+    filter(
+      mouseID != 7015
+    )
+  , between = c("earlyLifeTrt", "adultTrt")
+  , within = c("time")
+)
+```
+
+```{r}
+cortFilteredMales %>%
+  filter(
+    mouseID != 7015
+  ) %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = c(earlyLifeTrt, adultTrt)
+    , within = time
+    , type = 3
+  )
+```
+
+
+```{r}
+cortFilteredMales %>%
+  plotCort_long()
+
+flexSave("cortMales", width = 7, height = 2.5)
+```
+
+
+```{r}
+cortLMM <- mixed(
+  cort ~ earlyLifeTrt*adultTrt*time + (1|damID) + (1|mouseID)
+  , method = "KR"
+  , data = cortFilteredPro
+)
+summary(cortLMM)
+```
+
+```{r}
+cortLMM_onlyMouse <- mixed(
+  cort ~ earlyLifeTrt*adultTrt*time + (1|mouseID)
+  , method = "KR"
+  , data = cortFilteredPro
+)
+summary(cortLMM_onlyMouse)
+```
+
+```{r}
+
+anova(cortLMM)
+anova(cortLMM_onlyMouse)
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  ggplot(
+      aes(
+        x = comboTrt,
+        y = Body_mass_AM
+      )
+    ) +
+    geom_quasirandom(
+      size = 3
+      , alpha = 0.7
+      , aes(
+        fill = damID
+      )
+      , shape = 21
+    )+
+    labs(y = "AM body mass (g)")+
+    theme_pubr()+
+    expand_limits(y=0)+
+    theme(
+      axis.title.x = element_blank()
+      , legend.position = "bottom"
+    )+
+    textTheme(size = 11)+
+    boxTheme() +
+    addMeanHorizontalBar() +
+    addMeanSE_vertBar()
+
+flexSave(
+  "maleMass"
+  , width = 7
+  , height = 5
+)
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  group_by(
+    damID, comboTrt
+  ) %>%
+  summarize(
+    Body_mass_AM = mean(Body_mass_AM, na.rm = TRUE)
+  ) %>%
+  ggplot(
+      aes(
+        x = comboTrt,
+        y = Body_mass_AM
+        # , group = comboTrt
+      )
+    ) +
+  geom_line(
+      alpha = 0.4,
+      # color = "black",
+      aes(group = damID),
+      position = position_dodge(0.5)
+    ) +
+    geom_point(
+      shape = 21,
+      alpha = 1,
+      aes(
+          group=damID
+          , fill = damID
+        # fill= {{ groupVar }}
+          # , shape= {{ groupVar }}
+          # , color= {{ groupVar }}
+        ),
+      position = position_dodge(0.5),
+      size = 3
+    ) +
+    # geom_jitter(
+    #   size = 3
+    #   , alpha = 0.7
+    #   , aes(
+    #     fill = damID
+    #   )
+    #   , shape = 21
+    # )+
+    labs(y = "AM body mass (g)")+
+    theme_pubr()+
+    expand_limits(y=0)+
+    theme(
+      axis.title.x = element_blank()
+      , legend.position = "none"
+    )+
+    textTheme(size = 11)+
+    boxTheme() +
+    addMeanHorizontalBar() +
+    addMeanSE_vertBar()
+
+flexSave(
+  "maleMass_byDam"
+  , width = 7
+  , height = 3
+)
+```
+
