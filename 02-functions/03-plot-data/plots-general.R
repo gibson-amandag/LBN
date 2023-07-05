@@ -100,7 +100,9 @@ scatterPlotLBN <- function(
   fillAlpha = 0.7, # changed 2023-06-18 from 1
   jitterWidth = 0.35,
   jitterHeight = 0,
-  title = NULL
+  title = NULL,
+  addMean = TRUE
+  , addSEM = TRUE
 ){
   viz <- df %>%
     ggplot(
@@ -115,9 +117,7 @@ scatterPlotLBN <- function(
       alpha = fillAlpha,
       width = jitterWidth,
       height = jitterHeight
-    ) +
-    addMeanHorizontalBar() +
-    addMeanSE_vertBar()+
+    )+
     labs(y = yLab, title = title)+
     earlyLifeFill(STDColor = STDColor, LBNColor = LBNColor) +
     theme_pubr()+
@@ -129,6 +129,16 @@ scatterPlotLBN <- function(
     )+
     textTheme(size = textSize)+
     boxTheme()
+  
+  if(addMean){
+    viz <- viz + 
+      addMeanHorizontalBar()
+  }
+  
+  if(addSEM){
+    viz <- viz +
+      addMeanSE_vertBar()
+  }
   
   return(viz)
 }

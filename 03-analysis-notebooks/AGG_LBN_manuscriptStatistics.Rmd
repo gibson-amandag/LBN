@@ -1,0 +1,692 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# knitr::opts_chunk$set(fig.width=11.5, fig.height=5) 
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/05-make-LBN-plots-manuscript.R")
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+# Column Sizes
+```{r}
+# JNeuro values (in cm)
+twoCols <- 17.4
+oneAndHalfCols <- 11.5
+oneCol <- 8.5
+```
+
+```{r}
+set_sum_contrasts()
+set_null_device("png") 
+```
+
+# Dam behavior - number of exits
+
+Chose a negative binomial distritution because this is count data, but it is overdispersed, meaning that the variation is more than the means (which violates assumptions for a Poisson distribution). 
+
+
+This would suggest that there's an effect of both treatment and experimental day on the number of exits that the dam makes from the nest. There's not a lot of evidence here for an interaction between day and treatment, though it's harder to tell with each of the individual effects reported.
+
+## Model
+
+```{r}
+numExits_nb.GLMM <- glmer.nb(
+  Num_exits ~ earlyLifeTrt * PND + (1|damID)
+  , data = damBehavior_byPND_ZT %>%
+    makeFactors(c(PND, ZT))
+)
+
+summary(numExits_nb.GLMM)
+```
+
+## Assumptions
+
+```{r}
+plot(numExits_nb.GLMM)
+```
+
+```{r}
+qqnorm(residuals(numExits_nb.GLMM))
+```
+
+## Sig testing
+
+I can't figure out how to appropriately do an ANOVA-like analysis on this to get a main effect and interaction effect of PND/trt. Thought this joint_tests from emmeans is perhaps one approach, since it doesn't seem obvious how to do the parametric bootstrap approach with the afex package for a negative binomial distribution
+
+```{r}
+joint_tests(
+  numExits_nb.GLMM
+)
+```
+
+If this is a reasonable approach, then I believe what this suggests is, again, that there's no interaction between early-life treatment and PND, but that they are each individually significant.
+
+This is the emmeans for all of the comparisons - Will ultimately be drawing on these values for plotting.
+
+Answer regarding degrees of freedom calculation with emmeans and mixed models: https://stackoverflow.com/a/73545257
+
+```{r}
+numExits_nb.GLMM.emm <-  emmeans(
+  numExits_nb.GLMM
+  ,"earlyLifeTrt"
+  , by = "PND"
+  , type = "response"
+)
+
+numExits_nb.GLMM.emm
+```
+
+I'm still not certain if this is a justified comparison or not based on the full model, but these are the comparisons between STD and LBN for each day, and holm corrected for multiple comparisons.
+
+```{r}
+test(pairs(numExits_nb.GLMM.emm), by = NULL, adjust = "holm")
+```
+
+
+If we just compare the STD and LBN dams, then we can see that the LBN dams have more exits on average
+
+```{r}
+numExits_nb.GLMM.earlyLifeEMM <- emmeans(
+  numExits_nb.GLMM
+  , "earlyLifeTrt"
+  , type = "response"
+)
+
+numExits_nb.GLMM.earlyLifeEMM
+
+pairs(numExits_nb.GLMM.earlyLifeEMM)
+```
+
+You could go through and look at the comparison of behavior for the different days, but this is a lot of potential comparisons, and not really of primary interest for this study
+
+## Graphs with error comparison
+
+```{r}
+numExits_nb.GLMM_errors <- numExits_nb.GLMM %>%
+  getErrorDF_LMM("PND", panel = "earlyLifeTrt", errorType = "model")
+
+numExits_nb.GLMM_errors
+```
+
+## Graph with mean + SEM as error bars, not model
+```{r}
+numExits_nb.GLMM_errorsMean <- numExits_nb.GLMM %>%
+  getErrorDF_LMM("PND", panel = "earlyLifeTrt", errorType = "mean")
+
+numExits_nb.GLMM_errorsMean
+```
+
+Black is the mean + SEM of exactly what's plotted. Blue is the mean from the model + data SEM. Red is the mean and SEM from the model. 
+
+Confirmed from looking at the dataframes, the SEM for the blue and black lines are equivalent (mapping onto the plotted data spread). But, the mean differs from the plotted data and the estimated model, because the model considers the fact that there's missing data, and I think sort of extrapolates from the random effects to figure out what the mean would have been if all the mice were included. The SEM for the model is also different, and probably the best representation of the entire dataset.
+
+
+```{r}
+figDamsB +
+  plotError_LMM(
+    numExits_nb.GLMM_errorsMean %>%
+      mutate(
+        PND = as.numeric(as.character(PND))
+      )
+    , xVar = PND
+    , color = "blue"
+  )+
+  plotError_LMM(
+    numExits_nb.GLMM_errors %>%
+      mutate(
+        PND = as.numeric(as.character(PND))
+      )
+    , xVar = PND
+    , nudgeErrorLine = 0.2
+  )
+```
+
+This is the average number of exits over all recordings for each mouse. The red error bar is the model plot of mean + SEM
+
+```{r}
+damBehavior_byDam %>%
+  scatterPlotLBN(
+    yVar = Num_exits
+    , yLab = "mean # of exits"
+  ) + 
+  plotError_LMM(
+    getErrorDF_LMM(
+      numExits_nb.GLMM
+      , "earlyLifeTrt"
+    )
+    , xVar = earlyLifeTrt
+  )
+```
+
+## Proposed plots
+
+Current thought is to show the averaged by day plot with the colored lines for each dam, and then show the averaged by dam plot right next to it. I think that for these, the mean + SEM that should be plotted is from the model, particularly because there's missing data for some dams, so the mean + SEM of the plotted data isn't actually representative of all information. For example, for cohort 7, we've only got a couple days of monitoring, and it's from the beginning of the paradigm when exits are higher, so it falsely inflates the mean that's what's plotted. The model "knows" that some of these averages are only from the beginning of the paradigm, so it is lower than just simply taking the average of all of the averages plotted. 
+
+```{r}
+plot_grid(
+  figDamsB_noMean +
+    plotError_LMM(
+      numExits_nb.GLMM_errors %>%
+        mutate(
+          PND = as.numeric(as.character(PND))
+        )
+      , xVar = PND
+      , meanBarWidth = 0.7
+      , color = "black"
+      , nudgeErrorLine = 0
+    ),
+  damBehavior_byDam %>%
+    scatterPlotLBN(
+      yVar = Num_exits
+      , yLab = "mean # of exits"
+      , addMean = FALSE
+      , addSEM = FALSE
+      , zoom_y = TRUE
+      , ymax = 40
+      , ymin = 0
+    ) + 
+    plotError_LMM(
+      getErrorDF_LMM(
+        numExits_nb.GLMM
+        , "earlyLifeTrt"
+      )
+      , xVar = earlyLifeTrt
+      , meanBarWidth = 0.7
+      , color = "black"
+      , nudgeErrorLine = 0
+    ) +
+    facet_wrap(
+      ~earlyLifeTrt
+      , scales = "free_x"
+    ) +
+    theme(
+      axis.text.x = element_blank()
+      , axis.ticks.x = element_blank()
+    )
+  , rel_widths = c(3,1)
+  , align = "h"
+  , axis = "tb"
+)
+```
+# Dam mass
+
+## Model
+
+`mass ~ earlyLifeTrt * PND + (1|damID)`
+
+Both day and earlyLifeTrt have a significant effect. There's a trend for an interaction
+
+```{r}
+damMass_lmm <- mixed(
+  mass ~ earlyLifeTrt * PND + (1|damID)
+  , data = damMassFiltered %>%
+      mutate(
+        PND = as.factor(day)
+      )
+  , method = "KR"
+)
+
+damMass_lmm
+```
+
+```{r}
+plot(damMass_lmm$full_model)
+```
+
+```{r}
+qqnorm(residuals(damMass_lmm$full_model))
+```
+
+## Post-hocs
+
+```{r}
+damMass_lmm_EMM <- emmeans(
+  damMass_lmm$full_model
+  , "earlyLifeTrt"
+  , by = "PND"
+)
+
+damMass_lmm_EMM
+```
+
+Interaction is only trending, so this comparison may not be justified, but this suggests that the difference is really emerging after the LBN treatment and that the LBN dams are gaining more mass during the paradigm, partially resolves by the end of the paradigm
+
+```{r}
+test(pairs(damMass_lmm_EMM), by = NULL, adjust = "holm")
+```
+## Graph with error comparison
+
+```{r}
+damMass_lmm_errors <- damMass_lmm %>%
+  getErrorDF_LMM("PND", panel = "earlyLifeTrt", errorType = "model")
+
+damMass_lmm_errors
+```
+
+```{r}
+figDamsC_noMean +
+  plotError_LMM_meanLine(
+    damMass_lmm_errors %>%
+      mutate(
+        PND = as.numeric(as.character(PND))
+      )
+    , xVar = PND
+    , color = earlyLifeTrt
+  )
+```
+
+# Dam cort
+
+## Assumptions
+
+```{r}
+qqnorm(damFiltered$Cort_dam_P11)
+```
+
+```{r}
+shapiro.test(x = damFiltered$Cort_dam_P11)
+```
+
+```{r}
+var.test(damFiltered$Cort_dam_P11~damFiltered$earlyLifeTrt)
+```
+
+## t-test
+
+Assumption of equal variance is not violated, so we could in theory do a Student's t instead of Welch, but I think from what I've read, it's okay to still do Welch in either case
+
+```{r}
+damCort_t.Test <- t.test(
+  Cort_dam_P11 ~ earlyLifeTrt, data = damFiltered
+)
+
+damCort_t.Test
+```
+
+
+
+Plot here doesn't have to change, just plot mean + SEM
+
+# Offspring mass
+
+
+
+# Offspring maturation
+
+## Model
+
+```{r}
+VO_age_lmm <- mixed(
+  VO_age ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered
+  , method = "KR"
+)
+
+VO_age_lmm
+```
+```{r}
+Estrus_age_lmm <- mixed(
+  Estrus_age ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered
+  , method = "KR"
+)
+
+Estrus_age_lmm
+```
+```{r}
+PreputialSep_age_lmm <- mixed(
+  PreputialSep_age ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered
+  , method = "KR"
+)
+
+PreputialSep_age_lmm
+```
+```{r}
+VO_mass_lmm <- mixed(
+  VO_mass ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered
+  , method = "KR"
+)
+
+VO_mass_lmm
+```
+```{r}
+Estrus_mass_lmm <- mixed(
+  Estrus_mass ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered
+  , method = "KR"
+)
+
+Estrus_mass_lmm
+```
+```{r}
+PreputialSep_mass_lmm <- mixed(
+  PreputialSep_mass ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered
+  , method = "KR"
+)
+
+PreputialSep_mass_lmm
+```
+
+## Plot
+
+matType, age, mass
+
+"vaginal opening", "first estrus", "preputial separation"
+
+```{r}
+figOffAge
+```
+```{r}
+VO_age_lmm_errors <- VO_age_lmm %>%
+  getErrorDF_LMM(
+    xVarAsChar = "earlyLifeTrt"
+  )
+
+VO_age_lmm_errors <- VO_age_lmm_errors %>%
+  mutate(
+    matType = "vaginal opening"
+  )
+```
+```{r}
+Estrus_age_lmm_errors <- Estrus_age_lmm %>%
+  getErrorDF_LMM(
+    xVarAsChar = "earlyLifeTrt"
+  )
+
+Estrus_age_lmm_errors <- Estrus_age_lmm_errors %>%
+  mutate(
+    matType = "first estrus"
+  )
+```
+```{r}
+PreputialSep_age_lmm_errors <- PreputialSep_age_lmm %>%
+  getErrorDF_LMM(
+    xVarAsChar = "earlyLifeTrt"
+  )
+
+PreputialSep_age_lmm_errors <- PreputialSep_age_lmm_errors %>%
+  mutate(
+    matType = "preputial separation"
+  )
+```
+```{r}
+VO_mass_lmm_errors <- VO_mass_lmm %>%
+  getErrorDF_LMM(
+    xVarAsChar = "earlyLifeTrt"
+  )
+
+VO_mass_lmm_errors <- VO_mass_lmm_errors %>%
+  mutate(
+    matType = "vaginal opening"
+  )
+```
+```{r}
+Estrus_mass_lmm_errors <- Estrus_mass_lmm %>%
+  getErrorDF_LMM(
+    xVarAsChar = "earlyLifeTrt"
+  )
+
+Estrus_mass_lmm_errors <- Estrus_mass_lmm_errors %>%
+  mutate(
+    matType = "first estrus"
+  )
+```
+```{r}
+PreputialSep_mass_lmm_errors <- PreputialSep_mass_lmm %>%
+  getErrorDF_LMM(
+    xVarAsChar = "earlyLifeTrt"
+  )
+
+PreputialSep_mass_lmm_errors <- PreputialSep_mass_lmm_errors %>%
+  mutate(
+    matType = "preputial separation"
+  )
+```
+```{r}
+age_lmm_errors <- rbind(
+  VO_age_lmm_errors
+  , Estrus_age_lmm_errors
+  , PreputialSep_age_lmm_errors
+) %>%
+  mutate(
+    matType = factor(matType, levels = c("vaginal opening", "first estrus", "preputial separation"))
+  )
+
+age_lmm_errors
+```
+```{r}
+mass_lmm_errors <- rbind(
+  VO_mass_lmm_errors
+  , Estrus_mass_lmm_errors
+  , PreputialSep_mass_lmm_errors
+)%>%
+  mutate(
+    matType = factor(matType, levels = c("vaginal opening", "first estrus", "preputial separation"))
+  )
+
+mass_lmm_errors
+```
+
+
+```{r}
+figOffAge_noMean +
+  plotError_LMM(
+    age_lmm_errors
+    , xVar = earlyLifeTrt
+    , color = "black"
+    , nudgeErrorLine = 0
+    , barSize = 0.6
+  )
+```
+```{r}
+figOffMass_noMean +
+  plotError_LMM(
+    mass_lmm_errors
+    , xVar = earlyLifeTrt
+    , color = "black"
+    , nudgeErrorLine = 0
+    , barSize = 0.6
+  )
+```
+# AGD
+
+## Model
+
+Included males and females in the same model
+
+```{r}
+AGD_lmm <- mixed(
+  AGD_adult ~ earlyLifeTrt * sex + (1|damID)
+  , data = maturationFiltered
+  , method = "KR"
+)
+
+AGD_lmm
+```
+
+## Assumptions
+
+```{r}
+plot(AGD_lmm$full_model)
+```
+
+```{r}
+qqnorm(residuals(AGD_lmm$full_model))
+```
+## Post-hocs
+
+```{r}
+AGD_lmm_emm <- emmeans(
+  AGD_lmm
+  , "earlyLifeTrt"
+  , by = "sex"
+)
+
+AGD_lmm_emm
+```
+## Graphs
+
+```{r}
+AGD_lmm_errors <- AGD_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "sex"
+  )
+
+AGD_lmm_errors
+```
+
+```{r}
+figOffH_noMean +
+  plotError_LMM (
+    AGD_lmm_errors %>% filter(
+      sex == "F"
+    )
+    , xVar = earlyLifeTrt
+    , color = "black"
+    , barSize = 0.5
+    , meanBarWidth = 0.7
+    , nudgeErrorLine = 0
+  )
+```
+
+```{r}
+figOffI_noMean +
+  plotError_LMM (
+    AGD_lmm_errors %>% filter(
+      sex == "M"
+    )
+    , xVar = earlyLifeTrt
+    , color = "black"
+    , barSize = 0.5
+    , meanBarWidth = 0.7
+    , nudgeErrorLine = 0
+  )
+```
+
+# Estrous Cycles - number
+
+## Model
+
+Get warning that the fit is singular - damID as random effect doesn't add anything?
+
+```{r}
+numCycles_lmm <- mixed(
+  numCycles ~ earlyLifeTrt + (1|damID)
+  , data = cyclesFiltered
+  , method = "KR"
+)
+
+numCycles_lmm$full_model
+
+numCycles_lmm
+```
+
+
+As a sanity check - if mouse are used individually, with t-test, no diff
+```{r}
+cyclesFiltered %>%
+  t_test(
+    numCycles ~ earlyLifeTrt
+  )
+
+cyclesFiltered %>%
+  scatterPlotLBN(
+    yVar = numCycles
+    , yLab = "# of cycles"
+  )
+```
+
+```{r}
+cyclesFiltered %>%
+  filter(
+    numCycles >5
+  )
+```
+
+TO-DO: Double-check scoring for 935. Quick transition at the beginning
+
+```{r}
+plotCycleTraces_single(
+  cyclesLong %>%
+    filter(
+      mouseID == 935
+    )
+) +
+  geom_point()
+
+```
+
+## Assumptions
+
+```{r}
+plot(numCycles_lmm$full_model)
+```
+
+```{r}
+qqnorm(residuals(numCycles_lmm$full_model))
+```
+## Graphs
+
+
+```{r}
+numCycles_lmm_error <- numCycles_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+  )
+
+numCycles_lmm_error
+```
+
+```{r}
+figCyclesB +
+  plotError_LMM(
+    numCycles_lmm_error
+    , xVar = earlyLifeTrt
+  )
+```
+
+```{r}
+figCyclesB_noMean +
+  plotError_LMM(
+    numCycles_lmm_error
+    , xVar = earlyLifeTrt
+    , meanBarWidth = 0.7
+    , barSize = 0.4
+    , color = "black"
+    , nudgeErrorLine = 0
+  )
+```
+
+```{r}
+
+```
+
+
+
+```{r}
+
+```
+
+
+
+
+
+
+

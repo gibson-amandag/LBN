@@ -277,7 +277,7 @@ plotByUterineMass <- function(
         color = comboTrt,
       )
     ) +
-    geom_jitter(size = dotSize) +
+    geom_jitter(size = dotSize, height = 0) + # AGG - added height = 0 to jitter 2023-07-05
     expand_limits(x = 0, y = 0) +
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
     labs(x = "uterine mass (mg)", y = yLab)+
@@ -401,13 +401,13 @@ LHPlot_noMean <- function(
       alpha = 0.4,
       color = "black",
       aes(group = mouseID),
-      position = position_dodge(0.4)
+      position = position_dodge(0.15)
     ) +
     geom_point(
       # shape = 21, 
       alpha = 1, 
       aes(fill=comboTrt,group=mouseID, shape=comboTrt), 
-      position = position_dodge(0.4), 
+      position = position_dodge(0.15), 
       size = dotSize
     ) +
     # addMeanHorizontalBar(width = 0.85, addLineType = TRUE)+
@@ -419,8 +419,8 @@ LHPlot_noMean <- function(
       x = "time (hr) relative to lights out"
     ) +
     scale_x_continuous(
-      breaks = c(0, 5, 5.5, 6.5, 7.5, 8.5),
-      labels = c(-7.5, "", -2, -1, 0, 1)
+      breaks = c(0, 5, 5.5, 6.5, 7.5, 8.5, 9.5),
+      labels = c(-7.5, "", -2, -1, 0, 1, 2)
     )+
     textTheme(size = fontSize)+
     boxTheme()+
@@ -878,21 +878,12 @@ plotLHAmp_dosage <- function(
     textTheme(textSize) +
     ylab("LH (ng/mL)")+
     scale_x_discrete(
-      labels = ifelse(
-          textAngle > 0
-          , { c(
-            "0 mg/kg \nsurge"
-            , "0 mg/kg\nno surge"
-            , "2 mg/kg \nsurge"
-            , "2 mg/kg\nno surge"
-          )}
-          , {c(
-            "0 mg/kg\nsurge"
-            , "0 mg/kg\nno surge"
-            , "2 mg/kg\nsurge"
-            , "2 mg/kg\nno surge"
-          )}
-        )
+      labels = c(
+        "0 mg/kg \nsurge"
+        , "0 mg/kg\nno surge"
+        , "2 mg/kg \nsurge"
+        , "2 mg/kg\nno surge"
+      )
     )+
     theme(
       legend.position = "none",

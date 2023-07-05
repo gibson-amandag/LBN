@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
 source("./01-scripts/04-filter-datasets.R")
-source("./01-scripts/05-make-LBN-plots-SBN.R")
+source("./01-scripts/05-make-LBN-plots-manuscript.R")
 ```
 
 ```{r}
@@ -25,12 +25,9 @@ figureNum <- 1
 
 pptBaseName <- makeBaseNameFunc("")
 
-plotFolder <- file.path(plotOutputFolder, "SBN_2023")
+plotFolder <- file.path(plotOutputFolder, "IMIBIC_2023")
 
-imgType <-"pdf"
-
-figWidth = 21.4629
-figHeight = 6.75
+imgType <-"png"
 
 exportImg <- exportImg_forPurposeFunc(
   imgType = imgType
@@ -39,24 +36,24 @@ exportImg <- exportImg_forPurposeFunc(
   , compType = currentCompType
 )
 
-exportRow <- function(
+exportFullPPTSlide <- function(
     plot = last_plot()
     , baseName = fileBaseName
     , figNum = figureNum
-    , rowWidth = figWidth
-    , rowHeight = figHeight
+    , width = 11.5
+    , height = 5
 ){
   exportImg(
     plot = plot
     , fileBaseName = baseName
     , figNum = figNum
     , units = "in"
-    , width = rowWidth
-    , height = rowHeight
+    , width = width
+    , height = height
   )
 }
 
-exportTwoThirds <- function(
+exportHalfPPTSlide <- function(
     plot = last_plot()
     , baseName = fileBaseName
     , figNum = figureNum
@@ -66,13 +63,12 @@ exportTwoThirds <- function(
     , fileBaseName = baseName
     , figNum = figNum
     , units = "in"
-    , width = 13.9988
-    # , width = 14.169
-    , height = figHeight
+    , width = 5.67
+    , height = 5
   )
 }
 
-exportOneThird <- function(
+exportThirdPPTSlide <- function(
     plot = last_plot()
     , baseName = fileBaseName
     , figNum = figureNum
@@ -82,13 +78,12 @@ exportOneThird <- function(
     , fileBaseName = baseName
     , figNum = figNum
     , units = "in"
-    # , width = 6.8777
-    , width = 6.8718
-    , height = figHeight
+    , width = 3.6
+    , height = 5
   )
 }
 
-exportOneQuarter <- function(
+exportQuarterPPTSlide <- function(
     plot = last_plot()
     , baseName = fileBaseName
     , figNum = figureNum
@@ -98,25 +93,173 @@ exportOneQuarter <- function(
     , fileBaseName = baseName
     , figNum = figNum
     , units = "in"
-    # , width = 5.0409
-    , width = 5.0881
-    , height = figHeight
+    , width = 3.2
+    , height = 5
   )
 }
 
-exportOneHalf <- function(
-    plot = last_plot()
-    , baseName = fileBaseName
-    , figNum = figureNum
+editableImgs <- TRUE
+pptAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
 ){
-  exportImg(
-    plot = plot
-    , fileBaseName = baseName
-    , figNum = figNum
-    , units = "in"
-    , width = 10.4345
-    # , width = 10.522
-    , height = figHeight
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddOneTable <- function(
+    table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_oneTable(
+    officer_ppt, 
+    title, 
+    table, 
+    dontFormat = dontFormat
+  )
+  return(officer_ppt)
+}
+
+pptUneditAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = FALSE
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphs <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphsMoreLeft <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraphMoreLeft(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddGraphTable <- function(
+    plot
+    , table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_graphTable(
+    officer_ppt, 
+    title, 
+    plot, 
+    table,
+    makeEditable = editableImgs
+    , dontFormat = dontFormat
+    , textSize = textSize
+  )
+  return(officer_ppt)
+}
+
+pptAddFourGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , plot4
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_fourGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    plot4,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddThreeGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_threeGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddStats <- function(
+    statsText
+    , officer_ppt = ppt
+){
+  officer_ppt <- addStatsToBottom(
+    officer_ppt,
+    statsText
+  )
+}
+
+pptAddTwoStats <- function(
+    statsText1
+    , statsText2
+    , officer_ppt = ppt
+){
+  officer_ppt <- addTwoStatsToGraphs(
+    officer_ppt,
+    statsText1,
+    statsText2
+  )
+}
+
+pptAddSectionHead <- function(
+    title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_sectionHead(
+    officer_ppt
+    , title
   )
 }
 ```
@@ -124,296 +267,579 @@ exportOneHalf <- function(
 # Dams
 
 ```{r}
-damFilteredInfo <- damFiltered %>%
-    select(
-      - CyclesFolder
-      , - cyclingFolderPath
-      , -ends_with("Duration")
-      ,-ends_with("Num_exits")
-      ,-ends_with("Num_entries")
-      ,-ends_with("_off_nest")
-      ,-ends_with("_on_nest")
-    ) %>%
-    relocate(
-      damID
-      , cohort
-      , litterNum
-      , DOB
-      , Litter_size
-      , earlyLifeTrt
-      , Dam_Mass_P4
-      , Dam_Mass_P11
-      , Dam_Mass_P21
-      , starts_with("Cort_dam")
-    ) %>%
-    arrange(
-      cohort
-      , DOB
-    )
+figDamsB
 
-damFilteredInfo
-```
-
-## Dam cort stats 
-
-```{r}
-damFiltered %>%
-  t_test(
-    Cort_dam_P11 ~ earlyLifeTrt
-  )
-```
-
-
-## Dam Behavior
-
-P4 - p = 0.09, P5 - p = 0.12, P6 - p = 0.001, P7 - p = 0.008
-
-```{r}
-lmm <- damBehavior_byPND %>%
-  makeFactors(PND) %>%
-  runLMM(
-    Num_exits ~ earlyLifeTrt * PND + (1|damID)
-  )
-
-EMM <- emmeans(
-  lmm$model
-  , ~ earlyLifeTrt * PND
-)
-EMM
-
-test(pairs(EMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
-```
-
-
-# Dams - Row 1
-
-```{r}
-set_null_device("png") 
-```
-
-
-```{r}
-rColFigs <- cowplot::align_plots(figDamsB, ephys_percSurgedPlot, figGABAf, figGABAe, align = "v", axis = "lr")
-lColFigs <- cowplot::align_plots(figDamsA, figCort, cortAdmin_cort, align = "v", axis = "l")
-```
-
-
-```{r}
-figDamsPlots <- cowplot::align_plots(lColFigs[[1]], rColFigs[[1]], align = "h", axis = "bt")
-
-figDams <- plot_grid(
-  figDamsPlots[[1]]
-  , figDamsPlots[[2]]
-  , nrow = 1
-  , label_fontfamily = "Arial"
-  , rel_widths = c(0.66, 0.33)
-)
-
-figDams
-fileBaseName <- "damFig"
-exportRow()
-
-figBehavior <- plot_grid(
-  figDamsPlots[[1]]
-)
-figBehavior
 fileBaseName <- "damBehavior"
-exportTwoThirds()
+exportFullPPTSlide()
+```
 
-figCortAlign <- plot_grid(
-  figDamsPlots[[2]]
-)
-figCortAlign
+```{r}
+damFrames_byPND %>%
+  mutate(
+    pupsOff = 100-pupsTogether
+  ) %>%
+  plotDamBehavior(
+    yVar = pupsOff
+    , yLab = "% frames pups separated"
+    , fontSize = 24
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = 1
+    # , facetByTrt = FALSE
+  )
+
+fileBaseName <- "pupsSeparated"
+exportFullPPTSlide()
+```
+
+
+```{r}
+figDamsD
+
 fileBaseName <- "damCort"
-exportOneThird()
-```
-# ALPS - Row 2
+exportHalfPPTSlide()
 
-```{r}
-figureNum <- 2
-```
-
-```{r}
-figALPSPlots <- cowplot::align_plots(lColFigs[[2]], rColFigs[[2]], align = "h", axis = "bt")
-
-figALPS <- plot_grid(
-  figALPSPlots[[1]]
-  , figALPSPlots[[2]]
-  , nrow = 1
-  , label_fontfamily = "Arial"
-  , rel_widths = c(0.66, 0.33)
-)
-
-figALPS
-fileBaseName <- "ALPS"
-exportRow()
-
-figProCort <- plot_grid(figALPSPlots[[1]])
-figProCort
-fileBaseName <- "cort"
-exportTwoThirds()
-
-figPropSurged <- plot_grid(figALPSPlots[[2]])
-figPropSurged
-fileBaseName <- "propSurged"
-exportOneThird()
-```
-
-## Cort stats 
-
-Did simple comparison with early-life treatment, since we already know that ALPS increases cort. What we really want to know is if LBN changes cort at pre/post time points 
-```{r}
-lmm <- cortFilteredPro %>%
-  runLMM(
-    cort ~ earlyLifeTrt * adultTrt * time + (1|damID) + (1|mouseID)
-  )
-
-EMM <- emmeans(
-  lmm$model
-  , ~ earlyLifeTrt * adultTrt * time
-)
-EMM
-
-test(pairs(EMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
-```
-
-# GABA - Row 3
-14.169
-
-```{r}
-figureNum <- 3
-```
-
-
-```{r}
-figGABAPlots <- cowplot::align_plots(rColFigs[[4]], rColFigs[[3]], align = "h", axis = "bt")
-
-figGABA <- plot_grid(
-  figGABAPlots[[1]]
-  , figGABAPlots[[2]]
-  , nrow = 1
-  , label_fontfamily = "Arial"
-  , rel_widths = c(0.5, 0.5)
-)
-
-figFreq <- plot_grid(figGABAPlots[[1]])
-figFreq
-fileBaseName <- "GABAfreq"
-exportOneThird()
-
-figAmp <- plot_grid(figGABAPlots[[2]])
-figAmp
-fileBaseName <- "GABAAmp"
-exportOneThird()
-
-figGABA
-fileBaseName <- "GABA"
-exportRow( rowWidth = 14.169
+t_test(
+  damFiltered,
+  Cort_dam_P11 ~ earlyLifeTrt
 )
 ```
 
 ```{r}
-GABApscsFilteredFiring %>%
+figOffA
+
+fileBaseName <- "offMass"
+
+exportFullPPTSlide()
+```
+
+
+```{r}
+figOffAge
+
+fileBaseName <- "matAge"
+exportFullPPTSlide()
+```
+```{r}
+figOffMass
+
+fileBaseName <- "matMass"
+exportFullPPTSlide()
+```
+```{r}
+figCycles2ndRow
+
+fileBaseName <- "cycles2"
+exportFullPPTSlide()
+```
+
+```{r}
+figCortA
+
+fileBaseName <- "cortMales"
+
+exportFullPPTSlide()
+```
+```{r}
+figCortC
+
+fileBaseName <- "cortPro"
+
+exportFullPPTSlide()
+```
+
+
+```{r}
+ephys_percSurgedPlot <- surgedDF %>%
   filter(
-    frequency > 5
+    is.na(LH_hr7.5) & !is.na(LH_hr5.5)
+  ) %>%
+  propSurgedPlotCombo_forSBN(
+    fontSize = textSize
+  )
+
+ephys_percSurgedPlot
+
+fileBaseName <- "percSurgedEphys"
+
+exportFullPPTSlide()
+```
+
+```{r}
+ephysMice <- surgedDF %>%
+  filter(
+    is.na(LH_hr7.5) & !is.na(LH_hr5.5)
+  )
+ephysLH <- LHFilteredPro %>%
+  filter(
+    mouseID %in% ephysMice$mouseID
+    , time > 0
+  ) %>%
+  plotLHFunc(
+    c(1)
+    , fontSize = 16
+    , dotSize = dotSize
+    , addSurgeLine = TRUE
+  )()
+
+ephysLH
+```
+```{r}
+nonEphysMice <- surgedDF %>%
+  filter(
+    !is.na(LH_hr7.5) & !is.na(LH_hr5.5)
+  )
+samplingLH <- LHFilteredPro %>%
+  filter(
+    mouseID %in% nonEphysMice$mouseID
+    , time > 0
+  ) %>%
+  plotLHFunc(
+    c(1)
+    , fontSize = 16
+    , dotSize = dotSize
+    , addSurgeLine = TRUE
+  )()
+
+samplingLH
+```
+
+```{r}
+sampling_percSurgedPlot <- surgedDF %>%
+  filter(
+    !is.na(LH_hr7.5) & !is.na(LH_hr5.5)
+  ) %>%
+  propSurgedPlotCombo_forSBN(
+    fontSize = textSize
+  )
+
+sampling_percSurgedPlot
+```
+
+
+```{r}
+plot_grid(
+  ephysLH + 
+    scale_x_continuous(
+      breaks = c(5, 5.5)
+      , labels = c(-2.5, -2)
+    )
+  , ephys_percSurgedPlot
+  , nrow = 1
+  , rel_widths = c(1.5, 1)
+)
+
+fileBaseName <- "ephysLHPlots"
+
+exportFullPPTSlide(
+  height = 5.75
+)
+```
+```{r}
+plot_grid(
+  samplingLH
+  , sampling_percSurgedPlot
+  , nrow = 1
+  , rel_widths = c(1.5, 1)
+)
+
+fileBaseName <- "samplingLHPlots"
+
+exportFullPPTSlide(
+  height = 5.75
+)
+```
+
+
+
+
+```{r}
+plotFreqPres <- plotCatVarFunc(
+  expr(frequency)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = FALSE
+  , useFacetLabels = FALSE
+)
+```
+
+```{r}
+GABApscs_240FilteredFiring %>%
+  plotFreqPres()
+
+fileBaseName <- "GABAfreq"
+
+exportFullPPTSlide()
+```
+```{r}
+plotAmpPres <- plotCatVarFunc(
+  expr(relPeak)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = FALSE
+  , useFacetLabels = FALSE
+)
+```
+
+```{r}
+GABApscs_240FilteredFiring %>%
+  plotAmpPres()
+
+fileBaseName <- "GABAAmp"
+
+exportFullPPTSlide()
+```
+
+```{r}
+GABAlegend <- get_legend(figGABAb + theme(legend.position = "top"))
+
+plot_grid(
+  GABAlegend
+  , plot_grid(
+    figGABAa +
+      theme(
+        axis.text.x = element_blank()
+      )
+    , figGABAb+
+      theme(
+        axis.text.x = element_blank()
+      )
+    , figGABAc+
+      theme(
+        axis.text.x = element_blank()
+      )
+    , figGABAd+
+      theme(
+        axis.text.x = element_blank()
+      )
+    , align = "h"
+    , axis = "tb"
+    , nrow = 1
+  )
+  , nrow = 2
+  , rel_heights = c(0.1, 1)
+)
+
+fileBaseName <- "GABApassives"
+
+exportFullPPTSlide()
+```
+
+```{r}
+BD_comboNutALPS <- rbind(
+  BD_cortALPS %>%
+    mutate(
+      atePrevNutella = NA,
+      ateNutella = NA,
+      cortNutTrt = adultTrt
+    ), 
+  BD_cort4 %>% 
+    filter(Sac_date == as_date("2022-05-27")) %>%
+    mutate(
+      cortNutTrt = dosage
+    )
+)
+
+ALPS_cortPlot <- BD_cortALPS %>%
+  mutate(
+      atePrevNutella = NA,
+      ateNutella = NA,
+      cortNutTrt = adultTrt
+    ) %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = textSize,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = cortNutTrt, # group by the dosage; this is why it needs to be a factor
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 1000,
+    ymin = 0
+  ) +
+  # facet_wrap(
+  #   ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  # ) +
+  labs(
+    x = "time since 1st administration (h)" # add a title to the x axis
+  ) + 
+  theme(
+    legend.position = "top"
+  )  +
+  scale_color_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"="black",
+      "0" = "black",
+      "2" = "black"
+      )
+  )+
+  scale_fill_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"="grey80",
+      "0" = "white",
+      "2" = "black"
+      )
+  )+
+  scale_shape_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"=23,
+      "0" = 21,
+      "2" = 21
+      )
+  ) + scale_linetype_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"="dotted",
+      "0" = "solid",
+      "2" = "solid"
+    )
+  )
+  
+nutellaALPS_cortPlot <- BD_comboNutALPS %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = textSize,
+    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
+    plotSE = FALSE,
+    groupVar = cortNutTrt, # group by the dosage; this is why it needs to be a factor
+    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
+    xLabels = waiver(), # label the axis with the actual time values
+    lineTypeGuide = "",
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 1000,
+    ymin = 0
+  ) +
+  # facet_wrap(
+  #   ~ateAllNutella # this splits the graph by those that did or did not each Nutella
+  # ) +
+  labs(
+    x = "time since 1st administration (h)" # add a title to the x axis
+  ) + 
+  theme(
+    legend.position = "top"
+  )  +
+  scale_color_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"="black",
+      "0" = "black",
+      "2" = "black"
+      )
+  )+
+  scale_fill_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"="grey80",
+      "0" = "white",
+      "2" = "black"
+      )
+  )+
+  scale_shape_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"=23,
+      "0" = 21,
+      "2" = 21
+      )
+  ) + scale_linetype_manual(
+    "treatment",
+    labels = c(
+      "ALPS" = "ALPS",
+      "0" = "0mg/kg",
+      "2" = "2mg/kg"
+    ),
+    values = c(
+      "ALPS"="dotted",
+      "0" = "solid",
+      "2" = "solid"
+    )
   )
 ```
 
-# Passives - Row 4, but not including
-
 ```{r}
-figureNum <- 4
+ALPS_cortPlot
+fileBaseName <- "ALPS_cortPlot"
+exportFullPPTSlide()
 ```
 
-
-```{r}
-figPassivePlots <- cowplot::align_plots(figGABAa, figGABAb, figGABAc, figGABAd, align = "h", axis = "bt")
-
-figCap <- plot_grid(figPassivePlots[[1]])
-figCap
-fileBaseName <- "cap"
-exportOneQuarter()
-
-figHolding <- plot_grid(figPassivePlots[[4]])
-figHolding
-fileBaseName <- "holding"
-exportOneQuarter()
-
-figRseries <- plot_grid(figPassivePlots[[3]])
-figRseries
-fileBaseName <- "Rseries"
-exportOneQuarter()
-
-figInput <- plot_grid(figPassivePlots[[2]])
-figInput
-fileBaseName <- "input"
-exportOneQuarter()
-
-```
-
-# Cort administration
 
 ```{r}
 nutellaALPS_cortPlot
-figureNum <- 0
-fileBaseName <- "cortAdminPilot"
-
-flexSave(
-  "cortAdmin"
-  , "0_"
-  , filePath = plotFolder
-  , width = 10.25
-  , height = 5.25
-)
-```
-# Row 5 - really four
-
-```{r}
-figureNum <- 5
+fileBaseName <- "NutellaALPS_cortPlot"
+exportFullPPTSlide()
 ```
 
 ```{r}
-cortAdmin_cort
+cortAdmin_LH_trust <- BD_LH %>%
+  filter(
+    trust == TRUE
+    , !is.na(LH)
+  )
+cortAdmin_LHplot <- cortAdmin_LH_trust %>%
+  LHPlot_adultTrt_color(
+    trtVar = dosage
+    , trtName = "dosage (mg/kg)"
+    , trtLineGuide = c("0" = "solid", "2" = "solid")
+    , fontSize = textSize
+    , dotSize = 1.5
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 45
+  ) + facet_wrap(
+    ~ dosage
+    , ncol = 2
+    , labeller = labeller(
+      dosage = c("0" = "0 mg/kg", "2" = "2 mg/kg")
+    )
+  ) + 
+  rremove("legend")
 
-figCortAdminPlots <- cowplot::align_plots(lColFigs[[3]], cortAdmin_LHplot, BD_ovulation_plot, align = "h", axis = "bt")
+cortAdmin_LHplot
 
-figCortAdmin_cort <- plot_grid(figCortAdminPlots[[1]])
-figCortAdmin_cort
-fileBaseName <- "cortAdmin_cort"
-exportOneQuarter()
+fileBaseName <- "cortAdmin_LH"
 
-figCortAdmin_LHplot <- plot_grid(figCortAdminPlots[[2]])
-figCortAdmin_LHplot
-fileBaseName <- "cortAdmin_LHplot"
-exportOneHalf()
-
-figCortAdmin_ovulation <- plot_grid(figCortAdminPlots[[3]])
-figCortAdmin_ovulation
-fileBaseName <- "cortAdmin_ovulation"
-exportOneQuarter()
+exportFullPPTSlide(width = 8)
 ```
 
+```{r}
+cortAdmin_LHAmp_plot <- BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+  plotLHAmp_dosage(
+    surgeMin = 3
+    , dotSize = dotSize
+    , textSize = textSize
+    , textAngle = 0
+  ) +
+  scale_x_discrete(
+      labels = c(
+        "0 mg/kg\nsurge"
+        , "0 mg/kg\nno surge"
+        , "2 mg/kg\nsurge"
+        , "2 mg/kg\nno surge"
+      )
+    )
 
-## Cort stats 
+cortAdmin_LHAmp_plot
 
+fileBaseName <- "cortAdmin_LHAmp"
+exportFullPPTSlide(width = 7)
+```
 
 ```{r}
-lmm <- cortAdminCortDF %>%
-  runLMM(
-    cort ~ dosage * time + (1|mouseID)
+cortAdminCortDF <- BD_cort %>%
+  filter(
+    time %in% c(0, 5)
+    , is.na(exclude) | exclude == FALSE
+    , trust == TRUE
   )
 
-lmm$formated
+cortAdmin_cort <- cortAdminCortDF %>%
+  cortPlot(
+    pointSize = dotSize,
+    fontSize = textSize,
+    groupVar = dosage, # group by the dosage; this is why it needs to be a factor
+    lineTypeGuide = c("solid", "solid"),
+    positionDodge = 1.8, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 300,
+    ymin = 0,
+    zoom_x = TRUE
+    , xmin = -1.5
+    , xmax = 6.5
+  ) +
+  facet_wrap(
+    ~ dosage,
+    labeller = labeller(dosage = c("0" = "0mg/kg", "2" = "2mg/kg"))
+  ) +
+  # labs(
+  #   x = "time since 1st administration (h)" # add a title to the x axis
+  # ) + 
+  theme(
+    legend.position = "none"
+  )  + 
+  dosageFillShape()
 
-EMM <- emmeans(
-  lmm$model
-  , ~ dosage * time
-)
-EMM
+cortAdmin_cort
 
-test(pairs(
-  EMM
-  # , simple = "dosage"
-  ), by = NULL, adjust = "bonferroni")
+fileBaseName <- "cortAdmin_cortFull"
+
+exportThirdPPTSlide()
 ```
+
+```{r}
+plot_grid(
+  cortAdmin_cort
+  , cortAdmin_LHplot
+  , nrow = 1
+  , rel_widths = c(1, 2)
+  , align = "h"
+  , axis = "tb"
+)
+
+fileBaseName <- "cortAdmin_CortLH"
+exportFullPPTSlide(height = 5.75)
+```
+
+
+```{r}
+BD_ovulation_plot <- BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+  propOvulatedPlot(
+    xVar = dosage,
+    fontSize = textSize
+    , labelFontSize = 12
+  ) +
+  xlab("dosage (mg/kg)")
+BD_ovulation_plot
+fileBaseName <- "cortAdmin_ovulation"
+exportThirdPPTSlide()
+```
+
+
 

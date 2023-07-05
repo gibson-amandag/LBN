@@ -7,7 +7,7 @@ facetMatByLitter <- FALSE
 
 figDamsB <- damBehavior_byPND %>%
   filter(
-    !is.na(Num_exits)
+    !is.na(Num_exits) # 2023-07-04: Question - maybe remove, so that there are the appropriate gaps??
   ) %>%
   plotDamBehavior(
     yVar = Num_exits
@@ -16,7 +16,27 @@ figDamsB <- damBehavior_byPND %>%
     , addTriangleForMean = FALSE
     , colorByDam = TRUE
     , dotSize = 1
-    # , facetByTrt = FALSE
+    , zoom_y = TRUE
+    , ymax = 40
+    , ymin = 0
+  )
+
+figDamsB_noMean <- damBehavior_byPND %>%
+  filter(
+    !is.na(Num_exits) # 2023-07-04: Question - maybe remove, so that there are the appropriate gaps??
+  ) %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "mean # of exits"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = 1
+    , zoom_y = TRUE
+    , ymax = 40
+    , ymin = 0
+    , showMean = FALSE
+    , addVertError = FALSE
   )
 
 
@@ -53,7 +73,44 @@ figDamsC <- damFiltered %>%
     zoom_x = TRUE, # Zoom to part of x axis
     xmin = 0,
     xmax = 21,
-    indivLineAlpha = .3,
+    zoom_y = TRUE,
+    ymax = 40,
+    ymin = 0,
+    indivLineAlpha = .2,
+    indivLineSize = 0.5,
+    errorBarWidth = 0,
+    meanLineSize = 1,
+    meanAlpha = 1,
+    errorBarSize = 1,
+    # errorBarColor = "grey10",
+    errorBarAlpha = 1,
+    textSize = textSize,
+    axisSize = 0.5,
+    legendPosition = c(0.75, 0.2),
+    STDColor = "#4D4D4D",
+    LBNColor = "#008B8B"
+  ) +
+  theme(
+    legend.key = element_rect(fill = NA)
+  )
+
+figDamsC_noMean <- damFiltered %>%
+  plot_dam_mass_lines(
+    useLineType = FALSE, # TRUE/FALSE
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = damID,
+    xtitle = "PND", #x axis label
+    ytitle = "mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = TRUE, # plot individual lines
+    meanLines = FALSE, # plot mean lines with SE
+    zoom_x = TRUE, # Zoom to part of x axis
+    xmin = 0,
+    xmax = 21,
+    zoom_y = TRUE,
+    ymax = 40,
+    ymin = 0,
+    indivLineAlpha = .2,
     indivLineSize = 0.5,
     errorBarWidth = 0,
     meanLineSize = 1,
@@ -126,12 +183,38 @@ figOffAge <- maturationByDamLong %>%
     ~ matType
   )
 
+figOffAge_noMean <- maturationByDamLong %>%
+  scatterPlotLBN(
+    yVar = age
+    , "mean age (days)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , addMean = FALSE
+    , addSEM = FALSE
+  ) +
+  facet_wrap(
+    ~ matType
+  )
+
 figOffMass <- maturationByDamLong %>%
   scatterPlotLBN(
     yVar = mass
     , "mean mass (g)"
     , textSize = textSize
     , dotSize = dotSize
+  ) +
+  facet_wrap(
+    ~ matType
+  )
+
+figOffMass_noMean <- maturationByDamLong %>%
+  scatterPlotLBN(
+    yVar = mass
+    , "mean mass (g)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , addMean = FALSE
+    , addSEM = FALSE
   ) +
   facet_wrap(
     ~ matType
@@ -164,6 +247,26 @@ figOffH <- maturation_byDam_f %>%
     , labeller = labeller(sex = c("F" = "female", "M" = "male"))
   )
 
+figOffH_noMean <- maturation_byDam_f %>%
+  mutate(
+    sex = "F"
+  ) %>%
+  scatterPlotLBN(
+    yVar = AGD_adult
+    , yLab = "mean AGD (mm)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = max_AGD
+    , addMean = FALSE
+    , addSEM = FALSE
+  ) +
+  facet_wrap(
+    ~ sex
+    , labeller = labeller(sex = c("F" = "female", "M" = "male"))
+  )
+
 figOffI <- maturation_byDam_m %>%
   mutate(
     sex = "M"
@@ -176,6 +279,26 @@ figOffI <- maturation_byDam_m %>%
     , zoom_y = TRUE
     , ymin = 0
     , ymax = max_AGD
+  ) +
+  facet_wrap(
+    ~ sex
+    , labeller = labeller(sex = c("F" = "female", "M" = "male"))
+  )
+
+figOffI_noMean <- maturation_byDam_m %>%
+  mutate(
+    sex = "M"
+  ) %>%
+  scatterPlotLBN(
+    yVar = AGD_adult
+    , yLab = "mean AGD (mm)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = max_AGD
+    , addMean = FALSE
+    , addSEM = FALSE
   ) +
   facet_wrap(
     ~ sex
@@ -312,6 +435,16 @@ figCyclesB <- cyclesFiltered %>%
     , yLab = "mean # cycles P70-90"
     , textSize = textSize
     , dotSize = dotSize
+  )
+figCyclesB_noMean <- cyclesFiltered %>%
+  getAvgByDam() %>% # 2023-06-18 - reduce the density, average by litter
+  scatterPlotLBN(
+    yVar = numCycles
+    , yLab = "mean # cycles P70-90"
+    , textSize = textSize
+    , dotSize = dotSize
+    , addMean = FALSE
+    , addSEM = FALSE
   )
 
 figCyclesC <- cyclesFiltered %>%
@@ -468,6 +601,7 @@ plotRelSeminalVesicleMass <- plotCatVarFunc(
   , useSpecYLab = TRUE
   , thisYLab = "normalized seminal\nvesicle mass (mg/g)"
   # , thisYLab = "rel. mass (mg/g)"
+  , removeXTicks = TRUE
 )
 
 plotRelUterineMass <- plotCatVarFunc(
@@ -479,6 +613,7 @@ plotRelUterineMass <- plotCatVarFunc(
   , useSpecYLab = TRUE
   , thisYLab = "normalized uterine\nmass (mg/g)"
   # , thisYLab = "rel. mass (mg/g)"
+  , removeXTicks = TRUE
 )
 
 plotRelTesticularMass <- plotCatVarFunc(

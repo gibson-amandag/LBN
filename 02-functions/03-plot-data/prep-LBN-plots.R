@@ -892,7 +892,7 @@ plotLHFunc <- function(
       filter(
         litterNum %in% litterNums
       ) %>%
-      LHPlot(
+      LHPlot_noMean(
         fontSize = fontSize
         , dotSize = dotSize
         , zoom_y = TRUE
