@@ -99,8 +99,8 @@ cortPlot <- function(
         scale_linetype_manual("treatment", values = lineTypeGuide)
     }
   } else {
-    viz <- viz + labs(linetype = "treatment") + 
-      scale_linetype_manual("treatment", lineTypeGuide)
+    labs(linetype = "treatment") +
+      scale_linetype_manual("treatment", values = lineTypeGuide)
   }
   
   if(plotSE){

@@ -11178,3 +11178,1093 @@ flexSave(
 )
 ```
 
+```{r}
+library(afex)
+```
+
+```{r}
+mixed(
+  VO_age ~ earlyLifeTrt * Num_exits + (1|damID)
+  , maturationFiltered %>%
+    left_join(
+      damBehavior_byDam %>%
+        select(
+          damID, Num_exits
+        )
+      , by = "damID"
+    )
+)
+```
+```{r}
+mixed(
+  VO_age ~ earlyLifeTrt * litterNum + (1|damID)
+  , maturationFiltered
+)
+```
+```{r}
+mixed(
+  VO_mass ~ earlyLifeTrt * litterNum + (1|damID)
+  , maturationFiltered
+)
+```
+```{r}
+mixed(
+  Estrus_age ~ earlyLifeTrt * litterNum + (1|damID)
+  , maturationFiltered
+)
+```
+```{r}
+mixed(
+  Estrus_mass ~ earlyLifeTrt * litterNum + (1|damID)
+  , maturationFiltered
+)
+```
+```{r}
+mixed(
+  PreputialSep_age ~ earlyLifeTrt * litterNum + (1|damID)
+  , maturationFiltered
+)
+```
+```{r}
+mixed(
+  PreputialSep_mass ~ earlyLifeTrt * litterNum + (1|damID)
+  , maturationFiltered
+)
+```
+
+```{r}
+mixed(
+  Num_exits ~ earlyLifeTrt * PND * litterNum + (1|damID)
+  , damBehavior_byPND_ZT
+  , family = "poisson"
+  , method = "LRT"
+)
+```
+```{r}
+mixed(
+  cort ~ earlyLifeTrt * adultTrt * sex * time * litterNum + (1|damID) + (1|mouseID)
+  , cortFiltered_M_DiPro
+)
+```
+
+
+```{r}
+cortFilteredMales %>%
+  filter(
+    time == 5
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+    # , sex
+    # , Sac_cycle
+    , cohort
+  ) %>%
+  meanSummary(
+    cort
+  )
+```
+
+```{r}
+cortFiltered_M_DiPro %>%
+  filter(
+    time == 5
+  ) %>%
+  mutate(
+    time = as_factor(time)
+  ) %>%
+  ggplot(
+    aes(
+      x = time
+      # x = interaction(
+      #   litterNum
+      #   ,comboTrt
+      # )
+      , y = cort
+      , color = comboTrt
+      , fill = comboTrt
+      , shape = comboTrt
+    )
+  ) +
+  geom_quasirandom() +
+  comboTrtFillShape() +
+  boxTheme()+
+  textTheme() +
+  theme(
+    legend.position = "none"
+  ) +
+  addMeanHorizontalBar(color = comboTrt)+
+  addMeanSE_vertBar(color = comboTrt)+
+  facet_wrap(
+    ~ comboTrt + sex + litterNum
+    , nrow = 2
+  )
+```
+```{r}
+cortFilteredPro %>%
+  filter(
+    time == 5
+  ) %>%
+  mutate(
+    time = as_factor(time)
+  ) %>%
+  ggplot(
+    aes(
+      x = time
+      # x = interaction(
+      #   litterNum
+      #   ,comboTrt
+      # )
+      , y = cort
+      , color = comboTrt
+      , fill = comboTrt
+      , shape = comboTrt
+    )
+  ) +
+  geom_quasirandom() +
+  comboTrtFillShape() +
+  boxTheme()+
+  textTheme() +
+  theme(
+    legend.position = "none"
+  ) +
+  addMeanHorizontalBar(color = comboTrt)+
+  addMeanSE_vertBar(color = comboTrt)+
+  facet_wrap(
+    ~ comboTrt + litterNum
+    , nrow = 2
+  )
+```
+```{r}
+cortFilteredPro %>%
+  filter(
+    time == 5
+  ) %>%
+  mutate(
+    time = as_factor(time)
+  ) %>%
+  ggplot(
+    aes(
+      x = time
+      # x = interaction(
+      #   litterNum
+      #   ,comboTrt
+      # )
+      , y = cort
+      , color = comboTrt
+      , fill = comboTrt
+      , shape = comboTrt
+    )
+  ) +
+  geom_quasirandom() +
+  comboTrtFillShape() +
+  boxTheme()+
+  textTheme() +
+  theme(
+    legend.position = "none"
+  ) +
+  addMeanHorizontalBar(color = comboTrt)+
+  addMeanSE_vertBar(color = comboTrt)+
+  facet_wrap(
+    ~ comboTrt + cohort
+    , nrow = 2
+  )
+```
+```{r}
+cortFilteredDi %>%
+  filter(
+    time == 5
+  ) %>%
+  mutate(
+    time = as_factor(time)
+  ) %>%
+  ggplot(
+    aes(
+      x = time
+      # x = interaction(
+      #   litterNum
+      #   ,comboTrt
+      # )
+      , y = cort
+      , color = comboTrt
+      , fill = comboTrt
+      , shape = comboTrt
+    )
+  ) +
+  geom_quasirandom() +
+  comboTrtFillShape() +
+  boxTheme()+
+  textTheme() +
+  theme(
+    legend.position = "none"
+  ) +
+  addMeanHorizontalBar(color = comboTrt)+
+  addMeanSE_vertBar(color = comboTrt)+
+  facet_wrap(
+    ~ comboTrt + litterNum
+    , nrow = 2
+  )
+```
+```{r}
+cortFilteredDi %>%
+  filter(
+    time == 5
+  ) %>%
+  mutate(
+    time = as_factor(time)
+  ) %>%
+  ggplot(
+    aes(
+      x = time
+      # x = interaction(
+      #   litterNum
+      #   ,comboTrt
+      # )
+      , y = cort
+      , color = comboTrt
+      , fill = comboTrt
+      , shape = comboTrt
+    )
+  ) +
+  geom_quasirandom() +
+  comboTrtFillShape() +
+  boxTheme()+
+  textTheme() +
+  theme(
+    legend.position = "none"
+  ) +
+  addMeanHorizontalBar(color = comboTrt)+
+  addMeanSE_vertBar(color = comboTrt)+
+  facet_wrap(
+    ~ comboTrt + cohort
+    , nrow = 2
+  )
+```
+```{r}
+cortFilteredMales %>%
+  filter(
+    time == 5
+  ) %>%
+  mutate(
+    time = as_factor(time)
+  ) %>%
+  ggplot(
+    aes(
+      x = time
+      # x = interaction(
+      #   litterNum
+      #   ,comboTrt
+      # )
+      , y = cort
+      , color = comboTrt
+      , fill = comboTrt
+      , shape = comboTrt
+    )
+  ) +
+  geom_quasirandom() +
+  comboTrtFillShape() +
+  boxTheme()+
+  textTheme() +
+  theme(
+    legend.position = "none"
+  ) +
+  addMeanHorizontalBar(color = comboTrt)+
+  addMeanSE_vertBar(color = comboTrt)+
+  facet_wrap(
+    ~ comboTrt + litterNum
+    , nrow = 2
+    , labeller = labeller(litterNum = litterNum_label)
+  )
+```
+```{r}
+cortFilteredMales %>%
+  filter(
+    time == 5
+  ) %>%
+  mutate(
+    time = as_factor(time)
+  ) %>%
+  ggplot(
+    aes(
+      x = time
+      # x = interaction(
+      #   litterNum
+      #   ,comboTrt
+      # )
+      , y = cort
+      , color = comboTrt
+      , fill = comboTrt
+      , shape = comboTrt
+    )
+  ) +
+  geom_quasirandom() +
+  comboTrtFillShape() +
+  boxTheme()+
+  textTheme() +
+  theme(
+    legend.position = "none"
+  ) +
+  addMeanHorizontalBar(color = comboTrt)+
+  addMeanSE_vertBar(color = comboTrt)+
+  facet_wrap(
+    ~ comboTrt + cohort
+    , nrow = 2
+  )
+```
+
+```{r}
+maturation_byDam_f %>%
+  plotVOMass() +
+  facet_wrap(
+    ~ cohort
+    , nrow = 1
+  )
+  plotEstrusMass()
+```
+
+
+
+```{r}
+acuteStressFilteredDi %>%
+  filter(
+    cohort == 2
+  ) %>%
+  group_by(
+    comboTrt
+  ) %>%
+  summarize(
+    n = n()
+  )
+```
+```{r}
+acuteStressFilteredMales%>%
+  filter(
+    cohort == 2
+  ) %>%
+  group_by(
+    comboTrt
+  ) %>%
+  summarize(
+    n = n()
+  )
+```
+```{r}
+AcuteStress_off %>%
+  filter(
+    sex == "M"
+  )
+```
+
+```{r}
+acuteStressFiltered_M_DiPro %>%
+  filter(
+    cohort == 8
+  ) %>%
+  group_by(
+    sex
+    , comboTrt
+  ) %>%
+  summarize(
+    n()
+  )
+```
+
+
+```{r}
+maturation_byDam_f %>%
+  group_by(
+    earlyLifeTrt
+    ,litterNum
+  ) %>%
+  meanSummary(
+    c(VO_age)
+  )
+maturation_byDam_f %>%
+  group_by(
+    earlyLifeTrt
+    ,litterNum
+  ) %>%
+  meanSummary(
+    c(VO_age
+    , VO_mass
+    , Estrus_age
+    , Estrus_mass)
+  )
+```
+
+```{r}
+maturation_byDam_f %>%
+  plotVOAge()
+maturation_byDam_f %>%
+  plotVOMass()
+maturation_byDam_f %>%
+  plotEstrusAge()
+maturation_byDam_f %>%
+  plotEstrusMass()
+```
+```{r}
+mixed(
+  VO_age ~ earlyLifeTrt * litterNum + (1|damID)
+  , maturationFiltered
+)
+mixed(
+  Estrus_age ~ earlyLifeTrt * litterNum + (1|damID)
+  , maturationFiltered
+)
+```
+
+```{r}
+install.packages("DescTools")
+library(DescTools)
+```
+
+# LH Area under the curve calculation
+
+```{r}
+LHFilteredPro %>%
+  filter(
+    time >0
+    , mouseID %in% nonEphysMice$mouseID
+    , mouseID == 911
+  ) %>%
+  group_by(
+    mouseID
+  )
+LHFilteredPro %>%
+  filter(
+    time >0
+    , mouseID %in% nonEphysMice$mouseID
+  ) %>%
+  group_by(
+    mouseID
+  ) %>%
+  summarize(
+    LH_AUC = AUC(time, LH)
+  ) %>%
+  left_join(
+    acuteStressFiltered %>% select(-LH_AUC)
+    , by = "mouseID"
+  ) %>%
+  scatterPlotComboTrt(
+    yVar = LH_AUC
+    , yLab = "LH AUC (ng/mL * hr)"
+  )
+```
+
+
+```{r}
+ephysMice <- surgedDF %>%
+  filter(
+    is.na(LH_hr7.5) & !is.na(LH_hr5.5)
+  )
+
+LHFiltered %>%
+  filter(
+    time >0
+    , mouseID %in% ephysMice$mouseID
+  ) %>%
+  group_by(
+    mouseID
+  ) %>%
+  summarize(
+    LH_AUC = AUC(time, LH)
+  ) %>%
+  left_join(
+    acuteStressFiltered
+    , by = "mouseID"
+  ) %>%
+  scatterPlotComboTrt(
+    yVar = LH_AUC
+    , yLab = "LH AUC (ng/mL * hr)"
+  )
+```
+
+
+
+
+```{r}
+LHFilteredDi %>%
+  filter(
+    time > 0
+  ) %>%
+  group_by(
+    mouseID
+  ) %>%
+  summarize(
+    LH_AUC = AUC(time, LH)
+  ) %>%
+  left_join(
+    acuteStressFiltered
+    , by = "mouseID"
+  ) %>%
+  scatterPlotComboTrt(
+    yVar = LH_AUC
+    , yLab = "LH AUC (ng/mL * hr)"
+  )
+```
+
+```{r}
+LH_AUC <- LH_off %>%
+  group_by(
+    mouseID
+  ) %>%
+  summarize(
+    LH_AUC = AUC(time, LH)
+  )
+LH_AUC
+
+
+```
+```{r}
+LHFilteredPro %>%
+  filter
+```
+
+
+```{r}
+acuteStressFilteredPro %>%
+  filter(
+    mouseID %in% ephysMice$mouseID
+  ) %>%
+  scatterPlotComboTrt(
+    yVar = LH_AUC
+    , yLab = "LH AUC (ng/mL * hr)"
+  )
+```
+```{r}
+acuteStressFilteredPro %>%
+  filter(
+    mouseID %in% nonEphysMice$mouseID
+  ) %>%
+  scatterPlotComboTrt(
+    yVar = LH_AUC
+    , yLab = "LH AUC (ng/mL * hr)"
+  )
+```
+
+
+```{r}
+cortAdmin_LH_trust %>%
+  group_by(
+    mouseID
+  ) %>%
+  summarize(
+    LH_AUC = AUC(time, LH)
+  ) %>%
+  left_join(
+    BD_sampling %>%
+    filter(
+      trust == TRUE
+    )
+    , by = "mouseID"
+  ) %>%
+  scatterPlot_general(
+    xVar = dosage
+    , xLab = "dosage"
+    , yVar = LH_AUC
+    , yLab = "LH AUC (ng/mL * time)"
+    , fillVar = dosage
+    , fillValues = c("white", "black")
+  ) 
+```
+
+```{r}
+estrusPercHorz <-  cyclesPercLong %>%
+  getAvgByDam(
+    byStage = TRUE
+  ) %>%
+ ggplot(aes(
+   y=damID
+   ,x=percent
+   ,fill=interaction(
+     earlyLifeTrt
+     , stage
+   )
+ ))+
+  geom_col(
+    position="fill"
+    , color = "black"
+  )+
+  labs(fill="")+
+  ylab("") +
+  xlab("mean % days in stage")+
+  facet_wrap(
+    ~earlyLifeTrt
+    , scales = "free"
+  ) +
+  theme(
+    axis.ticks.y = element_blank()
+    , axis.text.y = element_blank()
+    , panel.border = element_rect(fill = NA, color = "grey50")
+    , strip.background = element_rect(fill = NA, color = "grey50")
+    , axis.ticks = element_line(color = "black")
+    , panel.background = element_blank()
+    , plot.background = element_blank()
+    , panel.grid.major = element_blank()
+    , panel.grid.minor = element_blank()
+    , legend.background = element_blank()
+    , legend.box.background = element_blank()
+    , legend.position = "bottom"
+  ) +
+  scale_x_continuous(
+    breaks = c(0, .5, 1)
+    , labels = c("0", "50", "100")
+  ) +
+  textTheme(
+  ) +
+  scale_fill_manual(
+    values = c(
+      "STD.proestrus" = "white"
+      , "STD.diestrus" = "grey80"
+      , "STD.estrus" = "grey20"
+      , "LBN.proestrus" = "white"
+      , "LBN.diestrus" = "lightblue1"
+      , "LBN.estrus" = "darkcyan"
+    )
+    , labels = c(
+      "STD.proestrus" = "STD proestrus"
+      , "STD.diestrus" = "STD diestrus"
+      , "STD.estrus" = "STD estrus"
+      , "LBN.proestrus" = "LBN proestrus"
+      , "LBN.diestrus" = "LBN diestrus"
+      , "LBN.estrus" = "LBN estrus"
+    )
+  ) +
+  guides(fill = guide_legend(nrow = 1))
+```
+
+```{r}
+estrusPercVert <- cyclesPercLong %>%
+  getAvgByDam(
+    byStage = TRUE
+  ) %>%
+ ggplot(aes(
+   x=damID
+   ,y=percent
+   ,fill=interaction(
+     earlyLifeTrt
+     , stage
+   )
+ ))+
+  geom_col(
+    position="fill"
+    , color = "black"
+  )+
+  labs(fill="")+
+  xlab("") +
+  ylab("mean % days in stage")+
+  facet_wrap(
+    ~earlyLifeTrt
+    , scales = "free_x"
+  ) +
+  theme(
+    axis.ticks.x = element_blank()
+    , axis.text.x = element_blank()
+    , panel.border = element_rect(fill = NA, color = "grey50")
+    , strip.background = element_rect(fill = NA, color = "grey50")
+    , axis.ticks = element_line(color = "black")
+    , panel.background = element_blank()
+    , plot.background = element_blank()
+    , panel.grid.major = element_blank()
+    , panel.grid.minor = element_blank()
+    , legend.background = element_blank()
+    , legend.box.background = element_blank()
+    , legend.position = "bottom"
+  ) +
+  scale_y_continuous(
+    breaks = c(0, .25, .5, 0.75, 1)
+    ,labels = c("0", "25", "50", "75", "100")
+    ) +
+  textTheme(
+  ) +
+  scale_fill_manual(
+    values = c(
+      "STD.proestrus" = "white"
+      , "STD.diestrus" = "grey80"
+      , "STD.estrus" = "grey20"
+      , "LBN.proestrus" = "white"
+      , "LBN.diestrus" = "lightblue1"
+      , "LBN.estrus" = "darkcyan"
+    )
+    , labels = c(
+      "STD.proestrus" = "STD proestrus"
+      , "STD.diestrus" = "STD diestrus"
+      , "STD.estrus" = "STD estrus"
+      , "LBN.proestrus" = "LBN proestrus"
+      , "LBN.diestrus" = "LBN diestrus"
+      , "LBN.estrus" = "LBN estrus"
+    )
+  ) +
+  guides(fill = guide_legend(nrow = 1))
+```
+
+```{r}
+estrusPercHorz
+
+flexSave(
+  "estrusPercHorz"
+  , width = 3.5
+  , height = 3
+)
+```
+
+```{r}
+estrusPercVert
+
+flexSave(
+  "estrusPercVert"
+  , width = 3.5
+  , height = 3
+)
+```
+
+
+```{r}
+plotOffMassBoth <- plotOffspringMass(
+  litterNums = c(1, 2)
+  , fontSize = textSize
+)
+
+massFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  getAvgByDam() %>%
+  makeOffMassLong() %>%
+  ggplot(
+    aes(
+      x = day
+      , y = mass
+      , color = litterNum
+    )
+  ) +
+  plot_line_geom_layers(
+    useLineType = FALSE, # TRUE/FALSE
+    lineTypeVar = litterNum
+    , lineGroupVar = damID,
+    xtitle = "PND", #x axis label
+    ytitle = "mean mass", #y axis label
+    zoom_x = TRUE, # Zoom to part of x axis
+    xmin = 11,
+    xmax = 42,
+    textSize = 11,
+    indivLineAlpha = 0.15
+  )+
+  theme(
+    legend.position = "top"
+  ) +
+  facet_wrap(
+    ~earlyLifeTrt
+  )
+```
+
+```{r}
+damBehavior_byPND %>%
+  filter(
+    PND == 5
+  ) %>%
+  # group_by(
+  #   damID
+  # ) %>%
+  # summarizeDamBehavior() %>%
+  # arrange(
+  #   cohort
+  #   , damID
+  # ) %>%
+  scatterPlotLBN(
+    yVar = Num_exits
+    , yLab = "mean # exits"
+  ) +
+  facetForLitterNum
+```
+
+```{r}
+damBehavior_byPND %>%
+  filter(
+    PND == 5
+  ) %>%
+  anova_test(
+    Num_exits ~ earlyLifeTrt * litterNum
+    , type = 3
+  )
+```
+
+```{r}
+damBehavior_byDam %>%
+  scatterPlotLBN(
+    yVar = Num_exits
+    , yLab = "mean # exits"
+  ) +
+  facet_wrap(
+    ~ litterNum
+    , labeller = labeller(litterNum_label)
+  )
+```
+
+```{r}
+glmer.nb(
+  Num_exits ~ earlyLifeTrt * PND + (1|damID)
+  , data = damBehavior_byPND_ZT %>% makeFactors(c(PND, ZT))
+)
+```
+
+Trying to determine what model to use for the dam behavior data. Following the steps from this answer: https://stats.stackexchange.com/a/312664 
+
+```{r}
+damBehavior_byPND_ZT %>%
+  group_by(
+    PND
+    , earlyLifeTrt
+  ) %>%
+  summarize(
+    means = mean(Num_exits, na.rm = TRUE)
+    , variances = var(Num_exits, na.rm = TRUE)
+    , ratio = variances/means
+  )
+```
+
+```{r}
+library(MASS)
+install.packages("lmtest")
+library(lmtest)
+```
+
+I think that this shows that the negative binomial is a better fit
+
+```{r}
+modelformula <- formula(Num_exits ~ factor(PND) * earlyLifeTrt)
+
+poismodel <- glm(modelformula, data = damBehavior_byPND_ZT, family = "poisson")
+
+nbmodel <- glm.nb(modelformula, data = damBehavior_byPND_ZT)
+
+lrtest(poismodel, nbmodel)
+```
+
+I think that this shows that the negative binomial with the random effect of damID included is a better fit than without it.
+
+```{r}
+glmmformula <- update(modelformula, . ~ . + (1|damID))
+
+nbglmm <- glmer.nb(glmmformula, data = damBehavior_byPND_ZT)
+
+lrtest(nbmodel, nbglmm)
+```
+
+I think that the direct comparison of the nb to poisson glmer also suggests that the negative binomial is a better fit
+
+```{r}
+poissonlmm <- glmer(glmmformula, data = damBehavior_byPND_ZT, family = "poisson")
+
+lrtest(
+  poissonlmm
+  , nbglmm
+)
+```
+
+```{r}
+summary(poissonlmm)
+```
+```{r}
+summary(nbglmm)
+```
+
+```{r}
+library(emmeans)
+```
+
+```{r}
+EMM <- emmeans(
+  nbglmm
+  , ~ earlyLifeTrt * PND
+  , type = "response"
+)
+EMM
+
+# this doesn't do corrections for 8 comparisons, because it's within groups
+
+# https://cran.r-project.org/web/packages/emmeans/vignettes/AQuickStart.html The default is to apply a separate Tukey adjustment to the P values in each by group (so if each group has just 2 means, no adjustment at all is applied). If you want to adjust the whole family combined, you need to undo the by variable and specify the desired adjustment (which can’t be Tukey because that method is invalid when you have more than one set of pairwise comparisons.)
+
+# pairs(EMM, simple = "earlyLifeTrt")
+
+# This works to correct for 8 comparisons - when PND is a factor variable
+
+test(pairs(EMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+```{r}
+joint_tests(nbglmm)
+```
+
+```{r}
+library(afex)
+```
+
+```{r}
+set_sum_contrasts()
+```
+
+```{r}
+modelformula2 <- formula(Num_exits ~ factor(PND) * earlyLifeTrt + (1|damID))
+
+nbglmm2 <- glmer.nb(modelformula2, data = damBehavior_byPND_ZT)
+
+summary(nbglmm2)
+```
+```{r}
+modelformula3 <- formula(Num_exits ~ earlyLifeTrt + (1|damID))
+
+nbglmm3 <- glmer.nb(modelformula3, data = damBehavior_byPND_ZT)
+
+summary(nbglmm3)
+```
+
+```{r}
+lmm <- mixed(
+  VO_age ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered
+)
+
+emmeans(lmm, "earlyLifeTrt")
+
+retData <- afex_plot(
+  lmm
+  , "earlyLifeTrt"
+  , error_ci = FALSE
+  , return = "data"
+)
+
+as_data_frame(retData$means)
+  
+```
+
+
+# Getting data output from AFEX for error bars to add to plots
+
+This should be the model errors
+
+```{r}
+retData <- afex_plot(
+  lmm
+  , "earlyLifeTrt"
+  , error_ci = FALSE
+  , return = "data"
+)
+
+modelBasedError <- as_data_frame(retData$means)
+
+modelBasedError
+```
+
+This is based on the means of each group
+
+```{r}
+retData <- afex_plot(
+  lmm
+  , "earlyLifeTrt"
+  , error_ci = FALSE
+  , return = "data"
+  , error = "mean"
+)
+
+as_data_frame(retData$means)
+```
+
+```{r}
+maturation_byDam_f %>%
+  scatterPlotLBN(
+    yVar = VO_age
+    , yLab = "mean VO age (days)"
+  ) +
+  
+```
+
+```{r}
+library(ggeffects)
+```
+
+```{r}
+emmeans(lmm, "earlyLifeTrt")
+```
+
+
+```{r}
+lmmData <- afex_plot(
+  lmm
+  , "earlyLifeTrt"
+  , error_ci = FALSE
+  , return = "data"
+)
+
+lmmDataPlot <- lmmData$means %>%
+  as.data.frame()
+lmmDataPlot
+```
+
+```{r}
+maturation_byDam_f %>%
+  scatterPlotLBN(
+    yVar = VO_age
+    , yLab = "mean VO age (days)"
+  ) +
+  geom_errorbar(
+    aes(
+      x = earlyLifeTrt
+      , ymin = y
+      , ymax = y
+    )
+    , data = lmmDataPlot
+    , inherit.aes = FALSE
+    , width = 0.8
+    , size = 0.4
+    , color = "red"
+  ) +
+  geom_linerange(
+    aes(
+      x = earlyLifeTrt
+      , ymin = lower
+      , ymax = upper
+    )
+    , data = lmmDataPlot
+    , inherit.aes = FALSE
+    , size = 0.4
+    , color = "red"
+    , position = position_nudge(x = 0.1)
+  )
+```
+
+
+```{r}
+figDamsC + geom_errorbar(
+    aes(
+      x = PND
+      , ymin = predicted
+      , ymax = predicted
+    )
+    , data = dfGroupLine %>%
+      mutate(
+        PND = as.numeric(paste(PND))
+      )
+    , inherit.aes = FALSE
+    , width = 0.8
+    , size = 0.4
+    , color = "red"
+  ) + geom_linerange(
+    aes(
+      x = PND
+      , ymin = se.low
+      , ymax = se.high
+      # , ymin = conf.low
+      # , ymax = conf.high
+    )
+    , data = dfGroupLine %>%
+      mutate(
+        PND = as.numeric(paste(PND))
+      )
+    , inherit.aes = FALSE
+    , size = 0.4
+    , color = "red"
+  )
+```
+
+

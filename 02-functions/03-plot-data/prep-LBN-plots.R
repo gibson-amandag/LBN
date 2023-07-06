@@ -706,12 +706,14 @@ manuscriptCortPlotFunc <- function(
     , dotSize = 2
     , yUnitsNewLine = TRUE
     , onlyLBN = FALSE
-    , jitterPosition = 1
+    , jitterPosition = 1.5
     , meanWidth = 1.4
     , wrapLegend = TRUE
     , useALPSLineType = FALSE
     , ALPSdodge = 1
     , stripPosition = "bottom"
+    , plotMean = TRUE
+    , plotSE = TRUE
 ){
   if(useALPSLineType){
     lineGuide <-  c("STD-CON"="dotted", "STD-ALPS"="solid", "LBN-CON"="dotted", "LBN-ALPS"="solid")
@@ -746,6 +748,8 @@ manuscriptCortPlotFunc <- function(
         , meanWidth = meanWidth
         , yUnitsNewLine = yUnitsNewLine
         , lineTypeGuide = lineGuide
+        , plotMean = plotMean
+        , plotSE = plotSE
       )
     
     if(onlyLBN){

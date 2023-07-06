@@ -673,20 +673,401 @@ figCyclesB_noMean +
     , nudgeErrorLine = 0
   )
 ```
+# Estrous cycles - length
+
+## Model
 
 ```{r}
+lengthCycles_lmm <- mixed(
+  cycleLength ~ earlyLifeTrt + (1|damID)
+  , data = cyclesFiltered
+  , method = "KR"
+)
+lengthCycles_lmm
+```
 
+## Assumptions
+
+```{r}
+plot(lengthCycles_lmm$full_model)
+```
+
+```{r}
+qqnorm(residuals(lengthCycles_lmm$full_model))
+```
+
+## Model - log
+
+```{r}
+lengthCycles_log_lmm <- mixed(
+  log(cycleLength) ~ earlyLifeTrt + (1|damID)
+  , data = cyclesFiltered
+  , method = "KR"
+)
+lengthCycles_log_lmm
+```
+
+## Assumptions
+
+```{r}
+plot(lengthCycles_log_lmm$full_model)
+```
+
+```{r}
+qqnorm(residuals(lengthCycles_log_lmm$full_model))
+```
+## Graphs
+
+### Response
+
+```{r}
+lengthCycles_lmm_error <- lengthCycles_lmm %>%
+  getErrorDF_LMM(
+    xVarAsChar = "earlyLifeTrt"
+  )
+lengthCycles_lmm_error
+```
+
+```{r}
+figCyclesC +
+  plotError_LMM(
+    lengthCycles_lmm_error
+    , xVar = earlyLifeTrt
+  )
+```
+### Log
+
+Can't get the afex_plot data output to work with the log scale, so manually pulled out from emmeans
+
+```{r}
+lengthCycles_log_lmm_emm <- emmeans(lengthCycles_log_lmm, "earlyLifeTrt", type = "response")
+
+lengthCycles_log_lmm_error <- lengthCycles_log_lmm_emm %>%
+  as_data_frame() %>%
+  rename(
+    y = response
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+  )
+
+lengthCycles_log_lmm_error
 ```
 
 
-
-```{r}
-
+```{r eval=FALSE, include=FALSE}
+lengthCycles_log_lmm_error <- lengthCycles_log_lmm %>%
+  getErrorDF_LMM(
+    xVarAsChar = "earlyLifeTrt"
+  )
+lengthCycles_log_lmm_error
 ```
 
 
+Red is not log, blue is log model + model SEM
+
+```{r}
+figCyclesC +
+  plotError_LMM(
+    lengthCycles_lmm_error
+    , xVar = earlyLifeTrt
+  ) +
+  plotError_LMM(
+    lengthCycles_log_lmm_error
+    , xVar = earlyLifeTrt
+    , color = "blue"
+    , nudgeErrorLine = 0.2
+  )
+```
+
+```{r}
+figCyclesC_noMean +
+  plotError_LMM(
+    lengthCycles_log_lmm_error
+    , xVar = earlyLifeTrt
+    , meanBarWidth = 0.7
+    , color = "black"
+    , nudgeErrorLine = 0
+  )
+```
+# Stage distribution
+
+Still struggling a bit with this. There's a distribution of days within each mouse, and then there's also potential litter effects. What we published in the KNDy paper was just simply the count distribution of days and a Chi-Square test. The other possibility would be to ignore the fact that the % of days in any given stage is related to the % that's spent in another and compare the percentage. In this model, there's a singular fit for both mouseID and damID, meaning that they really don't add much to the model, so I guess that's support for doing the chi-square approach, even though you lose the mouse-level resolution.
+
+## Comp percent approach
+
+```{r}
+cyclesPerc_lmm <- mixed(
+  percent ~ stage * earlyLifeTrt + (1|mouseID) + (1|damID)
+  , data = cyclesPercLong
+  , method = "KR"
+)
+
+cyclesPerc_lmm$full_model
+```
+
+```{r}
+cyclesPerc_lmm_emm <- emmeans(
+  cyclesPerc_lmm
+  , "earlyLifeTrt"
+  , by = "stage"
+)
+
+test(pairs(cyclesPerc_lmm_emm), by = NULL, adjust = "holm")
+```
+
+Mice spend different amounts of time in each stage
+
+```{r}
+cyclesPerc_lmm_emm_stage <- emmeans(
+  cyclesPerc_lmm
+  , "stage"
+)
+pairs(cyclesPerc_lmm_emm_stage, adjust = "holm")
+```
+
+## Chi-squared approach
+
+```{r}
+cycles_contTable <- table(
+  cyclesLong$earlyLifeTrt,
+  cyclesLong$stageName
+)
+
+cycles_ChiSq <- chisq_test(cycles_contTable)
+cycles_ChiSq %>% flextable()
+
+chisq_descriptives(cycles_ChiSq) %>% flextable()
+```
+
+Leave graph as is, and just specify that the means + SEM are of the actual averaged data and not a model?
+
+```{r}
+figCyclesD
+```
+```{r}
+cycles_contTable
+```
+
+```{r}
+sumCyclesPercLongDams <- cyclesPercLong_dams %>%
+  group_by(
+    earlyLifeTrt
+    , stage
+  ) %>%
+  summarize(
+    cumPerc = sum(percent, na.rm = FALSE)
+  )
+
+cycleTable <- rbind(
+  c(
+    getValWhereOtherValTrue(sumCyclesPercLongDams %>% filter(earlyLifeTrt == "STD"), "stage", "estrus", "cumPerc")
+    , getValWhereOtherValTrue(sumCyclesPercLongDams %>% filter(earlyLifeTrt == "STD"), "stage", "diestrus", "cumPerc")
+    , getValWhereOtherValTrue(sumCyclesPercLongDams %>% filter(earlyLifeTrt == "STD"), "stage", "proestrus", "cumPerc")
+  )
+  ,c(
+    getValWhereOtherValTrue(sumCyclesPercLongDams %>% filter(earlyLifeTrt == "LBN"), "stage", "estrus", "cumPerc")
+    , getValWhereOtherValTrue(sumCyclesPercLongDams %>% filter(earlyLifeTrt == "LBN"), "stage", "diestrus", "cumPerc")
+    , getValWhereOtherValTrue(sumCyclesPercLongDams %>% filter(earlyLifeTrt == "LBN"), "stage", "proestrus", "cumPerc")
+   )
+)
+
+rownames(cycleTable) <- c("STD", "LBN")
+colnames(cycleTable) <- c("estrus", "diestrus", "proestrus")
+
+cycleTable
+
+cycles_by_dam_ChiSq <- chisq_test(cycleTable)
+cycles_by_dam_ChiSq %>% flextable()
+
+chisq_descriptives(cycles_by_dam_ChiSq) %>% flextable()
+```
+
+# Cort
+
+```{r}
+cortFiltered_M_DiPro <- cortFiltered_M_DiPro %>%
+  mutate(
+    hormoneStatus = ifelse(
+      sex == "M"
+      , "male"
+      , ifelse(
+        Sac_cycle == "diestrus"
+        , "diestrus"
+        , ifelse(
+          Sac_cycle == "proestrus"
+          , "proestrus"
+          , NA
+        )
+      )
+    )
+  )
+```
+
+## Full Cort model - log scale 
+
+Hormone status (male, pro, di), earlyLifeTrt, adultTrt, and time
+
+There's an interaction between adult treatment and time, between early-life treatment and time, and a main effect of hormone status
+
+```{r}
+cort_lmm <- mixed(
+  log(cort) ~ hormoneStatus * earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
+  , data = cortFiltered_M_DiPro
+  , method = "KR"
+)
+
+cort_lmm
+```
+
+```{r}
+plot(cort_lmm$full_model)
+```
+
+```{r}
+qqnorm(residuals(cort_lmm$full_model))
+```
+
+```{r}
+cort_lmm_emm <- emmeans(cort_lmm, "earlyLifeTrt", by = c("adultTrt", "hormoneStatus", "time"), type = "response")
+
+cort_lmm_error <- cort_lmm_emm %>%
+  as_data_frame() %>%
+  rename(
+    y = response
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+  ) %>%
+  combineStress()
+
+cort_lmm_error
+```
 
 
+```{r}
+figCortLogA <- cortFilteredMales %>%
+  manuscriptCortPlotFunc(
+    zoom_y = FALSE
+    , plotMean = FALSE
+    , plotSE = FALSE
+  )() +
+  scale_y_continuous(trans = "log"
+                     , limits = c(NA, 400)
+                     , breaks = c(0, 6.25, 12.5, 25, 50, 100, 200, 400)
+                     , labels = c(0, "6.25", "12.5", "25", "50", "100", "200", "400")) +
+  plotError_LMM_aes(
+    cort_lmm_error %>%
+      filter(
+        hormoneStatus == "male"
+      ) %>%
+      mutate(
+        time = ifelse(
+          time == 0
+          , time - 1.5
+          , time + 1.5
+        )
+      )
+    , xVar = time
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 1
+    , color = comboTrt
+  )
+figCortLogA
+```
 
+```{r}
+figCortLogB <- cortFilteredDi %>%
+  manuscriptCortPlotFunc(
+    zoom_y = FALSE
+    , plotMean = FALSE
+    , plotSE = FALSE
+  )() +
+  scale_y_continuous(trans = "log"
+                     , limits = c(NA, 400)
+                     , breaks = c(0, 6.25, 12.5, 25, 50, 100, 200, 400)
+                     , labels = c(0, "6.25", "12.5", "25", "50", "100", "200", "400")) +
+  plotError_LMM_aes(
+    cort_lmm_error %>%
+      filter(
+        hormoneStatus == "diestrus"
+      ) %>%
+      mutate(
+        time = ifelse(
+          time == 0
+          , time - 1.5
+          , time + 1.5
+        )
+      )
+    , xVar = time
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 1
+    , color = comboTrt
+  )
+
+figCortLogB
+```
+
+
+```{r}
+figCortLogC <- cortFilteredPro %>%
+  manuscriptCortPlotFunc(
+    zoom_y = FALSE
+    , plotMean = FALSE
+    , plotSE = FALSE
+  )() +
+  scale_y_continuous(trans = "log"
+                     , limits = c(NA, 400)
+                     , breaks = c(0, 6.25, 12.5, 25, 50, 100, 200, 400)
+                     , labels = c(0, "6.25", "12.5", "25", "50", "100", "200", "400")) +
+  plotError_LMM_aes(
+    cort_lmm_error %>%
+      filter(
+        hormoneStatus == "proestrus"
+      ) %>%
+      mutate(
+        time = ifelse(
+          time == 0
+          , time - 1.5
+          , time + 1.5
+        )
+      )
+    , xVar = time
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 1
+    , color = comboTrt
+  )
+figCortLogC
+```
+
+```{r}
+emmeans(
+  cort_lmm
+  , "earlyLifeTrt"
+  , by = "time"
+  , type = "response"
+)
+```
+```{r}
+emmeans(
+  cort_lmm
+  , "adultTrt"
+  , by = "time"
+  , type = "response"
+)
+```
+
+```{r}
+emmeans(
+  cort_lmm
+  , "hormoneStatus"
+  , type = "response"
+)
+```
 
 

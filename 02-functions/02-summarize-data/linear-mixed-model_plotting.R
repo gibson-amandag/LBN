@@ -25,6 +25,7 @@ plotError_LMM <- function(
     , barSize = 0.4
     , color = "red" # change in the end, but for now to compare
     , nudgeErrorLine = 0.1 # to offset from current error bar. Remove
+    , nudgeMeanLine = 0
 ) {
   geoms <- list(
     geom_errorbar(
@@ -38,6 +39,7 @@ plotError_LMM <- function(
       , width = meanBarWidth
       , size = barSize
       , color = color
+      , position = position_nudge(x = nudgeMeanLine)
     )
     , geom_linerange(
       aes(
@@ -49,6 +51,45 @@ plotError_LMM <- function(
       , inherit.aes = FALSE
       , size = barSize
       , color = color
+      , position = position_nudge(x = nudgeErrorLine)
+    )
+  )
+  return(geoms)
+}
+
+plotError_LMM_aes <- function(
+    lmmData
+    , xVar
+    , meanBarWidth = 0.8 # make smaller in the end, but for now to compare
+    , barSize = 0.4
+    , nudgeErrorLine = 0.1 # to offset from current error bar. Remove
+    , nudgeMeanLine = 0
+    , ...
+) {
+  geoms <- list(
+    geom_errorbar(
+      aes(
+        x = {{xVar}}
+        , ymin = y
+        , ymax = y
+        , ...
+      )
+      , data = lmmData
+      , inherit.aes = FALSE
+      , width = meanBarWidth
+      , size = barSize
+      , position = position_nudge(x = nudgeMeanLine)
+    )
+    , geom_linerange(
+      aes(
+        x = {{xVar}}
+        , ymin = lower
+        , ymax = upper
+        , ...
+      )
+      , data = lmmData
+      , inherit.aes = FALSE
+      , size = barSize
       , position = position_nudge(x = nudgeErrorLine)
     )
   )

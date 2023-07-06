@@ -459,6 +459,20 @@ figCyclesC <- cyclesFiltered %>%
     breaks = c(0, 2, 4, 6, 8)
   )
 
+figCyclesC_noMean <- cyclesFiltered %>%
+  getAvgByDam() %>%
+  scatterPlotLBN(
+    yVar = cycleLength
+    , yLab = "mean length (days)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , addMean = FALSE
+    , addSEM = FALSE
+  ) +
+  scale_y_continuous(
+    breaks = c(0, 2, 4, 6, 8)
+  )
+
 
 ## Percent days in stage ---------------------------------------------------
 
