@@ -147,6 +147,7 @@ Sacrifice_off <- Sacrifice_off %>%
   calcOrganMassByBodyMass_AM(Adrenal_mass) %>%
   mutate(
     bodyMass_diff = Body_mass_sac - Body_mass_AM
+    , percChangeBodyMass = bodyMass_diff / Body_mass_AM * 100
   )
 ChronicStress_off <- makeFactors(ChronicStress_off, mouseID)
 CRH_dam <- makeFactors(CRH_dam, c(damID,dam))

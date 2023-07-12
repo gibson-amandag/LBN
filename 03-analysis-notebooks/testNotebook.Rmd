@@ -12267,4 +12267,54 @@ figDamsC + geom_errorbar(
   )
 ```
 
+```{r}
+GABApscs_240FilteredFiring %>%
+  select(
+    mouseID
+    , cellID
+    , duration
+  ) %>%
+  arrange(
+    mouseID
+  )
+
+GABApscs_240FilteredFiring %>%
+  countMiceAndLitters(groupingVars = exprs(earlyLifeTrt, adultTrt))
+GABApscsFilteredFiring %>%
+  countMiceAndLitters(groupingVars = exprs(earlyLifeTrt, adultTrt))
+```
+
+```{r}
+GABApscs_240FilteredFiring %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  meanSummary(
+    frequency
+  )
+GABApscsFilteredFiring %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  meanSummary(
+    frequency
+  )
+```
+
+```{r}
+GABApscs_240FilteredFiring %>%
+  plotGABAfreq()
+GABApscsFilteredFiring %>%
+  plotGABAfreq()
+```
+
+```{r}
+GABApscsFilteredFiring %>%
+  select(
+    cellID
+  ) %>%
+  write.table("clipboard", sep = "\t", row.names = FALSE)
+```
 

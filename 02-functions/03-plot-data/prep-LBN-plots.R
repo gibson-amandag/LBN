@@ -1012,6 +1012,7 @@ plotCatVarFunc <- function(
     , addLegend = FALSE
     , removeXTicks = FALSE
     , alpha = 0.7
+    , addMeanSE = TRUE
 ){
   yVar <- as.character(singleVar)
   if(!useSpecYLab){
@@ -1039,6 +1040,7 @@ plotCatVarFunc <- function(
         , ymin = ymin
         , ymax = ymax
         , alpha = alpha
+        , addMeanSE = addMeanSE
       )
     
     if(twoLineXLabs){

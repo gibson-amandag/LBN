@@ -892,15 +892,7 @@ cortFiltered_M_DiPro <- cortFiltered_M_DiPro %>%
     hormoneStatus = ifelse(
       sex == "M"
       , "male"
-      , ifelse(
-        Sac_cycle == "diestrus"
-        , "diestrus"
-        , ifelse(
-          Sac_cycle == "proestrus"
-          , "proestrus"
-          , NA
-        )
-      )
+      , Sac_cycle
     )
   )
 ```
@@ -920,6 +912,7 @@ cort_lmm <- mixed(
 
 cort_lmm
 ```
+## Assumptions
 
 ```{r}
 plot(cort_lmm$full_model)
@@ -928,6 +921,8 @@ plot(cort_lmm$full_model)
 ```{r}
 qqnorm(residuals(cort_lmm$full_model))
 ```
+
+## Graphs
 
 ```{r}
 cort_lmm_emm <- emmeans(cort_lmm, "earlyLifeTrt", by = c("adultTrt", "hormoneStatus", "time"), type = "response")
@@ -1044,6 +1039,7 @@ figCortLogC <- cortFilteredPro %>%
   )
 figCortLogC
 ```
+## Post-hocs
 
 ```{r}
 emmeans(
@@ -1069,5 +1065,1017 @@ emmeans(
   , type = "response"
 )
 ```
+
+# Body mass - AM
+
+```{r}
+acuteStressFiltered_M_DiPro <- acuteStressFiltered_M_DiPro %>%
+  mutate(
+    hormoneStatus = ifelse(
+      sex == "M"
+      , "male"
+      , Sac_cycle
+    )
+  )
+```
+
+
+## Model
+
+```{r}
+bodyMassAM_lmm <- mixed(
+  Body_mass_AM ~ hormoneStatus * earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFiltered_M_DiPro
+  , method = "KR"
+)
+
+bodyMassAM_lmm
+```
+
+## Assumptions
+
+```{r}
+plot(bodyMassAM_lmm$full_model)
+```
+
+
+```{r}
+qqnorm(residuals(bodyMassAM_lmm$full_model))
+```
+
+## Post-hocs
+
+LBN males are smaller than STD males. No difference for either female group
+
+```{r}
+bodyMassAM_lmm_emm_earlyLife <- emmeans(
+  bodyMassAM_lmm
+  , "earlyLifeTrt"
+  , by = "hormoneStatus"
+)
+
+bodyMassAM_lmm_emm_earlyLife
+
+test(pairs(bodyMassAM_lmm_emm_earlyLife), by = NULL, adjust = "holm")
+```
+By chance, the males that went on to receive ALPS treatment were larger than those that received CON treatment
+
+```{r}
+bodyMassAM_lmm_emm_adultTrt <- emmeans(
+  bodyMassAM_lmm
+  , "adultTrt"
+  , by = "hormoneStatus"
+)
+
+bodyMassAM_lmm_emm_adultTrt
+
+test(pairs(bodyMassAM_lmm_emm_adultTrt), by = NULL, adjust = "holm")
+```
+
+## Graphs
+
+```{r}
+bodyMassAM_lmm_emm <- emmeans(bodyMassAM_lmm, "earlyLifeTrt", by = c("adultTrt", "hormoneStatus"))
+
+bodyMassAM_lmm_error <- bodyMassAM_lmm_emm %>%
+  as_data_frame() %>%
+  rename(
+    y = emmean
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+  ) %>%
+  combineStress()
+
+bodyMassAM_lmm_error
+```
+
+```{r}
+figMassFacetA +
+  plotError_LMM(
+    bodyMassAM_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = 0.4
+    , color = "red"
+  )
+```
+```{r}
+figMassFacetA_noMean +
+  plotError_LMM(
+    bodyMassAM_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "black"
+  )
+```
+
+
+
+# Change in body mass
+
+## Model
+
+```{r}
+changeBodyMass_lmm <- mixed(
+  bodyMass_diff ~ hormoneStatus * earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFiltered_M_DiPro
+  , method = "KR"
+)
+
+changeBodyMass_lmm
+```
+
+## Assumptions
+
+```{r}
+plot(changeBodyMass_lmm$full_model)
+```
+
+
+```{r}
+qqnorm(residuals(changeBodyMass_lmm$full_model))
+```
+
+## Post-hocs
+
+The males lose more in absolute terms - they are also sacrificed immediately after paradigm, without as much opportunity to refed/rehydrate. They're also bigger
+
+```{r}
+changeBodyMass_lmm_emm_adultTrt <- emmeans(
+  changeBodyMass_lmm
+  , "hormoneStatus"
+  , by = "adultTrt"
+)
+
+changeBodyMass_lmm_emm_adultTrt
+
+test(pairs(changeBodyMass_lmm_emm_adultTrt), by = NULL, adjust = "holm")
+```
+
+## Graphs
+
+```{r}
+changeBodyMass_lmm_emm <- emmeans(changeBodyMass_lmm, "earlyLifeTrt", by = c("adultTrt", "hormoneStatus"))
+
+changeBodyMass_lmm_error <- changeBodyMass_lmm_emm %>%
+  as_data_frame() %>%
+  rename(
+    y = emmean
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+  ) %>%
+  combineStress()
+
+changeBodyMass_lmm_error
+```
+
+```{r}
+figMassFacetB +
+  plotError_LMM(
+    changeBodyMass_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = 0.4
+    , color = "red"
+  )
+```
+```{r}
+figMassFacetB_noMean +
+  plotError_LMM(
+    changeBodyMass_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "black"
+  )
+```
+
+
+
+# Perc change in body mass
+
+## Model
+
+```{r}
+percChangeBodyMass_lmm <- mixed(
+  percChangeBodyMass ~ hormoneStatus * earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFiltered_M_DiPro
+  , method = "KR"
+)
+
+percChangeBodyMass_lmm
+```
+
+## Assumptions
+
+```{r}
+plot(percChangeBodyMass_lmm$full_model)
+```
+
+
+```{r}
+qqnorm(residuals(percChangeBodyMass_lmm$full_model))
+```
+
+## Post-hocs
+
+Once normalized, there's no longer an interaction with hormone status and adult treatment - just to show the post-hocs in constrast to above even though not justified by the model
+
+```{r}
+percChangeBodyMass_lmm_emm_hormoneStatus <- emmeans(
+  percChangeBodyMass_lmm
+  , "hormoneStatus"
+  , by = "adultTrt"
+)
+
+percChangeBodyMass_lmm_emm_hormoneStatus
+
+test(pairs(percChangeBodyMass_lmm_emm_hormoneStatus), by = NULL, adjust = "holm")
+```
+```{r}
+percChangeBodyMass_lmm_emm_adultTrt <- emmeans(
+  percChangeBodyMass_lmm
+  , "adultTrt"
+)
+
+test(pairs(percChangeBodyMass_lmm_emm_adultTrt), by = NULL, adjust = "holm")
+```
+
+
+## Graphs
+
+```{r}
+percChangeBodyMass_lmm_emm <- emmeans(percChangeBodyMass_lmm, "earlyLifeTrt", by = c("adultTrt", "hormoneStatus"))
+
+percChangeBodyMass_lmm_error <- percChangeBodyMass_lmm_emm %>%
+  as_data_frame() %>%
+  rename(
+    y = emmean
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+  ) %>%
+  combineStress()
+
+percChangeBodyMass_lmm_error
+```
+
+```{r}
+figMassFacetB_perc +
+  plotError_LMM(
+    percChangeBodyMass_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = 0.4
+    , color = "red"
+  )
+```
+```{r}
+figMassFacetB_perc_noMean +
+  plotError_LMM(
+    percChangeBodyMass_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "black"
+  )
+```
+
+
+
+# Adrenal mass
+
+## Model
+
+```{r}
+adrenalMass_lmm <- mixed(
+  Adrenal_mass_perBodyAM_g ~ hormoneStatus * earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFiltered_M_DiPro
+  , method = "KR"
+)
+
+adrenalMass_lmm
+```
+
+## Assumptions
+
+```{r}
+plot(adrenalMass_lmm$full_model)
+```
+
+
+```{r}
+qqnorm(residuals(adrenalMass_lmm$full_model))
+```
+
+## Post-hocs
+
+Males are smaller than both female groups, trend at this point for proestrus to be larger than diestrus
+
+```{r}
+adrenalMass_lmm_emm_hormoneStatus <- emmeans(
+  adrenalMass_lmm
+  , "hormoneStatus"
+)
+
+adrenalMass_lmm_emm_hormoneStatus
+
+test(pairs(adrenalMass_lmm_emm_hormoneStatus), by = NULL, adjust = "holm")
+```
+
+## Graphs
+
+```{r}
+adrenalMass_lmm_emm <- emmeans(adrenalMass_lmm, "earlyLifeTrt", by = c("adultTrt", "hormoneStatus"))
+
+adrenalMass_lmm_error <- adrenalMass_lmm_emm %>%
+  as_data_frame() %>%
+  rename(
+    y = emmean
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+  ) %>%
+  combineStress()
+
+adrenalMass_lmm_error
+```
+
+```{r}
+figMassFacetC +
+  plotError_LMM(
+    adrenalMass_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = 0.4
+    , color = "red"
+  )
+```
+```{r}
+figMassFacetC_noMean +
+  plotError_LMM(
+    adrenalMass_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "black"
+  )
+```
+
+
+
+# Seminal vesicle mass
+
+## Model
+
+```{r}
+seminalVesicle_lmm <- mixed(
+  ReproTract_mass_perBodyAM_g ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFiltered_M_DiPro %>%
+    filter(
+      sex == "M"
+    )
+  , method = "KR"
+)
+
+seminalVesicle_lmm
+```
+
+## Assumptions
+
+```{r}
+plot(seminalVesicle_lmm$full_model)
+```
+
+
+```{r}
+qqnorm(residuals(seminalVesicle_lmm$full_model))
+```
+
+## Post-hocs
+
+```{r}
+seminalVesicle_lmm_emm_earlyLifeTrt <- emmeans(
+  seminalVesicle_lmm
+  , "earlyLifeTrt"
+)
+
+seminalVesicle_lmm_emm_earlyLifeTrt
+
+test(pairs(seminalVesicle_lmm_emm_earlyLifeTrt), by = NULL, adjust = "holm")
+```
+
+## Graphs
+
+```{r}
+seminalVesicle_lmm_emm <- emmeans(seminalVesicle_lmm, "earlyLifeTrt", by = c("adultTrt"))
+
+seminalVesicle_lmm_error <- seminalVesicle_lmm_emm %>%
+  as_data_frame() %>%
+  rename(
+    y = emmean
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+  ) %>%
+  combineStress()
+
+seminalVesicle_lmm_error
+```
+
+```{r}
+figMassFacetD_male +
+  plotError_LMM(
+    seminalVesicle_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = 0.4
+    , color = "red"
+  )
+```
+```{r}
+figMassFacetD_male_noMean +
+  plotError_LMM(
+    seminalVesicle_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "black"
+  )
+```
+
+
+
+# Uterine mass
+
+## Model
+
+```{r}
+uterineMass_lmm <- mixed(
+  ReproTract_mass_perBodyAM_g ~ earlyLifeTrt * adultTrt * hormoneStatus + (1|damID)
+  , data = acuteStressFiltered_M_DiPro %>%
+    filter(
+      sex == "F"
+    )
+  , method = "KR"
+)
+
+uterineMass_lmm
+```
+
+## Assumptions
+
+```{r}
+plot(uterineMass_lmm$full_model)
+```
+
+
+```{r}
+qqnorm(residuals(uterineMass_lmm$full_model))
+```
+
+## Post-hocs
+
+```{r}
+uterineMass_lmm_emm_stage <- emmeans(
+  uterineMass_lmm
+  , "hormoneStatus"
+  
+)
+
+uterineMass_lmm_emm_stage
+
+test(pairs(uterineMass_lmm_emm_stage), by = NULL, adjust = "holm")
+```
+
+## Graphs
+
+```{r}
+uterineMass_lmm_emm <- emmeans(uterineMass_lmm, "earlyLifeTrt", by = c("adultTrt", "hormoneStatus"))
+
+uterineMass_lmm_error <- uterineMass_lmm_emm %>%
+  as_data_frame() %>%
+  rename(
+    y = emmean
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+  ) %>%
+  combineStress()
+
+uterineMass_lmm_error
+```
+
+```{r}
+figMassFacetD_female +
+  plotError_LMM(
+    uterineMass_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = 0.4
+    , color = "red"
+  )
+```
+```{r}
+figMassFacetD_female_noMean +
+  plotError_LMM(
+    uterineMass_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "black"
+  )
+```
+
+# Testicular mass
+
+## Model
+
+```{r}
+testicularMass_lmm <- mixed(
+  Gonad_mass_perBodyAM_g ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFiltered_M_DiPro %>%
+    filter(
+      sex == "M"
+    )
+  , method = "KR"
+)
+
+testicularMass_lmm
+```
+
+## Assumptions
+
+```{r}
+plot(testicularMass_lmm$full_model)
+```
+
+
+```{r}
+qqnorm(residuals(testicularMass_lmm$full_model))
+```
+
+## Post-hocs
+
+```{r}
+testicularMass_lmm_emm_adultTrt <- emmeans(
+  testicularMass_lmm
+  , "adultTrt"
+)
+
+testicularMass_lmm_emm_adultTrt
+
+test(pairs(testicularMass_lmm_emm_adultTrt), by = NULL, adjust = "holm")
+```
+
+## Graphs
+
+```{r}
+testicularMass_lmm_emm <- emmeans(testicularMass_lmm, "earlyLifeTrt", by = c("adultTrt"))
+
+testicularMass_lmm_error <- testicularMass_lmm_emm %>%
+  as_data_frame() %>%
+  rename(
+    y = emmean
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+  ) %>%
+  combineStress()
+
+testicularMass_lmm_error
+```
+
+```{r}
+acuteStressFiltered_M_DiPro %>%
+  filter(
+    sex == "M"
+  ) %>%
+  plotRelTesticularMass()+
+  plotError_LMM(
+    testicularMass_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = 0.4
+    , color = "red"
+  )
+```
+```{r}
+acuteStressFiltered_M_DiPro %>%
+  filter(
+    sex == "M"
+  ) %>%
+  plotRelTesticularMass_noMean()+
+  plotError_LMM(
+    testicularMass_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "black"
+  )
+```
+
+# GABA capacitance
+
+## Method
+
+```{r}
+capacitance_lmm <- mixed(
+  capacitance ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+capacitance_lmm
+```
+
+## Assumptions
+
+```{r}
+plot(capacitance_lmm$full_model)
+```
+```{r}
+qqnorm(residuals(capacitance_lmm$full_model))
+```
+
+## Graphs
+
+```{r}
+capacitance_lmm_errors <- capacitance_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+capacitance_lmm_errors
+```
+
+
+```{r}
+figGABAa +
+  plotError_LMM(
+    capacitance_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = 0.4
+    , color = "red"
+  )
+```
+
+
+
+
+# GABA input resistance
+
+## Method
+
+```{r}
+inputResistance_lmm <- mixed(
+  Rinput ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+inputResistance_lmm
+```
+
+## Assumptions
+
+```{r}
+plot(inputResistance_lmm$full_model)
+```
+```{r}
+qqnorm(residuals(inputResistance_lmm$full_model))
+```
+
+## Graphs
+
+```{r}
+inputResistance_lmm_errors <- inputResistance_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+inputResistance_lmm_errors
+```
+
+
+```{r}
+figGABAb +
+  plotError_LMM(
+    inputResistance_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = 0.4
+    , color = "red"
+  )
+```
+
+
+
+
+# GABA series resistance
+
+## Method
+
+```{r}
+seriesResistance_lmm <- mixed(
+  Rseries ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+seriesResistance_lmm
+```
+
+## Assumptions
+
+```{r}
+plot(seriesResistance_lmm$full_model)
+```
+```{r}
+qqnorm(residuals(seriesResistance_lmm$full_model))
+```
+
+## Graphs
+
+```{r}
+seriesResistance_lmm_errors <- seriesResistance_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+seriesResistance_lmm_errors
+```
+
+
+```{r}
+figGABAc +
+  plotError_LMM(
+    seriesResistance_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = 0.4
+    , color = "red"
+  )
+```
+
+
+
+# GABA holding current
+
+## Method
+
+```{r}
+holdingCurrent_lmm <- mixed(
+  holdingCurrent ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+holdingCurrent_lmm
+```
+
+## Assumptions
+
+```{r}
+plot(holdingCurrent_lmm$full_model)
+```
+```{r}
+qqnorm(residuals(holdingCurrent_lmm$full_model))
+```
+
+## Graphs
+
+```{r}
+holdingCurrent_lmm_errors <- holdingCurrent_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+holdingCurrent_lmm_errors
+```
+
+
+```{r}
+figGABAd +
+  plotError_LMM(
+    holdingCurrent_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = 0.4
+    , color = "red"
+  )
+```
+
+
+
+
+# GABA frequency
+
+## Method
+
+There's a lot of skew to this data. However, there's a true zero, so can't just do a log transformation
+
+```{r}
+frequency_lmm <- mixed(
+  frequency ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+frequency_lmm
+```
+
+## Assumptions
+
+```{r}
+plot(frequency_lmm$full_model)
+```
+```{r}
+qqnorm(residuals(frequency_lmm$full_model))
+```
+
+## Graphs
+
+```{r}
+frequency_lmm_errors <- frequency_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+frequency_lmm_errors
+```
+
+
+```{r}
+figGABAe +
+  plotError_LMM(
+    frequency_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = 0.4
+    , color = "red"
+  )
+```
+
+
+
+
+
+# GABA count events
+
+## Negative binomial model
+
+```{r}
+GABApscs_240_count <- GABApscs_240FilteredFiring %>%
+  mutate(
+    numEvents = frequency * duration
+    , .after = frequency
+  )
+
+GABApscs_240_count
+```
+
+```{r}
+numEvents_nb.GLMM <- glmer.nb(
+  numEvents ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240_count
+)
+
+summary(numEvents_nb.GLMM)
+```
+
+## Assumptions
+
+```{r}
+plot(numEvents_nb.GLMM)
+```
+
+```{r}
+qqnorm(residuals(numEvents_nb.GLMM))
+```
+
+## Graphs
+
+```{r}
+numEvents_nb.GLMM_errors <- numEvents_nb.GLMM %>%
+  getErrorDF_LMM("earlyLifeTrt", panel = "adultTrt", errorType = "model") %>%
+  combineStress() %>%
+  mutate(
+    y = y / 240.02
+    , SE = SE / 240.02
+    , error = error / 240.02
+    , lower = lower / 240.02
+    , upper = upper / 240.02
+  )
+
+numEvents_nb.GLMM_errors
+```
+
+```{r}
+figGABAe +
+  plotError_LMM(
+    numEvents_nb.GLMM_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = 0.4
+    , color = "red"
+  )
+```
+
+
+# GABA amplitude
+
+## Method
+
+```{r}
+relAmplitude_lmm <- mixed(
+  relPeak ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+relAmplitude_lmm
+```
+
+## Assumptions
+
+I think the fact that this is 4 lines is because the intercept for both mouse and dam is 0 (don't explain or add anything to the model)
+Also matches with the fact that the means are the same down below as the raw data
+
+```{r}
+plot(relAmplitude_lmm$full_model)
+```
+```{r}
+qqnorm(residuals(relAmplitude_lmm$full_model))
+```
+
+## Graphs
+
+```{r}
+relAmplitude_lmm_errors <- relAmplitude_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+relAmplitude_lmm_errors
+```
+
+
+```{r}
+figGABAf +
+  plotError_LMM(
+    relAmplitude_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = 0.4
+    , color = "red"
+  )
+```
+
+
 
 

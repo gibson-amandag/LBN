@@ -234,7 +234,7 @@ figCycles2ndRow <- plot_grid(
   , figCyclesC
   , figCyclesD
   , ncol = 3
-  , labels = c("B", "C", "D")
+  # , labels = c("B", "C", "D")
   , label_fontfamily = "Arial"
   , label_size = textSize
   , align = "h"
@@ -274,6 +274,28 @@ flexSave(
 #   , align = "v", axis = "lr"
 # )
 
+figCortLog <- plot_grid(
+  figCortLogA
+  , figCortLogB
+  , figCortLogC
+  , nrow = 3
+  , align = "vh", axis = "ltrb"
+  , labels = c("A", "B", "C")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figCortLog
+
+```
+```{r}
+# figCort_leftCol <- cowplot::align_plots(
+#   figCortA
+#   , figCortB
+#   , figCortC
+#   , align = "v", axis = "lr"
+# )
+
 figCort <- plot_grid(
   figCortA
   , figCortB
@@ -292,8 +314,8 @@ figCort
 
 ```{r}
 flexSave(
-  "figCort"
-  , plot = figCort
+  "figCortLog"
+  , plot = figCortLog
   , width = twoCols
   , height = 28/3 * 2
   , units = "cm"
@@ -426,15 +448,27 @@ figMass
 ```
 
 ```{r}
-figMassFacet <- plot_grid(
-  get_legend(figMassFacetA)
-  , figMassFacetA + rremove("legend")
+figMass_left <- align_plots(
+  figMassFacetA+rremove("legend")
   , figMassFacetB
   , figMassFacetC
-  , figMassFacetD
-  , nrow = 5
+  , figMassFacetD_male
   , align = "hv"
   , axis = "tblr"
+)
+
+figMassFacet <- plot_grid(
+  get_legend(figMassFacetA)
+  , figMass_left[[1]]
+  , figMass_left[[2]]
+  , figMass_left[[3]]
+  , plot_grid(
+      figMass_left[[4]]
+      , figMassFacetD_female
+      , nrow = 1
+      , rel_widths = c(1, 2)
+  )
+  , nrow = 5
   , labels = c(
     ""
     , "A"
@@ -725,6 +759,7 @@ damBehavior_byPND %>%
   )
 ```
 
+
 ### Stats
 
 ```{r}
@@ -735,6 +770,8 @@ numExitsGLMM <- mixed(
   , nAGQ = 0
   , method = "PB"
 )
+
+numExitsGLMM$full_model
 
 
 numExitsEMM <- emmeans(numExitsGLMM, "earlyLifeTrt", by = "PND", type = "response")

@@ -780,17 +780,21 @@ minRecDuration <- 230 # buffer because not exact
 
 GABApscsFilteredFiring <- GABApscsFilteredProps %>%
   filterByFrequency() 
+GABApscs_120FilteredFiring <- GABApscs_120FilteredProps %>%
+  filterByFrequency()
+GABApscs_240FilteredFiring <- GABApscs_240FilteredProps %>%
+  filterByFrequency()
 
 if(filterByMinRecDuration){
   GABApscsFilteredFiring <- GABApscsFilteredFiring %>%
     filter(
       duration >= minRecDuration
     )
+  GABApscs_240FilteredFiring <- GABApscs_240FilteredFiring %>%
+    filter(
+      duration >= minRecDuration
+    )
 }
 
-GABApscs_120FilteredFiring <- GABApscs_120FilteredProps %>%
-  filterByFrequency()
-GABApscs_240FilteredFiring <- GABApscs_240FilteredProps %>%
-  filterByFrequency()
 
 

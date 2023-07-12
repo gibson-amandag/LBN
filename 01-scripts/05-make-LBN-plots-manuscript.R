@@ -559,6 +559,7 @@ figCortC <- cortFilteredPro %>%
 
 ## Masses -----
 
+### with mean -----
 plotBodyMassAM <- plotCatVarFunc(
   expr(Body_mass_AM)
   , fontSize = textSize
@@ -579,6 +580,17 @@ plotChangeBodyMass <- plotCatVarFunc(
   , useFacetLabels = FALSE
   , useSpecYLab = TRUE
   , thisYLab = "\u0394 body mass (g)"
+  , removeXTicks = TRUE
+)
+
+plotPercChangeBodyMass <- plotCatVarFunc(
+  expr(percChangeBodyMass)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "% change in body mass"
   , removeXTicks = TRUE
 )
 
@@ -641,6 +653,108 @@ plotRelTesticularMass <- plotCatVarFunc(
   , thisYLab = "rel. mass (mg/g)"
 )
 
+### without mean -----
+plotBodyMassAM_noMean <- plotCatVarFunc(
+  expr(Body_mass_AM)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "body mass (g)"
+  , addLegend = TRUE
+  , removeXTicks = TRUE
+  , addMeanSE = FALSE
+)
+
+plotChangeBodyMass_noMean <- plotCatVarFunc(
+  expr(bodyMass_diff)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "\u0394 body mass (g)"
+  , removeXTicks = TRUE
+  , addMeanSE = FALSE
+)
+
+plotPercChangeBodyMass_noMean <- plotCatVarFunc(
+  expr(percChangeBodyMass)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "% change in body mass"
+  , removeXTicks = TRUE
+  , addMeanSE = FALSE
+)
+
+plotRelAdrenalMass_noMean <- plotCatVarFunc(
+  expr(Adrenal_mass_perBodyAM_g)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "normalized adrenal\nmass (mg/g)"
+  # , thisYLab = "rel. mass (mg/g)"
+  , removeXTicks = TRUE
+  , addMeanSE = FALSE
+)
+
+plotRelReproTractMass_noMean <- plotCatVarFunc(
+  expr(ReproTract_mass_perBodyAM_g)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "normalized repro. tract\nmass (mg/g)"
+  # , thisYLab = "rel. mass (mg/g)"
+  , removeXTicks = TRUE
+  , addMeanSE = FALSE
+)
+
+plotRelSeminalVesicleMass_noMean <- plotCatVarFunc(
+  expr(ReproTract_mass_perBodyAM_g)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "normalized seminal\nvesicle mass (mg/g)"
+  # , thisYLab = "rel. mass (mg/g)"
+  , removeXTicks = TRUE
+  , addMeanSE = FALSE
+)
+
+plotRelUterineMass_noMean <- plotCatVarFunc(
+  expr(ReproTract_mass_perBodyAM_g)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "normalized uterine\nmass (mg/g)"
+  # , thisYLab = "rel. mass (mg/g)"
+  , removeXTicks = TRUE
+  , addMeanSE = FALSE
+)
+
+plotRelTesticularMass_noMean <- plotCatVarFunc(
+  expr(Gonad_mass_perBodyAM_g)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , useSpecYLab = TRUE
+  # , thisYLab = "rel. testicular mass\n(mg/g)"
+  , thisYLab = "rel. mass (mg/g)"
+  , addMeanSE = FALSE
+)
+
 figMassA <- acuteStressFilteredMales %>%
   plotBodyMassAM()
 
@@ -689,9 +803,10 @@ figMassL <- acuteStressFilteredPro %>%
     , ymax = 9
   )
 
+### Faceted rows ----
 acuteStressForMasses <- acuteStressFiltered_M_DiPro %>%
   mutate(
-    steroid = 
+    hormoneStatus = 
       ifelse(
         sex == "M"
         , "male"
@@ -699,21 +814,26 @@ acuteStressForMasses <- acuteStressFiltered_M_DiPro %>%
       )
   ) %>%
   mutate(
-    steroid = factor(steroid, c("male", "diestrus", "proestrus"))
+    hormoneStatus = factor(hormoneStatus, c("male", "diestrus", "proestrus"))
   )
 
-facetBySteroid <- facet_wrap(
-  ~ steroid
+facetByHormoneStatus <- facet_wrap(
+  ~ hormoneStatus
   , nrow = 1
 )
 
+#### with mean ----
 figMassFacetA <- acuteStressForMasses %>%
   plotBodyMassAM() +
-  facetBySteroid
+  facetByHormoneStatus
 
 figMassFacetB <- acuteStressForMasses %>%
   plotChangeBodyMass() +
-  facetBySteroid
+  facetByHormoneStatus
+
+figMassFacetB_perc <- acuteStressForMasses %>%
+  plotPercChangeBodyMass() +
+  facetByHormoneStatus
 
 figMassFacetC <- acuteStressForMasses %>%
   plotRelAdrenalMass(
@@ -721,7 +841,7 @@ figMassFacetC <- acuteStressForMasses %>%
     , ymin = 0
     , ymax = 0.4
   ) +
-  facetBySteroid
+  facetByHormoneStatus
 
 figMassFacetD_male <- acuteStressForMasses %>%
   filter(
@@ -732,7 +852,7 @@ figMassFacetD_male <- acuteStressForMasses %>%
     , ymin = 0
     , ymax = 10
   ) +
-  facetBySteroid
+  facetByHormoneStatus
 
 figMassFacetD_female <- acuteStressForMasses %>%
   filter(
@@ -743,7 +863,50 @@ figMassFacetD_female <- acuteStressForMasses %>%
     , ymin = 0
     , ymax = 10
   ) +
-  facetBySteroid
+  facetByHormoneStatus
+
+#### without mean -----
+figMassFacetA_noMean <- acuteStressForMasses %>%
+  plotBodyMassAM_noMean() +
+  facetByHormoneStatus
+
+figMassFacetB_noMean <- acuteStressForMasses %>%
+  plotChangeBodyMass_noMean() +
+  facetByHormoneStatus
+
+figMassFacetB_perc_noMean <- acuteStressForMasses %>%
+  plotPercChangeBodyMass_noMean() +
+  facetByHormoneStatus
+
+figMassFacetC_noMean <- acuteStressForMasses %>%
+  plotRelAdrenalMass_noMean(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 0.4
+  ) +
+  facetByHormoneStatus
+
+figMassFacetD_male_noMean <- acuteStressForMasses %>%
+  filter(
+    sex == "M"
+  ) %>%
+  plotRelSeminalVesicleMass_noMean(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  ) +
+  facetByHormoneStatus
+
+figMassFacetD_female_noMean <- acuteStressForMasses %>%
+  filter(
+    sex == "F"
+  ) %>%
+  plotRelUterineMass_noMean(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  ) +
+  facetByHormoneStatus
   
 
 

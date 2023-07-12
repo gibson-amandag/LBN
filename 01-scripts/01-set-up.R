@@ -33,6 +33,8 @@ if(!require(googledrive))install.packages('googledrive')
 if(!require(googlesheets4))install.packages('googlesheets4')
 if(!require(lme4))install.packages('lme4')
 if(!require(lmerTest))install.packages('lmerTest')
+if(!require(afex))install.packages('afex')
+if(!require(emmeans))install.packages('emmeans')
 if(!require(ggbeeswarm))install.packages('ggbeeswarm')
 
 
@@ -72,6 +74,8 @@ library(googledrive)
 library(googlesheets4)
 library(lme4)
 library(lmerTest)
+library(afex)
+library(emmeans)
 library(ggbeeswarm)
 
 drive_auth(email = "*@umich.edu")
