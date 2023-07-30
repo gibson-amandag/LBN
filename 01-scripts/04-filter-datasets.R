@@ -427,7 +427,7 @@ LHFiltered <- LH_off %>%
 proUterineMin = 125
 diUterineMax = 100
 exclude653 = TRUE
-exclude723 = TRUE
+exclude723 = FALSE # Re-ran on 2023-07-16
 excludeSmallTesticularMass <- TRUE
 
 filterAcuteStressAll <- filterAcuteStressFunc(
@@ -530,7 +530,7 @@ filterCortAll <- filterCortFunc(
   , exclude653 = exclude653
   , exclude723 = exclude723
   , filterUterineMass = FALSE
-  , cortMax = cortMax # make everything higher than this 500ng/mL
+  , cortMax = cortMax # make everything higher than this 1000ng/mL
   , cortMin = cortMin # make everything lower than this 1.95 ng/mL
 )
 
@@ -542,14 +542,14 @@ filterCort_M_DiPro <- filterCortFunc(
   , filterUterineMass = TRUE
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
-  , cortMax = cortMax # make everything higher than this 500ng/mL
+  , cortMax = cortMax # make everything higher than this 1000ng/mL
   , cortMin = cortMin # make everything lower than this 1.95 ng/mL
 )
 
 filterCortMales <- filterCortFunc(
   "M"
   , "" #cycle stages
-  , cortMax = cortMax # make everything higher than this 500ng/mL
+  , cortMax = cortMax # make everything higher than this 1000ng/mL
   , cortMin = cortMin # make everything lower than this 1.95 ng/mL
 )
 
@@ -559,7 +559,7 @@ filterCortFemales_all <- filterCortFunc(
   , filterUterineMass = FALSE
   , exclude653 = exclude653
   , exclude723 = exclude723
-  , cortMax = cortMax # make everything higher than this 500ng/mL
+  , cortMax = cortMax # make everything higher than this 1000ng/mL
   , cortMin = cortMin # make everything lower than this 1.95 ng/mL
 )
 
@@ -573,7 +573,7 @@ filterCortFemales <- filterCortFunc(
   , diUterineMax = diUterineMax
   , exclude653 = exclude653
   , exclude723 = exclude723
-  , cortMax = cortMax # make everything higher than this 500ng/mL
+  , cortMax = cortMax # make everything higher than this 1000ng/mL
   , cortMin = cortMin # make everything lower than this 1.95 ng/mL
 )
 
@@ -586,7 +586,7 @@ filterCortPro <- filterCortFunc(
   , filterUterineMass = filterUterineMass
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
-  , cortMax = cortMax # make everything higher than this 500ng/mL
+  , cortMax = cortMax # make everything higher than this 1000ng/mL
   , cortMin = cortMin # make everything lower than this 1.95 ng/mL
 )
 
@@ -598,7 +598,7 @@ filterCortDi <- filterCortFunc(
   , filterUterineMass = filterUterineMass
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
-  , cortMax = cortMax # make everything higher than this 500ng/mL
+  , cortMax = cortMax # make everything higher than this 1000ng/mL
   , cortMin = cortMin # make everything lower than this 1.95 ng/mL
 )
 

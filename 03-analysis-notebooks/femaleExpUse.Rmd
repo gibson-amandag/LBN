@@ -303,6 +303,17 @@ malesUsed
 ```
 
 ```{r}
+maleCortAdmin <- loadExcelSheet(dataFolder, LBN_DataName, "cortAdmin") %>%
+  makeFactors(
+    c(
+      mouseID
+      , adultTrt
+      , dosage
+    )
+  )
+```
+
+```{r}
 cohort9_males_available <- LBN_data %>%
   filter(
     cohort == 9
@@ -310,6 +321,7 @@ cohort9_males_available <- LBN_data %>%
     , sex == "M"
     , is.na(Sac_date)
     , is.na(numInCage) | numInCage > 1
+    , !(mouseID %in% cortAdminMales)
   ) %>%
   group_by(
     earlyLifeTrt

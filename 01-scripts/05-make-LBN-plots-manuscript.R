@@ -17,7 +17,7 @@ figDamsB <- damBehavior_byPND %>%
     , colorByDam = TRUE
     , dotSize = 1
     , zoom_y = TRUE
-    , ymax = 40
+    , ymax = 50
     , ymin = 0
   )
 
@@ -33,7 +33,7 @@ figDamsB_noMean <- damBehavior_byPND %>%
     , colorByDam = TRUE
     , dotSize = 1
     , zoom_y = TRUE
-    , ymax = 40
+    , ymax = 50
     , ymin = 0
     , showMean = FALSE
     , addVertError = FALSE

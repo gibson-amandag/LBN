@@ -7332,6 +7332,131 @@ saveDFsToExcel(
 )
 ```
 
+# 2023-07-12 - ZT15, ZT19, ZT1
+
+```{r}
+Demo_dam %>%
+  filter(
+    Litter_size >= 5
+    , cohort == 9
+    # , DOB > as_date("2023-04-10")
+  )
+```
+
+
+```{r}
+damBehaveDates <- Demo_dam %>%
+  filter(
+    Litter_size >= 5
+    , cohort == 9
+    , is.na(Sac_or_stop) | Sac_or_stop > DOB + 20
+    , DOB > as_date("2023-04-11")
+  ) %>%
+  arrange(
+    cohort,
+    DOB
+  ) %>%
+  select(
+    damID
+    , cohort
+    , DOB
+  ) %>%
+  mutate(
+    P4_ZT15 = getZT_DateTime(DOB, PND = 4, ZT = 15)
+    , P4_ZT15_done = NA
+    , P4_ZT15_who = NA
+    , P4_ZT15_notes = NA,
+    P4_ZT19 = getZT_DateTime(DOB, PND = 4, ZT = 19)
+    , P4_ZT19_done = NA
+    , P4_ZT19_who = NA
+    , P4_ZT19_notes = NA,
+    P5_ZT1 = getZT_DateTime(DOB, PND = 5, ZT = 1)
+    , P5_ZT1_done = NA
+    , P5_ZT1_who = NA
+    , P5_ZT1_notes = NA,
+    P5_ZT15 = getZT_DateTime(DOB, PND = 5, ZT = 15)
+    , P5_ZT15_done = NA
+    , P5_ZT15_who = NA
+    , P5_ZT15_notes = NA,
+    P5_ZT19 = getZT_DateTime(DOB, PND = 5, ZT = 19)
+    , P5_ZT19_done = NA
+    , P5_ZT19_who = NA
+    , P5_ZT19_notes = NA,
+    P6_ZT1 = getZT_DateTime(DOB, PND = 6, ZT = 1)
+    , P6_ZT1_done = NA
+    , P6_ZT1_who = NA
+    , P6_ZT1_notes = NA,
+    P6_ZT15 = getZT_DateTime(DOB, PND = 6, ZT = 15)
+    , P6_ZT15_done = NA
+    , P6_ZT15_who = NA
+    , P6_ZT15_notes = NA,
+    P6_ZT19 = getZT_DateTime(DOB, PND = 6, ZT = 19)
+    , P6_ZT19_done = NA
+    , P6_ZT19_who = NA
+    , P6_ZT19_notes = NA,
+    P7_ZT1 = getZT_DateTime(DOB, PND = 7, ZT = 1)
+    , P7_ZT1_done = NA
+    , P7_ZT1_who = NA
+    , P7_ZT1_notes = NA,
+    P7_ZT15 = getZT_DateTime(DOB, PND = 7, ZT = 15)
+    , P7_ZT15_done = NA
+    , P7_ZT15_who = NA
+    , P7_ZT15_notes = NA,
+    P7_ZT19 = getZT_DateTime(DOB, PND = 7, ZT = 19)
+    , P7_ZT19_done = NA
+    , P7_ZT19_who = NA
+    , P7_ZT19_notes = NA,
+    P8_ZT1 = getZT_DateTime(DOB, PND = 8, ZT = 1)
+    , P8_ZT1_done = NA
+    , P8_ZT1_who = NA
+    , P8_ZT1_notes = NA,
+    P8_ZT15 = getZT_DateTime(DOB, PND = 8, ZT = 15)
+    , P8_ZT15_done = NA
+    , P8_ZT15_who = NA
+    , P8_ZT15_notes = NA,
+    P8_ZT19 = getZT_DateTime(DOB, PND = 8, ZT = 19)
+    , P8_ZT19_done = NA
+    , P8_ZT19_who = NA
+    , P8_ZT19_notes = NA,
+    P9_ZT1 = getZT_DateTime(DOB, PND = 9, ZT = 1)
+    , P9_ZT1_done = NA
+    , P9_ZT1_who = NA
+    , P9_ZT1_notes = NA,
+    P9_ZT15 = getZT_DateTime(DOB, PND = 9, ZT = 15)
+    , P9_ZT15_done = NA
+    , P9_ZT15_who = NA
+    , P9_ZT15_notes = NA,
+    P9_ZT19 = getZT_DateTime(DOB, PND = 9, ZT = 19)
+    , P9_ZT19_done = NA
+    , P9_ZT19_who = NA
+    , P9_ZT19_notes = NA,
+    P10_ZT1 = getZT_DateTime(DOB, PND = 10, ZT = 1)
+    , P10_ZT1_done = NA
+    , P10_ZT1_who = NA
+    , P10_ZT1_notes = NA,
+    P10_ZT15 = getZT_DateTime(DOB, PND = 10, ZT = 15)
+    , P10_ZT15_done = NA
+    , P10_ZT15_who = NA
+    , P10_ZT15_notes = NA,
+    P10_ZT19 = getZT_DateTime(DOB, PND = 10, ZT = 19)
+    , P10_ZT19_done = NA
+    , P10_ZT19_who = NA
+    , P10_ZT19_notes = NA,
+    P11_ZT1 = getZT_DateTime(DOB, PND = 11, ZT = 1)
+    , P11_ZT1_done = NA
+    , P11_ZT1_who = NA
+    , P11_ZT1_notes = NA
+  )
+
+damBehaveDates
+
+saveDFsToExcel(
+  "damBehaviorDates_ZT15_ZT19_ZT1",
+  dates = damBehaveDates
+)
+```
+
+
 ```{r}
 Demo_dam %>%
   filter(damID == "D056-01")
@@ -12317,4 +12442,316 @@ GABApscsFilteredFiring %>%
   ) %>%
   write.table("clipboard", sep = "\t", row.names = FALSE)
 ```
+
+# Cort to be run 2023-07-13
+
+```{r}
+cohort9_needCort <- acuteStressFiltered %>%
+  filter(
+    !is.na(comboTrt)
+    , is.na(cort_hr0)
+    , cohort == 9
+  )%>%
+  group_by(
+    mouseID
+  ) %>%
+  summarize(
+    num_ID = mean(num_ID, na.rm = TRUE)
+  )
+
+set.seed(49)
+rows <- sample(nrow(cohort9_needCort))
+cohort9_needCort <- cohort9_needCort[rows, ] %>%
+  mutate(
+    plateOrder = row_number()
+  ) %>%
+  select(
+    -num_ID
+  )
+
+cohort9_needCort
+
+write.table(cohort9_needCort, "clipboard", sep="\t", row.names = FALSE)
+
+```
+```{r}
+damFiltered %>%
+  filter(
+    cohort == 9
+    , is.na(Cort_dam_P11)
+  ) %>%
+  select(
+    damID
+  ) %>%
+  write.table("clipboard", sep = "\t", row.names = FALSE)
+```
+
+# Males cort administration
+
+Initial pilot - figuring out how to load in the data, what information needs to be combined
+
+Creating a variable for tracking whether the mouse ate the previous Nutella
+
+```{r}
+maleCortAdmin <- loadExcelSheet(dataFolder, LBN_DataName, "cortAdmin") %>%
+  makeFactors(
+    c(
+      mouseID
+      , adultTrt
+      , dosage
+    )
+  )
+
+maleCortAdmin_cort <- loadExcelSheet(dataFolder, LBN_DataName, "cortFromAdmin") %>%
+  makeFactors(
+    c(
+      mouseID
+    )
+  )
+
+maleCortAdmin_nutella <- loadExcelSheet(dataFolder, LBN_DataName, "nutellaConsumption") %>%
+  makeFactors(
+    c(
+      mouseID
+    )
+  )
+
+maleCortAdmin_cort_wide <- maleCortAdmin_cort %>%
+  pivot_wider(
+    id_cols = mouseID,
+    names_from = time,
+    values_from = cort,
+    names_prefix = "cort_hr"
+  ) %>%
+  left_join(
+    maleCortAdmin_cort %>%
+      filter(
+        time == 0
+      ) %>%
+      select(
+        mouseID
+        , plateQC
+      )
+    , by = "mouseID"
+  )
+
+maleCortAdmin_cort <- maleCortAdmin_cort %>%
+  left_join(
+    maleCortAdmin_nutella
+    , by = c("mouseID", "time")
+  ) %>%
+  group_by(
+    mouseID
+  ) %>%
+  mutate(
+    atePrevNutella = ifelse(
+      time == 0
+      , "NA"
+      , ifelse(
+        time == 1
+        , nutellaConsumption[time %in% 0]
+        , ifelse(
+          time %in% c(2, 3)
+          , nutellaConsumption[time %in% 1]
+          , ifelse(
+            time %in% c(4, 5)
+            , nutellaConsumption[time %in% 3]
+            , NA
+          )
+        )
+      )
+    )
+    , .after = nutellaConsumption
+  ) %>%
+  ungroup %>%
+  left_join(
+    maleCortAdmin
+    , by = "mouseID"
+  )
+
+maleCortAdmin <- maleCortAdmin %>%
+  left_join(
+    maleCortAdmin_cort_wide
+    , by = "mouseID"
+  )
+
+
+maleCortAdmin
+maleCortAdmin_cort
+maleCortAdmin_cort_wide
+```
+
+```{r}
+yLab <- "corticosterone (ng/mL)"
+fontSize <- 16
+  
+viz <- ggplot(
+    maleCortAdmin_cort,
+    aes(
+      x = time,
+      y = cort,
+      group =  atePrevNutella
+    )
+  ) +
+    geom_line(
+      alpha = 0.4,
+      # color = "black",
+      aes(group = mouseID),
+      position = position_dodge(0.4)
+      # https://github.com/eclarke/ggbeeswarm/issues/55
+      # position = position_quasirandom() # 2023-06-18, I think there's an error here, and that this is the right path for this to work
+    ) +
+    geom_point(
+      # shape = 21,
+      alpha = 1,
+      aes(fill= atePrevNutella
+          ,group=mouseID
+          , shape= atePrevNutella
+          , color= atePrevNutella),
+      position = position_dodge(0.4),
+      size = 3
+    ) +
+    theme_pubr() +
+    expand_limits(y = 0) +
+    labs(
+      y = yLab,
+      x = NULL
+    ) +
+    scale_x_continuous(
+      breaks = c(0, 1, 3, 5), 
+      labels = c(0, 1, 3, 5)
+    ) +
+    textTheme(size = fontSize)+
+    boxTheme()+
+    guides()
+
+shapeVector <- c("NA" = 23, "none" = 24, "some" = 22, "all" = 21)
+colorVector <- c("NA" = "black", "none" = "black", "some" = "black", "all" = "black")
+fillVector <- c("NA" = "white", "none" = "lightpink", "some" = "lightblue", "all" = "black")
+viz <- viz + labs(color = "prev nutella", shape = "prev nutella", fill = "prev nutella") +
+  scale_shape_manual(
+    values = shapeVector
+  ) +
+  scale_color_manual(
+    values = colorVector
+  ) +
+  scale_fill_manual(
+    values = fillVector
+  ) +
+  facet_wrap(
+    ~dosage
+    , labeller = labeller(
+      dosage = c("0" = "0 mg/kg", "2" = "2mg/kg")
+    )
+  )
+
+viz
+```
+
+# males available for cort admin and ALPS
+
+```{r}
+cortAdminMales <- maleCortAdmin$mouseID
+cohort9_males_available <- LBN_data %>%
+  filter(
+    cohort == 9
+    , is.na(Pups_through_wean) | Pups_through_wean == TRUE
+    , sex == "M"
+    , is.na(Sac_date)
+    , is.na(Sac_stop_off)
+    , !(mouseID %in% cortAdminMales)
+    , is.na(numInCage) | numInCage > 1
+  ) %>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  summarize(
+    n = n()
+    , .groups = "drop"
+  )
+cohort9_males_available 
+```
+
+```{r}
+availMales <- LBN_data %>%
+  filter(
+    cohort == 9
+    , is.na(Pups_through_wean) | Pups_through_wean == TRUE
+    , sex == "M"
+    , is.na(Sac_date)
+    , is.na(Sac_stop_off)
+    , !(mouseID %in% cortAdminMales)
+    , is.na(numInCage) | numInCage > 1
+  ) %>%
+  arrange(
+    earlyLifeTrt
+    , DOB
+  )
+
+write.table(availMales %>% select(mouseID, damID, earlyLifeTrt) %>% filter(earlyLifeTrt == "STD"), "clipboard", sep = "\t", row.names = FALSE, col.names = FALSE)
+write.table(availMales %>% select(mouseID, damID, earlyLifeTrt) %>% filter(earlyLifeTrt == "LBN"), "clipboard", sep = "\t", row.names = FALSE, col.names = FALSE)
+```
+
+```{r}
+maleCortAdmin %>%
+  filter(
+    mouseID == 9045
+  )
+
+LBN_data %>%
+  filter(
+    damID == "D116-01"
+  ) %>%
+  select(
+    mouseID
+    , damID
+    , earlyLifeTrt
+  )
+```
+
+```{r}
+acuteStressFilteredMales %>%
+  countMiceAndLitters(
+    groupingVars = exprs(earlyLifeTrt, adultTrt)
+  )
+```
+
+```{r}
+GABApscs_240FilteredFiring %>%
+  countMiceAndLitters(
+    groupingVars = exprs(earlyLifeTrt, adultTrt)
+  )
+```
+
+```{r}
+LH_off %>%
+  filter(
+    str_detect(sampleID, "^9\\.2\\_")
+  ) %>%
+  group_by(
+    Sac_cycle
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    numMice = length(unique(mouseID))
+  )
+```
+
+
+```{r}
+maleCortAdmin %>%
+  filter(
+    Sac_date >= as_date("2023-07-19")
+  ) %>%
+  scatterPlot_general(
+    xVar = dosage
+    , xLab = "dosage (mg/kg)"
+    , yVar = Body_mass_AM
+    , yLab = "body mass (g)"
+    , fillVar = dosage
+    , fillValues = c("white", "black")
+    , zoom_y
+  )
+``
 
