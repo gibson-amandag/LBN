@@ -311,6 +311,8 @@ maleCortAdmin <- loadExcelSheet(dataFolder, LBN_DataName, "cortAdmin") %>%
       , dosage
     )
   )
+
+cortAdminMales <- maleCortAdmin$mouseID
 ```
 
 ```{r}
