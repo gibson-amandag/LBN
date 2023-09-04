@@ -227,22 +227,18 @@ figOffAge <- maturationByDamLong %>%
     , "mean age (days)"
     , textSize = textSize
     , dotSize = dotSize
-  ) +
-  facet_wrap(
-    ~ matType
-  )
-
-figOffAge_noMean <- maturationByDamLong %>%
-  scatterPlotLBN(
-    yVar = age
-    , "mean age (days)"
-    , textSize = textSize
-    , dotSize = dotSize
     , addMean = FALSE
     , addSEM = FALSE
   ) +
   facet_wrap(
     ~ matType
+  ) +
+  plotError_LMM(
+    age_lmm_errors
+    , xVar = earlyLifeTrt
+    , color = "black"
+    , nudgeErrorLine = 0
+    , barSize = 0.6
   )
 
 figOffMass <- maturationByDamLong %>%
@@ -251,52 +247,21 @@ figOffMass <- maturationByDamLong %>%
     , "mean mass (g)"
     , textSize = textSize
     , dotSize = dotSize
-  ) +
-  facet_wrap(
-    ~ matType
-  )
-
-figOffMass_noMean <- maturationByDamLong %>%
-  scatterPlotLBN(
-    yVar = mass
-    , "mean mass (g)"
-    , textSize = textSize
-    , dotSize = dotSize
     , addMean = FALSE
     , addSEM = FALSE
   ) +
   facet_wrap(
     ~ matType
+  ) + 
+  plotError_LMM(
+    mass_lmm_errors
+    , xVar = earlyLifeTrt
+    , color = "black"
+    , nudgeErrorLine = 0
+    , barSize = 0.6
   )
 
-matVals <- getMaxMatVals(maturation_byDam_f, maturation_byDam_m)
-
-max_mass <- matVals$max_mass
-max_age <- matVals$max_age
-max_AGD <- matVals$max_AGD
-
-matVals_indiv <- getMaxMatVals(maturationFiltered, maturationFiltered)
-indivMaxAge <- matVals_indiv$max_age
-
-figOffH <- maturation_byDam_f %>%
-  mutate(
-    sex = "F"
-  ) %>%
-  scatterPlotLBN(
-    yVar = AGD_adult
-    , yLab = "mean AGD (mm)"
-    , textSize = textSize
-    , dotSize = dotSize
-    , zoom_y = TRUE
-    , ymin = 0
-    , ymax = max_AGD
-  ) +
-  facet_wrap(
-    ~ sex
-    , labeller = labeller(sex = c("F" = "female", "M" = "male"))
-  )
-
-figOffH_noMean <- maturation_byDam_f %>%
+figOff_femaleAGD <- maturation_byDam_f %>%
   mutate(
     sex = "F"
   ) %>%
@@ -314,27 +279,19 @@ figOffH_noMean <- maturation_byDam_f %>%
   facet_wrap(
     ~ sex
     , labeller = labeller(sex = c("F" = "female", "M" = "male"))
-  )
-
-figOffI <- maturation_byDam_m %>%
-  mutate(
-    sex = "M"
-  ) %>%
-  scatterPlotLBN(
-    yVar = AGD_adult
-    , yLab = "mean AGD (mm)"
-    , textSize = textSize
-    , dotSize = dotSize
-    , zoom_y = TRUE
-    , ymin = 0
-    , ymax = max_AGD
   ) +
-  facet_wrap(
-    ~ sex
-    , labeller = labeller(sex = c("F" = "female", "M" = "male"))
+  plotError_LMM (
+    AGD_lmm_errors %>% filter(
+      sex == "F"
+    )
+    , xVar = earlyLifeTrt
+    , color = "black"
+    , barSize = 0.5
+    , meanBarWidth = 0.7
+    , nudgeErrorLine = 0
   )
 
-figOffI_noMean <- maturation_byDam_m %>%
+figOff_maleAGD <- maturation_byDam_m %>%
   mutate(
     sex = "M"
   ) %>%
@@ -352,85 +309,17 @@ figOffI_noMean <- maturation_byDam_m %>%
   facet_wrap(
     ~ sex
     , labeller = labeller(sex = c("F" = "female", "M" = "male"))
+  ) +
+  plotError_LMM (
+    AGD_lmm_errors %>% filter(
+      sex == "M"
+    )
+    , xVar = earlyLifeTrt
+    , color = "black"
+    , barSize = 0.5
+    , meanBarWidth = 0.7
+    , nudgeErrorLine = 0
   )
-
-
-## Vaginal opening ---------------------------------------------------------
-
-figOffB <- maturation_byDam_f %>%
-  scatterPlotLBN(
-    yVar = VO_age
-    , "vaginal opening\nage (days)"
-    , textSize = textSize
-    , dotSize = dotSize
-    , zoom_y = TRUE
-    , ymin = 0
-    , ymax = max_age
-  )
-
-figOffC <- maturation_byDam_f %>%
-  scatterPlotLBN(
-    yVar = VO_mass
-    , "vaginal opening\nmass (g)"
-    , textSize = textSize
-    , dotSize = dotSize
-    , zoom_y = TRUE
-    , ymin = 0
-    , ymax = max_mass
-  )
-
-
-
-## First estrus ------------------------------------------------------------
-
-
-figOffD <- maturation_byDam_f %>%
-  scatterPlotLBN(
-    yVar = Estrus_age
-    , "first estrus\nage (days)"
-    , textSize = textSize
-    , dotSize = dotSize
-    , zoom_y = TRUE
-    , ymin = 0
-    , ymax = max_age
-  )
-
-figOffE <- maturation_byDam_f %>%
-  scatterPlotLBN(
-    yVar = Estrus_mass
-    , "first estrus\nmass (g)"
-    , textSize = textSize
-    , dotSize = dotSize
-    , zoom_y = TRUE
-    , ymin = 0
-    , ymax = max_mass
-  )
-
-
-## Preputial separation ----------------------------------------------------
-
-figOffF <- maturation_byDam_m %>%
-  scatterPlotLBN(
-    yVar = PreputialSep_age
-    , "preputial separation\nage (days)"
-    , textSize = textSize
-    , dotSize = dotSize
-    , zoom_y = TRUE
-    , ymin = 0
-    , ymax = max_age
-  )
-
-figOffG <- maturation_byDam_m %>%
-  scatterPlotLBN(
-    yVar = PreputialSep_mass
-    , "preputial separation\nmass (g)"
-    , textSize = textSize
-    , dotSize = dotSize
-    , zoom_y = TRUE
-    , ymin = 0
-    , ymax = max_mass
-  )
-
 
 # Cycles ------------------------------------------------------------------
 

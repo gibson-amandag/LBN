@@ -13,8 +13,6 @@ set_null_device("png")
 #of evidence here for an interaction between day and treatment, though it's
 #harder to tell with each of the individual effects reported.
 
-## Model -------------------------------------------------------------------
-
 numExits_nb.GLMM <- glmer.nb(
   Num_exits ~ earlyLifeTrt * PND + (1|damID)
   , data = damBehavior_byPND_ZT %>%
@@ -25,7 +23,7 @@ numExits_nb.GLMM <- glmer.nb(
 numExits_nb.GLMM_jointTest <- joint_tests(numExits_nb.GLMM)
 
 
-### Post-hoc ----------------------------------------------------------------
+## Post-hoc ----------------------------------------------------------------
 
 numExits_nb.GLMM.earlyLifeEMM <- emmeans(
   numExits_nb.GLMM
@@ -37,7 +35,7 @@ numExits_nb.GLMM.earlyLifeEMM.pairs <- pairs(numExits_nb.GLMM.earlyLifeEMM)
 
 
 
-### Errors for graph --------------------------------------------------------
+## Errors for graph --------------------------------------------------------
 
 numExits_nb.GLMM_errors <- numExits_nb.GLMM %>%
   getErrorDF_LMM("PND", panel = "earlyLifeTrt")
@@ -50,8 +48,6 @@ numExits_nb.GLMM_errors.earlyLifeEMM <- numExits_nb.GLMM %>%
 # Dam behavior - perc time off nest ---------------------------------------
 
 
-## Model -------------------------------------------------------------------
-
 percOffNest_lmm <- mixed(
   Perc_off_nest ~ earlyLifeTrt * PND + (1|damID)
   , data = damBehavior_byPND_ZT %>%
@@ -62,7 +58,7 @@ percOffNest_lmm <- mixed(
 # No interactions or main effects -> no post-hocs
 
 
-### Errors for graph --------------------------------------------------------
+## Errors for graph --------------------------------------------------------
 
 percOffNest_lmm_errors <- percOffNest_lmm %>%
   getErrorDF_LMM("PND", panel = "earlyLifeTrt")
@@ -74,8 +70,6 @@ numExits_nb.GLMM_errors.earlyLifeEMM <- percOffNest_lmm %>%
 # Dam Mass ----------------------------------------------------------------
 
 
-## Model -------------------------------------------------------------------
-
 damMass_lmm <- mixed(
   mass ~ earlyLifeTrt * PND + (1|damID)
   , data = damMassFiltered %>%
@@ -86,7 +80,7 @@ damMass_lmm <- mixed(
 )
 
 
-### Post-hoc ----------------------------------------------------------------
+## Post-hoc ----------------------------------------------------------------
 
 # Main effect of PND and main effect of LBN. Trending, but not sig interaction
 # However, when the interaction is run, it's showing that the difference
@@ -112,7 +106,7 @@ damMass_lmm_EMM.earlyLifeTrt <- emmeans(
 damMass_lmm_EMM.earlyLifeTrt.pairs <- pairs(damMass_lmm_EMM.earlyLifeTrt, adjust = "holm")
 
 
-### Errors for graph --------------------------------------------------------
+## Errors for graph --------------------------------------------------------
 
 damMass_lmm_errors <- damMass_lmm %>%
   getErrorDF_LMM("PND", panel = "earlyLifeTrt")
@@ -123,3 +117,144 @@ damMass_lmm_errors <- damMass_lmm %>%
 damCort_t.Test <- t.test(
   Cort_dam_P11 ~ earlyLifeTrt, data = damFiltered
 )
+
+
+# Offspring mass ----------------------------------------------------------
+
+
+
+# Offspring maturation ----------------------------------------------------
+
+
+VO_age_lmm <- mixed(
+  VO_age ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered
+  , method = "KR"
+)
+
+Estrus_age_lmm <- mixed(
+  Estrus_age ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered
+  , method = "KR"
+)
+
+PreputialSep_age_lmm <- mixed(
+  PreputialSep_age ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered
+  , method = "KR"
+)
+
+VO_mass_lmm <- mixed(
+  VO_mass ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered
+  , method = "KR"
+)
+
+Estrus_mass_lmm <- mixed(
+  Estrus_mass ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered
+  , method = "KR"
+)
+
+PreputialSep_mass_lmm <- mixed(
+  PreputialSep_mass ~ earlyLifeTrt + (1|damID)
+  , data = maturationFiltered
+  , method = "KR"
+)
+
+
+## Errors for graphs -------------------------------------------------------
+
+VO_age_lmm_errors <- VO_age_lmm %>%
+  getErrorDF_LMM(
+    xVarAsChar = "earlyLifeTrt"
+  ) %>%
+  mutate(
+    matType = "vaginal opening"
+  )
+
+Estrus_age_lmm_errors <- Estrus_age_lmm %>%
+  getErrorDF_LMM(
+    xVarAsChar = "earlyLifeTrt"
+  ) %>%
+  mutate(
+    matType = "first estrus"
+  )
+
+PreputialSep_age_lmm_errors <- PreputialSep_age_lmm %>%
+  getErrorDF_LMM(
+    xVarAsChar = "earlyLifeTrt"
+  ) %>%
+  mutate(
+    matType = "preputial separation"
+  )
+
+age_lmm_errors <- rbind(
+  VO_age_lmm_errors
+  , Estrus_age_lmm_errors
+  , PreputialSep_age_lmm_errors
+) %>%
+  mutate(
+    matType = factor(matType, levels = c("vaginal opening", "first estrus", "preputial separation"))
+  )
+
+VO_mass_lmm_errors <- VO_mass_lmm %>%
+  getErrorDF_LMM(
+    xVarAsChar = "earlyLifeTrt"
+  ) %>%
+  mutate(
+    matType = "vaginal opening"
+  )
+
+Estrus_mass_lmm_errors <- Estrus_mass_lmm %>%
+  getErrorDF_LMM(
+    xVarAsChar = "earlyLifeTrt"
+  ) %>%
+  mutate(
+    matType = "first estrus"
+  )
+
+PreputialSep_mass_lmm_errors <- PreputialSep_mass_lmm %>%
+  getErrorDF_LMM(
+    xVarAsChar = "earlyLifeTrt"
+  ) %>%
+  mutate(
+    matType = "preputial separation"
+  )
+
+mass_lmm_errors <- rbind(
+  VO_mass_lmm_errors
+  , Estrus_mass_lmm_errors
+  , PreputialSep_mass_lmm_errors
+)%>%
+  mutate(
+    matType = factor(matType, levels = c("vaginal opening", "first estrus", "preputial separation"))
+  )
+
+
+# AGD ---------------------------------------------------------------------
+
+AGD_lmm <- mixed(
+  AGD_adult ~ earlyLifeTrt * sex + (1|damID)
+  , data = maturationFiltered
+  , method = "KR"
+)
+
+
+## Post-hoc ----------------------------------------------------------------
+
+AGD_lmm_emm_sex <- emmeans(
+  AGD_lmm
+  , "sex"
+)
+
+AGD_lmm_emm_sex.pairs <- pairs(AGD_lmm_emm_sex)
+
+
+## Errors for graph --------------------------------------------------------
+
+AGD_lmm_errors <- AGD_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "sex"
+  )
