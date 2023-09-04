@@ -606,7 +606,14 @@ cortFilteredAll <- cortFiltered %>%
   filterCortAll()
 
 cortFiltered_M_DiPro <- cortFiltered %>%
-  filterCort_M_DiPro()
+  filterCort_M_DiPro() %>%
+  mutate(
+    hormoneStatus = ifelse(
+      sex == "M"
+      , "male"
+      , Sac_cycle
+    )
+  )
 
 cortFilteredMales <- cortFiltered %>%
   filterCortMales()
