@@ -258,3 +258,17 @@ AGD_lmm_errors <- AGD_lmm %>%
     xVar = "earlyLifeTrt"
     , panel = "sex"
   )
+
+
+# Estrous cycles - number -------------------------------------------------
+
+# Warning about singular fit
+# damID doesn't really add anything to model
+numCycles_lmm <- mixed(
+  numCycles ~ earlyLifeTrt + (1|damID)
+  , data = cyclesFiltered
+  , method = "KR"
+)
+
+
+

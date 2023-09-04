@@ -366,15 +366,7 @@ figCyclesA <-  cyclesFiltered %>%
 
 ## cycle features -------------------------------------------------------------
 
-figCyclesB <- cyclesFiltered %>%
-  getAvgByDam() %>% # 2023-06-18 - reduce the density, average by litter
-  scatterPlotLBN(
-    yVar = numCycles
-    , yLab = "mean # cycles P70-90"
-    , textSize = textSize
-    , dotSize = dotSize
-  )
-figCyclesB_noMean <- cyclesFiltered %>%
+figCycles_numCycles_model <- cyclesFiltered %>%
   getAvgByDam() %>% # 2023-06-18 - reduce the density, average by litter
   scatterPlotLBN(
     yVar = numCycles
@@ -383,21 +375,17 @@ figCyclesB_noMean <- cyclesFiltered %>%
     , dotSize = dotSize
     , addMean = FALSE
     , addSEM = FALSE
+  ) + 
+  plotError_LMM(
+    numCycles_lmm_error
+    , xVar = earlyLifeTrt
+    , meanBarWidth = 0.7
+    , barSize = 0.4
+    , color = "black"
+    , nudgeErrorLine = 0
   )
 
-figCyclesC <- cyclesFiltered %>%
-  getAvgByDam() %>%
-  scatterPlotLBN(
-    yVar = cycleLength
-    , yLab = "mean length (days)"
-    , textSize = textSize
-    , dotSize = dotSize
-  ) +
-  scale_y_continuous(
-    breaks = c(0, 2, 4, 6, 8, 10)
-  )
-
-figCyclesC_noMean <- cyclesFiltered %>%
+figCycles_lengthLog_model <- cyclesFiltered %>%
   getAvgByDam() %>%
   scatterPlotLBN(
     yVar = cycleLength
@@ -406,12 +394,21 @@ figCyclesC_noMean <- cyclesFiltered %>%
     , dotSize = dotSize
     , addMean = FALSE
     , addSEM = FALSE
-    , zoom_y = TRUE
+    , zoom_y = FALSE
     , ymin = 0
     , ymax = 10
   ) +
   scale_y_continuous(
-    breaks = c(0, 2, 4, 6, 8, 10)
+    trans = "log"
+    , limits = c(1, 10)
+    , breaks = c(2, 4, 6, 8, 10)
+  ) +
+  plotError_LMM(
+    lengthCycles_log_lmm_error
+    , xVar = earlyLifeTrt
+    , meanBarWidth = 0.7
+    , color = "black"
+    , nudgeErrorLine = 0
   )
 
 
@@ -435,70 +432,87 @@ figCyclesD <- cyclesPercLong %>%
 
 ## Cort --------------------------------------------------------------------
 
-# plotCort_onlyLBN <- manuscriptCortPlotFunc(
-#   onlyLBN = TRUE 
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , yUnitsNewLine = TRUE
-#   , jitterPosition = 1.8
-#   , wrapLegend = TRUE
-#   , useALPSLineType = FALSE
-# )
-# 
-# plotCort_onlyLBN_longYLab <- manuscriptCortPlotFunc(
-#   onlyLBN = TRUE 
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , yUnitsNewLine = FALSE
-#   , jitterPosition = 1.8
-#   , wrapLegend = FALSE
-#   , meanWidth = 2.5
-#   , useALPSLineType = FALSE
-# )
-
 plotCort_long <- manuscriptCortPlotFunc(
   fontSize = textSize
   , dotSize = dotSize
-  , yUnitsNewLine = TRUE
-  # , yUnitsNewLine = FALSE
-  , jitterPosition = 1.8
+  , zoom_y = FALSE
+  , plotMean = FALSE
+  , plotSE = FALSE
+)
+
+cortScale <- scale_y_continuous(
+  trans = "log"
+  , limits = c(1, 700)
+  , breaks = c(6.25, 12.5, 25, 50, 100, 200, 400, 800)
+  , labels = c("6.25", "12.5", "25", "50", "100", "200", "400", "800")
 )
 
 
-figCortA <- cortFilteredMales %>%
-  plotCort_long()
-figCortB <- cortFilteredDi %>%
-  plotCort_long()
-figCortC <- cortFilteredPro %>%
-  plotCort_long()
+figCortLogA <- cortFilteredMales %>%
+  plotCort_long() +
+  cortScale +
+  plotError_LMM_aes(
+    cort_lmm_error %>%
+      filter(
+        hormoneStatus == "male"
+      ) %>%
+      mutate(
+        time = ifelse(
+          time == 0
+          , time - 1.5
+          , time + 1.5
+        )
+      )
+    , xVar = time
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 1
+    , color = comboTrt
+  )
 
-# figCort_opt2A <- cortFilteredMales %>%
-#   plotCort_long()
-# figCort_opt2B <- cortFilteredDi %>%
-#   plotCort_long()
-# figCort_opt2C <- cortFilteredPro %>%
-#   plotCort_long()
+figCortLogB <- cortFilteredDi %>%
+  plotCort_long() +
+  cortScale +
+  plotError_LMM_aes(
+    cort_lmm_error %>%
+      filter(
+        hormoneStatus == "diestrus"
+      ) %>%
+      mutate(
+        time = ifelse(
+          time == 0
+          , time - 1.5
+          , time + 1.5
+        )
+      )
+    , xVar = time
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 1
+    , color = comboTrt
+  )
 
-# figCort_opt1A <- cortFilteredMales %>%
-#   plotCort_onlyLBN()
-
-
-# figCort_opt3A <- cortFilteredMales %>%
-#   plotCort_onlyLBN_longYLab()
-
-# figCort_opt1B <- cortFilteredDi %>%
-#   plotCort_onlyLBN()
-
-
-# figCort_opt3B <- cortFilteredDi %>%
-#   plotCort_onlyLBN_longYLab()
-# 
-# figCort_opt1C <- cortFilteredPro %>%
-#   plotCort_onlyLBN()
-
-# 
-# figCort_opt3C <- cortFilteredPro %>%
-#   plotCort_onlyLBN_longYLab()
+figCortLogC <- cortFilteredPro %>%
+  plotCort_long() +
+  cortScale + 
+  plotError_LMM_aes(
+    cort_lmm_error %>%
+      filter(
+        hormoneStatus == "proestrus"
+      ) %>%
+      mutate(
+        time = ifelse(
+          time == 0
+          , time - 1.5
+          , time + 1.5
+        )
+      )
+    , xVar = time
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 1
+    , color = comboTrt
+  )
 
 ## Masses -----
 
