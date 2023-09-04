@@ -264,6 +264,18 @@ pptAddSectionHead <- function(
 }
 ```
 
+```{r}
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "IMIBIC"
+  , addDate = TRUE
+)
+```
+
+
 # Dams
 
 ```{r}
