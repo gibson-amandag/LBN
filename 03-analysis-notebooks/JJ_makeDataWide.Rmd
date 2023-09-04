@@ -1,0 +1,29 @@
+---
+title: "JJ_makeDataWide"
+author: "Amanda Gibson"
+date: "2023-04-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+JJ_activationTransient <- read_csv("ActivationTransient.csv")
+```
+
+```{r}
+JJ_activation_wide <- JJ_activationTransient %>%
+  pivot_wider(
+    names_from = voltage
+    , values_from = fractionMax
+    , names_prefix = "volt_"
+  )
+
+saveDFsToCSV(
+  prefix = ""
+  , "JJ_activation_wide" = JJ_activation_wide
+)
+```
+
