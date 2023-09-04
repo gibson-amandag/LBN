@@ -12573,13 +12573,26 @@ maleCortAdmin <- maleCortAdmin %>%
   left_join(
     maleCortAdmin_cort_wide
     , by = "mouseID"
-  )
+  ) %>%
+  calcOrganMassByBodyMass(ReproTract_mass) %>%
+  calcOrganMassByBodyMass_AM(ReproTract_mass) %>%
+  calcOrganMassByBodyMass(Gonad_mass) %>%
+  calcOrganMassByBodyMass_AM(Gonad_mass) %>%
+  calcOrganMassByBodyMass(Adrenal_mass) %>%
+  calcOrganMassByBodyMass_AM(Adrenal_mass) %>%
+  mutate(
+    bodyMass_diff = Body_mass_sac - Body_mass_AM
+    , percChangeBodyMass = bodyMass_diff / Body_mass_AM * 100
+  ) %>%
+  addOffspringDemoData(addBy = c("mouseID"))
 
 
 maleCortAdmin
 maleCortAdmin_cort
 maleCortAdmin_cort_wide
 ```
+
+
 
 ```{r}
 yLab <- "corticosterone (ng/mL)"
@@ -12738,12 +12751,20 @@ LH_off %>%
   )
 ```
 
+# Good cort admin
 
 ```{r}
-maleCortAdmin %>%
+goodMaleCortAdmin <- maleCortAdmin %>%
   filter(
     Sac_date >= as_date("2023-07-19")
-  ) %>%
+    # , earlyLifeTrt == "STD"
+  )
+```
+
+## Body mass AM
+
+```{r}
+goodMaleCortAdmin %>%
   scatterPlot_general(
     xVar = dosage
     , xLab = "dosage (mg/kg)"
@@ -12751,7 +12772,413 @@ maleCortAdmin %>%
     , yLab = "body mass (g)"
     , fillVar = dosage
     , fillValues = c("white", "black")
-    , zoom_y
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 40
+  ) +
+  facet_wrap(
+    ~ earlyLifeTrt
   )
-``
+```
+
+
+## Body mass change
+
+
+```{r}
+goodMaleCortAdmin %>%
+  scatterPlot_general(
+    xVar = dosage
+    , xLab = "dosage (mg/kg)"
+    , yVar = bodyMass_diff
+    , yLab = "body mass difference (g)"
+    , fillVar = dosage
+    , fillValues = c("white", "black")
+  ) +
+  facet_wrap(
+    ~ earlyLifeTrt
+  )
+```
+
+## Testicular mass
+
+```{r}
+goodMaleCortAdmin %>%
+  scatterPlot_general(
+    xVar = dosage
+    , xLab = "dosage (mg/kg)"
+    , yVar = Gonad_mass
+    , yLab = "testicular mass (mg)"
+    , fillVar = dosage
+    , fillValues = c("white", "black")
+  ) +
+  facet_wrap(
+    ~ earlyLifeTrt
+  )
+
+# goodMaleCortAdmin %>%
+#   t_test(
+#     Gonad_mass ~ dosage
+#   )
+
+mixed(
+  Gonad_mass ~ dosage * earlyLifeTrt + (1|damID)
+  , goodMaleCortAdmin
+)
+```
+
+## Testicular mass normalized to AM body mass
+
+```{r}
+goodMaleCortAdmin %>%
+  scatterPlot_general(
+    xVar = dosage
+    , xLab = "dosage (mg/kg)"
+    , yVar = Gonad_mass_perBodyAM_g
+    , yLab = "normalized testicular mass"
+    , fillVar = dosage
+    , fillValues = c("white", "black")
+  ) +
+  facet_wrap(
+    ~ earlyLifeTrt
+  )
+
+# goodMaleCortAdmin %>%
+#   t_test(
+#     Gonad_mass_perBodyAM_g ~ dosage
+#   )
+
+mixed(
+  Gonad_mass_perBodyAM_g ~ dosage * earlyLifeTrt + (1|damID)
+  , goodMaleCortAdmin
+)
+```
+
+## Seminal vesicle mass
+
+```{r}
+goodMaleCortAdmin %>%
+  scatterPlot_general(
+    xVar = dosage
+    , xLab = "dosage (mg/kg)"
+    , yVar = ReproTract_mass
+    , yLab = "seminal vesicle mass (mg)"
+    , fillVar = dosage
+    , fillValues = c("white", "black")
+  ) +
+  facet_wrap(
+    ~ earlyLifeTrt
+  )
+
+# goodMaleCortAdmin %>%
+#   t_test(
+#     ReproTract_mass ~ dosage
+#   )
+
+mixed(
+  ReproTract_mass ~ dosage * earlyLifeTrt + (1|damID)
+  , goodMaleCortAdmin
+)
+```
+## Seminal vesicle mass normalized to AM body mass
+
+```{r}
+goodMaleCortAdmin %>%
+  scatterPlot_general(
+    xVar = dosage
+    , xLab = "dosage (mg/kg)"
+    , yVar = ReproTract_mass_perBodyAM_g
+    , yLab = "normalized (to AM) seminal vesicle mass"
+    , fillVar = dosage
+    , fillValues = c("white", "black")
+  ) +
+  facet_wrap(
+    ~ earlyLifeTrt
+  )
+
+# goodMaleCortAdmin %>%
+#   t_test(
+#     ReproTract_mass_perBodyAM_g ~ dosage
+#   )
+
+mixed(
+  ReproTract_mass_perBodyAM_g ~ dosage * earlyLifeTrt + (1|damID)
+  , goodMaleCortAdmin
+)
+```
+
+## Seminal vesicle mass normalized to PM body mass
+
+```{r}
+goodMaleCortAdmin %>%
+  scatterPlot_general(
+    xVar = dosage
+    , xLab = "dosage (mg/kg)"
+    , yVar = ReproTract_mass_perBody_g
+    , yLab = "normalized (to PM) seminal vesicle mass"
+    , fillVar = dosage
+    , fillValues = c("white", "black")
+  ) +
+  facet_wrap(
+    ~ earlyLifeTrt
+  )
+
+# goodMaleCortAdmin %>%
+#   t_test(
+#     ReproTract_mass_perBody_g ~ dosage
+#   )
+
+mixed(
+  ReproTract_mass_perBody_g ~ dosage * earlyLifeTrt + (1|damID)
+  , goodMaleCortAdmin
+)
+```
+## Adrenal mass
+
+```{r}
+goodMaleCortAdmin %>%
+  scatterPlot_general(
+    xVar = dosage
+    , xLab = "dosage (mg/kg)"
+    , yVar = Adrenal_mass
+    , yLab = "adrenal mass (mg)"
+    , fillVar = dosage
+    , fillValues = c("white", "black")
+  ) +
+  facet_wrap(
+    ~ earlyLifeTrt
+  )
+
+# goodMaleCortAdmin %>%
+#   t_test(
+#     Adrenal_mass ~ dosage
+#   )
+
+mixed(
+  Adrenal_mass ~ dosage * earlyLifeTrt + (1|damID)
+  , goodMaleCortAdmin
+)
+```
+
+## Adrenal mass normalized to AM body mass
+
+```{r}
+goodMaleCortAdmin %>%
+  scatterPlot_general(
+    xVar = dosage
+    , xLab = "dosage (mg/kg)"
+    , yVar = Adrenal_mass_perBodyAM_g
+    , yLab = "normalized (to AM) adrenal mass"
+    , fillVar = dosage
+    , fillValues = c("white", "black")
+  ) +
+  facet_wrap(
+    ~ earlyLifeTrt
+  )
+
+# goodMaleCortAdmin %>%
+#   t_test(
+#     Adrenal_mass_perBodyAM_g ~ dosage
+#   )
+
+mixed(
+  Adrenal_mass_perBodyAM_g ~ dosage * earlyLifeTrt + (1|damID)
+  , goodMaleCortAdmin
+)
+```
+
+```{r}
+figMassFacetD_male
+```
+
+
+```{r}
+
+damInfoForIgor <- damFiltered %>%
+  arrange(
+    cohort,
+    DOB
+  ) %>%
+  select(
+    -c(CyclesFolder, cyclingFolderPath)
+  )
+
+damInfoForIgor
+
+saveDFsToExcel(
+  "damInformation"
+  , "AGG_LBN"
+  , damInfo = damInfoForIgor
+)
+```
+
+```{r}
+GABApscsFilteredFiring %>%
+  select(
+    cellID
+    , mouseID
+  ) %>%
+  write.table("clipboard", sep = "\t", row.names = FALSE)
+```
+
+```{r}
+acuteStressFilteredAll %>%
+  filter(
+    Sac_cycle == "proestrus"
+    , ReproTract_mass < 125
+  ) %>%
+  relocate(
+    adultTrt
+    ,ReproTract_mass
+    , maxLH
+    ,starts_with("LH")
+    , .after = earlyLifeTrt
+  )
+```
+
+
+```{r}
+acuteStressFilteredDi %>%
+  scatterPlotComboTrt(
+    yVar = maxLH
+    , yLab = "max LH (ng/mL)"
+  )
+
+mixed(
+  maxLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFilteredDi
+  , method = "KR"
+)
+```
+```{r}
+acuteStressFilteredDi %>%
+  scatterPlotComboTrt(
+    yVar = LH_AUC
+    , yLab = "AUC LH"
+  )
+
+mixed(
+  LH_AUC ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFilteredDi
+  , method = "KR"
+)
+```
+
+```{r}
+LHFilteredDi %>%
+ LHPlot_noMean(
+    fontSize = 16
+    , dotSize = 2
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 3
+  ) + theme(
+    legend.position = "none"
+  ) + facet_wrap(
+    ~comboTrt
+  )
+
+```
+
+```{r}
+acuteStressFilteredPro %>%
+  filter(
+    !is.na(LH_hr6.5)
+  ) %>%
+  plotLHAmp_comboTrt(
+    surgeMin = 3
+  )
+
+mixed(
+  maxLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , acuteStressFilteredPro %>%
+  filter(
+    !is.na(LH_hr6.5)
+  )
+  , method = "KR"
+)
+
+surgedDF_ALPS <- acuteStressFilteredPro %>%
+  filter(
+    !is.na(LH_hr6.5)
+    , adultTrt == "ALPS"
+  ) %>%
+  mutate(
+    surged = ifelse(maxLH>3, "surge", "no surge")
+  )
+
+surged_contTable <- table(
+  surgedDF_ALPS$earlyLifeTrt,
+  surgedDF_ALPS$surged
+)
+
+surged_contTable
+
+surged_ChiSq <- chisq_test(surged_contTable)
+surged_ChiSq %>% flextable()
+
+chisq_descriptives(surged_ChiSq) %>% flextable()
+```
+
+# Cort to be run Aug 2023
+
+
+```{r}
+cohort9_needCort <- acuteStressFiltered %>%
+  filter(
+    !is.na(comboTrt)
+    , is.na(cort_hr0)
+    , cohort == 9
+  )%>%
+  group_by(
+    mouseID
+  ) %>%
+  summarize(
+    num_ID = mean(num_ID, na.rm = TRUE)
+  )
+
+set.seed(49)
+rows <- sample(nrow(cohort9_needCort))
+cohort9_needCort <- cohort9_needCort[rows, ] %>%
+  mutate(
+    plateOrder = row_number()
+  ) %>%
+  select(
+    -num_ID
+  )
+
+cohort9_needCort
+
+write.table(cohort9_needCort, "clipboard", sep="\t", row.names = FALSE)
+
+```
+
+
+```{r}
+maleCortAdmin_needCort <- maleCortAdmin %>%
+  filter(
+    is.na(cort_hr0)
+  ) %>%
+  group_by(
+    mouseID
+  ) %>%
+  summarize(
+    num_ID = mean(num_ID, na.rm = TRUE)
+  )
+
+set.seed(49)
+rows <- sample(nrow(maleCortAdmin_needCort))
+maleCortAdmin_needCort <- maleCortAdmin_needCort[rows, ] %>%
+  mutate(
+    plateOrder = row_number()
+  ) %>%
+  select(
+    -num_ID
+  )
+
+maleCortAdmin_needCort
+
+write.table(maleCortAdmin_needCort, "clipboard", sep="\t", row.names = FALSE)
+
+```
 
