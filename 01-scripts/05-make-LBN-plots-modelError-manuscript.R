@@ -131,44 +131,7 @@ figDamsD <- damFiltered %>%
 # Dam Mass ------------------------------------------------------
 
 
-figDamsC <- damFiltered %>%
-  plot_dam_mass_lines(
-    useLineType = FALSE, # TRUE/FALSE
-    lineTypeVar = earlyLifeTrt,
-    lineGroupVar = damID,
-    xtitle = "PND", #x axis label
-    ytitle = "mass (g)", #y axis label
-    title = NULL, # plot title
-    individualLines = TRUE, # plot individual lines
-    meanLines = TRUE, # plot mean lines with SE
-    zoom_x = TRUE, # Zoom to part of x axis
-    xmin = 0,
-    xmax = 21,
-    zoom_y = TRUE,
-    ymax = 40,
-    ymin = 0,
-    indivLineAlpha = .2,
-    indivLineSize = 0.5,
-    errorBarWidth = 0,
-    meanLineSize = 1,
-    meanAlpha = 1,
-    errorBarSize = 1,
-    # errorBarColor = "grey10",
-    errorBarAlpha = 1,
-    textSize = textSize,
-    axisSize = 0.5,
-    legendPosition = c(0.6, 0.2),
-    STDColor = "#4D4D4D",
-    LBNColor = "#008B8B"
-  ) +
-  theme(
-    legend.key = element_rect(fill = NA)
-  ) +
-  guides(
-    color = guide_legend(nrow = 1)
-  )
-
-figDamsC_noMean <- damFiltered %>%
+figDams_mass <- damFiltered %>%
   plot_dam_mass_lines(
     useLineType = FALSE, # TRUE/FALSE
     lineTypeVar = earlyLifeTrt,
@@ -204,6 +167,14 @@ figDamsC_noMean <- damFiltered %>%
   ) +
   guides(
     color = guide_legend(nrow = 1)
+  ) + 
+  plotError_LMM_meanLine(
+    damMass_lmm_errors %>%
+      mutate(
+        PND = as.numeric(as.character(PND))
+      )
+    , xVar = PND
+    , color = earlyLifeTrt
   )
 
 # Offspring mass ----------------------------------------------------------

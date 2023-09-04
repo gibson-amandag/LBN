@@ -71,4 +71,55 @@ numExits_nb.GLMM_errors.earlyLifeEMM <- percOffNest_lmm %>%
   getErrorDF_LMM("earlyLifeTrt")
 
 
+# Dam Mass ----------------------------------------------------------------
 
+
+## Model -------------------------------------------------------------------
+
+damMass_lmm <- mixed(
+  mass ~ earlyLifeTrt * PND + (1|damID)
+  , data = damMassFiltered %>%
+    mutate(
+      PND = as.factor(day)
+    )
+  , method = "KR"
+)
+
+
+### Post-hoc ----------------------------------------------------------------
+
+# Main effect of PND and main effect of LBN. Trending, but not sig interaction
+# However, when the interaction is run, it's showing that the difference
+# really seems to be emerging after the treatment, and it's not just
+# that they're bigger before hand
+
+damMass_lmm_EMM.PND <- emmeans(
+  damMass_lmm$full_model
+  , "PND"
+)
+
+# Each day is different - PND 4 is less than both PND 11 and PND 21
+# PND 11 is more than PND 21
+damMass_lmm_EMM.PND.pairs <- pairs(damMass_lmm_EMM.PND, adjust = "holm")
+
+
+damMass_lmm_EMM.earlyLifeTrt <- emmeans(
+  damMass_lmm$full_model
+  , "earlyLifeTrt"
+)
+
+# LBN more than STD
+damMass_lmm_EMM.earlyLifeTrt.pairs <- pairs(damMass_lmm_EMM.earlyLifeTrt, adjust = "holm")
+
+
+### Errors for graph --------------------------------------------------------
+
+damMass_lmm_errors <- damMass_lmm %>%
+  getErrorDF_LMM("PND", panel = "earlyLifeTrt")
+
+
+# Dam cort ----------------------------------------------------------------
+
+damCort_t.Test <- t.test(
+  Cort_dam_P11 ~ earlyLifeTrt, data = damFiltered
+)
