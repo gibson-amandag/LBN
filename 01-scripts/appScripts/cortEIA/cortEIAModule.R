@@ -140,7 +140,7 @@ cortEIAUI <- function(id){
         checkboxInput(
           ns("addQC")
           , "Add plate QC column to sample table"
-          , value = FALSE
+          , value = TRUE
         )
       )
     ),
