@@ -16,6 +16,7 @@ source("./01-scripts/04-filter-datasets.R")
 source("./01-scripts/05-make-LBN-plots-manuscript.R")
 ```
 
+
 ```{r}
 doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
 ```
@@ -89,9 +90,9 @@ numExits_nb.GLMM.emm <-  emmeans(
 numExits_nb.GLMM.emm
 ```
 
-I'm still not certain if this is a justified comparison or not based on the full model, but these are the comparisons between STD and LBN for each day, and holm corrected for multiple comparisons.
 
 ```{r}
+# not justified at present based on lack of interaction
 test(pairs(numExits_nb.GLMM.emm), by = NULL, adjust = "holm")
 ```
 
@@ -110,7 +111,7 @@ numExits_nb.GLMM.earlyLifeEMM
 pairs(numExits_nb.GLMM.earlyLifeEMM)
 ```
 
-You could go through and look at the comparison of behavior for the different days, but this is a lot of potential comparisons, and not really of primary interest for this study
+You could go through and look at the comparison of behavior for the different days (e.g., how many exits did the dams make on PND4 vs 11), but this is a lot of potential comparisons, and not really of primary interest for this study
 
 ## Graphs with error comparison
 
@@ -176,7 +177,7 @@ damBehavior_byDam %>%
 Current thought is to show the averaged by day plot with the colored lines for each dam, and then show the averaged by dam plot right next to it. I think that for these, the mean + SEM that should be plotted is from the model, particularly because there's missing data for some dams, so the mean + SEM of the plotted data isn't actually representative of all information. For example, for cohort 7, we've only got a couple days of monitoring, and it's from the beginning of the paradigm when exits are higher, so it falsely inflates the mean that's what's plotted. The model "knows" that some of these averages are only from the beginning of the paradigm, so it is lower than just simply taking the average of all of the averages plotted. 
 
 ```{r}
-plot_grid(
+figDamsB_row <- plot_grid(
   figDamsB_noMean +
     plotError_LMM(
       numExits_nb.GLMM_errors %>%
@@ -195,8 +196,10 @@ plot_grid(
       , addMean = FALSE
       , addSEM = FALSE
       , zoom_y = TRUE
-      , ymax = 40
+      , ymax = 50
       , ymin = 0
+      , dotSize = dotSize
+      , textSize = textSize
     ) + 
     plotError_LMM(
       getErrorDF_LMM(
@@ -219,8 +222,145 @@ plot_grid(
   , rel_widths = c(3,1)
   , align = "h"
   , axis = "tb"
+  , labels = c("i", "ii")
 )
+
+figDamsB_row
 ```
+
+```{r}
+figDams_exits <- figDamsB_noMean +
+  plotError_LMM(
+    numExits_nb.GLMM_errors %>%
+      mutate(
+        PND = as.numeric(as.character(PND))
+      )
+    , xVar = PND
+    , meanBarWidth = 0.7
+    , color = "black"
+    , nudgeErrorLine = 0
+  )
+figDams_exits
+```
+```{r}
+figDams_meanExits <- damBehavior_byDam %>%
+    scatterPlotLBN(
+      yVar = Num_exits
+      , yLab = "mean # of exits"
+      , addMean = FALSE
+      , addSEM = FALSE
+      , zoom_y = TRUE
+      , ymax = 50
+      , ymin = 0
+      , dotSize = dotSize
+      , textSize = textSize
+    ) + 
+    plotError_LMM(
+      getErrorDF_LMM(
+        numExits_nb.GLMM
+        , "earlyLifeTrt"
+      )
+      , xVar = earlyLifeTrt
+      , meanBarWidth = 0.7
+      , color = "black"
+      , nudgeErrorLine = 0
+    ) +
+    facet_wrap(
+      ~earlyLifeTrt
+      , scales = "free_x"
+    ) +
+    theme(
+      axis.text.x = element_blank()
+      , axis.ticks.x = element_blank()
+    )
+figDams_meanExits
+```
+
+
+
+# Dam behavior - perc time off nest
+
+## Model
+
+```{r}
+percOffNest_lmm <- mixed(
+  Perc_off_nest ~ earlyLifeTrt * PND + (1|damID)
+  , data = damBehavior_byPND_ZT %>%
+    makeFactors(c(PND, ZT))
+  , method = "KR"
+)
+
+percOffNest_lmm
+```
+
+
+```{r}
+plot(percOffNest_lmm$full_model)
+```
+
+```{r}
+qqnorm(residuals(percOffNest_lmm$full_model))
+```
+
+## Post-hoc
+
+```{r}
+percOffNest_lmm_EMM <- emmeans(
+  percOffNest_lmm$full_model
+  , "earlyLifeTrt"
+  , by = "PND"
+)
+
+percOffNest_lmm_EMM
+```
+
+Interaction is only trending, so this comparison may not be justified, anyways. There aren't any significant differences after adjusting for number of comparisons
+
+```{r}
+test(pairs(percOffNest_lmm_EMM), by = NULL, adjust = "holm")
+```
+
+## Graph with error comparison
+
+```{r}
+percOffNest_lmm_errors <- percOffNest_lmm %>%
+  getErrorDF_LMM("PND", panel = "earlyLifeTrt", errorType = "model")
+
+percOffNest_lmm_errors
+```
+
+```{r}
+figDams_offNest <- figDams_offNest_noMean +
+  plotError_LMM(
+    percOffNest_lmm_errors %>%
+      mutate(
+        PND = as.numeric(as.character(PND))
+      )
+    , xVar = PND
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , color = "black"
+  )
+figDams_offNest
+```
+
+```{r}
+figDams_meanOffNest <- figDams_meanOffNest_noMean +
+  plotError_LMM(
+      getErrorDF_LMM(
+        percOffNest_lmm
+        , "earlyLifeTrt"
+      )
+      , xVar = earlyLifeTrt
+      , meanBarWidth = 0.7
+      , color = "black"
+      , nudgeErrorLine = 0
+    )
+
+figDams_meanOffNest
+```
+
+
 # Dam mass
 
 ## Model
@@ -277,7 +417,7 @@ damMass_lmm_errors
 ```
 
 ```{r}
-figDamsC_noMean +
+figDams_mass <- figDamsC_noMean +
   plotError_LMM_meanLine(
     damMass_lmm_errors %>%
       mutate(
@@ -286,6 +426,7 @@ figDamsC_noMean +
     , xVar = PND
     , color = earlyLifeTrt
   )
+figDams_mass
 ```
 
 # Dam cort
@@ -485,7 +626,7 @@ mass_lmm_errors
 
 
 ```{r}
-figOffAge_noMean +
+figOffAge_model <- figOffAge_noMean +
   plotError_LMM(
     age_lmm_errors
     , xVar = earlyLifeTrt
@@ -493,9 +634,10 @@ figOffAge_noMean +
     , nudgeErrorLine = 0
     , barSize = 0.6
   )
+figOffAge_model
 ```
 ```{r}
-figOffMass_noMean +
+figOffMass_model <- figOffMass_noMean +
   plotError_LMM(
     mass_lmm_errors
     , xVar = earlyLifeTrt
@@ -503,6 +645,7 @@ figOffMass_noMean +
     , nudgeErrorLine = 0
     , barSize = 0.6
   )
+figOffMass_model
 ```
 # AGD
 
@@ -529,7 +672,20 @@ plot(AGD_lmm$full_model)
 ```{r}
 qqnorm(residuals(AGD_lmm$full_model))
 ```
+
 ## Post-hocs
+
+```{r}
+AGD_lmm_emm_sex <- emmeans(
+  AGD_lmm
+  , "sex"
+)
+
+AGD_lmm_emm_sex
+
+pairs(AGD_lmm_emm_sex)
+```
+
 
 ```{r}
 AGD_lmm_emm <- emmeans(
@@ -553,7 +709,7 @@ AGD_lmm_errors
 ```
 
 ```{r}
-figOffH_noMean +
+figOff_femaleAGD <-  figOffH_noMean +
   plotError_LMM (
     AGD_lmm_errors %>% filter(
       sex == "F"
@@ -564,10 +720,11 @@ figOffH_noMean +
     , meanBarWidth = 0.7
     , nudgeErrorLine = 0
   )
+figOff_femaleAGD
 ```
 
 ```{r}
-figOffI_noMean +
+figOff_maleAGD <- figOffI_noMean +
   plotError_LMM (
     AGD_lmm_errors %>% filter(
       sex == "M"
@@ -578,6 +735,8 @@ figOffI_noMean +
     , meanBarWidth = 0.7
     , nudgeErrorLine = 0
   )
+
+figOff_maleAGD
 ```
 
 # Estrous Cycles - number
@@ -663,7 +822,7 @@ figCyclesB +
 ```
 
 ```{r}
-figCyclesB_noMean +
+figCycles_numCycles_model <- figCyclesB_noMean +
   plotError_LMM(
     numCycles_lmm_error
     , xVar = earlyLifeTrt
@@ -672,6 +831,8 @@ figCyclesB_noMean +
     , color = "black"
     , nudgeErrorLine = 0
   )
+
+figCycles_numCycles_model
 ```
 # Estrous cycles - length
 
@@ -684,6 +845,7 @@ lengthCycles_lmm <- mixed(
   , method = "KR"
 )
 lengthCycles_lmm
+summary(lengthCycles_lmm)
 ```
 
 ## Assumptions
@@ -782,7 +944,7 @@ figCyclesC +
 ```
 
 ```{r}
-figCyclesC_noMean +
+figCycles_lengthLog_model <- figCyclesC_noMean +
   plotError_LMM(
     lengthCycles_log_lmm_error
     , xVar = earlyLifeTrt
@@ -790,6 +952,8 @@ figCyclesC_noMean +
     , color = "black"
     , nudgeErrorLine = 0
   )
+
+figCycles_lengthLog_model
 ```
 # Stage distribution
 
@@ -950,9 +1114,9 @@ figCortLogA <- cortFilteredMales %>%
     , plotSE = FALSE
   )() +
   scale_y_continuous(trans = "log"
-                     , limits = c(NA, 400)
-                     , breaks = c(0, 6.25, 12.5, 25, 50, 100, 200, 400)
-                     , labels = c(0, "6.25", "12.5", "25", "50", "100", "200", "400")) +
+                     , limits = c(NA, 700)
+                     , breaks = c(0, 6.25, 12.5, 25, 50, 100, 200, 400, 800)
+                     , labels = c(0, "6.25", "12.5", "25", "50", "100", "200", "400", "800")) +
   plotError_LMM_aes(
     cort_lmm_error %>%
       filter(
@@ -982,9 +1146,9 @@ figCortLogB <- cortFilteredDi %>%
     , plotSE = FALSE
   )() +
   scale_y_continuous(trans = "log"
-                     , limits = c(NA, 400)
-                     , breaks = c(0, 6.25, 12.5, 25, 50, 100, 200, 400)
-                     , labels = c(0, "6.25", "12.5", "25", "50", "100", "200", "400")) +
+                     , limits = c(NA, 700)
+                     , breaks = c(0, 6.25, 12.5, 25, 50, 100, 200, 400, 800)
+                     , labels = c(0, "6.25", "12.5", "25", "50", "100", "200", "400", "800")) +
   plotError_LMM_aes(
     cort_lmm_error %>%
       filter(
@@ -1016,9 +1180,9 @@ figCortLogC <- cortFilteredPro %>%
     , plotSE = FALSE
   )() +
   scale_y_continuous(trans = "log"
-                     , limits = c(NA, 400)
-                     , breaks = c(0, 6.25, 12.5, 25, 50, 100, 200, 400)
-                     , labels = c(0, "6.25", "12.5", "25", "50", "100", "200", "400")) +
+                     , limits = c(NA, 700)
+                     , breaks = c(0, 6.25, 12.5, 25, 50, 100, 200, 400, 800)
+                     , labels = c(0, "6.25", "12.5", "25", "50", "100", "200", "400", "800")) +
   plotError_LMM_aes(
     cort_lmm_error %>%
       filter(
@@ -1041,29 +1205,58 @@ figCortLogC
 ```
 ## Post-hocs
 
+Interaction with time is at p = 0.09
+
 ```{r}
-emmeans(
+cort_lmm_emm_earlyLifeTrtTime <-  emmeans(
   cort_lmm
   , "earlyLifeTrt"
   , by = "time"
   , type = "response"
 )
+
+cort_lmm_emm_earlyLifeTrtTime
+
+test(pairs(cort_lmm_emm_earlyLifeTrtTime), by = NULL, adjust = "holm")
+```
+
+I'm not sure why the main effect of time is significant, but then looking at the comparison here, it's a much lower p-value.
+
+```{r}
+cort_lmm_emm_earlyLifeTrt <-  emmeans(
+  cort_lmm
+  , "earlyLifeTrt"
+  , type = "response"
+)
+
+cort_lmm_emm_earlyLifeTrt
+
+test(pairs(cort_lmm_emm_earlyLifeTrt), by = NULL, adjust = "holm")
 ```
 ```{r}
-emmeans(
+cort_lmm_emm_adultTrt <-  emmeans(
   cort_lmm
   , "adultTrt"
   , by = "time"
   , type = "response"
 )
+
+cort_lmm_emm_adultTrt
+
+test(pairs(cort_lmm_emm_adultTrt), by = NULL, adjust = "holm")
 ```
 
 ```{r}
-emmeans(
+cort_lmm_emm_hormoneStatus <-  emmeans(
   cort_lmm
   , "hormoneStatus"
+  , by = "time"
   , type = "response"
 )
+
+cort_lmm_emm_hormoneStatus
+
+test(pairs(cort_lmm_emm_hormoneStatus), by = NULL, adjust = "holm")
 ```
 
 # Body mass - AM
@@ -1105,7 +1298,7 @@ qqnorm(residuals(bodyMassAM_lmm$full_model))
 
 ## Post-hocs
 
-LBN males are smaller than STD males. No difference for either female group
+There's an interaction in the full model, but once corrected for multiple comparisons, there's not a significant difference in the post-hoc for the males, though the trend is for LBN males to be smaller than STD males
 
 ```{r}
 bodyMassAM_lmm_emm_earlyLife <- emmeans(
@@ -1163,15 +1356,16 @@ figMassFacetA +
   )
 ```
 ```{r}
-figMassFacetA_noMean +
+figMassFacetA_model <- figMassFacetA_noMean +
   plotError_LMM(
     bodyMassAM_lmm_error
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
     , meanBarWidth = 0.7
-    , color = "black"
+    , color = "magenta"
   )
+figMassFacetA_model
 ```
 
 
@@ -1342,15 +1536,16 @@ figMassFacetB_perc +
   )
 ```
 ```{r}
-figMassFacetB_perc_noMean +
+figMassFacetB_perc_model <- figMassFacetB_perc_noMean +
   plotError_LMM(
     percChangeBodyMass_lmm_error
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
     , meanBarWidth = 0.7
-    , color = "black"
+    , color = "magenta"
   )
+figMassFacetB_perc_model
 ```
 
 
@@ -1382,7 +1577,7 @@ qqnorm(residuals(adrenalMass_lmm$full_model))
 
 ## Post-hocs
 
-Males are smaller than both female groups, trend at this point for proestrus to be larger than diestrus
+Males are smaller than both female groups
 
 ```{r}
 adrenalMass_lmm_emm_hormoneStatus <- emmeans(
@@ -1393,6 +1588,16 @@ adrenalMass_lmm_emm_hormoneStatus <- emmeans(
 adrenalMass_lmm_emm_hormoneStatus
 
 test(pairs(adrenalMass_lmm_emm_hormoneStatus), by = NULL, adjust = "holm")
+```
+```{r}
+adrenalMass_lmm_emm_earlyLifeTrt <- emmeans(
+  adrenalMass_lmm
+  , "earlyLifeTrt"
+)
+
+adrenalMass_lmm_emm_earlyLifeTrt
+
+test(pairs(adrenalMass_lmm_emm_earlyLifeTrt), by = NULL, adjust = "holm")
 ```
 
 ## Graphs
@@ -1426,15 +1631,16 @@ figMassFacetC +
   )
 ```
 ```{r}
-figMassFacetC_noMean +
+figMassFacetC_model <- figMassFacetC_noMean +
   plotError_LMM(
     adrenalMass_lmm_error
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
     , meanBarWidth = 0.7
-    , color = "black"
+    , color = "magenta"
   )
+figMassFacetC_model
 ```
 
 
@@ -1511,15 +1717,16 @@ figMassFacetD_male +
   )
 ```
 ```{r}
-figMassFacetD_male_noMean +
+figMassFacetD_male_model <- figMassFacetD_male_noMean +
   plotError_LMM(
     seminalVesicle_lmm_error
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
     , meanBarWidth = 0.7
-    , color = "black"
+    , color = "magenta"
   )
+figMassFacetD_male_model
 ```
 
 
@@ -1597,15 +1804,16 @@ figMassFacetD_female +
   )
 ```
 ```{r}
-figMassFacetD_female_noMean +
+figMassFacetD_female_model <- figMassFacetD_female_noMean +
   plotError_LMM(
     uterineMass_lmm_error
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
     , meanBarWidth = 0.7
-    , color = "black"
+    , color = "magenta"
   )
+figMassFacetD_female_model
 ```
 
 # Testicular mass
@@ -1668,6 +1876,21 @@ testicularMass_lmm_error <- testicularMass_lmm_emm %>%
 testicularMass_lmm_error
 ```
 
+It doesn't appear that the normalized difference with ALPS treatment can just be attributed to the fact that the ALPS males are larger, as the absolute testicular mass is smaller with ALPS, too. There's also a decrease in absolute testicular mass for the LBN males - this may be related to the trend for them to be smaller, since there's no difference with the normalized values
+```{r}
+acuteStressFiltered_M_DiPro %>%
+  scatterPlotComboTrt(
+    yVar = Gonad_mass
+    , yLab = "testicular mass (mg)"
+  )
+
+mixed(
+  Gonad_mass ~ earlyLifeTrt * adultTrt + (1|damID)
+  , acuteStressFiltered_M_DiPro
+)
+```
+
+
 ```{r}
 acuteStressFiltered_M_DiPro %>%
   filter(
@@ -1684,7 +1907,7 @@ acuteStressFiltered_M_DiPro %>%
   )
 ```
 ```{r}
-acuteStressFiltered_M_DiPro %>%
+figMass_testicular_model <- acuteStressFiltered_M_DiPro %>%
   filter(
     sex == "M"
   ) %>%
@@ -1695,9 +1918,35 @@ acuteStressFiltered_M_DiPro %>%
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
     , meanBarWidth = 0.7
-    , color = "black"
+    , color = "magenta"
+  )
+figMass_testicular_model
+```
+
+# GABA numbers
+
+```{r}
+GABApscs_240FilteredFiring %>%
+  group_by(
+    comboTrt,
+    mouseID
+  ) %>%
+  summarize(
+    n()
   )
 ```
+
+```{r}
+GABApscs_240FilteredFiring %>%
+  countMiceAndLitters(
+    groupingVars = exprs(
+      earlyLifeTrt
+      , adultTrt
+      
+    )
+  )
+```
+
 
 # GABA capacitance
 
@@ -1747,6 +1996,20 @@ figGABAa +
     , color = "red"
   )
 ```
+
+```{r}
+figGABAa_model <- figGABAa_noMean +
+  plotError_LMM(
+    capacitance_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+figGABAa_model
+```
+
 
 
 
@@ -1802,10 +2065,23 @@ figGABAb +
 
 
 
+```{r}
+figGABAb_model <- figGABAb_noMean +
+  plotError_LMM(
+    inputResistance_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+
+figGABAb_model
+```
 
 # GABA series resistance
 
-## Method
+## Model
 
 ```{r}
 seriesResistance_lmm <- mixed(
@@ -1851,6 +2127,20 @@ figGABAc +
     , color = "red"
   )
 ```
+
+```{r}
+figGABAc_model <- figGABAc_noMean +
+  plotError_LMM(
+    seriesResistance_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+figGABAc_model
+```
+
 
 
 
@@ -1902,6 +2192,20 @@ figGABAd +
     , color = "red"
   )
 ```
+
+```{r}
+figGABAd_model <- figGABAd_noMean +
+  plotError_LMM(
+    holdingCurrent_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+figGABAd_model
+```
+
 
 
 
@@ -2023,6 +2327,19 @@ figGABAe +
   )
 ```
 
+```{r}
+figGABAe_model <- figGABAe_noMean +
+  plotError_LMM(
+    numEvents_nb.GLMM_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+figGABAe_model
+```
+
 
 # GABA amplitude
 
@@ -2074,6 +2391,19 @@ figGABAf +
     , meanBarWidth = 0.4
     , color = "red"
   )
+```
+
+```{r}
+figGABAf_model <- figGABAf_noMean +
+  plotError_LMM(
+    relAmplitude_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+figGABAf_model
 ```
 
 

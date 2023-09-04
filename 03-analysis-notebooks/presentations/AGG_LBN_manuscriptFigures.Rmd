@@ -17,7 +17,7 @@ source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
 source("./01-scripts/04-filter-datasets.R")
 source("./01-scripts/05-make-LBN-plots-manuscript.R")
-source("./01-scripts/06-make-LBN-ANOVAs_noLitter.R")
+# source("./01-scripts/06-make-LBN-ANOVAs_noLitter.R")
 ```
 
 ```{r}
@@ -52,25 +52,70 @@ set_null_device("png")
 
 
 ```{r}
-figDamsPlots <- cowplot::align_plots(figDamsB, figDamsC, align = "v", axis = "l")
+figDamsPlots <- cowplot::align_plots(
+  figDams_exits
+  , figDams_offNest
+  # , figDams_mass
+  , align = "v"
+  , axis = "l"
+)
+
+figDamsBehaviorPlots <- cowplot::align_plots(figDamsPlots[[1]], figDams_meanExits, figDamsPlots[[2]], figDams_meanOffNest, align = "h", axis = "bt")
+
+figDamsBehaviorRightPlots <- cowplot::align_plots(
+  figDamsBehaviorPlots[[2]]
+  , figDamsBehaviorPlots[[4]]
+  , align = "v"
+  , axis = "l"
+)
 
 figDams <- plot_grid(
+  # plot_grid(
+  #   NULL
+  #   , figDams_mass
+  #   , figDamsD
+  #   , nrow = 1
+  #   , rel_widths = c(2, 1, 1)
+  #   , align = "h"
+  #   , axis = "bt"
+  #   , labels = c("A", "B", "C")
+  # )
   NULL
-  , figDamsPlots[[1]]
-  , NULL
   , plot_grid(
-    figDamsPlots[[2]]
+      figDamsBehaviorPlots[[1]]
+      , figDamsBehaviorRightPlots[[1]]
+      , ncol = 2
+      , labels = c("B", "C")
+      , label_fontfamily = "Arial"
+      , label_size = textSize
+      , rel_widths = c(3, 1)
+  )
+  , plot_grid(
+      figDamsBehaviorPlots[[3]]
+      , figDamsBehaviorRightPlots[[2]]
+      , ncol = 2
+      , labels = c("D", "E")
+      , label_fontfamily = "Arial"
+      , label_size = textSize
+      , rel_widths = c(3, 1)
+  )
+  , plot_grid(
+    NULL
+    , figDams_mass
     , figDamsD
-    , ncol = 2
-    , labels = c("C", "D")
+    , nrow = 1
+    , rel_widths = c(1.5, 1, 1)
+    , align = "h"
+    , axis = "bt"
+    , labels = c("F", "G", "H")
     , label_fontfamily = "Arial"
     , label_size = textSize
   )
   , nrow = 4
-  , labels = c("A", NULL, "B", NULL)
+  , rel_heights = c(0.5, 1, 1, 1)
+  , labels = c("A", NULL, NULL, NULL)
   , label_fontfamily = "Arial"
   , label_size = textSize
-  , rel_heights = c(0.5, 1, .1, 1)
 )
 figDams
 ```
@@ -146,14 +191,14 @@ figOff
 ```{r}
 figOffLeftPlots <- cowplot::align_plots(
   figOffA
-  , figOffAge
-  , figOffMass
+  , figOffAge_model
+  , figOffMass_model
   , align = "v", axis = "l"
 )
 
 figOffRightPlots <- cowplot::align_plots(
-  figOffH
-  , figOffI
+  figOff_femaleAGD
+  , figOff_maleAGD
   , align = "vh", axis = "ltrb"
 )
 
@@ -225,16 +270,18 @@ flexSave(
 ```{r}
 figCyclesLeftPlots <- cowplot::align_plots(
   figCyclesA
-  , figCyclesB
+  # , figCyclesB
+  , figCycles_numCycles_model
   , align = "v", axis = "l"
 )
 
 figCycles2ndRow <- plot_grid(
   figCyclesLeftPlots[[2]]
-  , figCyclesC
+  # , figCyclesC
+  , figCycles_lengthLog_model
   , figCyclesD
   , ncol = 3
-  # , labels = c("B", "C", "D")
+  , labels = c("B", "C", "D")
   , label_fontfamily = "Arial"
   , label_size = textSize
   , align = "h"
@@ -449,10 +496,10 @@ figMass
 
 ```{r}
 figMass_left <- align_plots(
-  figMassFacetA+rremove("legend")
-  , figMassFacetB
-  , figMassFacetC
-  , figMassFacetD_male
+  figMassFacetA_model+rremove("legend")
+  , figMassFacetB_perc_model
+  , figMassFacetC_model
+  , figMassFacetD_male_model
   , align = "hv"
   , axis = "tblr"
 )
@@ -464,7 +511,7 @@ figMassFacet <- plot_grid(
   , figMass_left[[3]]
   , plot_grid(
       figMass_left[[4]]
-      , figMassFacetD_female
+      , figMassFacetD_female_model
       , nrow = 1
       , rel_widths = c(1, 2)
   )
@@ -491,6 +538,17 @@ flexSave(
   , units = "cm"
 )
 ```
+
+```{r}
+flexSave(
+  "figTesicularMass"
+  , plot = figMass_testicular_model
+  , width = oneCol
+  , height = 28/4
+  , units = "cm"
+)
+```
+
 ```{r}
 flexSave(
   "figMass"
@@ -509,12 +567,12 @@ flexSave(
 
 ```{r}
 figGABA_aligned <- cowplot::align_plots(
-  figGABAa
-  , figGABAb
-  , figGABAc
-  , figGABAd
-  , figGABAe
-  , figGABAf
+  figGABAa_model
+  , figGABAb_model
+  , figGABAc_model
+  , figGABAd_model
+  , figGABAe_model
+  , figGABAf_model
   , align = "vh"
   , axis = "lrtb"
 )

@@ -7,7 +7,7 @@ facetMatByLitter <- FALSE
 
 figDamsB <- damBehavior_byPND %>%
   filter(
-    !is.na(Num_exits) # 2023-07-04: Question - maybe remove, so that there are the appropriate gaps??
+    # !is.na(Num_exits) # 2023-07-04: Question - maybe remove, so that there are the appropriate gaps??
   ) %>%
   plotDamBehavior(
     yVar = Num_exits
@@ -23,7 +23,7 @@ figDamsB <- damBehavior_byPND %>%
 
 figDamsB_noMean <- damBehavior_byPND %>%
   filter(
-    !is.na(Num_exits) # 2023-07-04: Question - maybe remove, so that there are the appropriate gaps??
+    # !is.na(Num_exits) # 2023-07-04: Question - maybe remove, so that there are the appropriate gaps??
   ) %>%
   plotDamBehavior(
     yVar = Num_exits
@@ -40,6 +40,42 @@ figDamsB_noMean <- damBehavior_byPND %>%
   )
 
 
+figDams_offNest_noMean <- damBehavior_byPND %>%
+  plotDamBehavior(
+    yVar = Perc_off_nest
+    , yLab = "mean % off nest"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = 1
+    , zoom_y = TRUE
+    , ymax = 100
+    , ymin = 0
+    , showMean = FALSE
+    , addVertError = FALSE
+  )
+
+figDams_meanOffNest_noMean <- damBehavior_byDam %>%
+  scatterPlotLBN(
+    yVar = Perc_off_nest
+    , yLab = "mean % off nest"
+    , addMean = FALSE
+    , addSEM = FALSE
+    , zoom_y = TRUE
+    , ymax = 100
+    , ymin = 0
+    , dotSize = dotSize
+    , textSize = textSize
+  ) +
+  facet_wrap(
+    ~earlyLifeTrt
+    , scales = "free_x"
+  ) +
+  theme(
+    axis.text.x = element_blank()
+    , axis.ticks.x = element_blank()
+  )
+
 
 # Dam corticosterone ------------------------------------------------------
 
@@ -49,7 +85,7 @@ figDamsD <- damFiltered %>%
   ) %>%
   scatterPlotLBN(
     yVar = Cort_dam_P11,
-    yLab = "corticosterone (ng/mL)",
+    yLab = "corticosterone\n(ng/mL)",
     textSize = textSize,
     dotSize = dotSize,
     zoom_y = FALSE,
@@ -86,12 +122,15 @@ figDamsC <- damFiltered %>%
     errorBarAlpha = 1,
     textSize = textSize,
     axisSize = 0.5,
-    legendPosition = c(0.75, 0.2),
+    legendPosition = c(0.6, 0.2),
     STDColor = "#4D4D4D",
     LBNColor = "#008B8B"
   ) +
   theme(
     legend.key = element_rect(fill = NA)
+  ) +
+  guides(
+    color = guide_legend(nrow = 1)
   )
 
 figDamsC_noMean <- damFiltered %>%
@@ -120,12 +159,16 @@ figDamsC_noMean <- damFiltered %>%
     errorBarAlpha = 1,
     textSize = textSize,
     axisSize = 0.5,
-    legendPosition = c(0.75, 0.2),
+    # legendPosition = c(0.75, 0.2),
+    legendPosition = c(0.5, 0.2),
     STDColor = "#4D4D4D",
     LBNColor = "#008B8B"
   ) +
   theme(
     legend.key = element_rect(fill = NA)
+  ) +
+  guides(
+    color = guide_legend(nrow = 1)
   )
 
 # Offspring mass ----------------------------------------------------------
@@ -456,7 +499,7 @@ figCyclesC <- cyclesFiltered %>%
     , dotSize = dotSize
   ) +
   scale_y_continuous(
-    breaks = c(0, 2, 4, 6, 8)
+    breaks = c(0, 2, 4, 6, 8, 10)
   )
 
 figCyclesC_noMean <- cyclesFiltered %>%
@@ -468,9 +511,12 @@ figCyclesC_noMean <- cyclesFiltered %>%
     , dotSize = dotSize
     , addMean = FALSE
     , addSEM = FALSE
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
   ) +
   scale_y_continuous(
-    breaks = c(0, 2, 4, 6, 8)
+    breaks = c(0, 2, 4, 6, 8, 10)
   )
 
 
@@ -485,7 +531,9 @@ figCyclesD <- cyclesPercLong %>%
     , dotSize = dotSize
     , strip.position = "top"
     , ylabel = "mean % days in stage"
-  )
+    ,
+  ) +
+  coord_cartesian(ylim = c(0, 80))
 
 # ALPS --------------------------------------------------------------------
 
@@ -751,7 +799,8 @@ plotRelTesticularMass_noMean <- plotCatVarFunc(
   , useFacetLabels = FALSE
   , useSpecYLab = TRUE
   # , thisYLab = "rel. testicular mass\n(mg/g)"
-  , thisYLab = "rel. mass (mg/g)"
+  , thisYLab = "normalized testicular mass (mg/g)"
+  , removeXTicks = TRUE
   , addMeanSE = FALSE
 )
 
@@ -1158,6 +1207,79 @@ figGABAe <- GABApscs_240FilteredFiring %>%
   plotGABAfreq()
 figGABAf <- GABApscs_240FilteredFiring %>%
   plotGABAamp()
+
+## no mean -----
+
+plotCapacitance_noMean <- plotCatVarFunc(
+  expr(capacitance)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , addMeanSE = FALSE
+)
+
+plotRseries_noMean <- plotCatVarFunc(
+  expr(Rseries)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , addMeanSE = FALSE
+)
+
+plotRinput_noMean <- plotCatVarFunc(
+  expr(Rinput)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , addMeanSE = FALSE
+)
+
+plotHoldingCurr_noMean <- plotCatVarFunc(
+  expr(holdingCurrent)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , addMeanSE = FALSE
+)
+
+plotGABAfreq_noMean <- plotCatVarFunc(
+  expr(frequency)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , addMeanSE = FALSE
+)
+
+plotGABAamp_noMean <- plotCatVarFunc(
+  expr(relPeak)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , useFacetLabels = FALSE
+  , addMeanSE = FALSE
+)
+
+figGABAa_noMean <- GABApscs_240FilteredFiring %>%
+  plotCapacitance_noMean()
+figGABAc_noMean <- GABApscs_240FilteredFiring %>%
+  plotRseries_noMean()
+figGABAb_noMean <- GABApscs_240FilteredFiring %>%
+  plotRinput_noMean()
+figGABAd_noMean <- GABApscs_240FilteredFiring %>%
+  plotHoldingCurr_noMean()
+figGABAe_noMean <- GABApscs_240FilteredFiring %>%
+  plotGABAfreq_noMean(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  )
+figGABAf_noMean <- GABApscs_240FilteredFiring %>%
+  plotGABAamp_noMean()
 
 # figGABAa <- GABApscsFilteredFiring %>%
 #   plotCapacitance()

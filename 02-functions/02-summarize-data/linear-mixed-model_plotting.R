@@ -112,6 +112,7 @@ plotError_LMM_meanLine <- function(
       )
       , data = lmmData
       , size = barSize
+      , inherit.aes = FALSE # 2023-07-30
     ),
     geom_linerange(
       aes(
