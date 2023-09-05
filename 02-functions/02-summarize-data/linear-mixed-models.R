@@ -92,6 +92,36 @@ formatLMM_ppt <- function(
   return(df)
 }
 
+formatMixedLMM_ppt <- function(
+  lmm
+){
+  resTable <- lmm$anova_table %>% as.data.frame() %>% rownames_to_column("effect")
+  if("Pr(>|t|)" %in% names(resTable)){
+    df <- resTable %>%
+      mutate(
+        `Pr(>|t|)` = case_when(
+          `Pr(>|t|)` < 0.001 ~ as.character("<0.001"),
+          TRUE ~ as.character(round(`Pr(>|t|)`, 3))
+        )
+      ) %>%
+      rename(
+        p = `Pr(>|t|)`
+      )
+  } else{
+    df <- resTable %>%
+      mutate(
+        `Pr(>F)` = case_when(
+          `Pr(>F)` < 0.001 ~ as.character("<0.001"),
+          TRUE ~ as.character(round(`Pr(>F)`, 3))
+        )
+      ) %>%
+      rename(
+        p = `Pr(>F)`
+      )
+  }
+  return(df)
+}
+
 formatLMM_anova <- function(
   anova
   , fontSize = 11
