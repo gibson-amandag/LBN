@@ -516,101 +516,7 @@ figCortLogC <- cortFilteredPro %>%
 
 ## Masses -----
 
-### with mean -----
-plotBodyMassAM <- plotCatVarFunc(
-  expr(Body_mass_AM)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  , thisYLab = "body mass (g)"
-  , addLegend = TRUE
-  , removeXTicks = TRUE
-)
-
-plotChangeBodyMass <- plotCatVarFunc(
-  expr(bodyMass_diff)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  , thisYLab = "\u0394 body mass (g)"
-  , removeXTicks = TRUE
-)
-
-plotPercChangeBodyMass <- plotCatVarFunc(
-  expr(percChangeBodyMass)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  , thisYLab = "% change in body mass"
-  , removeXTicks = TRUE
-)
-
-plotRelAdrenalMass <- plotCatVarFunc(
-  expr(Adrenal_mass_perBodyAM_g)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  , thisYLab = "normalized adrenal\nmass (mg/g)"
-  # , thisYLab = "rel. mass (mg/g)"
-  , removeXTicks = TRUE
-)
-
-plotRelReproTractMass <- plotCatVarFunc(
-  expr(ReproTract_mass_perBodyAM_g)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  , thisYLab = "normalized repro. tract\nmass (mg/g)"
-  # , thisYLab = "rel. mass (mg/g)"
-  , removeXTicks = TRUE
-)
-
-plotRelSeminalVesicleMass <- plotCatVarFunc(
-  expr(ReproTract_mass_perBodyAM_g)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  , thisYLab = "normalized seminal\nvesicle mass (mg/g)"
-  # , thisYLab = "rel. mass (mg/g)"
-  , removeXTicks = TRUE
-)
-
-plotRelUterineMass <- plotCatVarFunc(
-  expr(ReproTract_mass_perBodyAM_g)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  , thisYLab = "normalized uterine\nmass (mg/g)"
-  # , thisYLab = "rel. mass (mg/g)"
-  , removeXTicks = TRUE
-)
-
-plotRelTesticularMass <- plotCatVarFunc(
-  expr(Gonad_mass_perBodyAM_g)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  # , thisYLab = "rel. testicular mass\n(mg/g)"
-  , thisYLab = "rel. mass (mg/g)"
-)
-
-### without mean -----
+### Functions ----
 plotBodyMassAM_noMean <- plotCatVarFunc(
   expr(Body_mass_AM)
   , fontSize = textSize
@@ -713,138 +619,54 @@ plotRelTesticularMass_noMean <- plotCatVarFunc(
   , addMeanSE = FALSE
 )
 
-figMassA <- acuteStressFilteredMales %>%
-  plotBodyMassAM()
-
-figMassB <- acuteStressFilteredDi %>%
-  plotBodyMassAM()
-
-figMassC <- acuteStressFilteredPro %>%
-  plotBodyMassAM()
-
-figMassD <- acuteStressFilteredMales %>%
-  plotChangeBodyMass()
-
-figMassE <- acuteStressFilteredDi %>%
-  plotChangeBodyMass()
-
-figMassF <- acuteStressFilteredPro %>%
-  plotChangeBodyMass()
-
-figMassG <- acuteStressFilteredMales %>%
-  plotRelAdrenalMass()
-
-figMassH <- acuteStressFilteredDi %>%
-  plotRelAdrenalMass()
-
-figMassI <- acuteStressFilteredPro %>%
-  plotRelAdrenalMass()
-
-figMassJ <- acuteStressFilteredMales %>%
-  plotRelSeminalVesicleMass(
-    zoom_y = TRUE
-    , ymin = 0
-    , ymax = 9
-  )
-
-figMassK <- acuteStressFilteredDi %>%
-  plotRelUterineMass(
-    zoom_y = TRUE
-    , ymin = 0
-    , ymax = 9
-  )
-
-figMassL <- acuteStressFilteredPro %>%
-  plotRelUterineMass(
-    zoom_y = TRUE
-    , ymin = 0
-    , ymax = 9
-  )
-
-### Faceted rows ----
-acuteStressForMasses <- acuteStressFiltered_M_DiPro %>%
-  mutate(
-    hormoneStatus = 
-      ifelse(
-        sex == "M"
-        , "male"
-        , Sac_cycle
-      )
-  ) %>%
-  mutate(
-    hormoneStatus = factor(hormoneStatus, c("male", "diestrus", "proestrus"))
-  )
-
 facetByHormoneStatus <- facet_wrap(
   ~ hormoneStatus
   , nrow = 1
 )
 
-#### with mean ----
-figMassFacetA <- acuteStressForMasses %>%
-  plotBodyMassAM() +
-  facetByHormoneStatus
+### Graphs ----
 
-figMassFacetB <- acuteStressForMasses %>%
-  plotChangeBodyMass() +
-  facetByHormoneStatus
-
-figMassFacetB_perc <- acuteStressForMasses %>%
-  plotPercChangeBodyMass() +
-  facetByHormoneStatus
-
-figMassFacetC <- acuteStressForMasses %>%
-  plotRelAdrenalMass(
-    zoom_y = TRUE
-    , ymin = 0
-    , ymax = 0.4
-  ) +
-  facetByHormoneStatus
-
-figMassFacetD_male <- acuteStressForMasses %>%
-  filter(
-    sex == "M"
-  ) %>%
-  plotRelSeminalVesicleMass(
-    zoom_y = TRUE
-    , ymin = 0
-    , ymax = 10
-  ) +
-  facetByHormoneStatus
-
-figMassFacetD_female <- acuteStressForMasses %>%
-  filter(
-    sex == "F"
-  ) %>%
-  plotRelUterineMass(
-    zoom_y = TRUE
-    , ymin = 0
-    , ymax = 10
-  ) +
-  facetByHormoneStatus
-
-#### without mean -----
-figMassFacetA_noMean <- acuteStressForMasses %>%
+figMassFacetA_model <- acuteStressFiltered_M_DiPro %>%
   plotBodyMassAM_noMean() +
-  facetByHormoneStatus
+  facetByHormoneStatus +
+  plotError_LMM(
+    bodyMassAM_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
 
-figMassFacetB_noMean <- acuteStressForMasses %>%
-  plotChangeBodyMass_noMean() +
-  facetByHormoneStatus
-
-figMassFacetB_perc_noMean <- acuteStressForMasses %>%
+figMassFacetB_perc_model <- acuteStressFiltered_M_DiPro %>%
   plotPercChangeBodyMass_noMean() +
-  facetByHormoneStatus
+  facetByHormoneStatus +
+  plotError_LMM(
+    percChangeBodyMass_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
 
-figMassFacetC_noMean <- acuteStressForMasses %>%
+figMassFacetC_model <- acuteStressFiltered_M_DiPro %>%
   plotRelAdrenalMass_noMean(
     zoom_y = TRUE
     , ymin = 0
     , ymax = 0.4
   ) +
-  facetByHormoneStatus
+  facetByHormoneStatus +
+  plotError_LMM(
+    adrenalMass_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
 
-figMassFacetD_male_noMean <- acuteStressForMasses %>%
+figMassFacetD_male_model <- acuteStressFiltered_M_DiPro %>%
   filter(
     sex == "M"
   ) %>%
@@ -853,9 +675,17 @@ figMassFacetD_male_noMean <- acuteStressForMasses %>%
     , ymin = 0
     , ymax = 10
   ) +
-  facetByHormoneStatus
+  facetByHormoneStatus +
+  plotError_LMM(
+    seminalVesicle_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
 
-figMassFacetD_female_noMean <- acuteStressForMasses %>%
+figMassFacetD_female_noMean <- acuteStressFiltered_M_DiPro %>%
   filter(
     sex == "F"
   ) %>%
@@ -864,54 +694,16 @@ figMassFacetD_female_noMean <- acuteStressForMasses %>%
     , ymin = 0
     , ymax = 10
   ) +
-  facetByHormoneStatus
+  facetByHormoneStatus +
+  plotError_LMM(
+    uterineMass_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
   
-
-
-
-## Uterine mass ------------------------------------------------------------
-
-plotUterineMassByGroup_byStage_bothL <- plotUterineMassByGroupFunc(
-  litterNums = c(1, 2)
-  , proUterineMin = proUterineMin # defined in 04-filter-datasets
-  , diUterineMax = diUterineMax
-  , fontSize = textSize
-  , dotSize = dotSize
-  , facet = TRUE
-  , facetInfo = facetForStage
-)
-
-uterineMassByGroup_byStage_bothL <- acuteStressFilteredFemales_all %>%
-  plotUterineMassByGroup_byStage_bothL()
-
-plotUterineMassByGroup_byStage_1stL <- plotUterineMassByGroupFunc(
-  litterNums = c(1)
-  , proUterineMin = proUterineMin # defined in 04-filter-datasets
-  , diUterineMax = diUterineMax
-  , fontSize = textSize
-  , dotSize = dotSize
-  , facet = TRUE
-  , facetInfo = facetForStage
-)
-
-# only show the good ones for 1st and 2nd subsets
-uterineMassByGroup_byStage_1stL <- acuteStressFilteredFemales %>%
-  plotUterineMassByGroup_byStage_1stL()
-
-plotUterineMassByGroup_byStage_2ndL <- plotUterineMassByGroupFunc(
-  litterNums = c(2)
-  , proUterineMin = proUterineMin # defined in 04-filter-datasets
-  , diUterineMax = diUterineMax
-  , fontSize = textSize
-  , dotSize = dotSize
-  , facet = TRUE
-  , facetInfo = facetForStage
-)
-
-uterineMassByGroup_byStage_2ndL <- acuteStressFilteredFemales %>%
-  plotUterineMassByGroup_byStage_2ndL()
-
-
 ## LH ----------------------------------------------------------------------
 
 plotLH_bothL <- plotLHFunc(
