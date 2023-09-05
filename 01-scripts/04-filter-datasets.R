@@ -501,7 +501,16 @@ acuteStressFilteredAll <- acuteStressFiltered %>%
   filterAcuteStressAll()
 
 acuteStressFiltered_M_DiPro <- acuteStressFiltered %>%
-  filterAcuteStress_M_DiPro()
+  filterAcuteStress_M_DiPro() %>%
+  mutate(
+    hormoneStatus = ifelse(
+      sex == "M"
+      , "male"
+      , Sac_cycle
+    )
+  ) %>% mutate(
+    hormoneStatus = factor(hormoneStatus, c("male", "diestrus", "proestrus"))
+  )
 
 acuteStressFilteredMales <- acuteStressFiltered %>%
   filterAcuteStressMales()
