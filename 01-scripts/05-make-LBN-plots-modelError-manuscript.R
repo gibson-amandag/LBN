@@ -1,5 +1,5 @@
-textSize <- 11
-dotSize <- 2
+textSize <- 16
+dotSize <- 3
 facetMatByLitter <- FALSE
 
 # Dam behavior ------------------------------------------------------------
@@ -96,7 +96,7 @@ figDams_meanOffNest <- damBehavior_byDam %>%
     , textSize = textSize
   ) +
   plotError_LMM(
-    numExits_nb.GLMM_errors.earlyLifeEMM
+    percOffNest_lmm_errors.earlyLifeEMM
     , xVar = earlyLifeTrt
     , meanBarWidth = 0.7
     , color = "black"
@@ -221,7 +221,7 @@ figOffA <- massFiltered %>%
 
 # Maturation --------------------------------------------------------------
 
-figOffAge <- maturationByDamLong %>%
+figOffAge_model <- maturationByDamLong %>%
   scatterPlotLBN(
     yVar = age
     , "mean age (days)"
@@ -241,7 +241,7 @@ figOffAge <- maturationByDamLong %>%
     , barSize = 0.6
   )
 
-figOffMass <- maturationByDamLong %>%
+figOffMass_model <- maturationByDamLong %>%
   scatterPlotLBN(
     yVar = mass
     , "mean mass (g)"
@@ -260,6 +260,12 @@ figOffMass <- maturationByDamLong %>%
     , nudgeErrorLine = 0
     , barSize = 0.6
   )
+
+matVals <- getMaxMatVals(maturation_byDam_f, maturation_byDam_m)
+
+max_mass <- matVals$max_mass
+max_age <- matVals$max_age
+max_AGD <- matVals$max_AGD
 
 figOff_femaleAGD <- maturation_byDam_f %>%
   mutate(
@@ -443,8 +449,8 @@ plotCort_long <- manuscriptCortPlotFunc(
 cortScale <- scale_y_continuous(
   trans = "log"
   , limits = c(1, 700)
-  , breaks = c(6.25, 12.5, 25, 50, 100, 200, 400, 800)
-  , labels = c("6.25", "12.5", "25", "50", "100", "200", "400", "800")
+  , breaks = c(1.5625, 3.125, 6.25, 12.5, 25, 50, 100, 200, 400, 800)
+  , labels = c("1.56", "3.13", "6.25", "12.5", "25", "50", "100", "200", "400", "800")
 )
 
 
@@ -685,7 +691,7 @@ figMassFacetD_male_model <- acuteStressFiltered_M_DiPro %>%
     , color = "magenta"
   )
 
-figMassFacetD_female_noMean <- acuteStressFiltered_M_DiPro %>%
+figMassFacetD_female_model <- acuteStressFiltered_M_DiPro %>%
   filter(
     sex == "F"
   ) %>%
@@ -697,6 +703,20 @@ figMassFacetD_female_noMean <- acuteStressFiltered_M_DiPro %>%
   facetByHormoneStatus +
   plotError_LMM(
     uterineMass_lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+
+figMass_testicular_model <- acuteStressFiltered_M_DiPro %>%
+  filter(
+    sex == "M"
+  ) %>%
+  plotRelTesticularMass_noMean()+
+  plotError_LMM(
+    testicularMass_lmm_error
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
@@ -848,69 +868,6 @@ percSurgedPlot_2ndL <- surgedDF %>%
 
 # GABA PSCs ---------------------------------------------------------------
 
-plotCapacitance <- plotCatVarFunc(
-  expr(capacitance)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-)
-
-plotRseries <- plotCatVarFunc(
-  expr(Rseries)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-)
-
-plotRinput <- plotCatVarFunc(
-  expr(Rinput)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-)
-
-plotHoldingCurr <- plotCatVarFunc(
-  expr(holdingCurrent)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-)
-
-plotGABAfreq <- plotCatVarFunc(
-  expr(frequency)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-)
-
-plotGABAamp <- plotCatVarFunc(
-  expr(relPeak)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-)
-
-figGABAa <- GABApscs_240FilteredFiring %>%
-  plotCapacitance()
-figGABAc <- GABApscs_240FilteredFiring %>%
-  plotRseries()
-figGABAb <- GABApscs_240FilteredFiring %>%
-  plotRinput()
-figGABAd <- GABApscs_240FilteredFiring %>%
-  plotHoldingCurr()
-figGABAe <- GABApscs_240FilteredFiring %>%
-  plotGABAfreq()
-figGABAf <- GABApscs_240FilteredFiring %>%
-  plotGABAamp()
-
-## no mean -----
-
 plotCapacitance_noMean <- plotCatVarFunc(
   expr(capacitance)
   , fontSize = textSize
@@ -965,22 +922,77 @@ plotGABAamp_noMean <- plotCatVarFunc(
   , addMeanSE = FALSE
 )
 
-figGABAa_noMean <- GABApscs_240FilteredFiring %>%
-  plotCapacitance_noMean()
-figGABAc_noMean <- GABApscs_240FilteredFiring %>%
-  plotRseries_noMean()
-figGABAb_noMean <- GABApscs_240FilteredFiring %>%
-  plotRinput_noMean()
-figGABAd_noMean <- GABApscs_240FilteredFiring %>%
-  plotHoldingCurr_noMean()
-figGABAe_noMean <- GABApscs_240FilteredFiring %>%
+figGABAa_model <- GABApscs_240FilteredFiring %>%
+  plotCapacitance_noMean() +
+  plotError_LMM(
+    capacitance_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+
+figGABAc_model <- GABApscs_240FilteredFiring %>%
+  plotRseries_noMean() +
+  plotError_LMM(
+    seriesResistance_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+
+
+figGABAb_model <- GABApscs_240FilteredFiring %>%
+  plotRinput_noMean() +
+  plotError_LMM(
+    inputResistance_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+
+
+figGABAd_model <- GABApscs_240FilteredFiring %>%
+  plotHoldingCurr_noMean() +
+  plotError_LMM(
+    holdingCurrent_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+
+figGABAe_model <- GABApscs_240FilteredFiring %>%
   plotGABAfreq_noMean(
     zoom_y = TRUE
     , ymin = 0
     , ymax = 10
+  ) +
+  plotError_LMM(
+    numEvents_nb.GLMM_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
   )
-figGABAf_noMean <- GABApscs_240FilteredFiring %>%
-  plotGABAamp_noMean()
+
+figGABAf_model <- GABApscs_240FilteredFiring %>%
+  plotGABAamp_noMean() +
+  plotError_LMM(
+    relAmplitude_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
 
 # figGABAa <- GABApscsFilteredFiring %>%
 #   plotCapacitance()

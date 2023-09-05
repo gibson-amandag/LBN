@@ -63,7 +63,7 @@ percOffNest_lmm <- mixed(
 percOffNest_lmm_errors <- percOffNest_lmm %>%
   getErrorDF_LMM("PND", panel = "earlyLifeTrt")
 
-numExits_nb.GLMM_errors.earlyLifeEMM <- percOffNest_lmm %>%
+percOffNest_lmm_errors.earlyLifeEMM <- percOffNest_lmm %>%
   getErrorDF_LMM("earlyLifeTrt")
 
 
@@ -370,6 +370,27 @@ cort_lmm_emm_hormoneStatusTime.pairs <- test(
 )
 
 
+## Errors for graph --------------------------------------------------------
+
+cort_lmm_emm <- emmeans(
+  cort_lmm
+  , "earlyLifeTrt"
+  , by = c("adultTrt", "hormoneStatus", "time")
+  , type = "response"
+  )
+
+cort_lmm_error <- cort_lmm_emm %>%
+  as_data_frame() %>%
+  rename(
+    y = response
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+  ) %>%
+  combineStress()
+
+
 # Body mass - AM ----------------------------------------------------------
 
 bodyMassAM_lmm <- mixed(
@@ -419,7 +440,7 @@ bodyMassAM_lmm_emm_earlyLifeTrt.pairs <- test(
 
 ## Errors for graph --------------------------------------------------------
 
-bodyMassAM_lmm_emm <- emmeans(
+bodyMassAM_lmm_error <- emmeans(
   bodyMassAM_lmm
   , "earlyLifeTrt"
   , by = c("adultTrt", "hormoneStatus")
@@ -459,7 +480,7 @@ percChangeBodyMass_lmm_emm_adultTrt.pairs <- test(pairs(percChangeBodyMass_lmm_e
 
 ## Errors for graph --------------------------------------------------------
 
-percChangeBodyMass_lmm_emm <- emmeans(
+percChangeBodyMass_lmm_error <- emmeans(
   percChangeBodyMass_lmm
   , "earlyLifeTrt"
   , by = c("adultTrt", "hormoneStatus")
@@ -501,7 +522,7 @@ adrenalMass_lmm_emm_hormoneStatus.pairs <- test(
 
 ## Errors for graph --------------------------------------------------------
 
-adrenalMass_lmm_emm <- emmeans(
+adrenalMass_lmm_error <- emmeans(
   adrenalMass_lmm
   , "earlyLifeTrt"
   , by = c("adultTrt", "hormoneStatus")
@@ -549,7 +570,7 @@ seminalVesicle_lmm_emm_earlyLifeTrt.pairs <- test(
 
 # Errors for graph --------------------------------------------------------
 
-seminalVesicle_lmm_emm <- emmeans(
+seminalVesicle_lmm_error <- emmeans(
   seminalVesicle_lmm
   , "earlyLifeTrt"
   , by = c("adultTrt")
@@ -626,7 +647,7 @@ uterineMass_lmm_emm_adultTrtStage.pairs <- test(
 ## Errors for graph --------------------------------------------------------
 
 
-uterineMass_lmm_emm <- emmeans(
+uterineMass_lmm_error <- emmeans(
   uterineMass_lmm
   , "earlyLifeTrt"
   , by = c("adultTrt", "hormoneStatus")
@@ -645,7 +666,7 @@ uterineMass_lmm_emm <- emmeans(
 # Testicular mass ---------------------------------------------------------
 
 testicularMass_lmm <- mixed(
-  Gonad_mass ~ earlyLifeTrt * adultTrt + (1|damID)
+  Gonad_mass_perBodyAM_g ~ earlyLifeTrt * adultTrt + (1|damID)
   , data = acuteStressFiltered_M_DiPro %>%
     filter(
       sex == "M"
@@ -675,7 +696,7 @@ testicularMass_lmm_emm_adultTrt.pairs <- test(
 
 ## Errors for graph --------------------------------------------------------
 
-testicularMass_lmm_emm <- emmeans(
+testicularMass_lmm_error <- emmeans(
   testicularMass_lmm
   , "earlyLifeTrt"
   , by = c("adultTrt")
@@ -687,5 +708,134 @@ testicularMass_lmm_emm <- emmeans(
   mutate(
     lower = y - SE
     , upper = y + SE
+  ) %>%
+  combineStress()
+
+
+# GABA - capacitance ------------------------------------------------------
+
+capacitance_lmm <- mixed(
+  capacitance ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+
+## Errors for graph --------------------------------------------------------
+
+capacitance_lmm_errors <- capacitance_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+
+# GABA - input resistance -------------------------------------------------
+
+
+inputResistance_lmm <- mixed(
+  Rinput ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+
+## Errors for graph --------------------------------------------------------
+
+inputResistance_lmm_errors <- inputResistance_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+
+# GABA - series resistance ------------------------------------------------
+
+seriesResistance_lmm <- mixed(
+  Rseries ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+
+## Errors for graph --------------------------------------------------------
+
+seriesResistance_lmm_errors <- seriesResistance_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+
+# GABA - holding current --------------------------------------------------
+
+holdingCurrent_lmm <- mixed(
+  holdingCurrent ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+
+## Errors for graph --------------------------------------------------------
+
+holdingCurrent_lmm_errors <- holdingCurrent_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+
+# GABA - PSC frequency ----------------------------------------------------
+
+# There's a lot of skew to the data, but there's a true zero
+# So can't just do a log transformation
+
+# Negative binomial of counts of PSCs in 2 min
+
+GABApscs_240_count <- GABApscs_240FilteredFiring %>%
+  mutate(
+    numEvents = frequency * duration
+    , .after = frequency
+  )
+
+numEvents_nb.GLMM <- glmer.nb(
+  numEvents ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240_count
+)
+
+
+## Errors for graph --------------------------------------------------------
+
+numEvents_nb.GLMM_errors <- numEvents_nb.GLMM %>%
+  getErrorDF_LMM("earlyLifeTrt", panel = "adultTrt", errorType = "model") %>%
+  combineStress() %>%
+  mutate(
+    y = y / 240.02
+    , SE = SE / 240.02
+    , error = error / 240.02
+    , lower = lower / 240.02
+    , upper = upper / 240.02
+  )
+
+
+# GABA - PSC amplitude ----------------------------------------------------
+
+relAmplitude_lmm <- mixed(
+  relPeak ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+
+# Errors for graph --------------------------------------------------------
+
+relAmplitude_lmm_errors <- relAmplitude_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
   ) %>%
   combineStress()
