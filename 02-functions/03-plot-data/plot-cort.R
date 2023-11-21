@@ -18,6 +18,8 @@ cortPlot <- function(
   , meanWidth = 1.4
   , meanFollowsLineType = TRUE
   , yUnitsNewLine = FALSE
+  , pointAlpha = 1
+  , lineAlpha =0.4
 ){
   if(yUnitsNewLine){
     yLab <- "corticosterone\n(ng/mL)"
@@ -34,7 +36,7 @@ cortPlot <- function(
     )
   ) +
     geom_line(
-      alpha = 0.4,
+      alpha = lineAlpha,
       # color = "black",
       aes(group = mouseID, linetype =  {{ groupVar }}, color =  {{ groupVar }}),
       position = position_dodge(positionDodge)
@@ -55,7 +57,7 @@ cortPlot <- function(
   
     geom_point(
       # shape = 21,
-      alpha = 1,
+      alpha = pointAlpha,
       aes(fill= {{ groupVar }}
           ,group=mouseID
           , shape= {{ groupVar }}
@@ -254,6 +256,94 @@ longCortPlot <- function(
   return(longPlot)
 }
 
+
+plotCortByNutellaConsumption <- function(
+    df
+    , fontSize = 11
+    , zoom_x = FALSE #Zoom to a part of x axis
+    , xmin = NULL
+    , xmax = NULL
+    , zoom_y = FALSE #Zoom to a part of y axis
+    , ymin = NULL
+    , ymax = NULL
+    , yLab = "corticosterone (ng/mL)"
+    , groupVar = atePrevNutella
+    , groupLegendLabel = "prev Nutella"
+    , dotSize = 3
+    , shapeVector = c("NA" = 23, "none" = 24, "some" = 22, "all" = 21)
+    , colorVector = c("NA" = "black", "none" = "black", "some" = "black", "all" = "black")
+    , fillVector = c("NA" = "white", "none" = "lightpink", "some" = "lightblue", "all" = "black")
+    , wrapPlot = TRUE
+    , facetWrapStatement = facet_wrap(
+        ~dosage
+        , labeller = labeller(
+          dosage = c("0" = "0 mg/kg", "2" = "2mg/kg")
+        )
+      )
+){
+  viz <- ggplot(
+    df
+    , aes(
+      x = time
+      , y = cort
+      , group = {{ groupVar }}
+    )
+  ) +
+    geom_line(
+      alpha = 0.4
+      , aes(group = mouseID)
+      , position = position_dodge(0.4)
+      # At some point, update to position_quasirandom, but need to adjust how it handles paths and points
+    ) +
+    geom_point(
+      alpha = 1
+      , aes(
+        fill = {{ groupVar }}
+        , group = mouseID
+        , shape = {{ groupVar }}
+        , color = {{ groupVar }}
+      )
+      , position = position_dodge(0.4)
+      , size = dotSize
+    ) +
+    theme_pubr() +
+    expand_limits(y = 0) +
+    labs(
+      y = yLab
+      , x = NULL
+    ) +
+    scale_x_continuous(
+      breaks = c(0, 1, 3, 5)
+      , labels = c(0, 1, 3, 5)
+    ) +
+    textTheme(size = fontSize) +
+    boxTheme() +
+    guides()
+  
+  viz <- viz +
+    labs(
+      color = groupLegendLabel
+      , shape = groupLegendLabel
+      , fill = groupLegendLabel
+    ) +
+    scale_shape_manual(
+      values = shapeVector
+    ) +
+    scale_color_manual(
+      values = colorVector
+    ) +
+    scale_fill_manual(
+      values = fillVector
+    )
+  
+  if(wrapPlot)
+  {
+    viz <- viz + facetWrapStatement
+  }
+  
+  return(viz)
+}
+
 plotByUterineMass <- function(
   df,
   yVar,
@@ -442,6 +532,14 @@ LHPlot_adultTrt_color <- function(
   ymin = NULL,
   ymax = NULL
 ){
+  # df_long <- df_long %>%
+  #   addOrderedColors(
+  #     LH
+  #     , mouseID
+  #     , colorByGroups = FALSE
+  #     , adultTrt
+  #   )
+  
   ggplot(
     df_long,
     aes(
@@ -452,6 +550,7 @@ LHPlot_adultTrt_color <- function(
   ) +
     geom_line(
       alpha = 0.4,
+      # aes(group = mouseID, color = color),
       aes(group = mouseID, color = mouseID),
       position = position_dodge(0.4)
       , size = 1
@@ -459,11 +558,14 @@ LHPlot_adultTrt_color <- function(
     geom_point(
       shape = 21,
       alpha = 1, 
-      aes(fill=mouseID
-          , color = mouseID
-          ,group=mouseID
-          # ,shape={{ trtVar }}
-          ), 
+      aes(
+        # fill= color
+        # , color = color
+        fill = mouseID
+        , color = mouseID
+        ,group=mouseID
+        # ,shape={{ trtVar }}
+        ), 
       position = position_dodge(0.4), 
       size = dotSize
     ) +
@@ -487,7 +589,9 @@ LHPlot_adultTrt_color <- function(
     textTheme(size = fontSize)+
     boxTheme()+
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) + #this just zooms in on the graph, versus scale_[]_continuous actually eliminates data not in the range
-    guides(linetype = "none")
+    guides(linetype = "none") # +
+    # scale_color_identity() +
+    # scale_fill_identity()
 }
 
 LHPlot_adultTrt <- function(
@@ -962,7 +1066,7 @@ plotLHTime_dosage <- function(
 }
 
 
-plotLHAmp_comboTrt <- function(
+plotLHAmp_comboTrt_byEarlylife <- function(
   df, 
   surgeMin, 
   textSize = 11, 
@@ -974,23 +1078,25 @@ plotLHAmp_comboTrt <- function(
     mutate(
       surgeStatus = 
         case_when(
-          adultTrt == "CON" & maxLH > surgeMin ~ "control surge",
-          adultTrt == "CON" & maxLH <= surgeMin ~ "control no surge",
-          adultTrt == "ALPS" & maxLH > surgeMin ~ "stress surge",
-          TRUE ~ "stress no surge"
+          earlyLifeTrt == "STD" & maxLH > surgeMin ~ "STD surge",
+          earlyLifeTrt == "STD" & maxLH <= surgeMin ~ "STD no surge",
+          earlyLifeTrt == "LBN" & maxLH > surgeMin ~ "LBN surge",
+          TRUE ~ "LBN no surge"
         )
     ) %>%
     mutate(
-      surgeStatus = factor(surgeStatus, levels = c("control surge", "control no surge", "stress surge", "stress no surge"))
+      surgeStatus = factor(surgeStatus, levels = c("STD surge", "STD no surge", "LBN surge", "LBN no surge"))
     ) %>%
     ggplot(
       aes(
         x = surgeStatus,
         y = maxLH,
-        fill = comboTrt
+        fill = comboTrt,
+        shape = comboTrt
       )
     ) +
-    geom_point(
+    # geom_point(
+    geom_quasirandom(
       alpha = 1,
       position = position_dodge2(0.4),
       size = dotSize,
@@ -1002,12 +1108,6 @@ plotLHAmp_comboTrt <- function(
       addLineType = FALSE
     ) +
     addMeanSE_vertBar()+
-    # scale_fill_manual(
-    #   values = c("control" = "white", 
-    #              "stress surge" = "black", 
-    #              "stress no surge" = "grey60"
-    #   )
-    # )+
     comboTrtFillShape() +
     boxTheme()+
     textTheme(textSize) +
@@ -1020,7 +1120,7 @@ plotLHAmp_comboTrt <- function(
   if(angleX){
     plot <- plot +
       scale_x_discrete(
-        labels = c("control surge"="CON \nsurge", "control no surge"="CON  \nno surge", "stress surge"="ALPS \nsurge", "stress no surge"="ALPS  \nno surge")
+        labels = c("STD surge"="STD \nsurge", "STD no surge"="STD  \nno surge", "LBN surge"="LBN \nsurge", "LBN no surge"="LBN  \nno surge")
         , drop=FALSE
       )+
       theme(
@@ -1031,7 +1131,9 @@ plotLHAmp_comboTrt <- function(
   } else {
     plot <- plot +
       scale_x_discrete(
-        labels = c("control surge"="CON\nsurge", "control no surge" = "CON\nno\nsurge", "stress surge"="ALPS\nsurge", "stress no surge"="ALPS\nno\nsurge")
+        # labels = c("STD surge"="STD\nsurge", "STD no surge" = "STD\nno\nsurge", "LBN surge"="LBN\nsurge", "LBN no surge"="LBN\nno\nsurge")
+        # labels = c("STD surge"="STD\nsurge", "STD no surge" = "STD\nno surge", "LBN surge"="LBN\nsurge", "LBN no surge"="LBN\nno surge")
+        labels = c("STD surge"="surge", "STD no surge" = "no surge", "LBN surge"="surge", "LBN no surge"="no surge")
         , drop=FALSE
       )+
       theme(
@@ -1041,10 +1143,82 @@ plotLHAmp_comboTrt <- function(
   }
   
   if(addSurgeMinLine){
-    plot <- plot + geom_hline(yintercept = surgeMin, color = "grey50")
+    plot <- plot + geom_hline(yintercept = surgeMin, color = "magenta", alpha = 0.3)
       
   }
   return(plot)
+}
+
+scatterPlotComboTrt_surgeAmp <- function(
+    df,
+    yVar,
+    yLab,
+    dotSize = 1.2,
+    fontSize = 11,
+    addMeanSE = TRUE,
+    zoom_y = FALSE, # Zoom to part of y axis
+    ymin = NULL,
+    ymax = NULL
+    , jitterWidth = 0.35
+    , alpha = 0.7 # changed 2023-06-18 from 1
+    , addSurgeMinLine = TRUE
+    , surgeMin = 3
+){
+  viz <- df %>%
+    filter(
+      !is.na({{ yVar }})
+    ) %>%
+    mutate(
+      surged = 
+        case_when(
+          maxLH > surgeMin ~ "surged",
+          maxLH <= surgeMin ~ "no surge"
+        )
+    ) %>%
+    ggplot(
+      aes(
+        x = comboTrt,
+        y = {{ yVar }},
+        fill = comboTrt,
+        shape = comboTrt
+        # , color = surged
+      )
+    ) +
+    geom_quasirandom(
+      size = dotSize
+      , width = jitterWidth
+      , aes(
+        alpha = surged
+      )
+    )+ 
+    labs(y = yLab)+
+    comboTrtFillShape() +
+    theme_pubr()+
+    expand_limits(y=0)+
+    coord_cartesian(if(FALSE){xlim = c(NULL, NULL)}, if(zoom_y){ylim = c(ymin, ymax)}) +
+    # coord_cartesian(if(zoom_y){ylim = c(ymin, ymax)}) +
+    theme(
+      axis.title.x = element_blank(),
+      legend.position = "none"
+    )+
+    textTheme(size = fontSize)+
+    boxTheme() +
+    # scale_color_manual(values = c("surged" = "magenta", "no surge" = "black")) +
+    scale_alpha_manual(values = c("surged" = 0.8, "no surge" = 0.3))
+  
+  if(addMeanSE){
+    viz <- viz +
+      addMeanHorizontalBar() +
+      addMeanSE_vertBar()
+  }
+  
+  if(addSurgeMinLine){
+    viz <- viz + geom_hline(yintercept = surgeMin, color = "magenta", alpha = 0.6)
+    
+  }
+  
+  
+  return(viz)
 }
 
 plotLHTime_comboTrt <- function(
@@ -1128,5 +1302,7 @@ plotLHTime_comboTrt <- function(
         axis.title.x = element_blank()
       )
   }
+  
+  
   return(plot)
 }

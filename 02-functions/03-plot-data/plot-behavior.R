@@ -70,6 +70,9 @@ plotDamBehavior <- function(
     , ymin = NULL
     , ymax = NULL
     , showMean = TRUE
+    , subset = FALSE
+    , numPerGroup = 4
+    , dotAlpha = 1
 ){
   df <- df %>%
     rename(
@@ -77,6 +80,27 @@ plotDamBehavior <- function(
         c(ZT = "time") # renames time as ZT, if it exists
       )
     )
+  
+  if(colorByDam){
+    df <- df %>%
+      addOrderedColors(
+        !! enquo(yVar)
+        , damID
+        , colorByGroups = FALSE
+        , earlyLifeTrt
+      )
+  }
+  
+  if(subset){
+    df <- df %>%
+      filter( # bad practice - don't want to change whole workflow. Need overall colors the same, though
+        cohort == 9
+      ) %>%
+      group_by(
+        earlyLifeTrt
+      ) %>%
+      getRandomSubjects(damID, numPerGroup)
+  }
   
   includesPND <- ifelse("PND" %in% names(df), TRUE, FALSE)
   includesZT <- ifelse("ZT" %in% names(df), TRUE, FALSE)
@@ -125,40 +149,61 @@ plotDamBehavior <- function(
         )
       ) + xlab("ZT")
   } else {
-    viz <- df %>%
-      ggplot(
-        aes(
-          x = earlyLifeTrt
-          , y = {{ yVar }}
-          , fill = earlyLifeTrt
+    if(colorByDam){
+      viz <- df %>%
+        ggplot(
+          aes(
+            x = earlyLifeTrt
+            , y = {{ yVar }}
+            , fill = color
+            , color = color
+          )
+        ) +
+        theme(
+          axis.title.x = element_blank()
+        ) +
+        scale_fill_identity()+
+        scale_color_identity()
+      
+    } else{
+      viz <- df %>%
+        ggplot(
+          aes(
+            x = earlyLifeTrt
+            , y = {{ yVar }}
+            , fill = earlyLifeTrt
+          )
+        ) +
+        theme(
+          axis.title.x = element_blank()
+        ) +
+        earlyLifeFill(
+          STDColor = STDFill
+          , LBNColor = LBNFill
         )
-      ) +
-      theme(
-        axis.title.x = element_blank()
-      ) +
-      earlyLifeFill(
-        STDColor = STDFill
-        , LBNColor = LBNFill
-      )
+    }
   }
   
   if(includesPND | includesZT){
     if(colorByDam){
       viz <- viz + geom_line(
         alpha = lineAlpha,
-        aes(group = damID, color = damID),
+        aes(group = damID, color = color),
         position = position_dodge(dodgeVal),
         size = lineSize
       )
       if(showDots){
         viz <- viz + geom_point(
           shape = 21,
-          alpha = 1, 
-          aes(color=damID, fill = damID, group=damID), 
+          alpha = dotAlpha, 
+          aes(color = color, fill = color, group=damID), 
           position = position_dodge(dodgeVal), 
           size = dotSize
         )
       }
+      viz <- viz +
+        scale_color_identity() +
+        scale_fill_identity()
     } else {
       viz <- viz + geom_line(
         alpha = lineAlpha,
@@ -170,7 +215,7 @@ plotDamBehavior <- function(
       if(showDots){
         viz <- viz + geom_point(
           shape = 21,
-          alpha = 1, 
+          alpha = dotAlpha, 
           aes(fill=earlyLifeTrt,group=damID), 
           position = position_dodge(dodgeVal), 
           size = dotSize
@@ -216,8 +261,11 @@ plotDamBehavior <- function(
     # if don't have a time-based x-asis, always show dots
     viz <- viz + geom_point(
       shape = 21,
-      alpha = 1, 
-      aes(fill=earlyLifeTrt,group=damID), 
+      alpha = dotAlpha, 
+      aes(
+        group=damID
+        # , fill=earlyLifeTrt ## taken care of above?
+      ), 
       position = position_dodge(dodgeVal), 
       size = dotSize
     )

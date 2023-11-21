@@ -191,3 +191,84 @@ dosageFill <- function(
   )
   return(layers)
 }
+
+allDosageColorList <- c(
+  "0"="black", 
+  "0.5" = "#1b9e77", # green
+  "1" = "#d95f02", # orange
+  "3" = "#31688EFF", # purple
+  "10" = "#1b9e77", # green
+  "20" = "#fdb863", # yellow
+  "50" = "#5e3c99" # purple
+)
+
+allDosageFillList <- c(
+  "0"="white", 
+  "0.5" = "#1b9e77", # green
+  "1" = "#d95f02", # orange
+  "3" = "#31688EFF", # purple
+  "10" = "#1b9e77", # green
+  "20" = "#fdb863", # yellow
+  "50" = "#5e3c99" # purple
+)
+
+allDosageShapeList <- c(
+  "0"=21, 
+  "0.5" = 0,
+  "1" = 2,
+  "3" = 25,
+  "10" = 22,
+  "20" = 23,
+  "50" = 3
+)
+
+allDosageLineList <- c(
+  "0"="solid", 
+  "0.5" = "solid",
+  "1" = "solid",
+  "3" = "solid",
+  "10" = "solid",
+  "20" = "solid",
+  "50" = "solid"
+)
+
+allDosageFillShape <- function(
+    
+){
+  layers <- list(
+    scale_color_manual(
+      "treatment", 
+      values = allDosageColorList),
+    scale_fill_manual(
+      "treatment", 
+      values = allDosageFillList),
+    scale_shape_manual(
+      "treatment", 
+      values = allDosageShapeList),
+    scale_linetype_manual(
+      "treatment",
+      values = allDosageLineList)
+  )
+  return(layers)
+}
+
+
+pilotDosageFillShape <- function(
+    doses # c(x,x,x)
+){
+  layers <- list(
+    scale_color_manual(
+      "treatment", 
+      values = allDosageColorList[names(allDosageColorList) %in% doses]),
+    scale_fill_manual(
+      "treatment", 
+      values = allDosageFillList[names(allDosageFillList) %in% doses]),
+    scale_shape_manual(
+      "treatment", 
+      values = allDosageShapeList[names(allDosageShapeList) %in% doses]),
+    scale_linetype_manual(
+      "treatment",
+      values = allDosageLineList[names(allDosageLineList) %in% doses])
+  )
+  return(layers)
+}

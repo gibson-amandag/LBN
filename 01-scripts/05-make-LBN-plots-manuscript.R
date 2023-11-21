@@ -1,5 +1,7 @@
-textSize <- 11
-dotSize <- 2
+# textSize <- 11
+# dotSize <- 2
+textSize <- 16
+dotSize <- 3
 facetMatByLitter <- FALSE
 
 # Dam behavior ------------------------------------------------------------

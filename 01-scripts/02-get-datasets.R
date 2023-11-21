@@ -30,6 +30,10 @@ LH_off <- loadExcelSheet(dataFolder, LBN_DataName, "LH_off")
 ChronicStress_off <- loadExcelSheet(dataFolder, LBN_DataName, "ChronicStress_off")
 CRH_dam <- loadExcelSheet(dataFolder, LBN_DataName, "CRH_dam")
 damBehavior <- loadExcelSheet(dataFolder, LBN_DataName, "damBehavior")
+
+maleCortAdmin <- loadExcelSheet(dataFolder, LBN_DataName, "cortAdmin")
+maleCortAdmin_cort <- loadExcelSheet(dataFolder, LBN_DataName, "cortFromAdmin")
+maleCortAdmin_nutella <- loadExcelSheet(dataFolder, LBN_DataName, "nutellaConsumption")
 # behavior_ZT0 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT0")
 # behavior_ZT14 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_ZT14")
 # behavior_ZT16 <- loadExcelSheet(dataFolder, LBN_DataName, "Dam_behavior_P5_ZT16")
@@ -188,6 +192,12 @@ CohortCyclingFolder <- CohortCyclingFolder %>%
       file.path(LBN_ServerFolder, paste0("LBN_", sprintf("%04d", cohort)), CyclesFolder)
     )
   )
+
+
+maleCortAdmin <- makeFactors(maleCortAdmin, c(mouseID, adultTrt, dosage))
+maleCortAdmin_cort <- makeFactors(maleCortAdmin_cort, mouseID)
+maleCortAdmin_nutella <-  makeFactors(maleCortAdmin_nutella, mouseID)
+
 ## Format Dam Demo ------------------------------------------------------
 Demo_dam <- Demo_dam %>%
   mutate(pupLoss = Litter_size_startPara - Litter_size_endPara) %>%
@@ -376,6 +386,77 @@ LH_off <- LH_off %>%
     by = "mouseID"
   )
 
+
+## Male cort admin ---------------------------------------------------------
+
+maleCortAdmin_cort_wide <- maleCortAdmin_cort %>%
+  pivot_wider(
+    id_cols = mouseID,
+    names_from = time,
+    values_from = cort,
+    names_prefix = "cort_hr"
+  ) %>%
+  left_join(
+    maleCortAdmin_cort %>%
+      filter(
+        time == 0
+      ) %>%
+      select(
+        mouseID
+        , plateQC
+      )
+    , by = "mouseID"
+  )
+
+maleCortAdmin_cort <- maleCortAdmin_cort %>%
+  left_join(
+    maleCortAdmin_nutella
+    , by = c("mouseID", "time")
+  ) %>%
+  group_by(
+    mouseID
+  ) %>%
+  mutate(
+    atePrevNutella = ifelse(
+      time == 0
+      , "NA"
+      , ifelse(
+        time == 1
+        , nutellaConsumption[time %in% 0]
+        , ifelse(
+          time %in% c(2, 3)
+          , nutellaConsumption[time %in% 1]
+          , ifelse(
+            time %in% c(4, 5)
+            , nutellaConsumption[time %in% 3]
+            , NA
+          )
+        )
+      )
+    )
+    , .after = nutellaConsumption
+  ) %>%
+  ungroup %>%
+  left_join(
+    maleCortAdmin
+    , by = "mouseID"
+  )
+
+maleCortAdmin <- maleCortAdmin %>%
+  left_join(
+    maleCortAdmin_cort_wide
+    , by = "mouseID"
+  ) %>%
+  calcOrganMassByBodyMass(ReproTract_mass) %>%
+  calcOrganMassByBodyMass_AM(ReproTract_mass) %>%
+  calcOrganMassByBodyMass(Gonad_mass) %>%
+  calcOrganMassByBodyMass_AM(Gonad_mass) %>%
+  calcOrganMassByBodyMass(Adrenal_mass) %>%
+  calcOrganMassByBodyMass_AM(Adrenal_mass) %>%
+  mutate(
+    bodyMass_diff = Body_mass_sac - Body_mass_AM
+    , percChangeBodyMass = bodyMass_diff / Body_mass_AM * 100
+  )
 
 # GABA PSCs ---------------------------------------------------------------
 
@@ -604,6 +685,9 @@ LH_code <- LH_code %>%
   )%>%
   addOffspringDemoData() %>%
   combineStress()
+
+maleCortAdmin <- maleCortAdmin %>%
+  addOffspringDemoData(addBy = "mouseID")
 
 # UPDATE COMBO FRAMES WITH MATURATION -------------------------------------
 LBN_all <- LBN_all %>%

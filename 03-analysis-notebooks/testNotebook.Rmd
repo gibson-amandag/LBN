@@ -11865,6 +11865,28 @@ acuteStressFilteredPro %>%
     yVar = LH_AUC
     , yLab = "LH AUC (ng/mL * hr)"
   )
+
+acuteStressFilteredPro %>%
+  anova_test(
+    dv = LH_AUC
+    , between = c(earlyLifeTrt, adultTrt)
+  )
+```
+```{r}
+acuteStressFilteredPro %>%
+  filter(
+    mouseID %in% nonEphysMice$mouseID
+  ) %>%
+  scatterPlotComboTrt(
+    yVar = maxLH
+    , yLab = "peak LH (ng/mL)"
+  )
+
+acuteStressFilteredPro %>%
+  anova_test(
+    dv = maxLH
+    , between = c(earlyLifeTrt, adultTrt)
+  )
 ```
 
 
@@ -12596,7 +12618,7 @@ maleCortAdmin_cort_wide
 
 ```{r}
 yLab <- "corticosterone (ng/mL)"
-fontSize <- 16
+fontSize <- 24
   
 viz <- ggplot(
     maleCortAdmin_cort,
@@ -12659,7 +12681,48 @@ viz <- viz + labs(color = "prev nutella", shape = "prev nutella", fill = "prev n
   )
 
 viz
+
+exportFullPPTSlide(baseName = "cortAdminMales")
 ```
+
+```{r}
+maleCortAdmin_cort %>%
+  plotCortByNutellaConsumption(
+    fontSize = 16
+  )
+```
+
+```{r}
+malesAnyWithNone <- maleCortAdmin_cort %>%
+  group_by(
+    mouseID
+  ) %>%
+  filter(
+    any(atePrevNutella %in% c("none"))
+  ) %>%
+  pull(mouseID) %>%
+  unique()
+
+malesAnyWithSome <- maleCortAdmin_cort %>%
+  group_by(
+    mouseID
+  ) %>%
+  filter(
+    any(atePrevNutella %in% c("some"))
+  ) %>%
+  pull(mouseID) %>%
+  unique()
+
+malesAnyWithNone
+malesAnyWithSome
+
+maleCortAdmin %>%
+  filter(
+    mouseID %in% malesAnyWithNone | mouseID %in% malesAnyWithSome
+  )
+```
+
+
 
 # males available for cort admin and ALPS
 
@@ -12758,8 +12821,22 @@ goodMaleCortAdmin <- maleCortAdmin %>%
   filter(
     Sac_date >= as_date("2023-07-19")
     # , earlyLifeTrt == "STD"
+  ) %>%
+  mutate(
+    earlyLifeTrt = ifelse(
+      is.na(earlyLifeTrt), "STD", as.character(earlyLifeTrt)
+    )
+  ) %>%
+  filter(
+    earlyLifeTrt == "STD"
   )
 ```
+
+```{r}
+latterCortAdmin_plotByConsumption
+```
+
+
 
 ## Body mass AM
 
@@ -12775,6 +12852,7 @@ goodMaleCortAdmin %>%
     , zoom_y = TRUE
     , ymin = 0
     , ymax = 40
+    , hideXAxisLab = FALSE
   ) +
   facet_wrap(
     ~ earlyLifeTrt
@@ -12798,6 +12876,17 @@ goodMaleCortAdmin %>%
   facet_wrap(
     ~ earlyLifeTrt
   )
+
+goodMaleCortAdmin %>%
+  t_test(
+    bodyMass_diff ~ dosage
+  )
+
+mixed(
+  bodyMass_diff ~ dosage + (1|damID)
+  # bodyMass_diff ~ dosage * earlyLifeTrt + (1|damID)
+  , goodMaleCortAdmin
+)
 ```
 
 ## Testicular mass
@@ -12816,13 +12905,14 @@ goodMaleCortAdmin %>%
     ~ earlyLifeTrt
   )
 
-# goodMaleCortAdmin %>%
-#   t_test(
-#     Gonad_mass ~ dosage
-#   )
+goodMaleCortAdmin %>%
+  t_test(
+    Gonad_mass ~ dosage
+  )
 
 mixed(
-  Gonad_mass ~ dosage * earlyLifeTrt + (1|damID)
+  # Gonad_mass ~ dosage * earlyLifeTrt + (1|damID)
+  Gonad_mass ~ dosage + (1|damID)
   , goodMaleCortAdmin
 )
 ```
@@ -12843,13 +12933,14 @@ goodMaleCortAdmin %>%
     ~ earlyLifeTrt
   )
 
-# goodMaleCortAdmin %>%
-#   t_test(
-#     Gonad_mass_perBodyAM_g ~ dosage
-#   )
+goodMaleCortAdmin %>%
+  t_test(
+    Gonad_mass_perBodyAM_g ~ dosage
+  )
 
 mixed(
-  Gonad_mass_perBodyAM_g ~ dosage * earlyLifeTrt + (1|damID)
+  Gonad_mass_perBodyAM_g ~ dosage + (1|damID)
+  # Gonad_mass_perBodyAM_g ~ dosage * earlyLifeTrt + (1|damID)
   , goodMaleCortAdmin
 )
 ```
@@ -12870,13 +12961,14 @@ goodMaleCortAdmin %>%
     ~ earlyLifeTrt
   )
 
-# goodMaleCortAdmin %>%
-#   t_test(
-#     ReproTract_mass ~ dosage
-#   )
+goodMaleCortAdmin %>%
+  t_test(
+    ReproTract_mass ~ dosage
+  )
 
 mixed(
-  ReproTract_mass ~ dosage * earlyLifeTrt + (1|damID)
+  ReproTract_mass ~ dosage + (1|damID)
+  # ReproTract_mass ~ dosage * earlyLifeTrt + (1|damID)
   , goodMaleCortAdmin
 )
 ```
@@ -12896,13 +12988,14 @@ goodMaleCortAdmin %>%
     ~ earlyLifeTrt
   )
 
-# goodMaleCortAdmin %>%
-#   t_test(
-#     ReproTract_mass_perBodyAM_g ~ dosage
-#   )
+goodMaleCortAdmin %>%
+  t_test(
+    ReproTract_mass_perBodyAM_g ~ dosage
+  )
 
 mixed(
-  ReproTract_mass_perBodyAM_g ~ dosage * earlyLifeTrt + (1|damID)
+  ReproTract_mass_perBodyAM_g ~ dosage + (1|damID)
+  # ReproTract_mass_perBodyAM_g ~ dosage * earlyLifeTrt + (1|damID)
   , goodMaleCortAdmin
 )
 ```
@@ -12923,13 +13016,14 @@ goodMaleCortAdmin %>%
     ~ earlyLifeTrt
   )
 
-# goodMaleCortAdmin %>%
-#   t_test(
-#     ReproTract_mass_perBody_g ~ dosage
-#   )
+goodMaleCortAdmin %>%
+  t_test(
+    ReproTract_mass_perBody_g ~ dosage
+  )
 
 mixed(
-  ReproTract_mass_perBody_g ~ dosage * earlyLifeTrt + (1|damID)
+  ReproTract_mass_perBody_g ~ dosage + (1|damID)
+  # ReproTract_mass_perBody_g ~ dosage * earlyLifeTrt + (1|damID)
   , goodMaleCortAdmin
 )
 ```
@@ -12949,13 +13043,14 @@ goodMaleCortAdmin %>%
     ~ earlyLifeTrt
   )
 
-# goodMaleCortAdmin %>%
-#   t_test(
-#     Adrenal_mass ~ dosage
-#   )
+goodMaleCortAdmin %>%
+  t_test(
+    Adrenal_mass ~ dosage
+  )
 
 mixed(
-  Adrenal_mass ~ dosage * earlyLifeTrt + (1|damID)
+  Adrenal_mass ~ dosage + (1|damID)
+  # Adrenal_mass ~ dosage * earlyLifeTrt + (1|damID)
   , goodMaleCortAdmin
 )
 ```
@@ -12976,13 +13071,14 @@ goodMaleCortAdmin %>%
     ~ earlyLifeTrt
   )
 
-# goodMaleCortAdmin %>%
-#   t_test(
-#     Adrenal_mass_perBodyAM_g ~ dosage
-#   )
+goodMaleCortAdmin %>%
+  t_test(
+    Adrenal_mass_perBodyAM_g ~ dosage
+  )
 
 mixed(
-  Adrenal_mass_perBodyAM_g ~ dosage * earlyLifeTrt + (1|damID)
+  # Adrenal_mass_perBodyAM_g ~ dosage * earlyLifeTrt + (1|damID)
+  Adrenal_mass_perBodyAM_g ~ dosage + (1|damID)
   , goodMaleCortAdmin
 )
 ```
@@ -13180,5 +13276,886 @@ maleCortAdmin_needCort
 
 write.table(maleCortAdmin_needCort, "clipboard", sep="\t", row.names = FALSE)
 
+```
+
+```{r}
+cortFiltered_M_DiPro %>%
+  manuscriptCortPlotFunc(
+    fontSize = textSize
+    , dotSize = dotSize
+    , zoom_y = FALSE
+    , plotMean = FALSE
+    , plotSE = FALSE
+    , pointAlpha = 0.1
+    , lineAlpha = 0.1
+  )() +
+  facet_wrap(
+    ~hormoneStatus
+  ) +
+  cortScale +
+ plotError_LMM(
+   cort_lmm_emm_hormoneStatusTime %>%
+   as_data_frame() %>%
+  rename(
+    y = response
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+    ,time = ifelse(
+      time == 0
+      , time - 1.5
+      , time + 1.5
+    )
+  )
+  , xVar = time
+  , nudgeErrorLine = 0
+  , nudgeMeanLine = 0
+  , meanBarWidth = 1
+  , color = "black"
+)
+
+```
+
+
+```{r}
+mixed(
+  cort ~ earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
+  , data = cortFilteredPro
+  , method = "KR"
+)
+```
+```{r}
+mixed(
+  cort ~ earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
+  , data = cortFilteredDi
+  , method = "KR"
+)
+```
+```{r}
+mixed(
+  log(cort) ~ earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
+  , data = cortFilteredDi
+  , method = "KR"
+)
+```
+
+
+```{r}
+mixed(
+  cort ~ earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
+  , data = cortFilteredMales
+  , method = "KR"
+)
+```
+
+```{r}
+acuteStressFilteredPro %>%
+  filter(
+    mouseID %in% nonEphysMice$mouseID
+  ) %>%
+  scatterPlot_general(
+    xVar = cort_hr5
+    , xLab = "corticosterone (ng/mL)"
+    , yVar = maxLH
+    , yLab = "LH (ng/mL)"
+    , fillVar = comboTrt
+    , fillValues = c(
+        "white"
+        , "black"
+        , "lightblue1"
+        , "darkcyan"
+    )
+    , lineColorVar = comboTrt
+    , lineColorValues = c(
+      "black",
+      "black",
+      "darkcyan",
+      "darkcyan"
+    )
+    , dotSize = 2
+    , addMean = FALSE
+    , addSE = FALSE
+  ) +
+  geom_smooth(method = 'lm', formula = y ~ x, se = FALSE)
+
+
+
+summary(lm(
+  maxLH ~ cort_hr5
+  , acuteStressFilteredPro %>%
+  filter(
+    mouseID %in% nonEphysMice$mouseID
+  )
+  , subset = (adultTrt == "ALPS")
+))
+
+summary(lm(
+  maxLH ~ adultTrt
+  , acuteStressFilteredPro %>%
+  filter(
+    mouseID %in% nonEphysMice$mouseID
+  )
+))
+```
+
+```{r}
+summary(female_cort_lmm)
+```
+
+```{r}
+female_cort_lmm_emm_sacCycle <- emmeans(
+  female_cort_lmm
+  , "Sac_cycle"
+  , by = "time"
+  , type = "response"
+)
+
+female_cort_lmm_emm_sacCycle.pairs <- test(
+  pairs(female_cort_lmm_emm_sacCycle)
+  , by = NULL
+  , adjust = "holm"
+)
+
+female_cort_lmm_emm_sacCycle.pairs
+```
+
+```{r}
+cortFilteredFemales %>%
+  manuscriptCortPlotFunc(
+    fontSize = textSize
+    , dotSize = dotSize
+    , zoom_y = FALSE
+    , plotMean = FALSE
+    , plotSE = FALSE
+    , pointAlpha = 0.1
+    , lineAlpha = 0.1
+  )() +
+  facet_wrap(
+    ~Sac_cycle
+  ) +
+  cortScale +
+ plotError_LMM(
+   female_cort_lmm_emm_sacCycle %>%
+   as_data_frame() %>%
+  rename(
+    y = response
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+    ,time = ifelse(
+      time == 0
+      , time - 1.5
+      , time + 1.5
+    )
+  )
+  , xVar = time
+  , nudgeErrorLine = 0
+  , nudgeMeanLine = 0
+  , meanBarWidth = 1
+  , color = "black"
+)
+```
+
+# View individual LH plots
+
+It would be kind of nice to build this into a shiny app to be able to filter and select and navigate a bit more easily, but this works for now
+
+```{r}
+
+nonEphysMice <- surgedDF %>%
+  filter(
+    !is.na(LH_hr7.5) & !is.na(LH_hr5.5)
+  ) %>%
+  arrange(
+    comboTrt,
+    maxLH
+  )
+for(thisMouseID in nonEphysMice$mouseID){
+  samplingLH <- LHFilteredPro %>%
+    filter(
+      mouseID == thisMouseID
+      , time > 0
+    ) %>%
+    plotLHFunc(
+      c(1)
+      , fontSize = 16
+      , dotSize = dotSize
+      , addSurgeLine = TRUE
+    )() +
+    ggtitle(thisMouseID)
+  
+  print(samplingLH)
+  
+}
+```
+
+# nparLD
+
+```{r}
+install.packages("nparLD")
+```
+
+```{r}
+library(nparLD)
+```
+
+A few notes from initial implementation attempts - it seems that there might need to not be any NAs?
+I'm not positive about that part, but it did help shift to a different error
+
+I used UMGPT to help troubleshoot a more perplexing error:
+"Error in order(dat2$subject) : argument 1 is not a vector"
+
+The issue seems to be the nparLD is older and doesn't know how to handle tibbles, so it has to be converted to a dataframe
+```{r}
+nparLD(
+  Num_exits ~ PND * earlyLifeTrt
+  , data = damBehavior_byPND %>%
+    # makeFactors(c(PND)) %>%
+    filter(
+      cohort == 9
+      , !is.na(Num_exits)
+      , ! damID  %in% c("D102-01", "D105-01")
+    ) %>%
+    # mutate(
+    #   earlyLifeTrt = as.character(earlyLifeTrt)
+    #   , PND = as.character(PND)
+    # ) %>%
+    as.data.frame()
+  , subject = "damID"
+)
+```
+
+
+```{r}
+testDamBehav <- damBehavior_byPND %>%
+  filter(
+    cohort == 9
+  )
+f1.ld.f1(
+  y = testDamBehav$Num_exits
+  , time = testDamBehav$PND
+  , group = testDamBehav$earlyLifeTrt
+  , subject = testDamBehav$damID
+  , time.name = "PND"
+  , group.name = "early-life trt"
+)
+```
+
+```{r}
+damBehavior_byPND %>%
+  filter(
+    is.na(Num_exits)
+  )
+```
+
+```{r}
+"damID" %in% colnames(damBehavior_byPND)
+
+is.vector(damBehavior_byPND$damID)
+!is.null(damBehavior_byPND$damID)
+```
+
+
+
+```{r}
+damBehavior_byPND %>%
+  makeFactors(PND) %>%
+  filter(
+    earlyLifeTrt == "LBN"
+  )
+```
+```{r}
+damBehavior_byPND %>%
+  makeFactors(PND) %>%
+  filter(
+    earlyLifeTrt == "STD"
+  )
+```
+```{r}
+damBehavior_byPND %>%
+  makeFactors(PND) %>%
+  filter(
+    is.na(PND)
+  )
+```
+
+```{r}
+simpDamData <- damBehavior_byPND %>%
+  filter(
+    cohort == 9
+    , ! damID  %in% c("D102-01", "D105-01")
+  ) %>%
+  select(
+    damID, PND, Num_exits
+  )
+
+simpDamData %>%
+  group_by(
+    damID
+  ) %>%
+  summarize(
+    n = n()
+  ) %>%
+  filter(
+    n != 8
+  )
+
+simpDamData$damID <- as.character(simpDamData$damID)
+
+str(simpDamData)
+head(simpDamData)
+
+simpDamData$damID <- as.vector(simpDamData$damID)
+
+simpDamData <- as.data.frame(simpDamData)
+
+nparLD(Num_exits~PND, data=simpDamData,
+subject="damID", description=FALSE)
+```
+
+If you change one of the values to NA it doesn't work any more
+
+```{r}
+data("dental")
+
+dental <- dental %>%
+  mutate(
+    subject = paste0("S", as.character(subject))
+  )
+
+dental$resp[3] <- NA
+# dental$subject <- as.factor(dental$subject)
+```
+
+```{r}
+
+### Box plot for Figure 2 ###
+boxplot(resp~time, data=dental, lwd=2, xlab="time",
+font.lab=2,cex.lab=2, main="Box Plots")
+
+### 95% confidence interval plot for Figure 2 ###
+ex.f1np<-nparLD(resp~time, data=dental,
+subject="subject", description=FALSE)
+plot(ex.f1np)
+
+### Summary of the statistical analysis ###
+summary(ex.f1np)
+
+### Multiple comparisons as in Table 4 ###
+### 810 is for ages 8 vs 10 ###
+### 812 is for ages 8 vs 12 ###
+### 814 is for ages 8 vs 14 ###
+
+m810<-which(((dental$time==8)+(dental$time==10))==1)
+m812<-which(((dental$time==8)+(dental$time==12))==1)
+m814<-which(((dental$time==8)+(dental$time==14))==1)
+
+ex.f1np810<-nparLD(resp~time, data=dental[m810,],
+subject="subject", description=FALSE)
+ex.f1np812<-nparLD(resp~time, data=dental[m812,],
+subject="subject", description=FALSE)
+ex.f1np814<-nparLD(resp~time, data=dental[m814,],
+subject="subject", description=FALSE)
+
+summary(ex.f1np810)
+summary(ex.f1np812)
+summary(ex.f1np814)
+```
+
+
+
+```{r}
+damBehavior_byPND
+```
+
+```{r}
+# Create a vector for the required range of PND
+required_PND <- 4:11
+
+# Get the unique damIDs
+unique_damIDs <- unique(damBehavior_byPND$damID)
+
+# Initialize an empty data frame to store the new rows
+new_rows <- data.frame()
+
+# Loop through each damID
+for(damID in unique_damIDs){
+    
+  # Get the PNDs for this damID
+  existing_PNDs <- damBehavior_byPND[damBehavior_byPND$damID == damID, "PND"]
+  
+  # Determine the missing PNDs
+  missing_PNDs <- required_PND[!required_PND %in% existing_PNDs$PND]
+  print(missing_PNDs)
+  
+  # For each missing PND, create a new row with this PND, the current damID, and NAs for the other columns
+  for(PND in missing_PNDs){
+    new_row <- data.frame(damID = damID, PND = PND, additional_columns = NA)
+    
+    # Add this new row to the data frame of new rows
+    new_rows <- rbind(new_rows, new_row)
+  }
+}
+
+new_rows
+```
+
+
+GPT helped to write this - figure out which rows need to be added for the damBehavior df so that the NAs are explicit
+
+```{r}
+detect_missing_rows <- function(df) {
+
+  # Initial DF with all possible combinations
+  full_df <- expand.grid(damID = unique(df$damID), PND = 4:11, ZT = c(15, 19, 1)) %>% 
+    mutate(ZT = if_else(PND == 4 & ZT == 1, NA_real_, ZT),
+           ZT = if_else(PND == 11 & ZT %in% c(15, 19), NA_real_, ZT)) %>%
+    drop_na()
+
+  # Anti join to find missing rows
+  missing_df <- anti_join(full_df, df, by = c("damID", "PND", "ZT"))
+  
+  return(missing_df)
+}
+```
+
+```{r}
+damBehavior_byPND_ZT %>%
+  detect_missing_rows() %>%
+  write.table("clipboard", sep="\t", row.names=FALSE, col.names = FALSE)
+```
+
+
+
+```{r}
+f1.ld.f1(
+  y = damBehavior_byPND$Num_exits
+  , time = damBehavior_byPND$PND
+  , group = damBehavior_byPND$earlyLifeTrt
+  , subject = damBehavior_byPND$damID
+  , time.name = "PND"
+  , group.name = "early-life trt"
+)
+```
+
+
+```{r}
+detect_missing_mass_rows <- function(df) {
+  # Particular days to consider
+  specific_days <- c(4, 11:24, 28, 35, 42, 49, 56, 63, 70, 71, 72)
+  
+  # Full combination
+  full_df <- expand.grid(damID = unique(df$damID), 
+                         sex = c("F", "M"),
+                         # earlyLifeTrt = unique(df$earlyLifeTrt),
+                         day = specific_days,
+                         mass = NA)
+  
+  # Anti join to find missing rows
+  missing_df <- anti_join(full_df, df, by = c(
+    "damID"
+    , "sex"
+    # , "earlyLifeTrt"
+    , "day"
+  ))
+  
+  return(missing_df)
+}
+```
+
+```{r}
+missingDays <- mass_byDam_long %>%
+  detect_missing_mass_rows() %>%
+  left_join(
+    Demo_dam %>%
+      select(
+        damID, earlyLifeTrt
+      )
+    , by = "damID"
+  )
+
+mass_byDam_long_withMissing <- mass_byDam_long %>%
+  bind_rows(
+    missingDays
+  )
+
+mass_byDam_long_withMissing <- mass_byDam_long_withMissing %>%
+  mutate(
+    day = relevel(day, 4)
+  )
+```
+
+
+```{r}
+mass_byDam_long
+
+nparLD(
+  mass ~ day * earlyLifeTrt * sex
+  , data = mass_byDam_long_withMissing %>%
+    filter(
+      ! damID %in% unique(missingDays$damID) 
+    ) %>%
+    as.data.frame()
+  , subject = "damID"
+)
+```
+
+```{r}
+mass_byDamSex <- mass_byDam_long_withMissing %>%
+  unite(
+    damSex
+    , damID
+    , sex
+    , remove = FALSE
+  )
+
+f2.ld.f1(
+  y = mass_byDamSex$mass
+  , time = mass_byDamSex$day
+  , group1 = mass_byDamSex$sex
+  , group2 = mass_byDamSex$earlyLifeTrt
+  , subject = mass_byDamSex$damSex
+  , time.name = "day"
+  , group1.name = "sex"
+  , group2.name = "early-life trt"
+  , time.order = c(4, 11:24, 28, 35, 42, 49, 56, 63, 70, 71, 72)
+)
+
+sepByDamMass$ANOVA.test
+
+print(sepByDamMass)
+
+plot(sepByDamMass)
+
+sepByDamMass$covariance
+```
+```{r}
+damSex_npar <- f1.ld.f2(
+  y = mass_byDam_long_withMissing$mass
+  , time1 = mass_byDam_long_withMissing$day
+  , time2 = mass_byDam_long_withMissing$sex
+  , group = mass_byDam_long_withMissing$earlyLifeTrt
+  , subject = mass_byDam_long_withMissing$damID
+  , time1.name = "day"
+  , time2.name = "sex"
+  , group.name = "early-life trt"
+  , time1.order = c(4, 11:24, 28, 35, 42, 49, 56, 63, 70, 71, 72)
+)
+
+damSex_npar$ANOVA.test
+```
+
+```{r}
+mass_byDam_long_withMissing %>%
+  group_by(
+    damID
+    , sex
+  ) %>%
+  summarize(
+    n = n()
+  ) %>%
+  filter(
+    n != 24
+  )
+```
+
+```{r}
+mass_byDam_long_withMissing %>%
+  detect_missing_mass_rows()
+```
+
+
+# Generalized additive mixed model
+
+```{r}
+# Load the necessary package
+library(mgcv)
+
+# Fit the GAMM
+mod <- gamm(mass ~ earlyLifeTrt * sex + s(day, bs = "ps"), 
+            random = list(mouseID = ~1, damID = ~1), 
+            data = mass_long %>%
+              arrange(
+                damID
+                , mass
+              ))
+
+mod
+
+summary(mod$lme)
+```
+```{r}
+# Load the necessary package
+library(mgcv)
+
+# Fit the GAMM
+mod <- gamm(mass ~ earlyLifeTrt * sex +
+                    s(day, by = interaction(earlyLifeTrt, sex), bs = "ps"), 
+            random = list(mouseID = ~1, damID = ~1), 
+            data = mass_long %>%
+              arrange(
+                damID
+                , mass
+              ))
+
+mod
+
+summary(mod$lme)
+```
+
+# Splines approach
+
+```{r}
+lmm <- mass_long %>%
+  filter(
+    day >= 11
+    , sex == "F"
+  ) %>%
+  mutate(
+    # day = day - 11
+  ) %>%
+  runLMM(
+    mass ~ earlyLifeTrt * lspline(day, c(21, 35)) + (1|damID) + (1|mouseID)
+    , printSummary = TRUE
+  )
+
+lmm$coefs %>% formatLMM_ppt()
+```
+```{r}
+library(lspline)
+```
+
+
+```{r}
+spline_terms <- lspline(mass_long$day, c(21,35))
+colnames(spline_terms) <- c("spline1", "spline2", "spline3")
+
+data <- cbind(mass_long, spline_terms)
+
+data
+
+model <- mixed(mass ~ earlyLifeTrt * spline1 * spline2 * spline3 + (1|damID) + (1|mouseID), data = data %>% filter(sex == "F"))
+
+model
+```
+
+# color dam behavior plots better
+
+This version doesn't take the mean first
+
+```{r}
+add_ordered_colors <- function(df, order_var, ...) {
+  # We use enquo() to quote the inputs
+  order_var_quo <- enquo(order_var)
+  group_vars_quos <- quos(...)
+  
+  df <- df %>%
+    group_by(!!!group_vars_quos) %>%
+    mutate(rank = rank(-!!order_var_quo, ties.method = "first"),
+           color = rainbow(max(rank))[rank]) %>%
+    ungroup()
+  
+  return(df)
+}
+```
+
+```{r}
+add_ordered_colors <- function(df, order_var, subject_var, ...) {
+  # quote the variables
+  order_var_quo <- enquo(order_var)
+  subject_var_quo <- enquo(subject_var)
+  group_vars_quos <- quos(...)
+  
+  # calculate the mean for each subject within each group
+  mean_df <- df %>%
+    group_by(!!subject_var_quo, !!!group_vars_quos) %>%
+    summarize(mean_order_var = mean(!!order_var_quo, na.rm = TRUE)) %>%
+    ungroup()
+  
+  # calculate ranks and colors based on the means 
+  # using rank with ties.method = "first" to ensure no ties
+  mean_df <- mean_df %>%
+    mutate(rank = rank(-mean_order_var, ties.method = "first"),
+           color = rainbow(max(rank))[rank]) 
+
+  # add the calculated colors back to the original data
+  df <- df %>%
+    left_join(mean_df, by = c(deparse(subject_var_quo),
+                              rlang::quos_to_labels(group_vars_quos)))
+  
+  return(df)
+}
+```
+```{r}
+add_ordered_colors <- function(df, order_var, subject_var, ...) {
+  # calculate the mean for each subject within each group
+  mean_df <- df %>%
+    group_by(
+      {{ subject_var }}
+      , ... 
+    ) %>%
+    summarize(mean_order_var = mean(
+      {{ order_var }}
+      , na.rm = TRUE
+    )) %>%
+    ungroup()
+  
+  # calculate ranks and colors based on the means 
+  # using rank with ties.method = "first" to ensure no ties
+  mean_df <- mean_df %>%
+    mutate(
+      rank = rank(
+        -mean_order_var
+        , ties.method = "first"
+      ),
+      color = rainbow(max(rank))[rank]) 
+
+  # add the calculated colors back to the original data
+  df <- df %>%
+    left_join(
+      mean_df
+      , by = c(
+        {{ subject_var }}
+        , {{{  ... }}}
+    ))
+  
+  return(df)
+}
+```
+
+```{r}
+install.packages("viridis")
+library(viridis)
+```
+
+```{r}
+# install.packages("colorspace")
+library(colorspace)
+```
+
+2023-11-06 - 9:30p, working version
+
+```{r}
+add_ordered_colors <- function(df, order_var, subject_var, colorByGroups = FALSE, ...) {
+  group_vars <- rlang::enexprs(...)
+  
+  # calculate the mean for each subject within each group
+  mean_df <- df %>%
+    group_by(
+      {{ subject_var }}
+      , ...
+    ) %>%
+    summarize(mean_order_var = mean(
+      {{ order_var }}
+      , na.rm = TRUE
+      )
+      , .groups = "drop"
+    )
+  
+  if(colorByGroups){
+    mean_df <- mean_df %>%
+      group_by(
+        ...
+      )
+  }
+  
+  mean_df <- mean_df %>%  
+    mutate(
+      rank = rank (
+        -mean_order_var
+        , ties.method = "first"
+      ),
+      # these are different color options
+      color = rainbow(max(rank))[rank]
+      # color = viridis(max(rank))[rank]
+      # color = sequential_hcl(max(rank))[rank]
+      # color = topo.colors(max(rank))[rank]
+    ) %>%
+    ungroup()
+  
+  subject_var_str <- deparse(substitute(subject_var))
+  ellipsis_vars <- substitute(alist(...))
+  ellipsis_strs <- sapply(ellipsis_vars[-1], as.character)
+  # add the calculated colors back to the original data
+  df <- df %>%
+    left_join(
+      mean_df
+      , by = c( subject_var_str, ellipsis_strs)
+    )
+  
+  return(df)
+}
+```
+
+
+```{r}
+damBehavior_colored <- NULL
+  
+damBehavior_byPND_ZT %>%
+  add_ordered_colors(
+    Num_exits
+    , damID
+    , earlyLifeTrt
+  )
+```
+
+```{r}
+damBehavior_colored
+```
+
+# filter a subset of data to plot
+
+```{r}
+damBehavior_byPND %>%
+  getRandomSubjects(damID, 3, ... = earlyLifeTrt)
+
+
+df_subjects <- df %>%
+    distinct(damID) %>% 
+    sample_n(3)
+
+IDs <- df_subjects %>%
+  pull(damID)
+  
+  # Step 2: Filter the original dataframe 
+  # to include only rows that match the selected subjects
+  df_filtered <- df %>% 
+    filter(damID %in% IDs)
+  
+  df_filtered
+```
+
+
+```{r}
+# Create an empty dataframe
+df <- data.frame(time = numeric(), potential = numeric())
+
+# Adding x and y axis limits
+p <- ggplot(df, aes(time, potential)) +
+  theme(axis.text.x=element_blank()) +
+  scale_x_continuous(limits = c(0, 100), expand = c(0,0)) +
+  scale_y_continuous(limits = c(-100, 80), breaks = seq(-100, 80, by = 20)) +
+  
+  # Adding horizontal lines
+  geom_hline(aes(yintercept = 0),     color = "grey", linetype = "dotted") +
+  geom_hline(aes(yintercept = -71.7), color = "black", linetype = "dashed") +
+  geom_hline(aes(yintercept = -90.1), color = "#6D6ECB", linetype = "dashed") +
+  geom_hline(aes(yintercept = 61),    color = "#8B4386", linetype = "dashed") +
+  geom_hline(aes(yintercept = -63.5),    color = "#44A043", linetype = "dashed") +
+  
+  # Add a solid line from 0 to 25
+  geom_line(data = data.frame(time = c(0, 25), potential = rep(-71.7, 2)), 
+            aes(time, potential), color = "red", linetype = "solid") +
+   
+  # Labels for the axes
+  labs(x = "Time (ms)", y = "Membrane potential (mV)") +
+  
+  textTheme(size = textSize) +
+  boxTheme()
+
+# Create the plot
+p
 ```
 

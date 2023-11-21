@@ -2,71 +2,71 @@ set_sum_contrasts()
 set_null_device("png")
 
 
-# Dam behavior - exits ------------------------------------------------------
-
-#Chose a negative binomial distritution because this is count data, but it is
-#overdispersed, meaning that the variation is more than the means (which
-#violates assumptions for a Poisson distribution). 
-
-#This would suggest that there's an effect of both treatment and experimental
-#day on the number of exits that the dam makes from the nest. There's not a lot
-#of evidence here for an interaction between day and treatment, though it's
-#harder to tell with each of the individual effects reported.
-
-numExits_nb.GLMM <- glmer.nb(
-  Num_exits ~ earlyLifeTrt * PND + (1|damID)
-  , data = damBehavior_byPND_ZT %>%
-    makeFactors(c(PND, ZT))
-)
-
-# Closest I've gotten to an ANOVA-like analysis. Not sure if this is best
-numExits_nb.GLMM_jointTest <- joint_tests(numExits_nb.GLMM)
-
-
-## Post-hoc ----------------------------------------------------------------
-
-numExits_nb.GLMM.earlyLifeEMM <- emmeans(
-  numExits_nb.GLMM
-  , "earlyLifeTrt"
-  , type = "response"
-)
-
-numExits_nb.GLMM.earlyLifeEMM.pairs <- pairs(numExits_nb.GLMM.earlyLifeEMM)
-
-
-
-## Errors for graph --------------------------------------------------------
-
-numExits_nb.GLMM_errors <- numExits_nb.GLMM %>%
-  getErrorDF_LMM("PND", panel = "earlyLifeTrt")
-
-numExits_nb.GLMM_errors.earlyLifeEMM <- numExits_nb.GLMM %>%
-  getErrorDF_LMM("earlyLifeTrt")
-
-
-
-# Dam behavior - perc time off nest ---------------------------------------
-
-
-percOffNest_lmm <- mixed(
-  Perc_off_nest ~ earlyLifeTrt * PND + (1|damID)
-  , data = damBehavior_byPND_ZT %>%
-    makeFactors(c(PND, ZT))
-  , method = "KR"
-)
-
-# No interactions or main effects -> no post-hocs
-
-
-## Errors for graph --------------------------------------------------------
-
-percOffNest_lmm_errors <- percOffNest_lmm %>%
-  getErrorDF_LMM("PND", panel = "earlyLifeTrt")
-
-percOffNest_lmm_errors.earlyLifeEMM <- percOffNest_lmm %>%
-  getErrorDF_LMM("earlyLifeTrt")
-
-
+# # Dam behavior - exits ------------------------------------------------------
+# 
+# #Chose a negative binomial distritution because this is count data, but it is
+# #overdispersed, meaning that the variation is more than the means (which
+# #violates assumptions for a Poisson distribution). 
+# 
+# #This would suggest that there's an effect of both treatment and experimental
+# #day on the number of exits that the dam makes from the nest. There's not a lot
+# #of evidence here for an interaction between day and treatment, though it's
+# #harder to tell with each of the individual effects reported.
+# 
+# numExits_nb.GLMM <- glmer.nb(
+#   Num_exits ~ earlyLifeTrt * PND + (1|damID)
+#   , data = damBehavior_byPND_ZT %>%
+#     makeFactors(c(PND, ZT))
+# )
+# 
+# # Closest I've gotten to an ANOVA-like analysis. Not sure if this is best
+# numExits_nb.GLMM_jointTest <- joint_tests(numExits_nb.GLMM)
+# 
+# 
+# ## Post-hoc ----------------------------------------------------------------
+# 
+# numExits_nb.GLMM.earlyLifeEMM <- emmeans(
+#   numExits_nb.GLMM
+#   , "earlyLifeTrt"
+#   , type = "response"
+# )
+# 
+# numExits_nb.GLMM.earlyLifeEMM.pairs <- pairs(numExits_nb.GLMM.earlyLifeEMM)
+# 
+# 
+# 
+# ## Errors for graph --------------------------------------------------------
+# 
+# numExits_nb.GLMM_errors <- numExits_nb.GLMM %>%
+#   getErrorDF_LMM("PND", panel = "earlyLifeTrt")
+# 
+# numExits_nb.GLMM_errors.earlyLifeEMM <- numExits_nb.GLMM %>%
+#   getErrorDF_LMM("earlyLifeTrt")
+# 
+# 
+# 
+# # Dam behavior - perc time off nest ---------------------------------------
+# 
+# 
+# percOffNest_lmm <- mixed(
+#   Perc_off_nest ~ earlyLifeTrt * PND + (1|damID)
+#   , data = damBehavior_byPND_ZT %>%
+#     makeFactors(c(PND, ZT))
+#   , method = "KR"
+# )
+# 
+# # No interactions or main effects -> no post-hocs
+# 
+# 
+# ## Errors for graph --------------------------------------------------------
+# 
+# percOffNest_lmm_errors <- percOffNest_lmm %>%
+#   getErrorDF_LMM("PND", panel = "earlyLifeTrt")
+# 
+# percOffNest_lmm_errors.earlyLifeEMM <- percOffNest_lmm %>%
+#   getErrorDF_LMM("earlyLifeTrt")
+# 
+# 
 # Dam Mass ----------------------------------------------------------------
 
 
@@ -116,6 +116,7 @@ damMass_lmm_errors <- damMass_lmm %>%
 
 damCort_t.Test <- t.test(
   Cort_dam_P11 ~ earlyLifeTrt, data = damFiltered
+  , var.equal = TRUE
 )
 
 
@@ -390,6 +391,75 @@ cort_lmm_error <- cort_lmm_emm %>%
   ) %>%
   combineStress()
 
+# Corticosterone - only females ----------------------------------------------------------
+
+cort_lmm_f <- mixed(
+  log(cort) ~ Sac_cycle * earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
+  , data = cortFilteredFemales
+  , method = "KR"
+)
+
+# 2023-11-12
+# Interaction between adultTrt and time
+# Interaction between Sac_cycle and time
+
+
+## Post-hoc ----------------------------------------------------------------
+
+cort_lmm_emm_adultTrtTime_f <-  emmeans(
+  cort_lmm_f
+  , "adultTrt"
+  , by = "time"
+  , type = "response"
+)
+
+# ALPS at 5 is more than CON at 5
+# No difference initially
+cort_lmm_emm_adultTrtTime.pairs_f <- test(
+  pairs(cort_lmm_emm_adultTrtTime_f)
+  , by = NULL
+  , adjust = "holm"
+)
+
+cort_lmm_emm_Sac_cycleTime_f <-  emmeans(
+  cort_lmm_f
+  , "Sac_cycle"
+  , by = "time"
+  , type = "response"
+)
+
+# At time 0 (baseline)
+# Di diff than pro (less)
+
+# At time 5
+# No difference
+cort_lmm_emm_Sac_cycleTime.pairs_f <- test(
+  pairs(cort_lmm_emm_Sac_cycleTime_f)
+  , by = NULL
+  , adjust = "holm"
+)
+
+
+## Errors for graph --------------------------------------------------------
+
+cort_lmm_emm_f <- emmeans(
+  cort_lmm_f
+  , "earlyLifeTrt"
+  , by = c("adultTrt", "Sac_cycle", "time")
+  , type = "response"
+  )
+
+cort_lmm_error_f <- cort_lmm_emm_f %>%
+  as_data_frame() %>%
+  rename(
+    y = response
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+  ) %>%
+  combineStress()
+
 
 # Body mass - AM ----------------------------------------------------------
 
@@ -398,6 +468,49 @@ bodyMassAM_lmm <- mixed(
   , data = acuteStressFiltered_M_DiPro
   , method = "KR"
 )
+
+
+
+# Male cort ---------------------------------------------------------------
+
+male_cort_lmm <- mixed(
+  log(cort) ~ earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
+  , data = cortFilteredMales
+  , method = "KR"
+)
+
+# adult x time
+
+
+# Female cort -------------------------------------------------------------
+female_cort_lmm <- mixed(
+  log(cort) ~ Sac_cycle * earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
+  , data = cortFilteredFemales
+  , method = "KR"
+)
+
+# Cycle stage interaction with time
+
+
+# Diestrous cort -----------------------------------------------------------
+
+di_cort_lmm <- mixed(
+  log(cort) ~ earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
+  , data = cortFilteredDi
+  , method = "KR"
+)
+
+# adult x time
+
+# Proestrous cort -----------------------------------------------------------
+
+pro_cort_lmm <- mixed(
+  log(cort) ~ earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
+  , data = cortFilteredPro
+  , method = "KR"
+)
+
+
 
 
 ## Post-hoc ----------------------------------------------------------------
@@ -839,3 +952,9 @@ relAmplitude_lmm_errors <- relAmplitude_lmm %>%
     , panel = "adultTrt"
   ) %>%
   combineStress()
+
+
+
+# Cort admin --------------------------------------------------------------
+
+

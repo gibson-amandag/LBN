@@ -1,4 +1,4 @@
-textSize <- 16
+textSize <- 24
 dotSize <- 3
 facetMatByLitter <- FALSE
 
@@ -17,37 +17,60 @@ figDams_exits <- damBehavior_byPND %>%
     , ymin = 0
     , showMean = FALSE
     , addVertError = FALSE
-  ) +
-  plotError_LMM(
-    numExits_nb.GLMM_errors %>%
-      mutate(
-        PND = as.numeric(as.character(PND))
-      )
-    , xVar = PND
-    , meanBarWidth = 0.7
-    , color = "black"
-    , nudgeErrorLine = 0
+  # ) +
+  # plotError_LMM(
+  #   numExits_nb.GLMM_errors %>%
+  #     mutate(
+  #       PND = as.numeric(as.character(PND))
+  #     )
+  #   , xVar = PND
+  #   , meanBarWidth = 0.7
+  #   , color = "black"
+  #   , nudgeErrorLine = 0
   )
 
 figDams_meanExits <- damBehavior_byDam %>%
-  scatterPlotLBN(
-    yVar = Num_exits
-    , yLab = "mean # of exits"
+  unite(
+    fullRec,
+    earlyLifeTrt,
+    cohort,
+    sep = "-",
+    remove = FALSE
+  ) %>%
+  scatterPlot_general(
+    xVar = earlyLifeTrt
+    , xLab = NULL
+    , yVar = Num_exits
+    , yLab = "mean # exits"
+    , fillVar = fullRec
+    , fillLimits = c("STD-7", "STD-9", "LBN-7", "LBN-9")
+    , fillValues = c("grey", "white", "darkcyan", "lightblue1")
+    , textSize = textSize
+    , dotSize = dotSize
     , addMean = FALSE
-    , addSEM = FALSE
+    , addSE = FALSE
     , zoom_y = TRUE
     , ymax = 50
     , ymin = 0
-    , dotSize = dotSize
-    , textSize = textSize
-  ) + 
-  plotError_LMM(
-    numExits_nb.GLMM_errors.earlyLifeEMM
-    , xVar = earlyLifeTrt
-    , meanBarWidth = 0.7
-    , color = "black"
-    , nudgeErrorLine = 0
   ) +
+  # scatterPlotLBN(
+  #   yVar = Num_exits
+  #   , yLab = "mean # of exits"
+  #   , addMean = FALSE
+  #   , addSEM = FALSE
+  #   , zoom_y = TRUE
+  #   , ymax = 50
+  #   , ymin = 0
+  #   , dotSize = dotSize
+  #   , textSize = textSize
+  # ) + 
+  # plotError_LMM(
+  #   numExits_nb.GLMM_errors.earlyLifeEMM
+  #   , xVar = earlyLifeTrt
+  #   , meanBarWidth = 0.7
+  #   , color = "black"
+  #   , nudgeErrorLine = 0
+  # ) +
   facet_wrap(
     ~earlyLifeTrt
     , scales = "free_x"
@@ -71,16 +94,16 @@ figDams_offNest <- damBehavior_byPND %>%
     , ymin = 0
     , showMean = FALSE
     , addVertError = FALSE
-  ) +
-  plotError_LMM(
-    percOffNest_lmm_errors %>%
-      mutate(
-        PND = as.numeric(as.character(PND))
-      )
-    , xVar = PND
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , color = "black"
+  # ) +
+  # plotError_LMM(
+  #   percOffNest_lmm_errors %>%
+  #     mutate(
+  #       PND = as.numeric(as.character(PND))
+  #     )
+  #   , xVar = PND
+  #   , nudgeErrorLine = 0
+  #   , nudgeMeanLine = 0
+  #   , color = "black"
   )
 
 figDams_meanOffNest <- damBehavior_byDam %>%
@@ -95,13 +118,13 @@ figDams_meanOffNest <- damBehavior_byDam %>%
     , dotSize = dotSize
     , textSize = textSize
   ) +
-  plotError_LMM(
-    percOffNest_lmm_errors.earlyLifeEMM
-    , xVar = earlyLifeTrt
-    , meanBarWidth = 0.7
-    , color = "black"
-    , nudgeErrorLine = 0
-  ) +
+  # plotError_LMM(
+  #   percOffNest_lmm_errors.earlyLifeEMM
+  #   , xVar = earlyLifeTrt
+  #   , meanBarWidth = 0.7
+  #   , color = "black"
+  #   , nudgeErrorLine = 0
+  # ) +
   facet_wrap(
     ~earlyLifeTrt
     , scales = "free_x"
@@ -332,21 +355,24 @@ figOff_maleAGD <- maturation_byDam_m %>%
 
 ## Representative Plots ----------------------------------------------------
 
-stdCycles <- cyclesFiltered %>%
-  filter(
-    earlyLifeTrt == "STD"
-  )
-lbnCycles <- cyclesFiltered %>%
-  filter(
-    earlyLifeTrt == "LBN"
-  )
-stdMice <- stdCycles[sample(nrow(stdCycles))[1:4],]$mouseID
-lbnMice <- lbnCycles[sample(nrow(lbnCycles))[1:4],]$mouseID
+## replaced with getRandomSubjects 2023-11-11
+# stdCycles <- cyclesFiltered %>%
+#   filter(
+#     earlyLifeTrt == "STD"
+#   )
+# lbnCycles <- cyclesFiltered %>%
+#   filter(
+#     earlyLifeTrt == "LBN"
+#   )
+# stdMice <- stdCycles[sample(nrow(stdCycles))[1:4],]$mouseID
+# lbnMice <- lbnCycles[sample(nrow(lbnCycles))[1:4],]$mouseID
 
 figCyclesA <-  cyclesFiltered %>%
-  filter(
-    mouseID %in% stdMice | mouseID %in% lbnMice
-  ) %>%
+  # filter(
+  #   mouseID %in% stdMice | mouseID %in% lbnMice
+  # ) %>%
+  group_by(earlyLifeTrt) %>%
+  getRandomSubjects(mouseID, 4, seed = 42) %>%
   arrange(
     earlyLifeTrt
   ) %>%
@@ -400,15 +426,15 @@ figCycles_lengthLog_model <- cyclesFiltered %>%
     , dotSize = dotSize
     , addMean = FALSE
     , addSEM = FALSE
-    , zoom_y = FALSE
+    , zoom_y = TRUE # make false if log
     , ymin = 0
     , ymax = 10
   ) +
-  scale_y_continuous(
-    trans = "log"
-    , limits = c(1, 10)
-    , breaks = c(2, 4, 6, 8, 10)
-  ) +
+  # scale_y_continuous(
+  #   trans = "log"
+  #   , limits = c(1, 10)
+  #   , breaks = c(2, 4, 6, 8, 10)
+  # ) +
   plotError_LMM(
     lengthCycles_log_lmm_error
     , xVar = earlyLifeTrt
@@ -441,16 +467,23 @@ figCyclesD <- cyclesPercLong %>%
 plotCort_long <- manuscriptCortPlotFunc(
   fontSize = textSize
   , dotSize = dotSize
-  , zoom_y = FALSE
+  # , zoom_y = FALSE
+  , zoom_y = TRUE
+  , ymin = 0
+  , ymax = 750
   , plotMean = FALSE
   , plotSE = FALSE
 )
 
+# cortScale <- scale_y_continuous(
+#   trans = "log"
+#   , limits = c(1, 700)
+#   , breaks = c(1.5625, 3.125, 6.25, 12.5, 25, 50, 100, 200, 400, 800)
+#   , labels = c("1.56", "3.13", "6.25", "12.5", "25", "50", "100", "200", "400", "800")
+# )
+
 cortScale <- scale_y_continuous(
-  trans = "log"
-  , limits = c(1, 700)
-  , breaks = c(1.5625, 3.125, 6.25, 12.5, 25, 50, 100, 200, 400, 800)
-  , labels = c("1.56", "3.13", "6.25", "12.5", "25", "50", "100", "200", "400", "800")
+  breaks = c(0, 150, 300, 450, 600, 750)
 )
 
 
@@ -872,7 +905,7 @@ plotCapacitance_noMean <- plotCatVarFunc(
   expr(capacitance)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = TRUE
+  , twoLineXLabs = FALSE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -881,7 +914,7 @@ plotRseries_noMean <- plotCatVarFunc(
   expr(Rseries)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = TRUE
+  , twoLineXLabs = FALSE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -890,7 +923,7 @@ plotRinput_noMean <- plotCatVarFunc(
   expr(Rinput)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = TRUE
+  , twoLineXLabs = FALSE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -899,7 +932,7 @@ plotHoldingCurr_noMean <- plotCatVarFunc(
   expr(holdingCurrent)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = TRUE
+  , twoLineXLabs = FALSE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -908,7 +941,7 @@ plotGABAfreq_noMean <- plotCatVarFunc(
   expr(frequency)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = TRUE
+  , twoLineXLabs = FALSE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -917,7 +950,7 @@ plotGABAamp_noMean <- plotCatVarFunc(
   expr(relPeak)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = TRUE
+  , twoLineXLabs = FALSE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -994,18 +1027,48 @@ figGABAf_model <- GABApscs_240FilteredFiring %>%
     , color = "magenta"
   )
 
-# figGABAa <- GABApscsFilteredFiring %>%
-#   plotCapacitance()
-# figGABAc <- GABApscsFilteredFiring %>%
-#   plotRseries()
-# figGABAb <- GABApscsFilteredFiring %>%
-#   plotRinput()
-# figGABAd <- GABApscsFilteredFiring %>%
-#   plotHoldingCurr()
-# figGABAe <- GABApscsFilteredFiring %>%
-#   plotGABAfreq()
-# figGABAf <- GABApscsFilteredFiring %>%
-#   plotGABAamp()
+
+# Cort admin --------------------------------------------------------------
+
+maleCortAdmin_plotByConsumption <- maleCortAdmin_cort %>%
+  plotCortByNutellaConsumption(
+    fontSize = 16
+  )
+
+latterCortAdmin_plotByConsumption <- latterCortAdmin_cort %>%
+  plotCortByNutellaConsumption(
+    fontSize = 16
+  )
+
+plotCortAdminAMBodyMass <- plotMaleCortAdminFunc(
+  expr(Body_mass_AM)
+  , thisYLab = "body mass (g)"
+)
+
+plotCortAdminPercChangeBodyMass <- plotMaleCortAdminFunc(
+  expr(percChangeBodyMass)
+  , thisYLab = "% change in body mass"
+)
+
+plotCortAdminTesticularMass <- plotMaleCortAdminFunc(
+  expr(Gonad_mass_perBodyAM_g)
+  , thisYLab = "rel. testicular mass (mg/g)"
+)
+
+plotCortAdminSeminalVesicleMass <- plotMaleCortAdminFunc(
+  expr(ReproTract_mass_perBodyAM_g)
+  , thisYLab = "rel. seminal vesicle mass (mg/g)"
+)
+
+plotCortAdminAdrenalMass <- plotMaleCortAdminFunc(
+  expr(Adrenal_mass_perBodyAM_g)
+  , thisYLab = "rel. adrenal vesicle mass (mg/g)"
+)
 
 
+maleCortAdmin_AMBodyMass <- plotCortAdminAMBodyMass(latterCortAdmin)
+maleCortAdmin_PercChangeBodyMass <- plotCortAdminPercChangeBodyMass(latterCortAdmin)
+maleCortAdmin_TesticularMass <- plotCortAdminTesticularMass(latterCortAdmin)
+maleCortAdmin_SeminalVesicleMass <- plotCortAdminSeminalVesicleMass(latterCortAdmin)
+maleCortAdmin_AdrenalMass <- plotCortAdminAdrenalMass(latterCortAdmin)
 

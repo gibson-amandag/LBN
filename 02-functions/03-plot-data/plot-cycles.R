@@ -139,7 +139,8 @@ plotCycleTraces_single <- function(
   colorLimits = c("STD", "LBN"),
   colorValues = c("grey", "black"),
   removeFacets = FALSE,
-  removeLegend = TRUE
+  removeLegend = TRUE,
+  fontSize = 12
 ){
   viz <- ggplot(df, aes(x = {{ day }}, y = {{ stage }}, color = {{ lineColorVar }})) +
     geom_line(aes(group = {{ MouseID }})) +
@@ -155,13 +156,11 @@ plotCycleTraces_single <- function(
     scale_x_continuous(
       breaks = seq(1, 400, 3) #labels every third integer
     ) +
-    expand_limits(
-      y = 0
-    )
+    coord_cartesian(ylim = c(0.5, 3.5))
   
   viz <- viz + 
     theme_pubr() +
-    textTheme() + 
+    textTheme(size = fontSize) + 
     boxTheme()
   
   if(!is.null(enquo(lineColorVar))){

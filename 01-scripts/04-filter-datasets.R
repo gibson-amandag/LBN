@@ -13,7 +13,7 @@ filterLBNCohorts <- filterLBN(cohorts, minLitterSize, exclude9011)
 # Dam Demo ----------------------------------------------------------------
 
 damFiltered <- Demo_dam %>%
-  filterLBNCohorts()
+  filterLBNCohorts() 
 
 
 # Dam Behavior ------------------------------------------------------------
@@ -622,6 +622,9 @@ cortFiltered_M_DiPro <- cortFiltered %>%
       , "male"
       , Sac_cycle
     )
+  ) %>%
+  mutate(
+    hormoneStatus = factor(hormoneStatus, c("male", "diestrus", "proestrus"))
   )
 
 cortFilteredMales <- cortFiltered %>%
@@ -813,4 +816,15 @@ if(filterByMinRecDuration){
 }
 
 
+# Male cort admin ---------------------------------------------------------
+
+latterCortAdmin <- maleCortAdmin %>%
+  filter(
+    Sac_date >= as_date("2023-07-19")
+  )
+
+latterCortAdmin_cort <- maleCortAdmin_cort %>%
+  filter(
+    Sac_date >= as_date("2023-07-19")
+  )
 

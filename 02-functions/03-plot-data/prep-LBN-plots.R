@@ -714,6 +714,8 @@ manuscriptCortPlotFunc <- function(
     , stripPosition = "bottom"
     , plotMean = TRUE
     , plotSE = TRUE
+    , pointAlpha = 1
+    , lineAlpha = 0.4
 ){
   if(useALPSLineType){
     lineGuide <-  c("STD-CON"="dotted", "STD-ALPS"="solid", "LBN-CON"="dotted", "LBN-ALPS"="solid")
@@ -750,6 +752,8 @@ manuscriptCortPlotFunc <- function(
         , lineTypeGuide = lineGuide
         , plotMean = plotMean
         , plotSE = plotSE
+        , pointAlpha = pointAlpha
+        , lineAlpha = lineAlpha
       )
     
     if(onlyLBN){
@@ -794,7 +798,8 @@ plotCortFunc <- function(
     , xmax = 7
     , fontSize = 16
     , dotSize = 3
-    , breaks = c(0, 200, 400, 600, 800, 1000)
+    , breaks = c(0, 150, 300, 450, 600, 750)
+    # , breaks = c(0, 200, 400, 600, 800, 1000)
     # , breaks = c(0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000)
     , yUnitsNewLine = FALSE
     , onlyLBN = FALSE
@@ -1090,3 +1095,74 @@ plotCatVarFunc <- function(
   }
   return(plotFunc)
 }
+
+
+# Male cort admin ---------------------------------------------------------
+plotMaleCortAdminFunc <- function(
+    singleVar # as expr()
+    , fontSize = 16
+    , dotSize = 3
+    , useSpecYLab = TRUE
+    , thisYLab = ""
+    , addLegend = FALSE
+    , removeXTicks = FALSE
+    , alpha = 0.7
+    , addMeanSE = TRUE
+){
+  yVar <- as.character(singleVar)
+  if(!useSpecYLab){
+    yLabel <- getNiceName(yVar)
+  } else {
+    yLabel <- thisYLab
+  }
+  plotFunc <- function(
+    df
+    , zoom_y = FALSE
+    , ymin = 0
+    , ymax = 20
+  ){
+    plot <- df %>%
+      filter(
+        !is.na( {{singleVar}} )
+        , !is.na(adultTrt)
+        , !is.na(dosage)
+      ) %>%
+      scatterPlot_general(
+        yVar = !! singleVar
+        , yLab = yLabel
+        , xVar = dosage
+        , xLab = "dosage (mg/kg)"
+        , dotSize = dotSize
+        , textSize = fontSize
+        , zoom_y = zoom_y
+        , ymin = ymin
+        , ymax = ymax
+        , fillAlpha = alpha
+        , addMean = addMeanSE
+        , addSE = addMeanSE
+        , fillVar = dosage
+        , fillValues = c("white", "black")
+        , hideXAxisLab = FALSE
+      ) +
+      facet_wrap(
+        ~ earlyLifeTrt
+      )
+    
+    if(addLegend){
+      plot <- plot +
+        theme(
+          legend.position = "top"
+        )
+    }
+
+    if(removeXTicks){
+      plot <- plot +
+        theme(
+          axis.text.x = element_blank()
+        )
+    }
+    return(plot)
+  }
+  return(plotFunc)
+}
+

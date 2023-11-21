@@ -314,4 +314,74 @@ getNiceName <- function(
   return(label)
 }
 
+addOrderedColors <- function(df, orderVar, subjectVar, colorByGroups = FALSE, ...) {
+  # calculate the mean for each subject within each group
+  mean_df <- df %>%
+    group_by(
+      {{ subjectVar }}
+      , ...
+    ) %>%
+    summarize(mean_orderVar = mean(
+      {{ orderVar }}
+      , na.rm = TRUE
+    )
+    , .groups = "drop"
+    )
+  
+  if(colorByGroups){
+    mean_df <- mean_df %>%
+      group_by(
+        ...
+      )
+  }
+  
+  mean_df <- mean_df %>%  
+    mutate(
+      rank = rank (
+        -mean_orderVar
+        , ties.method = "first"
+      ),
+      # these are different color options
+      color = rainbow(max(rank))[rank]
+      # color = viridis(max(rank))[rank]
+      # color = sequential_hcl(max(rank))[rank]
+      # color = topo.colors(max(rank))[rank]
+    ) %>%
+    ungroup()
+  
+  subjectVarStr <- deparse(substitute(subjectVar))
+  ellipsisVars <- substitute(alist(...))
+  ellipsisStrs <- sapply(ellipsisVars[-1], as.character)
+  # add the calculated colors back to the original data
+  df <- df %>%
+    left_join(
+      mean_df
+      , by = c( subjectVarStr, ellipsisStrs)
+    )
+  
+  return(df)
+}
 
+getRandomSubjects <- function(df, subjectVar, n, seed=123) {
+  
+  # Sets the seed for the random number generator
+  set.seed(seed)
+  
+  # Step 1: Randomly pick n subjects
+  df_subjects <- df %>%
+    distinct({{ subjectVar }}) %>% 
+    sample_n(n)
+  
+  IDs <- df_subjects %>%
+    pull( {{ subjectVar }} )
+  
+  print(IDs)
+  
+  # Step 2: Filter the original dataframe 
+  # to include only rows that match the selected subjects
+  df_filtered <- df %>% 
+    filter({{ subjectVar }} %in% IDs) %>%
+    ungroup()
+  
+  return(df_filtered)
+}

@@ -1,0 +1,1008 @@
+---
+title: "AGG_cortAdmin"
+author: "Amanda Gibson"
+date: "2023-10-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# knitr::opts_chunk$set(fig.width=11.5, fig.height=5) 
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+```
+
+```{r}
+maleCortAdmin <- loadExcelSheet(dataFolder, LBN_DataName, "cortAdmin") %>%
+  makeFactors(
+    c(
+      mouseID
+      , adultTrt
+      , dosage
+    )
+  )
+
+maleCortAdmin_cort <- loadExcelSheet(dataFolder, LBN_DataName, "cortFromAdmin") %>%
+  makeFactors(
+    c(
+      mouseID
+    )
+  )
+
+maleCortAdmin_nutella <- loadExcelSheet(dataFolder, LBN_DataName, "nutellaConsumption") %>%
+  makeFactors(
+    c(
+      mouseID
+    )
+  )
+
+maleCortAdmin_cort_wide <- maleCortAdmin_cort %>%
+  pivot_wider(
+    id_cols = mouseID,
+    names_from = time,
+    values_from = cort,
+    names_prefix = "cort_hr"
+  ) %>%
+  left_join(
+    maleCortAdmin_cort %>%
+      filter(
+        time == 0
+      ) %>%
+      select(
+        mouseID
+        , plateQC
+      )
+    , by = "mouseID"
+  )
+
+maleCortAdmin_cort <- maleCortAdmin_cort %>%
+  left_join(
+    maleCortAdmin_nutella
+    , by = c("mouseID", "time")
+  ) %>%
+  group_by(
+    mouseID
+  ) %>%
+  mutate(
+    atePrevNutella = ifelse(
+      time == 0
+      , "NA"
+      , ifelse(
+        time == 1
+        , nutellaConsumption[time %in% 0]
+        , ifelse(
+          time %in% c(2, 3)
+          , nutellaConsumption[time %in% 1]
+          , ifelse(
+            time %in% c(4, 5)
+            , nutellaConsumption[time %in% 3]
+            , NA
+          )
+        )
+      )
+    )
+    , .after = nutellaConsumption
+  ) %>%
+  ungroup %>%
+  left_join(
+    maleCortAdmin
+    , by = "mouseID"
+  )
+
+maleCortAdmin <- maleCortAdmin %>%
+  left_join(
+    maleCortAdmin_cort_wide
+    , by = "mouseID"
+  ) %>%
+  calcOrganMassByBodyMass(ReproTract_mass) %>%
+  calcOrganMassByBodyMass_AM(ReproTract_mass) %>%
+  calcOrganMassByBodyMass(Gonad_mass) %>%
+  calcOrganMassByBodyMass_AM(Gonad_mass) %>%
+  calcOrganMassByBodyMass(Adrenal_mass) %>%
+  calcOrganMassByBodyMass_AM(Adrenal_mass) %>%
+  mutate(
+    bodyMass_diff = Body_mass_sac - Body_mass_AM
+    , percChangeBodyMass = bodyMass_diff / Body_mass_AM * 100
+  ) %>%
+  addOffspringDemoData(addBy = c("mouseID"))
+
+
+maleCortAdmin
+maleCortAdmin_cort
+maleCortAdmin_cort_wide
+```
+
+```{r}
+maleCortAdmin_filtered <- maleCortAdmin %>%
+  filter(
+    Sac_date >= as_date("2023-07-19")
+    , is.na(earlyLifeTrt) | earlyLifeTrt == "STD"
+  )
+
+maleCortAdmin_filtered
+```
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+# Set-up
+```{r}
+figureNum <- 1
+
+pptBaseName <- makeBaseNameFunc("")
+
+plotFolder <- file.path(plotOutputFolder, "2023-10-30")
+
+imgType <-"png"
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotFolder
+  , compType = currentCompType
+)
+
+exportFullPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+    , width = 11.5
+    , height = 5
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = width
+    , height = height
+  )
+}
+
+exportHalfPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 5.67
+    , height = 5
+  )
+}
+
+exportThirdPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 3.6
+    , height = 5
+  )
+}
+
+exportQuarterPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 3.2
+    , height = 5
+  )
+}
+
+editableImgs <- TRUE
+pptAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddOneTable <- function(
+    table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_oneTable(
+    officer_ppt, 
+    title, 
+    table, 
+    dontFormat = dontFormat
+  )
+  return(officer_ppt)
+}
+
+pptUneditAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = FALSE
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphs <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphsMoreLeft <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraphMoreLeft(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddGraphTable <- function(
+    plot
+    , table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_graphTable(
+    officer_ppt, 
+    title, 
+    plot, 
+    table,
+    makeEditable = editableImgs
+    , dontFormat = dontFormat
+    , textSize = textSize
+  )
+  return(officer_ppt)
+}
+
+pptAddFourGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , plot4
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_fourGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    plot4,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddThreeGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_threeGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddStats <- function(
+    statsText
+    , officer_ppt = ppt
+){
+  officer_ppt <- addStatsToBottom(
+    officer_ppt,
+    statsText
+  )
+}
+
+pptAddTwoStats <- function(
+    statsText1
+    , statsText2
+    , officer_ppt = ppt
+){
+  officer_ppt <- addTwoStatsToGraphs(
+    officer_ppt,
+    statsText1,
+    statsText2
+  )
+}
+
+pptAddSectionHead <- function(
+    title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_sectionHead(
+    officer_ppt
+    , title
+  )
+}
+
+
+
+```
+
+# functions
+
+
+```{r}
+mixedForComboTrtMales <- function(depVar){
+  depVarSym <- rlang::sym(depVar)
+  
+  mixed(
+    formula = rlang::expr(!!depVarSym ~ earlyLifeTrt * adultTrt + (1|damID)),
+    data = acuteStressFilteredMales
+  )
+}
+plotError_LMM_comboTrt <- function(lmm_error){
+  plotError_LMM(
+    lmm_error
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+)
+}
+
+getErrorDF_LMM_comboTrt <- function(lmm){
+  lmm %>%
+    getErrorDF_LMM(
+      xVar = "earlyLifeTrt"
+      , panel = "adultTrt"
+    ) %>%
+    combineStress()
+}
+```
+
+```{r}
+mixedForCortAdminMales <- function(depVar, df = maleCortAdmin_filtered){
+  depVarSym <- rlang::sym(depVar)
+  
+  mixed(
+    formula = rlang::expr(!!depVarSym ~ dosage + (1|damID)),
+    data = df
+  )
+}
+plotError_LMM_dosage <- function(lmm_error){
+  plotError_LMM(
+    lmm_error
+    , xVar = dosage
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+)
+}
+
+getErrorDF_LMM_dosage <- function(lmm){
+  lmm %>%
+    getErrorDF_LMM(
+      xVar = "dosage"
+    )
+}
+```
+
+
+```{r}
+plotCatVarFunc_malePres <- function(
+    singleVar # as expr()
+    , thisYLab = ""
+    , fontSize = 24
+    , dotSize = 3
+    , twoLineXLabs = FALSE
+    , useFacetLabels = FALSE
+    , useSpecYLab = TRUE
+    , addLegend = FALSE
+    , removeXTicks = FALSE
+    , alpha = 0.7
+    , addMeanSE = FALSE
+){
+  yVar <- as.character(singleVar)
+  if(!useSpecYLab){
+    yLabel <- getNiceName(yVar)
+  } else {
+    yLabel <- thisYLab
+  }
+  plotFunc <- function(
+    df
+    , zoom_y = FALSE
+    , ymin = 0
+    , ymax = 20
+  ){
+    plot <- df %>%
+      filter(
+        !is.na( {{singleVar}} )
+        , !is.na(adultTrt)
+      ) %>%
+      scatterPlotComboTrt(
+        yVar = !! singleVar
+        , yLab = yLabel
+        , dotSize = dotSize
+        , fontSize = fontSize
+        , zoom_y = zoom_y
+        , ymin = ymin
+        , ymax = ymax
+        , alpha = alpha
+        , addMeanSE = addMeanSE
+      )
+    
+    if(twoLineXLabs){
+      plot <- plot + 
+        theme(
+          axis.text.x = element_text(angle = 35, vjust = 1, hjust=1)
+        )
+      
+    }
+    
+    if(useFacetLabels){
+      plot <- plot + facet_wrap(
+        ~earlyLifeTrt + adultTrt
+        , ncol = 4
+        , scales = "free_x"
+        , strip.position = "bottom"
+      ) +
+      theme(
+        axis.text.x = element_blank()
+        , strip.text = element_text(face = "plain")
+      )
+    }
+    
+    if(addLegend){
+      plot <- plot +
+        theme(
+          legend.position = "top"
+        )
+    }
+    
+    if(removeXTicks){
+      plot <- plot +
+        theme(
+          axis.text.x = element_blank()
+        )
+    }
+    
+    lmm <- mixedForComboTrtMales(singleVar)
+    
+    print(lmm)
+    
+    lmm_error <- getErrorDF_LMM_comboTrt(lmm)
+    
+    plot <- plot +
+      plotError_LMM_comboTrt(lmm_error)
+    
+    return(plot)
+  }
+  return(plotFunc)
+}
+```
+
+```{r}
+plotCatVarFunc_maleCortPres <- function(
+    singleVar # as expr()
+    , thisYLab = ""
+    , fontSize = 24
+    , dotSize = 3
+    , twoLineXLabs = FALSE
+    , useFacetLabels = FALSE
+    , useSpecYLab = TRUE
+    , addLegend = FALSE
+    , removeXTicks = FALSE
+    , alpha = 0.7
+    , addMeanSE = FALSE
+){
+  yVar <- as.character(singleVar)
+  if(!useSpecYLab){
+    yLabel <- getNiceName(yVar)
+  } else {
+    yLabel <- thisYLab
+  }
+  plotFunc <- function(
+    df
+    , zoom_y = FALSE
+    , ymin = 0
+    , ymax = 20
+  ){
+    plot <- df %>%
+      filter(
+        !is.na( {{singleVar}} )
+        , !is.na(adultTrt)
+      ) %>%
+      scatterPlot_general(
+        xVar = dosage
+        , xLab = "dosage (mg/kg)"
+        , yVar = !! singleVar
+        , yLab = yLabel
+        , dotSize = dotSize
+        , textSize = fontSize
+        , fillVar = dosage
+        , fillValues = c("white", "black")
+        , zoom_y = zoom_y
+        , ymin = ymin
+        , ymax = ymax
+        , fillAlpha = alpha
+        , addMean = addMeanSE
+        , addSE = addMeanSE
+        , hideXAxisLab = FALSE
+      )
+    
+    if(twoLineXLabs){
+      plot <- plot +
+        theme(
+          axis.text.x = element_text(angle = 35, vjust = 1, hjust=1)
+        )
+
+    }
+
+    if(useFacetLabels){
+      plot <- plot + facet_wrap(
+        ~dosage
+        , ncol = 2
+        , scales = "free_x"
+        , strip.position = "bottom"
+      ) +
+      theme(
+        axis.text.x = element_blank()
+        , strip.text = element_text(face = "plain")
+      )
+    }
+
+    if(addLegend){
+      plot <- plot +
+        theme(
+          legend.position = "top"
+        )
+    }
+
+    if(removeXTicks){
+      plot <- plot +
+        theme(
+          axis.text.x = element_blank()
+        )
+    }
+
+    lmm <- mixedForCortAdminMales(singleVar, df)
+
+    print(lmm)
+
+    lmm_error <- getErrorDF_LMM_dosage(lmm)
+
+    plot <- plot +
+      plotError_LMM_dosage(lmm_error)
+
+    return(plot)
+  }
+  return(plotFunc)
+}
+```
+
+```{r}
+plotBodyMassAM_dosage <- plotCatVarFunc_maleCortPres(
+  expr(Body_mass_AM)
+  , thisYLab = "body mass (g)"
+)
+
+plotChangeBodyMass_dosage <- plotCatVarFunc_maleCortPres(
+  expr(bodyMass_diff)
+  , thisYLab = "\u0394 body mass (g)"
+)
+
+plotAdrenalMass_dosage <- plotCatVarFunc_maleCortPres(
+  expr(Adrenal_mass)
+  , thisYLab = "adrenal mass (mg)"
+)
+
+plotRelAdrenalMass_dosage <- plotCatVarFunc_maleCortPres(
+  expr(Adrenal_mass_perBodyAM_g)
+  , thisYLab = "normalized to AM mass\nadrenal mass (mg/g)"
+)
+
+plotRelAdrenalMassPM_dosage <- plotCatVarFunc_maleCortPres(
+  expr(Adrenal_mass_perBody_g)
+  , thisYLab = "normalized to PM mass\nadrenal mass (mg/g)"
+)
+
+plotSeminalVesicleMass_dosage <- plotCatVarFunc_maleCortPres(
+  expr(ReproTract_mass)
+  , thisYLab = "seminal vesicle mass (mg)"
+)
+
+plotRelSeminalVesicleMass_dosage <- plotCatVarFunc_maleCortPres(
+  expr(ReproTract_mass_perBodyAM_g)
+  , thisYLab = "normalized to AM mass\nseminal vesicle mass (mg/g)"
+)
+
+plotRelSeminalVesicleMassPM_dosage <- plotCatVarFunc_maleCortPres(
+  expr(ReproTract_mass_perBody_g)
+  , thisYLab = "normalized to PM mass\nseminal vesicle mass (mg/g)"
+)
+
+plotTestesMass_dosage <- plotCatVarFunc_maleCortPres(
+  expr(Gonad_mass)
+  , thisYLab = "testicular mass (mg)"
+)
+
+plotRelTestesMass_dosage <- plotCatVarFunc_maleCortPres(
+  expr(Gonad_mass_perBodyAM_g)
+  , thisYLab = "normalized to AM mass\ntesticular mass (mg/g)"
+)
+
+plotRelTestesMassPM_dosage <- plotCatVarFunc_maleCortPres(
+  expr(Gonad_mass_perBody_g)
+  , thisYLab = "normalized to PM mass\ntesticular mass (mg/g)"
+)
+```
+
+
+# PPT
+
+```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("malesCortPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+layout_properties(ppt, layout="Title Slide")
+
+titleText <- "Corticosterone administration to male mice"
+
+ppt <- ph_with(
+  ppt,
+  value = titleText
+  , location = ph_location_label("Title 1")
+)
+
+subText <- "Amanda Gibson\nOct 30, 2023"
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "AGG_maleCortAdmin"
+  , addDate = TRUE
+)
+```
+
+
+# ALPS
+
+## Body mass difference 
+
+```{r}
+figBaseName <- "maleMassDiff"
+
+acuteStressFilteredMales %>%
+  plotChangeBodyMass()
+
+slideTitle <- "ALPS mice lose more mass during the paradigm than CON mice"
+ppt <- pptAddOneGraph()
+```
+
+
+## AM Body Mass
+
+```{r}
+acuteStressFilteredMales %>%
+  plotBodyMassAM()
+
+slideTitle <- "ALPS males happened to have a larger body mass at the start of the paradigm"
+ppt <- pptAddOneGraph()
+```
+
+## Adrenal mass
+
+
+```{r}
+maleAdrenalPlot <- acuteStressFilteredMales %>%
+  plotAdrenalMass() 
+
+maleAdrenalPlot
+slideTitle <- "Absolute adrenal mass was not different between groups"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+
+maleRelAdrenalPlot <- acuteStressFilteredMales %>%
+  plotRelAdrenalMass(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 0.2
+  )
+
+maleRelAdrenalPMPlot <- acuteStressFilteredMales %>%
+  plotRelAdrenalMassPM(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 0.2
+  )
+
+maleRelAdrenalPlot
+maleRelAdrenalPMPlot
+
+slideTitle <- "ALPS males had a smaller adrenal mass when normalized to AM body mass, but not normalized to PM body mass"
+
+ppt <- pptAddTwoGraphs(
+  maleRelAdrenalPlot
+  , maleRelAdrenalPMPlot
+)
+```
+
+## Seminal vesicle mass
+
+
+```{r}
+maleSeminalVesiclePlot <- acuteStressFilteredMales %>%
+  plotSeminalVesicleMass() 
+
+maleSeminalVesiclePlot
+slideTitle <- "Absolute seminal vesicle mass was trending towards larger in ALPS mice"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+
+maleRelSeminalVesiclePlot <- acuteStressFilteredMales %>%
+  plotRelSeminalVesicleMass(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  )
+
+maleRelSeminalVesiclePMPlot <- acuteStressFilteredMales %>%
+  plotRelSeminalVesicleMassPM(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  )
+
+maleRelSeminalVesiclePlot
+maleRelSeminalVesiclePMPlot
+
+slideTitle <- "LBN males have larger normalized seminal vesicle mass. When normalized to PM mass, ALPS males have larger seminal vesicle mass"
+
+ppt <- pptAddTwoGraphs(
+  maleRelSeminalVesiclePlot
+  , maleRelSeminalVesiclePMPlot
+)
+```
+## Testicular mass
+
+
+```{r}
+maleTestesPlot <- acuteStressFilteredMales %>%
+  plotTestesMass() 
+
+maleTestesPlot
+slideTitle <- "Absolute testicular mass was smaller for ALPS and LBN mice"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+
+maleRelTestesPlot <- acuteStressFilteredMales %>%
+  plotRelTestesMass(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  )
+
+maleRelTestesPMPlot <- acuteStressFilteredMales %>%
+  plotRelTestesMassPM(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  )
+
+maleRelTestesPlot
+maleRelTestesPMPlot
+
+slideTitle <- "After normalizing to body mass, LBN males do not differ from STD males, but ALPS males have a smaller testicular mass"
+
+ppt <- pptAddTwoGraphs(
+  maleRelTestesPlot
+  , maleRelTestesPMPlot
+)
+```
+
+# Cort admin
+
+## AM Body Mass
+
+```{r}
+maleCortAdmin_filtered %>%
+  plotBodyMassAM_dosage()
+
+slideTitle <- "There were no differences in morning body mass by treatment"
+ppt <- pptAddOneGraph()
+```
+
+## Body mass difference 
+
+```{r}
+figBaseName <- "maleMassDiff"
+
+maleCortAdmin_filtered %>%
+  plotChangeBodyMass_dosage()
+
+slideTitle <- "2mg/kg cort males are trending towards losing more body mass during the day"
+ppt <- pptAddOneGraph()
+```
+
+## Adrenal mass
+
+
+```{r}
+maleAdrenalPlot <- maleCortAdmin_filtered %>%
+  plotAdrenalMass_dosage() 
+
+maleAdrenalPlot
+slideTitle <- "Weak trend (p=0.087) for absolute adrenal mass to be larger for 2mg/kg cort males"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+
+maleRelAdrenalPlot <- maleCortAdmin_filtered %>%
+  plotRelAdrenalMass_dosage(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 0.2
+  )
+
+maleRelAdrenalPMPlot <- maleCortAdmin_filtered %>%
+  plotRelAdrenalMassPM_dosage(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 0.2
+  )
+
+maleRelAdrenalPlot
+maleRelAdrenalPMPlot
+
+slideTitle <- "Normalized adrenal mass was not different between groups"
+
+ppt <- pptAddTwoGraphs(
+  maleRelAdrenalPlot
+  , maleRelAdrenalPMPlot
+)
+```
+
+## Seminal vesicle mass
+
+
+```{r}
+maleSeminalVesiclePlot <- maleCortAdmin_filtered %>%
+  plotSeminalVesicleMass_dosage() 
+
+maleSeminalVesiclePlot
+slideTitle <- "Absolute seminal vesicle mass was not different between groups"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+
+maleRelSeminalVesiclePlot <- maleCortAdmin_filtered %>%
+  plotRelSeminalVesicleMass_dosage(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  )
+
+maleRelSeminalVesiclePMPlot <- maleCortAdmin_filtered %>%
+  plotRelSeminalVesicleMassPM_dosage(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  )
+
+maleRelSeminalVesiclePlot
+maleRelSeminalVesiclePMPlot
+
+slideTitle <- "Normalized seminal vesicle mass was not different between groups"
+
+ppt <- pptAddTwoGraphs(
+  maleRelSeminalVesiclePlot
+  , maleRelSeminalVesiclePMPlot
+)
+```
+## Testicular mass
+
+
+```{r}
+maleTestesPlot <- maleCortAdmin_filtered %>%
+  plotTestesMass_dosage() 
+
+maleTestesPlot
+slideTitle <- "There is a weak trend for smaller testicular mass with 2mg/kg cort"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+
+maleRelTestesPlot <- maleCortAdmin_filtered %>%
+  plotRelTestesMass_dosage(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  )
+
+maleRelTestesPMPlot <- maleCortAdmin_filtered %>%
+  plotRelTestesMassPM_dosage(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  )
+
+maleRelTestesPlot
+maleRelTestesPMPlot
+
+slideTitle <- "After normalizing to AM body mass, there is still a weak trend. This does not persist when normalizing to PM body mass"
+
+ppt <- pptAddTwoGraphs(
+  maleRelTestesPlot
+  , maleRelTestesPMPlot
+)
+```

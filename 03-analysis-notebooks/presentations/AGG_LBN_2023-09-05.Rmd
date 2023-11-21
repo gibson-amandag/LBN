@@ -8,7 +8,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 # options(digits=3)
 ```
 
-```{r include=FALSE}
+```{r eval=FALSE, include=FALSE}
 source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
 source("./01-scripts/04-filter-datasets.R")
@@ -26,7 +26,7 @@ figureNum <- 1
 
 pptBaseName <- makeBaseNameFunc("")
 
-plotFolder <- file.path(plotOutputFolder, "IMIBIC_2023")
+plotFolder <- file.path(plotOutputFolder, "2023-10-19")
 
 imgType <-"png"
 
@@ -263,60 +263,142 @@ pptAddSectionHead <- function(
     , title
   )
 }
+
+
+
 ```
 
 ```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("genericPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+# layout_properties(ppt, layout="Title Slide")
+
+subText <- "Amanda Gibson\nData Update\nSept 5, 2023"
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+
 # Run this function to save the PPT file to the disk
 # On windows, don't run if the PPT file is open
 savePPT <- makeSavePPTFunc(
   presPPT = ppt
   , presFolder = plotFolder
-  , presFileName = "IMIBIC"
+  , presFileName = "AGG_LBN_update"
   , addDate = TRUE
 )
 ```
 
 
-# Dams
+# Dams - number of exits
 
 ```{r}
-figDamsB
+plot_grid(
+  figDams_exits
+  , figDams_meanExits
+  , rel_widths = c(3, 1)
+  , align = c("hv")
+)
 
 fileBaseName <- "damBehavior"
+slideTitle <- "LBN dams had more exits from the nest than STD dams"
 exportFullPPTSlide()
+ppt <- pptAddOneGraph()
 ```
 
 ```{r}
-damFrames_byPND %>%
-  mutate(
-    pupsOff = 100-pupsTogether
-  ) %>%
-  plotDamBehavior(
-    yVar = pupsOff
-    , yLab = "% frames pups separated"
-    , fontSize = 24
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
-    , dotSize = 1
-    # , facetByTrt = FALSE
-  )
-
-fileBaseName <- "pupsSeparated"
-exportFullPPTSlide()
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  coef(summary(numExits_nb.GLMM)) %>%
+    as.data.frame() %>%
+    rownames_to_column("effect"),
+  dontFormat = FALSE
+)
 ```
 
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  numExits_nb.GLMM_jointTest,
+  dontFormat = FALSE
+)
+```
+
+# Dams - % off nest
+
+```{r}
+plot_grid(
+  figDams_offNest
+  , figDams_meanOffNest
+  , rel_widths = c(3, 1)
+  , align = c("hv")
+)
+
+fileBaseName <- "damBehavior_percOff"
+slideTitle <- "LBN did not alter the percent of time spent off the nest"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  percOffNest_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
+)
+```
+
+# Dam corticosterone
 
 ```{r}
 figDamsD
 
 fileBaseName <- "damCort"
+slideTitle <- "PND11 corticosterone was not different after LBN"
 exportHalfPPTSlide()
+ppt <- pptAddTwoGraphs(
+  figDamsD
+  , figDamsD
+)
 
-t_test(
-  damFiltered,
-  Cort_dam_P11 ~ earlyLifeTrt
+ppt <- addStatsToBottom(ppt, paste0(
+  "t = "
+  , round(damCort_t.Test$statistic[[1]], 3)
+  , ", p = "
+  , round(damCort_t.Test$p.value[[1]], 3)
+  )
 )
 ```
+
+# Dam mass
+
+```{r}
+figDams_mass
+
+fileBaseName <- "damMass"
+slideTitle <- "LBN dams have a higher body mass than STD dams"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+ppt <- addSlide_twoTables(
+  ppt,
+  slideTitle,
+  damMass_lmm$anova_table %>% as.data.frame(),
+  damMass_lmm_EMM.earlyLifeTrt.pairs %>% as.data.frame(),
+  dontFormat = FALSE
+)
+```
+
+# Offspring mass 
 
 ```{r}
 figOffA
@@ -324,43 +406,435 @@ figOffA
 fileBaseName <- "offMass"
 
 exportFullPPTSlide()
+slideTitle <- "Offspring mass"
+ppt <- pptAddOneGraph()
 ```
 
+# Offspring maturation
 
 ```{r}
-figOffAge
+figOffAge_model
 
 fileBaseName <- "matAge"
+
 exportFullPPTSlide()
+slideTitle <- "LBN does not alter age for external markers of puberty"
+ppt <- pptAddOneGraph()
 ```
 ```{r}
-figOffMass
+figOffMass_model
 
 fileBaseName <- "matMass"
-exportFullPPTSlide()
-```
-```{r}
-figCycles2ndRow
 
-fileBaseName <- "cycles2"
 exportFullPPTSlide()
+slideTitle <- "LBN does not alter mass at external markers of puberty"
+ppt <- pptAddOneGraph()
 ```
 
 ```{r}
-figCortA
+slideTitle <- "Vaginal opening"
+ppt <- addSlide_twoTables(
+  ppt,
+  slideTitle,
+  VO_age_lmm %>% formatMixedLMM_ppt(),
+  VO_mass_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
+)
+```
+```{r}
+slideTitle <- "First Estrus"
+ppt <- addSlide_twoTables(
+  ppt,
+  slideTitle,
+  Estrus_age_lmm %>% formatMixedLMM_ppt(),
+  Estrus_mass_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
+)
+```
+```{r}
+slideTitle <- "Preputial Separation"
+ppt <- addSlide_twoTables(
+  ppt,
+  slideTitle,
+  PreputialSep_age_lmm %>% formatMixedLMM_ppt(),
+  PreputialSep_mass_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
+)
+```
+
+# AGD
+
+```{r}
+plot_grid(
+  figOff_femaleAGD
+  , figOff_maleAGD
+  , align = "hv"
+  , axis = "tblr"
+)
+
+fileBaseName <- "matAGD"
+
+exportFullPPTSlide()
+slideTitle <- "LBN does not alter adult AGD"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  AGD_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
+)
+```
+
+# Estrous cycle
+
+```{r}
+plot_grid(
+  figCycles_numCycles_model
+  , figCycles_lengthLog_model
+  , figCyclesD
+  , ncol = 3
+  , align = "h"
+  , axis = "bt"
+  , rel_widths = c(1, 1, 2)
+)
+
+fileBaseName <- "cyclesFeatures"
+
+exportFullPPTSlide()
+slideTitle <- "LBN does not alter estrous cyclicity"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+slideTitle <- "Number of cycles"
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  numCycles_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
+)
+```
+
+```{r}
+slideTitle <- "Cycle length"
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  lengthCycles_log_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
+)
+```
+
+```{r}
+slideTitle <- "Cycle distribution"
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  cycles_ChiSq,
+  dontFormat = FALSE
+)
+```
+
+
+# Cort
+
+```{r}
+figCortLogA
 
 fileBaseName <- "cortMales"
 
 exportFullPPTSlide()
+slideTitle <- "LBN does not alter corticosterone response to ALPS in males"
+ppt <- pptAddOneGraph()
 ```
+
 ```{r}
-figCortC
+figCortLogB
+
+fileBaseName <- "cortDi"
+
+exportFullPPTSlide()
+slideTitle <- "LBN does not alter corticosterone response to ALPS in diestrous females"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+figCortLogC
 
 fileBaseName <- "cortPro"
 
 exportFullPPTSlide()
+slideTitle <- "LBN does not alter corticosterone response to ALPS in proestrous females"
+ppt <- pptAddOneGraph()
 ```
 
+```{r}
+slideTitle <- "LBN does not alter corticosterone response to ALPS"
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  cort_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
+)
+```
+
+```{r}
+slideTitle <- "ALPS increases afternoon serum corticosterone"
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  cort_lmm_emm_adultTrtTime.pairs %>% as.data.frame(),
+  dontFormat = FALSE
+)
+```
+
+```{r}
+slideTitle <- "Corticosterone varies with hormone status"
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  cort_lmm_emm_hormoneStatusTime.pairs %>% as.data.frame(),
+  dontFormat = FALSE
+)
+```
+
+```{r}
+cortFiltered_M_DiPro %>%
+  manuscriptCortPlotFunc(
+    fontSize = textSize
+    , dotSize = dotSize
+    , zoom_y = FALSE
+    , plotMean = FALSE
+    , plotSE = FALSE
+    , pointAlpha = 0.1
+    , lineAlpha = 0.1
+  )() +
+  facet_wrap(
+    ~hormoneStatus
+  ) +
+  cortScale +
+ plotError_LMM(
+   cort_lmm_emm_hormoneStatusTime %>%
+   as_data_frame() %>%
+  rename(
+    y = response
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+    ,time = ifelse(
+      time == 0
+      , time - 1.5
+      , time + 1.5
+    )
+  )
+  , xVar = time
+  , nudgeErrorLine = 0
+  , nudgeMeanLine = 0
+  , meanBarWidth = 1
+  , color = "black"
+)
+
+
+ppt <- pptAddOneGraph()
+```
+
+
+
+# Body mass - AM
+
+```{r}
+figMassFacetA_model
+
+fileBaseName <- "bodyMassAM"
+
+exportFullPPTSlide()
+slideTitle <- "There were some differences in body mass between male treatment groups"
+ppt <- pptAddOneGraph()
+```
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  bodyMassAM_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
+)
+```
+
+```{r}
+slideTitle <- "Males that went on to receive ALPS were larger than those that received CON"
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  bodyMassAM_lmm_emm_adultTrt.pairs %>% as.data.frame(),
+  dontFormat = FALSE
+)
+```
+
+```{r}
+slideTitle <- "LBN males were trending towards being smaller than STD males"
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  bodyMassAM_lmm_emm_earlyLifeTrt.pairs %>% as.data.frame(),
+  dontFormat = FALSE
+)
+```
+
+# % change body mass
+
+```{r}
+figMassFacetB_perc_model
+
+fileBaseName <- "bodyMassPercChange"
+
+exportFullPPTSlide()
+slideTitle <- "ALPS mice lost more body mass than CON mice during the paradigm"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  percChangeBodyMass_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
+)
+```
+
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  percChangeBodyMass_lmm_emm_adultTrt.pairs %>% as.data.frame(),
+  dontFormat = FALSE
+)
+```
+
+# Adrenal mass
+
+```{r}
+figMassFacetC_model
+
+fileBaseName <- "adrenalMass"
+
+exportFullPPTSlide()
+slideTitle <- "Females have larger adrenal glands than males"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  adrenalMass_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
+)
+```
+
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  adrenalMass_lmm_emm_hormoneStatus.pairs %>% as.data.frame(),
+  dontFormat = FALSE
+)
+```
+
+# Seminal vesicle mass
+
+```{r}
+figMassFacetD_male_model
+
+fileBaseName <- "seminalVesicleMass"
+
+exportFullPPTSlide()
+slideTitle <- "Relative seminal vesicle mass is larger in LBN males"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  seminalVesicle_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
+)
+```
+
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  seminalVesicle_lmm_emm_earlyLifeTrt.pairs %>% as.data.frame(),
+  dontFormat = FALSE
+)
+```
+
+# Uterine mass
+
+```{r}
+figMassFacetD_female_model
+
+fileBaseName <- "uterineMass"
+
+exportFullPPTSlide()
+slideTitle <- "Proestrus females have larger uteri than diestrus females (... by definition)"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  uterineMass_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
+)
+```
+
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  uterineMass_lmm_emm_stage.pairs %>% as.data.frame(),
+  dontFormat = FALSE
+)
+```
+
+# Testicular mass
+
+```{r}
+figMass_testicular_model
+
+fileBaseName <- "testicularMass"
+
+exportFullPPTSlide()
+slideTitle <- "ALPS males have a smaller relative testicular mass"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  testicularMass_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
+)
+```
+
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  testicularMass_lmm_emm_adultTrt.pairs %>% as.data.frame(),
+  dontFormat = FALSE
+)
+```
+
+# LH results
 
 ```{r}
 ephys_percSurgedPlot <- surgedDF %>%
@@ -396,6 +870,9 @@ ephysLH <- LHFilteredPro %>%
   )()
 
 ephysLH
+
+fileBaseName <- "percSurgedEphys_trace"
+exportFullPPTSlide()
 ```
 ```{r}
 nonEphysMice <- surgedDF %>%
@@ -415,6 +892,7 @@ samplingLH <- LHFilteredPro %>%
   )()
 
 samplingLH
+
 ```
 
 ```{r}
@@ -447,6 +925,9 @@ fileBaseName <- "ephysLHPlots"
 exportFullPPTSlide(
   height = 5.75
 )
+
+slideTitle <- "With limited sampling for ephys mice, did not detect surge in many LBN mice"
+ppt <- pptAddOneGraph()
 ```
 ```{r}
 plot_grid(
@@ -461,67 +942,75 @@ fileBaseName <- "samplingLHPlots"
 exportFullPPTSlide(
   height = 5.75
 )
+
+slideTitle <- "With full sampling window, 3/5 LBN-ALPS mice still surged"
+ppt <- pptAddOneGraph()
 ```
 
 
-
-
-```{r}
-plotFreqPres <- plotCatVarFunc(
-  expr(frequency)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = FALSE
-  , useFacetLabels = FALSE
-)
-```
+# GABA PSC Freq
 
 ```{r}
-GABApscs_240FilteredFiring %>%
-  plotFreqPres()
+figGABAe_model
 
 fileBaseName <- "GABAfreq"
 
 exportFullPPTSlide()
+slideTitle <- "Neither LBN nor ALPS altered the frequency of GABA PSCs"
+ppt <- pptAddOneGraph()
 ```
+
 ```{r}
-plotAmpPres <- plotCatVarFunc(
-  expr(relPeak)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = FALSE
-  , useFacetLabels = FALSE
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+   coef(summary(numEvents_nb.GLMM)) %>%
+    as.data.frame() %>%
+    rownames_to_column("effect"),
+  dontFormat = FALSE
+)
+```
+
+# GABA PSC Amp
+
+```{r}
+figGABAf_model
+
+fileBaseName <- "GABAamp"
+
+exportFullPPTSlide()
+slideTitle <- "Neither LBN nor ALPS altered the amplitude of GABA PSCs"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+ppt <- addSlide_oneTable(
+  ppt,
+  slideTitle,
+  relAmplitude_lmm %>% formatMixedLMM_ppt(),
+  dontFormat = FALSE
 )
 ```
 
 ```{r}
-GABApscs_240FilteredFiring %>%
-  plotAmpPres()
-
-fileBaseName <- "GABAAmp"
-
-exportFullPPTSlide()
-```
-
-```{r}
-GABAlegend <- get_legend(figGABAb + theme(legend.position = "top"))
+GABAlegend <- get_legend(figGABAb_model + theme(legend.position = "top"))
 
 plot_grid(
   GABAlegend
   , plot_grid(
-    figGABAa +
+    figGABAa_model +
       theme(
         axis.text.x = element_blank()
       )
-    , figGABAb+
+    , figGABAb_model+
       theme(
         axis.text.x = element_blank()
       )
-    , figGABAc+
+    , figGABAc_model+
       theme(
         axis.text.x = element_blank()
       )
-    , figGABAd+
+    , figGABAd_model+
       theme(
         axis.text.x = element_blank()
       )
@@ -536,323 +1025,79 @@ plot_grid(
 fileBaseName <- "GABApassives"
 
 exportFullPPTSlide()
+slideTitle <- "Neither LBN nor ALPS altered passive properties or recording quality"
+ppt <- pptAddOneGraph()
 ```
 
 ```{r}
-BD_comboNutALPS <- rbind(
-  BD_cortALPS %>%
-    mutate(
-      atePrevNutella = NA,
-      ateNutella = NA,
-      cortNutTrt = adultTrt
-    ), 
-  BD_cort4 %>% 
-    filter(Sac_date == as_date("2022-05-27")) %>%
-    mutate(
-      cortNutTrt = dosage
-    )
-)
+maleCortAdmin_plotByConsumption
 
-ALPS_cortPlot <- BD_cortALPS %>%
-  mutate(
-      atePrevNutella = NA,
-      ateNutella = NA,
-      cortNutTrt = adultTrt
-    ) %>%
-  cortPlot(
-    pointSize = 3,
-    fontSize = textSize,
-    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
-    plotSE = FALSE,
-    groupVar = cortNutTrt, # group by the dosage; this is why it needs to be a factor
-    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
-    xLabels = waiver(), # label the axis with the actual time values
-    lineTypeGuide = "",
-    positionDodge = 0.2, #this controls the spread of the data visually
-    zoom_y = TRUE,
-    ymax = 1000,
-    ymin = 0
-  ) +
-  # facet_wrap(
-  #   ~ateAllNutella # this splits the graph by those that did or did not each Nutella
-  # ) +
-  labs(
-    x = "time since 1st administration (h)" # add a title to the x axis
-  ) + 
-  theme(
-    legend.position = "top"
-  )  +
-  scale_color_manual(
-    "treatment",
-    labels = c(
-      "ALPS" = "ALPS",
-      "0" = "0mg/kg",
-      "2" = "2mg/kg"
-    ),
-    values = c(
-      "ALPS"="black",
-      "0" = "black",
-      "2" = "black"
-      )
-  )+
-  scale_fill_manual(
-    "treatment",
-    labels = c(
-      "ALPS" = "ALPS",
-      "0" = "0mg/kg",
-      "2" = "2mg/kg"
-    ),
-    values = c(
-      "ALPS"="grey80",
-      "0" = "white",
-      "2" = "black"
-      )
-  )+
-  scale_shape_manual(
-    "treatment",
-    labels = c(
-      "ALPS" = "ALPS",
-      "0" = "0mg/kg",
-      "2" = "2mg/kg"
-    ),
-    values = c(
-      "ALPS"=23,
-      "0" = 21,
-      "2" = 21
-      )
-  ) + scale_linetype_manual(
-    "treatment",
-    labels = c(
-      "ALPS" = "ALPS",
-      "0" = "0mg/kg",
-      "2" = "2mg/kg"
-    ),
-    values = c(
-      "ALPS"="dotted",
-      "0" = "solid",
-      "2" = "solid"
-    )
-  )
-  
-nutellaALPS_cortPlot <- BD_comboNutALPS %>%
-  cortPlot(
-    pointSize = 3,
-    fontSize = textSize,
-    plotMean = FALSE, # we don't have enough data yet for mean/se to be helpful
-    plotSE = FALSE,
-    groupVar = cortNutTrt, # group by the dosage; this is why it needs to be a factor
-    xBreaks = c(0, 0.5, 1, 3, 5), # set the axis ticks at these values
-    xLabels = waiver(), # label the axis with the actual time values
-    lineTypeGuide = "",
-    positionDodge = 0.2, #this controls the spread of the data visually
-    zoom_y = TRUE,
-    ymax = 1000,
-    ymin = 0
-  ) +
-  # facet_wrap(
-  #   ~ateAllNutella # this splits the graph by those that did or did not each Nutella
-  # ) +
-  labs(
-    x = "time since 1st administration (h)" # add a title to the x axis
-  ) + 
-  theme(
-    legend.position = "top"
-  )  +
-  scale_color_manual(
-    "treatment",
-    labels = c(
-      "ALPS" = "ALPS",
-      "0" = "0mg/kg",
-      "2" = "2mg/kg"
-    ),
-    values = c(
-      "ALPS"="black",
-      "0" = "black",
-      "2" = "black"
-      )
-  )+
-  scale_fill_manual(
-    "treatment",
-    labels = c(
-      "ALPS" = "ALPS",
-      "0" = "0mg/kg",
-      "2" = "2mg/kg"
-    ),
-    values = c(
-      "ALPS"="grey80",
-      "0" = "white",
-      "2" = "black"
-      )
-  )+
-  scale_shape_manual(
-    "treatment",
-    labels = c(
-      "ALPS" = "ALPS",
-      "0" = "0mg/kg",
-      "2" = "2mg/kg"
-    ),
-    values = c(
-      "ALPS"=23,
-      "0" = 21,
-      "2" = 21
-      )
-  ) + scale_linetype_manual(
-    "treatment",
-    labels = c(
-      "ALPS" = "ALPS",
-      "0" = "0mg/kg",
-      "2" = "2mg/kg"
-    ),
-    values = c(
-      "ALPS"="dotted",
-      "0" = "solid",
-      "2" = "solid"
-    )
-  )
-```
+fileBaseName <- "maleCortPlotByConsumption"
 
-```{r}
-ALPS_cortPlot
-fileBaseName <- "ALPS_cortPlot"
+slideTitle <- "Serum corticosterone is elevated by corticosterone consumption"
 exportFullPPTSlide()
+ppt <- pptAddOneGraph()
 ```
-
-
 ```{r}
-nutellaALPS_cortPlot
-fileBaseName <- "NutellaALPS_cortPlot"
+latterCortAdmin_plotByConsumption
+
+fileBaseName <- "maleCortPlotByConsumption"
+
+slideTitle <- "Serum corticosterone is elevated by corticosterone consumption"
 exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+```{r}
+maleCortAdmin_AMBodyMass
+
+fileBaseName <- "maleCortAdmin_AMBodyMass"
+
+slideTitle <- "AM Body mass"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
 ```
 
 ```{r}
-cortAdmin_LH_trust <- BD_LH %>%
-  filter(
-    trust == TRUE
-    , !is.na(LH)
-  )
-cortAdmin_LHplot <- cortAdmin_LH_trust %>%
-  LHPlot_adultTrt_color(
-    trtVar = dosage
-    , trtName = "dosage (mg/kg)"
-    , trtLineGuide = c("0" = "solid", "2" = "solid")
-    , fontSize = textSize
-    , dotSize = 1.5
-    , zoom_y = TRUE
-    , ymin = 0
-    , ymax = 45
-  ) + facet_wrap(
-    ~ dosage
-    , ncol = 2
-    , labeller = labeller(
-      dosage = c("0" = "0 mg/kg", "2" = "2 mg/kg")
-    )
-  ) + 
-  rremove("legend")
+maleCortAdmin_PercChangeBodyMass
 
-cortAdmin_LHplot
+fileBaseName <- "maleCortAdmin_PercChangeBodyMass"
 
-fileBaseName <- "cortAdmin_LH"
-
-exportFullPPTSlide(width = 8)
+slideTitle <- "% Change in Body Mass"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
 ```
 
 ```{r}
-cortAdmin_LHAmp_plot <- BD_sampling %>%
-  filter(
-    trust == TRUE
-  ) %>%
-  plotLHAmp_dosage(
-    surgeMin = 3
-    , dotSize = dotSize
-    , textSize = textSize
-    , textAngle = 0
-  ) +
-  scale_x_discrete(
-      labels = c(
-        "0 mg/kg\nsurge"
-        , "0 mg/kg\nno surge"
-        , "2 mg/kg\nsurge"
-        , "2 mg/kg\nno surge"
-      )
-    )
+maleCortAdmin_TesticularMass
 
-cortAdmin_LHAmp_plot
+fileBaseName <- "maleCortAdmin_TesticularMass"
 
-fileBaseName <- "cortAdmin_LHAmp"
-exportFullPPTSlide(width = 7)
+slideTitle <- "Testicular mass"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
 ```
 
 ```{r}
-cortAdminCortDF <- BD_cort %>%
-  filter(
-    time %in% c(0, 5)
-    , is.na(exclude) | exclude == FALSE
-    , trust == TRUE
-  )
+maleCortAdmin_SeminalVesicleMass
 
-cortAdmin_cort <- cortAdminCortDF %>%
-  cortPlot(
-    pointSize = dotSize,
-    fontSize = textSize,
-    groupVar = dosage, # group by the dosage; this is why it needs to be a factor
-    lineTypeGuide = c("solid", "solid"),
-    positionDodge = 1.8, #this controls the spread of the data visually
-    zoom_y = TRUE,
-    ymax = 300,
-    ymin = 0,
-    zoom_x = TRUE
-    , xmin = -1.5
-    , xmax = 6.5
-  ) +
-  facet_wrap(
-    ~ dosage,
-    labeller = labeller(dosage = c("0" = "0mg/kg", "2" = "2mg/kg"))
-  ) +
-  # labs(
-  #   x = "time since 1st administration (h)" # add a title to the x axis
-  # ) + 
-  theme(
-    legend.position = "none"
-  )  + 
-  dosageFillShape()
+fileBaseName <- "maleCortAdmin_SeminalVesicleMass"
 
-cortAdmin_cort
-
-fileBaseName <- "cortAdmin_cortFull"
-
-exportThirdPPTSlide()
+slideTitle <- "Seminal vesicle mass"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
 ```
 
 ```{r}
-plot_grid(
-  cortAdmin_cort
-  , cortAdmin_LHplot
-  , nrow = 1
-  , rel_widths = c(1, 2)
-  , align = "h"
-  , axis = "tb"
-)
+maleCortAdmin_AdrenalMass
 
-fileBaseName <- "cortAdmin_CortLH"
-exportFullPPTSlide(height = 5.75)
+fileBaseName <- "maleCortAdmin_AdrenalMass"
+
+slideTitle <- "Adrenal mass"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
 ```
-
 
 ```{r}
-BD_ovulation_plot <- BD_sampling %>%
-  filter(
-    trust == TRUE
-  ) %>%
-  propOvulatedPlot(
-    xVar = dosage,
-    fontSize = textSize
-    , labelFontSize = 12
-  ) +
-  xlab("dosage (mg/kg)")
-BD_ovulation_plot
-fileBaseName <- "cortAdmin_ovulation"
-exportThirdPPTSlide()
+
 ```
-
-
 
