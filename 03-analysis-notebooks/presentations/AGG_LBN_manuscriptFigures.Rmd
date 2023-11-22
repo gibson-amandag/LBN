@@ -16,8 +16,8 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 source("./01-scripts/01-set-up.R")
 source(file.path(scriptsFolder, "02-get-datasets.R"))
 source("./01-scripts/04-filter-datasets.R")
-source("./01-scripts/05-make-LBN-plots-manuscript.R")
-# source("./01-scripts/06-make-LBN-ANOVAs_noLitter.R")
+source("./01-scripts/06-run-LBN-stats.R")
+source("./01-scripts/05-make-LBN-plots-modelError-manuscript.R")
 ```
 
 ```{r}
@@ -30,6 +30,8 @@ doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
 twoCols <- 17.4
 oneAndHalfCols <- 11.5
 oneCol <- 8.5
+
+manuscriptFolder <- file.path(plotOutputFolder, "manuscript")
 ```
 
 # Figure 1 - Dams figDams
@@ -128,6 +130,7 @@ flexSave(
   , width = twoCols
   , height = 28/3*2
   , units = "cm"
+  , filePath = manuscriptFolder
 )
 ```
 
@@ -208,6 +211,7 @@ flexSave(
   , width = twoCols
   , height = 28/3*1.75
   , units = "cm"
+  , filePath = manuscriptFolder
 )
 ```
 
@@ -252,16 +256,17 @@ flexSave(
   , width = twoCols
   , height = 28/3
   , units = "cm"
+  , filePath = manuscriptFolder
 )
 ```
 
 # Figure 4 - Corticosterone
 
 ```{r}
-figCortLog <- plot_grid(
-  figCortLogA
-  , figCortLogB
-  , figCortLogC
+figCort <- plot_grid(
+  figCortA
+  , figCortB
+  , figCortC
   , nrow = 3
   , align = "vh", axis = "ltrb"
   , labels = c("A", "B", "C")
@@ -269,21 +274,184 @@ figCortLog <- plot_grid(
   , label_size = textSize
 )
 
-figCortLog
+figCort
 
 ```
 
 ```{r}
 flexSave(
-  "figCortLog"
-  , plot = figCortLog
+  "figCort"
+  , plot = figCort
   , width = twoCols
   , height = 28/3 * 2
   , units = "cm"
+  , filePath = manuscriptFolder
 )
 ```
 
-# Figure 5 - Masses
+# Figure 5 - Male masses - ALPS
+
+```{r eval=FALSE, include=FALSE}
+figMaleMassALPS_left <- align_plots(
+  maleBodyMassAM_ALPS_plot+rremove("legend")
+  , maleAdrenalMass_ALPS_plot
+  , maleRelAdrenalMass_ALPS_plot
+  , align = "v"
+  , axis = "l"
+)
+
+figMaleMassALPS_middle <- align_plots(
+  maleSeminalVesicleMass_ALPS_plot
+  , maleRelSeminalVesicleMass_ALPS_plot
+  , align = "v"
+  , axis = "lr"
+)
+figMaleMassALPS_right <- align_plots(
+  maleTestesMass_ALPS_plot
+  , maleRelTestesMass_ALPS_plot
+  , align = "v"
+  , axis = "lr"
+)
+
+figMaleMassALPS <- plot_grid(
+  get_legend(maleBodyMassAM_ALPS_plot)
+  , plot_grid(
+    figMaleMassALPS_left[[1]]
+    , malePercChangeBodyMass_ALPS_plot
+    , nrow = 1
+  ),
+  plot_grid(
+    figMaleMassALPS_left[[2]]
+    , figMaleMassALPS_middle[[1]]
+    , figMaleMassALPS_right[[1]]
+    , nrow = 1
+  ),
+  plot_grid(
+    figMaleMassALPS_left[[3]]
+    , figMaleMassALPS_middle[[2]]
+    , figMaleMassALPS_right[[2]]
+    , nrow = 1
+  )
+  , nrow = 4
+  , rel_heights = c(0.1, 1, 1, 1)
+)
+figMaleMassALPS
+```
+
+```{r}
+figMaleMassALPS <- plot_grid(
+  get_legend(maleBodyMassAM_ALPS_plot)
+  , plot_grid(
+    maleBodyMassAM_ALPS_plot + rremove("legend")
+    , malePercChangeBodyMass_ALPS_plot
+    , NULL
+    , maleAdrenalMass_ALPS_plot
+    , maleSeminalVesicleMass_ALPS_plot
+    , maleTestesMass_ALPS_plot
+    , maleRelAdrenalMass_ALPS_plot
+    , maleRelSeminalVesicleMass_ALPS_plot
+    , maleRelTestesMass_ALPS_plot
+    , nrow = 3
+    , ncol = 3
+    , align = "hv"
+    , axis = "tlbr"
+    , labels = c("A", "B", "", "C", "D", "E", "F", "G", "H")
+  )
+  , nrow = 2
+  ,rel_heights = c(0.1, 3)
+)
+figMaleMassALPS
+```
+
+
+```{r}
+flexSave(
+  "figMaleMassALPS"
+  , plot = figMaleMassALPS
+  , width = twoCols
+  , height = 28/3*2
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+```{r}
+maleBodyMassAM_ALPS_lmm
+malePercChangeBodyMass_ALPS_lmm
+maleAdrenalMass_ALPS_lmm
+maleSeminalVesicleMass_ALPS_lmm
+maleTestesMass_ALPS_lmm
+maleRelAdrenalMass_ALPS_lmm
+maleRelSeminalVesicleMass_ALPS_lmm
+maleRelTestesMass_ALPS_lmm
+```
+
+
+# Figure 6 - Male cort administrati
+
+```{r}
+figMaleCortAdmin_aligned <- align_plots(
+  maleBodyMassAM_dosage_plot
+  , maleAdrenalMass_dosage_plot
+  , maleSeminalVesicleMass_dosage_plot
+  , maleTestesMass_dosage_plot
+  , malePercChangeBodyMass_dosage_plot
+  , maleRelAdrenalMass_dosage_plot
+  , maleRelSeminalVesicleMass_dosage_plot
+  , maleRelTestesMass_dosage_plot
+  , cortAdmin_cort
+  , align = "v"
+  , axis = "l"
+)
+figMaleMass_dosage <- plot_grid(
+  figMaleCortAdmin_aligned[[1]]
+  , figMaleCortAdmin_aligned[[2]]
+  , figMaleCortAdmin_aligned[[3]]
+  , figMaleCortAdmin_aligned[[4]]
+  , figMaleCortAdmin_aligned[[5]]
+  , figMaleCortAdmin_aligned[[6]]
+  , figMaleCortAdmin_aligned[[7]]
+  , figMaleCortAdmin_aligned[[8]]
+  , nrow = 2
+  , ncol = 4
+  , align = "h"
+  , axis = "tb"
+  , labels = c("B", "D", "E", "F", "C", "G", "H", "I")
+)
+
+figMaleCortAdmin <- plot_grid(
+  figMaleCortAdmin_aligned[[9]]
+  , figMaleMass_dosage
+  , nrow = 2
+  , rel_heights = c(1.5, 3.3)
+  , labels = c("A", "")
+)
+figMaleCortAdmin
+```
+
+
+```{r}
+flexSave(
+  "figMaleCortAdmin"
+  , plot = figMaleCortAdmin
+  , width = twoCols
+  , height = 28/3*2
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+```{r}
+maleBodyMassAM_dosage_lmm
+malePercChangeBodyMass_dosage_lmm
+maleAdrenalMass_dosage_lmm
+maleSeminalVesicleMass_dosage_lmm
+maleTestesMass_dosage_lmm
+maleRelAdrenalMass_dosage_lmm
+maleRelSeminalVesicleMass_dosage_lmm
+maleRelTestesMass_dosage_lmm
+```
+
 
 ```{r}
 figMass_left <- align_plots(
@@ -327,6 +495,7 @@ flexSave(
   , width = twoCols
   , height = 28/3*2
   , units = "cm"
+  , filePath = manuscriptFolder
 )
 ```
 
@@ -337,6 +506,7 @@ flexSave(
   , width = oneCol
   , height = 28/4
   , units = "cm"
+  , filePath = manuscriptFolder
 )
 ```
 
@@ -399,5 +569,6 @@ flexSave(
   # , height = 28/2
   , height = 28/3*2
   , units = "cm"
+  , filePath = manuscriptFolder
 )
 ```

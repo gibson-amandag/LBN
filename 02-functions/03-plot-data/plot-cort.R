@@ -1066,6 +1066,87 @@ plotLHTime_dosage <- function(
 }
 
 
+plotLHAmp_comboTrt <- function(
+  df, 
+  surgeMin, 
+  textSize = 11, 
+  dotSize = 2,
+  angleX = TRUE,
+  addSurgeMinLine = FALSE
+){
+  plot <- df %>%
+    mutate(
+      surgeStatus = 
+        case_when(
+          adultTrt == "CON" & maxLH > surgeMin ~ "control surge",
+          adultTrt == "CON" & maxLH <= surgeMin ~ "control no surge",
+          adultTrt == "ALPS" & maxLH > surgeMin ~ "stress surge",
+          TRUE ~ "stress no surge"
+        )
+    ) %>%
+    mutate(
+      surgeStatus = factor(surgeStatus, levels = c("control surge", "control no surge", "stress surge", "stress no surge"))
+    ) %>%
+    ggplot(
+      aes(
+        x = surgeStatus,
+        y = maxLH,
+        fill = comboTrt,
+        shape = comboTrt
+      )
+    ) +
+    # geom_point(
+    geom_quasirandom(
+      alpha = 1,
+      position = position_dodge2(0.4),
+      size = dotSize,
+      shape = 21,
+      color = "black"
+    )+
+    addMeanHorizontalBar(
+      width = 0.85, 
+      addLineType = FALSE
+    ) +
+    addMeanSE_vertBar()+
+    comboTrtFillShape() +
+    boxTheme()+
+    textTheme(textSize) +
+    ylab("LH (ng/mL)")+
+    facet_wrap(
+      ~earlyLifeTrt,
+      scales = "free_y"
+    )
+  
+  if(angleX){
+    plot <- plot +
+      scale_x_discrete(
+        labels = c("control surge"="CON \nsurge", "control no surge"="CON  \nno surge", "stress surge"="ALPS \nsurge", "stress no surge"="ALPS  \nno surge")
+        , drop=FALSE
+      )+
+      theme(
+        legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)
+      )
+  } else {
+    plot <- plot +
+      scale_x_discrete(
+        labels = c("control surge"="CON\nsurge", "control no surge"="CON\nno surge", "stress surge"="ALPS\nsurge", "stress no surge"="ALPS\nno surge")
+        , drop=FALSE
+      )+
+      theme(
+        legend.position = "none",
+        axis.title.x = element_blank()
+      )
+  }
+  
+  if(addSurgeMinLine){
+    plot <- plot + geom_hline(yintercept = surgeMin, color = "magenta", alpha = 0.3)
+      
+  }
+  return(plot)
+}
+
 plotLHAmp_comboTrt_byEarlylife <- function(
   df, 
   surgeMin, 

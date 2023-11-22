@@ -382,12 +382,12 @@ pptAddSectionHead <- function(
 
 
 ```{r}
-mixedForComboTrtMales <- function(depVar){
+mixedForComboTrtMales <- function(df, depVar){
   depVarSym <- rlang::sym(depVar)
   
   mixed(
     formula = rlang::expr(!!depVarSym ~ earlyLifeTrt * adultTrt + (1|damID)),
-    data = acuteStressFilteredMales
+    data = df
   )
 }
 plotError_LMM_comboTrt <- function(lmm_error){
@@ -518,7 +518,7 @@ plotCatVarFunc_malePres <- function(
         )
     }
     
-    lmm <- mixedForComboTrtMales(singleVar)
+    lmm <- mixedForComboTrtMales(df, singleVar)
     
     print(lmm)
     

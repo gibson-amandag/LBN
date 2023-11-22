@@ -714,7 +714,7 @@ manuscriptCortPlotFunc <- function(
     , stripPosition = "bottom"
     , plotMean = TRUE
     , plotSE = TRUE
-    , pointAlpha = 1
+    , pointAlpha = 0.7
     , lineAlpha = 0.4
 ){
   if(useALPSLineType){

@@ -1,5 +1,5 @@
-textSize <- 24
-dotSize <- 3
+textSize <- 11
+dotSize <- 2
 facetMatByLitter <- FALSE
 
 # Dam behavior ------------------------------------------------------------
@@ -7,16 +7,18 @@ facetMatByLitter <- FALSE
 figDams_exits <- damBehavior_byPND %>%
   plotDamBehavior(
     yVar = Num_exits
-    , yLab = "mean # of exits"
+    , yLab = "mean # of exits / hr"
     , fontSize = textSize
     , addTriangleForMean = FALSE
     , colorByDam = TRUE
-    , dotSize = 1
+    , dotSize = .8
     , zoom_y = TRUE
     , ymax = 50
     , ymin = 0
-    , showMean = FALSE
-    , addVertError = FALSE
+    , showMean = TRUE
+    , addVertError = TRUE
+    , lineAlpha = 0.2
+    , dotAlpha = 0.4 
   # ) +
   # plotError_LMM(
   #   numExits_nb.GLMM_errors %>%
@@ -30,40 +32,40 @@ figDams_exits <- damBehavior_byPND %>%
   )
 
 figDams_meanExits <- damBehavior_byDam %>%
-  unite(
-    fullRec,
-    earlyLifeTrt,
-    cohort,
-    sep = "-",
-    remove = FALSE
-  ) %>%
-  scatterPlot_general(
-    xVar = earlyLifeTrt
-    , xLab = NULL
-    , yVar = Num_exits
-    , yLab = "mean # exits"
-    , fillVar = fullRec
-    , fillLimits = c("STD-7", "STD-9", "LBN-7", "LBN-9")
-    , fillValues = c("grey", "white", "darkcyan", "lightblue1")
-    , textSize = textSize
-    , dotSize = dotSize
-    , addMean = FALSE
-    , addSE = FALSE
-    , zoom_y = TRUE
-    , ymax = 50
-    , ymin = 0
-  ) +
-  # scatterPlotLBN(
-  #   yVar = Num_exits
-  #   , yLab = "mean # of exits"
-  #   , addMean = FALSE
-  #   , addSEM = FALSE
+  # unite(
+  #   fullRec,
+  #   earlyLifeTrt,
+  #   cohort,
+  #   sep = "-",
+  #   remove = FALSE
+  # ) %>%
+  # scatterPlot_general(
+  #   xVar = earlyLifeTrt
+  #   , xLab = NULL
+  #   , yVar = Num_exits
+  #   , yLab = "mean # exits"
+  #   , fillVar = fullRec
+  #   , fillLimits = c("STD-7", "STD-9", "LBN-7", "LBN-9")
+  #   , fillValues = c("grey", "white", "darkcyan", "lightblue1")
+  #   , textSize = textSize
+  #   , dotSize = dotSize
+  #   , addMean = TRUE
+  #   , addSE = TRUE
   #   , zoom_y = TRUE
   #   , ymax = 50
   #   , ymin = 0
-  #   , dotSize = dotSize
-  #   , textSize = textSize
-  # ) + 
+  # ) +
+  scatterPlotLBN(
+    yVar = Num_exits
+    , yLab = "mean # of exits / hr"
+    , addMean = TRUE
+    , addSEM = TRUE
+    , zoom_y = TRUE
+    , ymax = 50
+    , ymin = 0
+    , dotSize = dotSize
+    , textSize = textSize
+  ) +
   # plotError_LMM(
   #   numExits_nb.GLMM_errors.earlyLifeEMM
   #   , xVar = earlyLifeTrt
@@ -88,12 +90,14 @@ figDams_offNest <- damBehavior_byPND %>%
     , fontSize = textSize
     , addTriangleForMean = FALSE
     , colorByDam = TRUE
-    , dotSize = 1
+    , dotSize = 0.8
     , zoom_y = TRUE
     , ymax = 100
     , ymin = 0
-    , showMean = FALSE
-    , addVertError = FALSE
+    , showMean = TRUE
+    , addVertError = TRUE
+    , lineAlpha = 0.2
+    , dotAlpha = 0.4
   # ) +
   # plotError_LMM(
   #   percOffNest_lmm_errors %>%
@@ -110,8 +114,8 @@ figDams_meanOffNest <- damBehavior_byDam %>%
   scatterPlotLBN(
     yVar = Perc_off_nest
     , yLab = "mean % off nest"
-    , addMean = FALSE
-    , addSEM = FALSE
+    , addMean = TRUE
+    , addSEM = TRUE
     , zoom_y = TRUE
     , ymax = 100
     , ymin = 0
@@ -487,13 +491,32 @@ cortScale <- scale_y_continuous(
 )
 
 
-figCortLogA <- cortFilteredMales %>%
+figCortA <- cortFilteredMales %>%
   plotCort_long() +
   cortScale +
   plotError_LMM_aes(
-    cort_lmm_error %>%
+    male_cort_lmm_error %>%
+      mutate(
+        time = ifelse(
+          time == 0
+          , time - 1.5
+          , time + 1.5
+        )
+      )
+    , xVar = time
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 1
+    , color = comboTrt
+  )
+
+figCortB <- cortFilteredDi %>%
+  plotCort_long() +
+  cortScale +
+  plotError_LMM_aes(
+    female_cort_lmm_error %>%
       filter(
-        hormoneStatus == "male"
+        Sac_cycle == "diestrus"
       ) %>%
       mutate(
         time = ifelse(
@@ -509,35 +532,13 @@ figCortLogA <- cortFilteredMales %>%
     , color = comboTrt
   )
 
-figCortLogB <- cortFilteredDi %>%
-  plotCort_long() +
-  cortScale +
-  plotError_LMM_aes(
-    cort_lmm_error %>%
-      filter(
-        hormoneStatus == "diestrus"
-      ) %>%
-      mutate(
-        time = ifelse(
-          time == 0
-          , time - 1.5
-          , time + 1.5
-        )
-      )
-    , xVar = time
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 1
-    , color = comboTrt
-  )
-
-figCortLogC <- cortFilteredPro %>%
+figCortC <- cortFilteredPro %>%
   plotCort_long() +
   cortScale + 
   plotError_LMM_aes(
-    cort_lmm_error %>%
+    female_cort_lmm_error %>%
       filter(
-        hormoneStatus == "proestrus"
+        Sac_cycle == "proestrus"
       ) %>%
       mutate(
         time = ifelse(
@@ -551,11 +552,61 @@ figCortLogC <- cortFilteredPro %>%
     , nudgeMeanLine = 0
     , meanBarWidth = 1
     , color = comboTrt
+  )
+
+## cort administration cort ------
+cortAdmin_cort <- maleCortAdmin_cort_filtered %>%
+  filter(
+    # time %in% c(0, 5)
+  ) %>%
+  cortPlot(
+    pointSize = dotSize,
+    fontSize = textSize,
+    groupVar = dosage,
+    lineTypeGuide = c("solid", "dotted"),
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 750,
+    ymin = 0
+    , plotMean = FALSE
+    , plotSE = FALSE
+    , xBreaks = c(0, 1, 2, 3, 4, 5)
+    , xLabels = c("0h", "1h", "2h", "3h", "4h", "5h")
+    , pointAlpha = 0.7
+  ) +
+  facet_wrap(
+    ~ dosage,
+    labeller = labeller(dosage = c("0" = "0mg/kg", "2" = "2mg/kg"))
+    , strip.position = "bottom"
+  ) +
+  # labs(
+  #   x = "time since 1st administration (h)" # add a title to the x axis
+  # ) + 
+  theme(
+    legend.position = "none"
+    , 
+  )  + 
+  dosageFillShape()+
+  plotError_LMM(
+    maleCortAdmin_cort_lmm_error %>%
+      mutate(
+        time = as.numeric(as.character(time))
+      )
+    , xVar = time
+    , meanBarWidth = 0.7
+    , color = "black"
+    , nudgeErrorLine = 0
+  ) +
+  # labs(x = "time (hr)"
+  #      ) +
+  scale_y_continuous(
+    breaks = seq(0, 750, 150)
   )
 
 ## Masses -----
 
 ### Functions ----
+
 plotBodyMassAM_noMean <- plotCatVarFunc(
   expr(Body_mass_AM)
   , fontSize = textSize
@@ -664,6 +715,64 @@ facetByHormoneStatus <- facet_wrap(
 )
 
 ### Graphs ----
+
+#### Males --------
+
+# Body mass AM
+figMaleMassA
+
+# % change in body mass
+
+# noramlized adrenal mass
+
+# normalized seminal vesicle mass
+
+# normalized testicular mass
+
+# Cort admin
+
+maleCortAdmin_plotByConsumption <- maleCortAdmin_cort %>%
+  plotCortByNutellaConsumption(
+    fontSize = 16
+  )
+
+latterCortAdmin_plotByConsumption <- latterCortAdmin_cort %>%
+  plotCortByNutellaConsumption(
+    fontSize = 16
+  )
+
+plotCortAdminAMBodyMass <- plotMaleCortAdminFunc(
+  expr(Body_mass_AM)
+  , thisYLab = "body mass (g)"
+)
+
+plotCortAdminPercChangeBodyMass <- plotMaleCortAdminFunc(
+  expr(percChangeBodyMass)
+  , thisYLab = "% change in body mass"
+)
+
+plotCortAdminTesticularMass <- plotMaleCortAdminFunc(
+  expr(Gonad_mass_perBodyAM_g)
+  , thisYLab = "rel. testicular mass (mg/g)"
+)
+
+plotCortAdminSeminalVesicleMass <- plotMaleCortAdminFunc(
+  expr(ReproTract_mass_perBodyAM_g)
+  , thisYLab = "rel. seminal vesicle mass (mg/g)"
+)
+
+plotCortAdminAdrenalMass <- plotMaleCortAdminFunc(
+  expr(Adrenal_mass_perBodyAM_g)
+  , thisYLab = "rel. adrenal vesicle mass (mg/g)"
+)
+
+
+maleCortAdmin_AMBodyMass <- plotCortAdminAMBodyMass(latterCortAdmin)
+maleCortAdmin_PercChangeBodyMass <- plotCortAdminPercChangeBodyMass(latterCortAdmin)
+maleCortAdmin_TesticularMass <- plotCortAdminTesticularMass(latterCortAdmin)
+maleCortAdmin_SeminalVesicleMass <- plotCortAdminSeminalVesicleMass(latterCortAdmin)
+maleCortAdmin_AdrenalMass <- plotCortAdminAdrenalMass(latterCortAdmin)
+
 
 figMassFacetA_model <- acuteStressFiltered_M_DiPro %>%
   plotBodyMassAM_noMean() +
@@ -1028,47 +1137,4 @@ figGABAf_model <- GABApscs_240FilteredFiring %>%
   )
 
 
-# Cort admin --------------------------------------------------------------
-
-maleCortAdmin_plotByConsumption <- maleCortAdmin_cort %>%
-  plotCortByNutellaConsumption(
-    fontSize = 16
-  )
-
-latterCortAdmin_plotByConsumption <- latterCortAdmin_cort %>%
-  plotCortByNutellaConsumption(
-    fontSize = 16
-  )
-
-plotCortAdminAMBodyMass <- plotMaleCortAdminFunc(
-  expr(Body_mass_AM)
-  , thisYLab = "body mass (g)"
-)
-
-plotCortAdminPercChangeBodyMass <- plotMaleCortAdminFunc(
-  expr(percChangeBodyMass)
-  , thisYLab = "% change in body mass"
-)
-
-plotCortAdminTesticularMass <- plotMaleCortAdminFunc(
-  expr(Gonad_mass_perBodyAM_g)
-  , thisYLab = "rel. testicular mass (mg/g)"
-)
-
-plotCortAdminSeminalVesicleMass <- plotMaleCortAdminFunc(
-  expr(ReproTract_mass_perBodyAM_g)
-  , thisYLab = "rel. seminal vesicle mass (mg/g)"
-)
-
-plotCortAdminAdrenalMass <- plotMaleCortAdminFunc(
-  expr(Adrenal_mass_perBodyAM_g)
-  , thisYLab = "rel. adrenal vesicle mass (mg/g)"
-)
-
-
-maleCortAdmin_AMBodyMass <- plotCortAdminAMBodyMass(latterCortAdmin)
-maleCortAdmin_PercChangeBodyMass <- plotCortAdminPercChangeBodyMass(latterCortAdmin)
-maleCortAdmin_TesticularMass <- plotCortAdminTesticularMass(latterCortAdmin)
-maleCortAdmin_SeminalVesicleMass <- plotCortAdminSeminalVesicleMass(latterCortAdmin)
-maleCortAdmin_AdrenalMass <- plotCortAdminAdrenalMass(latterCortAdmin)
 

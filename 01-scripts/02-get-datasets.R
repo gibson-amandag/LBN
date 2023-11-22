@@ -436,17 +436,9 @@ maleCortAdmin_cort <- maleCortAdmin_cort %>%
     )
     , .after = nutellaConsumption
   ) %>%
-  ungroup %>%
-  left_join(
-    maleCortAdmin
-    , by = "mouseID"
-  )
+  ungroup
 
 maleCortAdmin <- maleCortAdmin %>%
-  left_join(
-    maleCortAdmin_cort_wide
-    , by = "mouseID"
-  ) %>%
   calcOrganMassByBodyMass(ReproTract_mass) %>%
   calcOrganMassByBodyMass_AM(ReproTract_mass) %>%
   calcOrganMassByBodyMass(Gonad_mass) %>%
@@ -457,6 +449,19 @@ maleCortAdmin <- maleCortAdmin %>%
     bodyMass_diff = Body_mass_sac - Body_mass_AM
     , percChangeBodyMass = bodyMass_diff / Body_mass_AM * 100
   )
+
+maleCortAdmin_cort <- maleCortAdmin_cort %>%
+  left_join(
+    maleCortAdmin
+    , by = "mouseID"
+  )
+
+maleCortAdmin <- maleCortAdmin %>%
+  left_join(
+    maleCortAdmin_cort_wide
+    , by = "mouseID"
+  )
+  
 
 # GABA PSCs ---------------------------------------------------------------
 
@@ -687,6 +692,9 @@ LH_code <- LH_code %>%
   combineStress()
 
 maleCortAdmin <- maleCortAdmin %>%
+  addOffspringDemoData(addBy = "mouseID")
+
+maleCortAdmin_cort <- maleCortAdmin_cort %>%
   addOffspringDemoData(addBy = "mouseID")
 
 # UPDATE COMBO FRAMES WITH MATURATION -------------------------------------
