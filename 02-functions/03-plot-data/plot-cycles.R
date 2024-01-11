@@ -195,6 +195,8 @@ plotCyclesPercent <- function(
   strip.position = "bottom",
   fontSize = 11,
   fillScale = earlyLifeFill()
+  , meanColor = "black"
+  , barColor = "black"
 ){
   viz <- df %>%
     ggplot(
@@ -208,8 +210,8 @@ plotCyclesPercent <- function(
     fillScale +
     # scale_fill_manual(values = c("white", "black"))+
     jitterGeom(size = dotSize, alpha = alpha)+
-    addMeanHorizontalBar(width = 0.85, size = 0.4) +
-    addMeanSE_vertBar(size = 0.4)+
+    addMeanHorizontalBar(width = 0.85, size = 0.4, meanColor = meanColor) +
+    addMeanSE_vertBar(size = 0.4, barColor = barColor)+
     expand_limits(y = 0) +
     theme_pubr()+
     rremove(

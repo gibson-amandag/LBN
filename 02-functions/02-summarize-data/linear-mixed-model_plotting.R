@@ -130,3 +130,42 @@ plotError_LMM_meanLine <- function(
   )
   return(geoms)
 }
+
+plotError_LMM_meanLine_mass <- function(
+    lmmData
+    , xVar
+    , barSize = 1.2
+    , nudgeErrorLine = 0 # to offset from current error bar. Remove
+    , ribbonAlpha = 0.2
+    , ... # into aes
+) {
+  geoms <- list(
+    geom_line(
+      aes(
+        x = {{ xVar }}
+        , y = y
+        , color = earlyLifeTrt
+        , ...
+      )
+      , data = lmmData
+      , size = barSize
+      , inherit.aes = FALSE # 2023-07-30
+    ),
+    geom_ribbon(
+      aes(
+        x = {{xVar}}
+        , ymin = lower
+        , ymax = upper
+        , fill = earlyLifeTrt
+        , ... 
+      )
+      , data = lmmData
+      , inherit.aes = FALSE
+      , size = barSize
+      , position = position_nudge(x = nudgeErrorLine)
+      , show.legend = FALSE
+      , alpha = ribbonAlpha
+    )
+  )
+  return(geoms)
+}

@@ -166,7 +166,7 @@ addRecDaysFunc <- function(df){
           (cohort == 2 | cohort == 4 | cohort == 6 | damID == "D051-01")
           , "P5-6"
           , ifelse(
-            cohort == 9
+            cohort == 9 | cohort == 10
             , "P4-11"
             , NA
           )
@@ -253,7 +253,7 @@ GABApscsFilteredFiring %>%
 ```{r}
 cohort9_available <- LBN_data %>%
   filter(
-    cohort == 9
+    cohort == 9 | cohort == 10
     , is.na(Pups_through_wean) | Pups_through_wean == TRUE
     , sex == "F"
     , is.na(Sac_date)
@@ -271,7 +271,7 @@ cohort9_available
 
 LBN_data %>%
   filter(
-    cohort == 9
+    cohort == 9 | cohort == 10
     , is.na(Pups_through_wean) | Pups_through_wean == TRUE
     , sex == "F"
     , is.na(Sac_date)
@@ -288,7 +288,7 @@ LBN_data %>%
 ```{r}
 malesUsed <- acuteStressFilteredMales %>%
   filter(
-    cohort %in% c(7, 9)
+    cohort %in% c(7, 9, 10)
   ) %>%
   group_by(
     earlyLifeTrt

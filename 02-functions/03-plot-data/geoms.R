@@ -76,6 +76,7 @@ addMeanHorizontalBar <- function(
   lineTypeGuide = c("STD" = "dotted", "LBN" = "solid"),
   typeVar = earlyLifeTrt,
   barPosition = "identity",
+  meanColor = "black", # added 2023-11-22, possible that this will cause problems where the mean color is based on a group
   ... # Into aes
 ){
   if(!addLineType){
@@ -87,6 +88,7 @@ addMeanHorizontalBar <- function(
         width = width,
         size = size,
         position = barPosition,
+        color = meanColor,
         aes(...)
       )
   } else{
@@ -99,6 +101,7 @@ addMeanHorizontalBar <- function(
         width = width,
         size = size,
         position = barPosition,
+        color = meanColor,
         aes(linetype = {{ typeVar }}, ...)
       ),
       scale_linetype_manual(lineTypeName, values = lineTypeGuide)
@@ -109,6 +112,7 @@ addMeanHorizontalBar <- function(
 addMeanSE_vertBar <- function(
   size = 0.4,
   barPosition = "identity",
+  barColor = "black", # added 2023-11-22, possible that this will cause problems where the bar color is based on a group
   ... # into aes
 ){
   stat_summary(
@@ -116,6 +120,7 @@ addMeanSE_vertBar <- function(
     fun.data = mean_se,
     size = size,
     position = barPosition,
+    color = barColor,
     aes(...),
     show.legend = FALSE
   )

@@ -1,0 +1,65 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+From Chris Andrews
+
+```{r}
+library(lme4)
+library(effects)
+```
+
+```{r}
+nn <- 200
+
+dat <- data.frame(
+  cc = factor(sample(letters[1:3], replace = TRUE, nn)),
+  xx = rnorm(nn),
+  yy = rnorm(nn),
+  id = rep(seq(nn/4), each = 4)
+)
+
+dat
+```
+
+
+```{r}
+
+mod <- lmer(yy ~ xx * cc + (1 | id), data = dat)
+summary(mod)
+```
+
+```{r}
+eee <- Effect(c("cc", "xx"), mod, x.var = "xx", xlevels = list(xx = c(-2, 0, 2)))
+summary(eee)
+plot(eee)
+```
+
+```{r}
+# E(Y|x=mean(x)) for each group (cc)
+emm <- emmeans(mod, ~ cc | xx)
+emm
+```
+
+```{r}
+# comparison of E(y|x=mean(x)) between groups (cc)
+contrast(emm, "pairwise")
+```
+
+```{r}
+# comparison of slopes (y/x) between groups (cc)
+emtrends(mod, pairwise ~ cc, var = "xx")
+```
+
+```{r}
+# E(Y|x=mean(x)) for each group (cc)
+emm2 <- emmeans(mod, ~ cc | xx, at = list(xx = c(-2, 0, 2)))
+emm2
+```
+
+```{r}
+# comparison of E(y|x) between groups (cc) for specified xx.
+contrast(emm2, "pairwise")
+
+```

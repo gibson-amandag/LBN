@@ -1,0 +1,81 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+
+```{r}
+addSlide_onePNG <- function(
+  ppt,
+  title,
+  png
+){
+  
+  ppt <- add_slide(ppt, "Title and Content")
+  ppt <- ph_with(
+    ppt,
+    value = title,
+    location = ph_location_label("Title 1")
+  )
+  ppt <- ph_with(
+    ppt,
+    value = external_img(png),
+    location = ph_location_label("Content Placeholder 2")
+  )
+  return(ppt)
+}
+```
+
+```{r}
+# Load required libraries
+library(officer)
+library(magrittr)
+library(png)
+
+# Define the path of images
+folder <- "C:\\Users\\percs\\Documents\\ephysAnalysis\\dists" 
+
+# Get a list of PNG images
+images <- list.files(path = folder, pattern = "*.png")
+
+# Create a data frame which contains image names, params and max nums
+image_info <- data.frame(images = images,
+                         stringsAsFactors = FALSE) %>%
+  dplyr::mutate(param = str_extract(images, "(?<=a)[A-Za-z0-9]+(?=_max)"),
+                param = str_replace_all(param, c("_" = "",
+                                                  "peaks" = "Relative Amplitude",
+                                                  "der" = "Derivative",
+                                                  "t50r" = "Rise Time",
+                                                  "fwhm" = "Full Width Half Maximum")),
+                max_num = str_extract(images, "(?<=max)\\d+"),
+                max_num = as.integer(max_num)) %>%
+  dplyr::arrange(param, max_num)
+
+# Create a new ppt object
+ppt <- read_pptx()
+
+# Loop over each PNG image
+for (i in 1:nrow(image_info)) {
+  image <- image_info$images[i]
+  png <- file.path(folder, image)
+  
+  # Add the slide to the presentation
+  title <- paste(image_info$param[i], "- max", image_info$max_num[i], "events")
+  ppt <- addSlide_onePNG(ppt, title, png)
+}
+# for (image in images) {
+#   title <- tools::file_path_sans_ext(image)
+#   png <- file.path(folder, image)
+#   
+#   ppt <- addSlide_onePNG(ppt, title, png)
+# }
+
+
+# Save the PowerPoint
+print(ppt, target = file.path(folder, "images.pptx"))
+```
+

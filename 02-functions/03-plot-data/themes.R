@@ -153,15 +153,24 @@ dosageFillShape <- function(
     scale_color_manual(
       "treatment", 
       values = c("0"=color_0, 
-                 "2"=color_2)),
+                 "2"=color_2),
+      labels = c("0" = "0mg/kg",
+                 "2" = "2mg/kg")
+    ),
     scale_fill_manual(
       "treatment", 
       values = c("0"=fill_0, 
-                 "2"=fill_2)),
+                 "2"=fill_2),
+      labels = c("0" = "0mg/kg",
+                 "2" = "2mg/kg")
+    ),
     scale_shape_manual(
       "treatment", 
       values = c("0"=21,
-                 "2"=21))
+                 "2"=21),
+      labels = c("0" = "0mg/kg",
+                 "2" = "2mg/kg")
+    )
   )
   return(layers)
 }

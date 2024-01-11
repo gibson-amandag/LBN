@@ -2,7 +2,7 @@ set_sum_contrasts()
 set_null_device("png")
 
 
-# # Dam behavior - exits ------------------------------------------------------
+# Dam behavior - exits ------------------------------------------------------
 # 
 # #Chose a negative binomial distritution because this is count data, but it is
 # #overdispersed, meaning that the variation is more than the means (which
@@ -67,6 +67,27 @@ set_null_device("png")
 #   getErrorDF_LMM("earlyLifeTrt")
 # 
 # 
+
+# Dam behavior ------------------------------------------------------------
+numExits_nparLD <- f1.ld.f1(
+  y = damBehavior_byPND$Num_exits
+  , time = damBehavior_byPND$PND
+  , group = damBehavior_byPND$earlyLifeTrt
+  , subject = damBehavior_byPND$damID
+  , time.name = "PND"
+  , group.name = "early-life trt"
+)
+
+percOffNest_nparLD <- f1.ld.f1(
+  y = damBehavior_byPND$Perc_off_nest
+  , time = damBehavior_byPND$PND
+  , group = damBehavior_byPND$earlyLifeTrt
+  , subject = damBehavior_byPND$damID
+  , time.name = "PND"
+  , group.name = "early-life trt"
+)
+
+
 # Dam Mass ----------------------------------------------------------------
 
 
@@ -122,7 +143,110 @@ damCort_t.Test <- t.test(
 
 # Offspring mass ----------------------------------------------------------
 
+## Females -------------------
+female_mass_lmm <- mixed(
+  mass ~ earlyLifeTrt * lspline(day, c(21, 35)) + (1|damID) + (1|mouseID)
+  , data =  mass_long %>%
+    filter(
+      day >= 11
+      , sex == "F"
+    )
+  , method = "KR"
+)
 
+### Post-hoc -------------------
+female_mass_lmm_emm <- emmeans(
+  female_mass_lmm
+  , ~ earlyLifeTrt * lspline(day, c(21, 35))
+  , data = mass_long %>%
+    filter(
+      day >= 11
+    )
+  , at = list(day = c(11, 21, 35, 70))
+  , pbkrtest.limit = 3500
+)
+
+female_mass_lmm_emm.pairs <- test(pairs(female_mass_lmm_emm, simple = "earlyLifeTrt"), by = NULL, adjust = "holm")
+
+### Errors for graph ------------------
+# Generate a data frame with the specific days and all combinations of other variables
+newdata <- expand.grid(day = unique(mass_long$day), earlyLifeTrt = unique(mass_long$earlyLifeTrt))
+
+newdata <- newdata %>% 
+  filter(
+    day >= 11
+  )
+
+PNDs <- unique(mass_long$day)
+PNDs <- PNDs[PNDs != 4]
+
+# Compute the emmeans for your model at these specific points
+female_mass_lmm_means <- emmeans(
+  female_mass_lmm,  ~ earlyLifeTrt * lspline(day, c(21, 35))
+  , at = list(day = PNDs, earlyLifeTrt = unique(mass_long$earlyLifeTrt))
+  , data = newdata
+  , pbkrtest.limit = 4000
+)
+
+female_mass_lmm_means_df <- as_tibble(female_mass_lmm_means)
+
+female_mass_lmm_errors <- female_mass_lmm_means_df %>%
+  rename(
+    y = emmean
+  ) %>%
+  mutate(
+    sex = "F"
+    , lower = y - SE
+    , upper = y + SE
+  )
+
+## Males -----------------------
+
+male_mass_lmm <- mixed(
+  mass ~ earlyLifeTrt * lspline(day, c(21, 35)) + (1|damID) + (1|mouseID)
+  , data =  mass_long %>%
+    filter(
+      day >= 11
+      , sex == "M"
+    )
+  , method = "KR"
+)
+
+
+### Post-hoc ----------------------------
+
+male_mass_lmm_emm <- emmeans(
+  male_mass_lmm
+  , ~ earlyLifeTrt * lspline(day, c(21, 35))
+  , data = mass_long %>%
+    filter(
+      day >= 11
+    )
+  , at = list(day = c(11, 21, 35, 70))
+)
+
+male_mass_lmm_emm.pairs <- test(pairs(male_mass_lmm_emm, simple = "earlyLifeTrt"), by = NULL, adjust = "holm")
+
+### Errors for graphs -------------------
+male_mass_lmm_means <- emmeans(male_mass_lmm,  ~ earlyLifeTrt * lspline(day, c(21, 35)), at = list(day = PNDs, earlyLifeTrt = unique(mass_long$earlyLifeTrt)), data = newdata)
+
+male_mass_lmm_means_df <- as_tibble(male_mass_lmm_means)
+
+male_mass_lmm_errors <- male_mass_lmm_means_df %>%
+  rename(
+    y = emmean
+  ) %>%
+  mutate(
+    sex = "M"
+    , lower = y - SE
+    , upper = y + SE
+  )
+
+# combined male and female mass errors
+mass_lmm_errors <- female_mass_lmm_errors %>%
+  rbind(
+    male_mass_lmm_errors
+  )
 
 # Offspring maturation ----------------------------------------------------
 
@@ -223,7 +347,7 @@ PreputialSep_mass_lmm_errors <- PreputialSep_mass_lmm %>%
     matType = "preputial separation"
   )
 
-mass_lmm_errors <- rbind(
+matMass_lmm_errors <- rbind(
   VO_mass_lmm_errors
   , Estrus_mass_lmm_errors
   , PreputialSep_mass_lmm_errors
@@ -424,7 +548,7 @@ female_cort_lmm_emm_adultTrtTime <-  emmeans(
 
 # ALPS at 5 is more than CON at 5
 # No difference initially
-cort_lmm_emm_adultTrtTime.pairs_f <- test(
+female_cort_lmm_emm_adultTrtTime.pairs <- test(
   pairs(female_cort_lmm_emm_adultTrtTime)
   , by = NULL
   , adjust = "holm"
@@ -442,7 +566,7 @@ female_cort_lmm_emm_Sac_cycleTime <-  emmeans(
 
 # At time 5
 # No difference
-cort_lmm_emm_Sac_cycleTime.pairs_f <- test(
+female_cort_lmm_emm_Sac_cycleTime.pairs <- test(
   pairs(female_cort_lmm_emm_Sac_cycleTime)
   , by = NULL
   , adjust = "holm"

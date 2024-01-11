@@ -19,6 +19,24 @@ LBN_data
 ```
 
 
+# Cohort 10 remaining
+```{r}
+LBN_data %>%
+  filter(
+    cohort == 10
+    , sex == "F"
+    , is.na(Sac_stop_off)
+    , is.na(Sac_date)
+    , DOB < (Sys.Date() - 90)
+  ) %>%
+  createRemainingPPT(
+    addToName = "LBN" 
+    , includeYesterday = FALSE
+    , cyclesDF = cyclesFiltered
+    , IDVar = num_ID
+    , trtVar = earlyLifeTrt
+    )
+```
 # Cohort 9 remaining
 ```{r}
 LBN_data %>%

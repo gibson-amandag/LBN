@@ -103,6 +103,8 @@ scatterPlotLBN <- function(
   title = NULL,
   addMean = TRUE
   , addSEM = TRUE
+  , meanColor = "black"
+  , barColor = "black"
 ){
   viz <- df %>%
     ggplot(
@@ -132,12 +134,16 @@ scatterPlotLBN <- function(
   
   if(addMean){
     viz <- viz + 
-      addMeanHorizontalBar()
+      addMeanHorizontalBar(
+        meanColor = meanColor
+      )
   }
   
   if(addSEM){
     viz <- viz +
-      addMeanSE_vertBar()
+      addMeanSE_vertBar(
+        barColor = barColor
+      )
   }
   
   return(viz)

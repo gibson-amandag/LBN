@@ -1,0 +1,124 @@
+---
+title: "compTauFits"
+author: "Amanda Gibson"
+date: "2024-01-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Load requisite packages
+library(plyr)
+library(dplyr)
+```
+
+```{r}
+# Get file names
+file_names <- list.files(path = "C:\\Users\\percs\\Documents\\ephysAnalysis\\testTau", pattern = "*.csv", full.names = TRUE)
+
+# Load all .csv files in specified directory
+df_list <- lapply(file_names, function(x) {
+  data <- read.csv(x, header = TRUE)
+  data$maxEvents <- ifelse(grepl("_allEvents", x), NA, as.numeric(gsub("^.*cellOutputTable_([0-9]+).*", "\\1", x)))
+  data$iteration <- ifelse(grepl("_allEvents", x), NA, as.numeric(gsub("^.*events([0-9]+).*", "\\1", x)))
+  data
+})
+```
+
+```{r}
+# Combine all data frames into one
+combined_df <- bind_rows(df_list)
+
+```
+
+
+```{r}
+# Calculate summary statistics
+summary_stat <- combined_df %>%
+  group_by(maxEvents, cell = cellName) %>% # grouping by cellName
+  filter(sumCount == maxEvents | is.na(maxEvents)) %>%
+  summarise(
+    Mean = mean(tauFits, na.rm = TRUE),
+    SD = sd(tauFits, na.rm = TRUE),
+    SEM = sd(tauFits, na.rm = TRUE) / sqrt(n()),
+    CV = (sd(tauFits, na.rm = TRUE) / mean(tauFits, na.rm = TRUE)) * 100
+  )
+
+```
+
+```{r}
+
+# Compare mean with all events to the mean with limited events
+all_events_mean <- summary_stat %>%
+  filter(is.na(maxEvents)) %>%
+  pull(Mean)
+
+limited_events_means <- summary_stat %>%
+  filter(!is.na(maxEvents)) %>%
+  pull(Mean)
+
+comparison <- cbind(limited_events_means, all_events_mean)
+
+comparison
+```
+
+
+```{r}
+# Load the ggplot2 package
+library(ggplot2)
+
+# Filter the data to exclude allEvents values
+plot_data <- summary_stat %>%
+  filter(!is.na(maxEvents)) 
+
+tauPlot <- ggplot(plot_data, aes(x = maxEvents, y = CV, group = cell)) + 
+  geom_line(aes(color = cell), alpha = 0.2) +
+  stat_summary(aes(group = 1), geom = "line", fun = mean, alpha = 0.8, size = 1, colour = "black") +
+  labs(x = "Max Events", y = "TauFit CV (%)") +
+  theme(legend.position = "none") +
+  textTheme(16) +
+  boxTheme()
+
+tauPlot
+
+flexSave(
+  "tauFitVariation"
+  , thisFilePrefix = ""
+  , plot = tauPlot
+  , filePath = "C:\\Users\\percs\\Documents\\ephysAnalysis\\testTau"
+)
+```
+
+
+```{r}
+summary_stat_FWHM <- combined_df %>%
+  group_by(maxEvents, cell = cellName) %>% # grouping by cellName
+  filter(sumCount == maxEvents | is.na(maxEvents)) %>%
+  summarise(
+    Mean = mean(fwhm, na.rm = TRUE),
+    SD = sd(fwhm, na.rm = TRUE),
+    SEM = sd(fwhm, na.rm = TRUE) / sqrt(n()),
+    CV = (sd(fwhm, na.rm = TRUE) / mean(fwhm, na.rm = TRUE)) * 100
+  )
+```
+
+```{r}
+
+plot_data <- summary_stat_FWHM %>%
+  filter(!is.na(maxEvents)) 
+
+fwhm_Plot <- ggplot(plot_data, aes(x = maxEvents, y = CV, group = cell)) + 
+  geom_line(aes(color = cell), alpha = 0.2) +
+  stat_summary(aes(group = 1), geom = "line", fun = mean, alpha = 0.8, size = 1, colour = "black") +
+  labs(x = "Max Events", y = "FWHM CV (%)") +
+  theme(legend.position = "none") +
+  textTheme(16) +
+  boxTheme()
+
+fwhm_Plot
+```
+
+

@@ -22,6 +22,13 @@ source("./01-scripts/05-make-LBN-plots-modelError-manuscript.R")
 
 ```{r}
 doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+set_flextable_defaults(fonts = list(default = "Arial", size = 11))
+
+doc <- read_docx("./manuscriptTemplate.docx")
+
+saveTables <- function(){
+  print(doc, target = "my_report.docx")
+}
 ```
 
 # Column Sizes
@@ -72,22 +79,22 @@ figDamsBehaviorRightPlots <- cowplot::align_plots(
 )
 
 figDams <- plot_grid(
-  # plot_grid(
-  #   NULL
-  #   , figDams_mass
-  #   , figDamsD
-  #   , nrow = 1
-  #   , rel_widths = c(2, 1, 1)
-  #   , align = "h"
-  #   , axis = "bt"
-  #   , labels = c("A", "B", "C")
-  # )
-  NULL
+  plot_grid(
+    NULL
+    , figDams_mass
+    , figDamsD
+    , nrow = 1
+    , rel_widths = c(1.5, 1, 1)
+    , align = "h"
+    , axis = "bt"
+    , labels = c("A", "B", "C")
+  )
+  # NULL
   , plot_grid(
       figDamsBehaviorPlots[[1]]
       , figDamsBehaviorRightPlots[[1]]
       , ncol = 2
-      , labels = c("B", "C")
+      , labels = c("D", "E")
       , label_fontfamily = "Arial"
       , label_size = textSize
       , rel_widths = c(3, 1)
@@ -96,30 +103,192 @@ figDams <- plot_grid(
       figDamsBehaviorPlots[[3]]
       , figDamsBehaviorRightPlots[[2]]
       , ncol = 2
-      , labels = c("D", "E")
+      , labels = c("F", "G")
       , label_fontfamily = "Arial"
       , label_size = textSize
       , rel_widths = c(3, 1)
   )
-  , plot_grid(
-    NULL
-    , figDams_mass
-    , figDamsD
-    , nrow = 1
-    , rel_widths = c(1.5, 1, 1)
-    , align = "h"
-    , axis = "bt"
-    , labels = c("F", "G", "H")
-    , label_fontfamily = "Arial"
-    , label_size = textSize
-  )
-  , nrow = 4
-  , rel_heights = c(0.5, 1, 1, 1)
-  , labels = c("A", NULL, NULL, NULL)
+  # , plot_grid(
+  #   figDams_mass
+  #   , figDamsD
+  #   , nrow = 1
+  #   , align = "h"
+  #   , axis = "bt"
+  #   , labels = c("F", "G", "H")
+  #   , label_fontfamily = "Arial"
+  #   , label_size = textSize
+  # )
+  , nrow = 3
+  # , rel_heights = c(0.5, 1, 1, 1)
+  # , labels = c("A", NULL, NULL, NULL)
   , label_fontfamily = "Arial"
   , label_size = textSize
 )
 figDams
+```
+
+## Table - dam mass
+
+```{r}
+tableNum <- 1
+testFormula <- deparse(damMass_lmm$call$formula)
+tableCaption <- paste0("Linear mixed model of the dam mass on PND4, 11, and 21 fit with the equation ", testFormula, ". The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for this model. PND = postnatal day")
+
+damMass_table <- damMass_lmm$anova_table %>%
+  simplifyLMMOutput()
+
+
+my_header <- data.frame(
+  col_keys = c("factor", "F (df)", "p",
+                         "F_model_2", "df_model_2", "p_model_2"
+               ),
+  # line1 = paste0("Table ", tableNum),
+  line2 = c("", rep("dam mass", 2)),
+  line3 = c("factor", "F (df)", "p"),
+  stringsAsFactors = FALSE
+)
+
+damMass_table <- damMass_table %>%
+  flextable(
+    col_keys = my_header$col_keys
+  ) %>%
+  set_header_df(
+    mapping = my_header, key = "col_keys"
+  ) %>%
+  theme_booktabs() %>%
+  merge_v(part = "header") %>%
+  merge_h(part = "header") %>%
+  align(
+    align = "center"
+    , part = "all"
+  ) %>%
+  colformat_num(
+    na_str = ""
+  ) %>%
+  set_table_properties(
+    layout = "autofit"
+    # , width = 1
+  )
+
+damMass_table
+
+doc <- addTableAndCaptionToDoc(damMass_table, tableCaption, tableNum, doc)
+```
+
+```{r}
+damMass_lmm_emmTbl.earlyLifeTrt <- damMass_lmm_EMM.earlyLifeTrt %>%
+  as_tibble() %>%
+  rename(
+    level = earlyLifeTrt
+  ) %>%
+  mutate(
+    level = as.character(level)
+  )
+
+damMass_lmm_emmTbl.PND <- damMass_lmm_EMM.PND %>%
+  as_tibble() %>%
+  rename(
+    level = PND
+  ) %>%
+  mutate(
+    level = as.character(level)
+  )
+
+rbind(
+  rep("early-life treatment", 6)
+  , damMass_lmm_emmTbl.earlyLifeTrt
+  , rep("PND", 6)
+  , damMass_lmm_emmTbl.PND
+)
+
+damMass_lmm_emmTbl.PND
+
+
+damMass_lmm_EMM.earlyLifeTrt.pairs
+
+damMass_lmm_EMM.PND.pairs
+
+tabular()
+```
+
+
+## Table - Dam behavior
+
+```{r}
+tableNum <- 2
+tableCaption <- paste0("Dam behavior parameters analyzed with nonparametric longitudinal model using the nParLD package in R, with the ", numExits_nparLD$model.name, ". The subject variable was each dam, early-life treatment (standard or limited bedding and nesting cage) was the between-subject factor ('whole-plot' factor), and PND was the within-subject factor ('sub-plot' repeated factor). PND=postnatal day")
+
+numExits_table <- numExits_nparLD$ANOVA.test %>% 
+  subTrtInRowNames() %>%
+  subnParColNames() %>%
+  as.data.frame() %>%
+  rownames_to_column("factor")
+
+percOffNest_table <- percOffNest_nparLD$ANOVA.test %>% 
+  subTrtInRowNames() %>%
+  subnParColNames() %>%
+  as.data.frame() %>%
+  rownames_to_column("factor")
+
+my_header <- data.frame(
+  col_keys = c("factor", "F_model_1", "df_model_1", "p_model_1",
+                         "F_model_2", "df_model_2", "p_model_2"
+               ),
+  # line1 = paste0("Table ", tableNum),
+  line2 = c("", rep("# of exits", 3), rep("% off nest", 3)),
+  line3 = c("factor", "F", "df", "p", "F", "df", "p"),
+  stringsAsFactors = FALSE
+)
+
+damBehaviorTable <- bind_rows(
+  list(model_1 = numExits_table, model_2 = percOffNest_table), .id = "model"
+) %>%
+  formatPCol() %>%
+  pivot_wider(
+    id_cols = factor, names_from = model, values_from = c("F", "df", "p")
+  ) %>%
+  flextable(
+    col_keys = my_header$col_keys
+  ) %>%
+  set_header_df(
+    mapping = my_header, key = "col_keys"
+  ) %>%
+  theme_booktabs() %>%
+  merge_v(part = "header") %>%
+  merge_h(part = "header") %>%
+  align(
+    align = "center"
+    , part = "all"
+  ) %>%
+  colformat_num(
+    na_str = ""
+  ) %>%
+  colformat_double(j = c("df_model_1", "df_model_2"), digits = 1) %>%
+  colformat_double(j = c("F_model_1", "F_model_2"), digits = 2) %>%
+  set_table_properties(
+    layout = "autofit"
+    , width = 1
+  )
+  
+
+damBehaviorTable
+
+doc <- addTableAndCaptionToDoc(damBehaviorTable, tableCaption, tableNum, doc)
+```
+
+
+```{r}
+numExits_nparLD$ANOVA.test
+
+percOffNest_nparLD$ANOVA.test
+
+damMass_lmm
+
+damMass_lmm_EMM.earlyLifeTrt.pairs
+
+damMass_lmm_EMM.PND.pairs
+
+damCort_t.Test
 ```
 
 
@@ -203,6 +372,34 @@ figOff <- plot_grid(
 )
 figOff
 ```
+```{r}
+female_mass_lmm
+
+female_mass_lmm_emm.pairs
+
+male_mass_lmm
+
+male_mass_lmm_emm.pairs
+```
+
+```{r}
+AGD_lmm
+
+AGD_lmm_emm_sex.pairs
+```
+
+
+
+```{r}
+VO_age_lmm
+Estrus_age_lmm
+PreputialSep_age_lmm
+
+VO_mass_lmm
+Estrus_mass_lmm
+PreputialSep_mass_lmm
+```
+
 
 ```{r}
 flexSave(
@@ -289,6 +486,19 @@ flexSave(
 )
 ```
 
+```{r}
+male_cort_lmm
+
+male_cort_lmm_ALPSTime_emm.pairs
+
+female_cort_lmm
+
+female_cort_lmm_emm_adultTrtTime.pairs
+
+female_cort_lmm_emm_Sac_cycleTime.pairs
+```
+
+
 # Figure 5 - Male masses - ALPS
 
 ```{r eval=FALSE, include=FALSE}
@@ -355,7 +565,7 @@ figMaleMassALPS <- plot_grid(
     , ncol = 3
     , align = "hv"
     , axis = "tlbr"
-    , labels = c("A", "B", "", "C", "D", "E", "F", "G", "H")
+    , labels = c("A", "B", "", "C", "E", "G", "D", "F", "H")
   )
   , nrow = 2
   ,rel_heights = c(0.1, 3)
@@ -375,21 +585,22 @@ flexSave(
 )
 ```
 
+
 ```{r}
 maleBodyMassAM_ALPS_lmm
 malePercChangeBodyMass_ALPS_lmm
 maleAdrenalMass_ALPS_lmm
-maleSeminalVesicleMass_ALPS_lmm
-maleTestesMass_ALPS_lmm
 maleRelAdrenalMass_ALPS_lmm
+maleSeminalVesicleMass_ALPS_lmm
 maleRelSeminalVesicleMass_ALPS_lmm
+maleTestesMass_ALPS_lmm
 maleRelTestesMass_ALPS_lmm
 ```
 
 
-# Figure 6 - Male cort administrati
+# Figure 6 - Male cort administration
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 figMaleCortAdmin_aligned <- align_plots(
   maleBodyMassAM_dosage_plot
   , maleAdrenalMass_dosage_plot
@@ -412,11 +623,11 @@ figMaleMass_dosage <- plot_grid(
   , figMaleCortAdmin_aligned[[6]]
   , figMaleCortAdmin_aligned[[7]]
   , figMaleCortAdmin_aligned[[8]]
-  , nrow = 2
-  , ncol = 4
+  , nrow = 3
+  , ncol = 3
   , align = "h"
   , axis = "tb"
-  , labels = c("B", "D", "E", "F", "C", "G", "H", "I")
+  , labels = c("B", "D", "F", "H", "C", "E", "G", "I")
 )
 
 figMaleCortAdmin <- plot_grid(
@@ -426,6 +637,73 @@ figMaleCortAdmin <- plot_grid(
   , rel_heights = c(1.5, 3.3)
   , labels = c("A", "")
 )
+figMaleCortAdmin
+```
+
+```{r}
+figMaleCortAdmin_left <- align_plots(
+  cortAdmin_cort
+  , maleAdrenalMass_dosage_plot
+  , maleRelAdrenalMass_dosage_plot
+  , align = "v"
+  , axis = "l"
+)
+figMaleCortAdmin_middle <- align_plots(
+  maleSeminalVesicleMass_dosage_plot
+  , maleRelSeminalVesicleMass_dosage_plot
+  , align = "v"
+  , axis = "l"
+)
+figMaleCortAdmin_right <- align_plots(
+  maleSeminalVesicleMass_dosage_plot
+  , maleRelSeminalVesicleMass_dosage_plot
+  , align = "v"
+  , axis = "l"
+)
+figMaleCortAdmin_top <- align_plots(
+  maleBodyMassAM_dosage_plot
+  , malePercChangeBodyMass_dosage_plot
+  , align = "vh"
+  , axis = "tblr"
+)
+
+figMaleCortAdmin_row1 <- plot_grid(
+  figMaleCortAdmin_left[[1]]
+  , figMaleCortAdmin_top[[1]]
+  , figMaleCortAdmin_top[[2]]
+  , nrow = 1
+  , align = "h"
+  , axis = "tb"
+  , labels = c("A", "B", "C")
+  , rel_widths = c(2, 1, 1)
+)
+figMaleCortAdmin_row2 <- plot_grid(
+  figMaleCortAdmin_left[[2]]
+  , figMaleCortAdmin_middle[[1]]
+  , figMaleCortAdmin_right[[1]]
+  , nrow = 1
+  , align = "h"
+  , axis = "tb"
+  , labels = c("D", "F", "H")
+)
+figMaleCortAdmin_row3 <- plot_grid(
+  figMaleCortAdmin_left[[3]]
+  , figMaleCortAdmin_middle[[2]]
+  , figMaleCortAdmin_right[[2]]
+  , nrow = 1
+  , align = "h"
+  , axis = "tb"
+  , labels = c("E", "G", "I")
+)
+
+figMaleCortAdmin <- plot_grid(
+  figMaleCortAdmin_row1
+  , figMaleCortAdmin_row2
+  , figMaleCortAdmin_row3
+  , nrow = 3
+  , rel_heights = c(0.9, 1, 1)
+)
+
 figMaleCortAdmin
 ```
 
@@ -442,56 +720,66 @@ flexSave(
 ```
 
 ```{r}
+maleCortAdmin_cort_lmm
+
+maleCortAdmin_cort_lmm_emm.pairs
+```
+
+```{r}
 maleBodyMassAM_dosage_lmm
 malePercChangeBodyMass_dosage_lmm
 maleAdrenalMass_dosage_lmm
-maleSeminalVesicleMass_dosage_lmm
-maleTestesMass_dosage_lmm
 maleRelAdrenalMass_dosage_lmm
+maleSeminalVesicleMass_dosage_lmm
 maleRelSeminalVesicleMass_dosage_lmm
+maleTestesMass_dosage_lmm
 maleRelTestesMass_dosage_lmm
 ```
 
+# Figure 7 - Female masses
 
 ```{r}
-figMass_left <- align_plots(
-  figMassFacetA_model+rremove("legend")
-  , figMassFacetB_perc_model
-  , figMassFacetC_model
-  , figMassFacetD_male_model
-  , align = "hv"
-  , axis = "tblr"
+figFemalesMasses_plots <- align_plots(
+    femaleBodyMassAM_ALPS_plot + rremove("legend") 
+    , femalePercChangeBodyMass_ALPS_plot
+    , femaleAdrenalMass_ALPS_plot
+    , femaleUterineMass_ALPS_plot
+    , femaleRelAdrenalMass_ALPS_plot
+    , femaleRelUterineMass_ALPS_plot
+    , align = "hv"
+    , axis = "lrtb"
 )
 
-figMassFacet <- plot_grid(
-  get_legend(figMassFacetA_model)
-  , figMass_left[[1]]
-  , figMass_left[[2]]
-  , figMass_left[[3]]
+figFemalesMasses <- plot_grid(
+  get_legend(femaleBodyMassAM_ALPS_plot)
   , plot_grid(
-      figMass_left[[4]]
-      , figMassFacetD_female_model
-      , nrow = 1
-      , rel_widths = c(1, 2)
+    figFemalesMasses_plots[[1]]
+    , figFemalesMasses_plots[[2]]
+    , ncol = 2
+    , labels = c("A", "B")
   )
-  , nrow = 5
-  , labels = c(
-    ""
-    , "A"
-    , "B"
-    , "C"
-    , "D"
+  , plot_grid(
+    figFemalesMasses_plots[[3]]
+    , figFemalesMasses_plots[[5]]
+    , ncol = 2
+    , labels = c("C", "D")
   )
-  , rel_heights = c(0.1, 1, 1, 1, 1)
+  , plot_grid(
+    figFemalesMasses_plots[[4]]
+    , figFemalesMasses_plots[[6]]
+    , ncol = 2
+    , labels = c("E", "F")
+  )
+  , nrow = 4
+  , rel_heights = c(0.1, 1, 1, 1)
 )
-
-figMassFacet
+figFemalesMasses
 ```
 
 ```{r}
 flexSave(
-  "figMassFacet"
-  , plot = figMassFacet
+  "figFemalesMasses"
+  , plot = figFemalesMasses
   , width = twoCols
   , height = 28/3*2
   , units = "cm"
@@ -500,20 +788,27 @@ flexSave(
 ```
 
 ```{r}
-flexSave(
-  "figTesicularMass"
-  , plot = figMass_testicular_model
-  , width = oneCol
-  , height = 28/4
-  , units = "cm"
-  , filePath = manuscriptFolder
-)
+femaleBodyMassAM_ALPS_lmm 
+femalePercChangeBodyMass_ALPS_lmm
+femalePercChangeBodyMass_ALPS_lmm_emm_adultTrt.pairs
+femaleAdrenalMass_ALPS_lmm
+femaleAdrenalMass_ALPS_lmm_emm_earlyLifeTrt.pairs
+femaleRelAdrenalMass_ALPS_lmm
+femaleUterineMass_ALPS_lmm
+femaleUterineMass_ALPS_lmm_emm_sacCycle.pairs
+# weak trend for interaction
+femaleUterineMass_ALPS_lmm_emm_sacCycleAdultTrt.pairs
+femaleRelUterineMass_ALPS_lmm
+femaleRelUterineMass_ALPS_lmm_emm_sacCycle.pairs
+#weak trend for interaction
+femaleRelUterineMass_ALPS_lmm_emm_sacCycleAdultTrt.pairs
 ```
 
-# Figure 6 - LH
+
+# Figure 8 - LH
 
 
-# Figure 7 - GABA PSCs
+# Figure 9 - GABA PSCs
 
 ```{r}
 figGABA_aligned <- cowplot::align_plots(

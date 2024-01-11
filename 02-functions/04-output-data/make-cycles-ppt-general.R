@@ -391,8 +391,8 @@ createSamplingSlideGen <- function(
     uterineMassLabel <- ifelse(!is.na(uterineMass), paste0(uterineMass, " mg"), "")
   }
   
-  # print(paste("Mouse:", MouseID, "Start Day:", startCycleDay_pres, "End Day:", endCycleDay_pres))
-  # print(cyclingDF_long$mouseID)
+  print(paste("Mouse:", MouseID, "Start Day:", startCycleDay_pres, "End Day:", endCycleDay_pres))
+  print(cyclingDF_long$mouseID)
   cyclingPlot <- cyclingDF_long %>%
     filter(
       mouseID == as.character(MouseID),

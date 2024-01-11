@@ -10,8 +10,9 @@ lmmForComboTrt <- function(df, depVar) {
   depVarSym <- rlang::sym(depVar)
   
   mixed(
-    formula = rlang::expr(!!depVarSym ~ earlyLifeTrt * adultTrt + (1|damID)),
-    data = df
+    formula = rlang::expr(!!depVarSym ~ earlyLifeTrt * adultTrt + (1|damID))
+    , data = df
+    , method = "KR"
   )
 }
 
@@ -112,7 +113,7 @@ comboTrt_scatterAndLMM <- function(
         )
     }
     
-    lmm <- df %>% mixedForComboTrtMales(singleVar)
+    lmm <- df %>% lmmForComboTrt(singleVar)
 
     lmm_error <- getErrorDF_LMM_comboTrt(lmm)
 
@@ -198,8 +199,9 @@ mixedForCortAdmin <- function(df, depVar){
   depVarSym <- rlang::sym(depVar)
   
   mixed(
-    formula = rlang::expr(!!depVarSym ~ dosage + (1|damID)),
-    data = df
+    formula = rlang::expr(!!depVarSym ~ dosage + (1|damID))
+    , data = df
+    , method = "KR"
   )
 }
 

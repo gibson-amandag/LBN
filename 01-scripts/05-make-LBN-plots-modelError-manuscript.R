@@ -1,5 +1,7 @@
 textSize <- 11
 dotSize <- 2
+# textSize <- 24
+# dotSize <- 3
 facetMatByLitter <- FALSE
 
 # Dam behavior ------------------------------------------------------------
@@ -13,7 +15,7 @@ figDams_exits <- damBehavior_byPND %>%
     , colorByDam = TRUE
     , dotSize = .8
     , zoom_y = TRUE
-    , ymax = 50
+    , ymax = 60
     , ymin = 0
     , showMean = TRUE
     , addVertError = TRUE
@@ -61,10 +63,12 @@ figDams_meanExits <- damBehavior_byDam %>%
     , addMean = TRUE
     , addSEM = TRUE
     , zoom_y = TRUE
-    , ymax = 50
+    , ymax = 60
     , ymin = 0
     , dotSize = dotSize
     , textSize = textSize
+    , meanColor = "magenta"
+    , barColor = "magenta"
   ) +
   # plotError_LMM(
   #   numExits_nb.GLMM_errors.earlyLifeEMM
@@ -121,6 +125,8 @@ figDams_meanOffNest <- damBehavior_byDam %>%
     , ymin = 0
     , dotSize = dotSize
     , textSize = textSize
+    , meanColor = "magenta"
+    , barColor = "magenta"
   ) +
   # plotError_LMM(
   #   percOffNest_lmm_errors.earlyLifeEMM
@@ -150,9 +156,11 @@ figDamsD <- damFiltered %>%
     yLab = "corticosterone\n(ng/mL)",
     textSize = textSize,
     dotSize = dotSize,
-    zoom_y = FALSE,
+    zoom_y = FALSE
     # ymin = 0,
     # ymax = 120
+    , meanColor = "magenta"
+    , barColor = "magenta"
   )
 
 # Dam Mass ------------------------------------------------------
@@ -206,9 +214,6 @@ figDams_mass <- damFiltered %>%
 
 # Offspring mass ----------------------------------------------------------
 
-
-## First litter ------------------------------------------------------------
-
 figOffA <- massFiltered %>%
   plot_mass_lines(
     groupByDam = TRUE,
@@ -220,8 +225,8 @@ figOffA <- massFiltered %>%
     ytitle = "mass (g)", #y axis label
     title = NULL, # plot title
     individualLines = TRUE, # plot individual lines
-    meanLines = TRUE, # plot mean lines with SE
-    zoom_x = FALSE, # Zoom to part of x axis
+    meanLines = FALSE, # plot mean lines with SE #2023-11-22 to add model error
+    zoom_x = TRUE, # Zoom to part of x axis
     xmin = 0,
     xmax = 72,
     zoom_y = FALSE, # Zoom to part of y axis
@@ -244,6 +249,16 @@ figOffA <- massFiltered %>%
   ) +
   theme(
     legend.key = element_rect(fill = NA)
+  ) + 
+  plotError_LMM_meanLine_mass(
+    mass_lmm_errors
+    , xVar = day
+    , fill = earlyLifeTrt
+    , barSize = .6
+    , ribbonAlpha = .4
+  ) +
+  scale_fill_manual(
+    values = c("STD" = "grey30", "LBN" = "cyan4")
   )
 
 # Maturation --------------------------------------------------------------
@@ -263,7 +278,7 @@ figOffAge_model <- maturationByDamLong %>%
   plotError_LMM(
     age_lmm_errors
     , xVar = earlyLifeTrt
-    , color = "black"
+    , color = "magenta"
     , nudgeErrorLine = 0
     , barSize = 0.6
   )
@@ -281,9 +296,9 @@ figOffMass_model <- maturationByDamLong %>%
     ~ matType
   ) + 
   plotError_LMM(
-    mass_lmm_errors
+    matMass_lmm_errors
     , xVar = earlyLifeTrt
-    , color = "black"
+    , color = "magenta"
     , nudgeErrorLine = 0
     , barSize = 0.6
   )
@@ -318,7 +333,7 @@ figOff_femaleAGD <- maturation_byDam_f %>%
       sex == "F"
     )
     , xVar = earlyLifeTrt
-    , color = "black"
+    , color = "magenta"
     , barSize = 0.5
     , meanBarWidth = 0.7
     , nudgeErrorLine = 0
@@ -348,7 +363,7 @@ figOff_maleAGD <- maturation_byDam_m %>%
       sex == "M"
     )
     , xVar = earlyLifeTrt
-    , color = "black"
+    , color = "magenta"
     , barSize = 0.5
     , meanBarWidth = 0.7
     , nudgeErrorLine = 0
@@ -417,7 +432,7 @@ figCycles_numCycles_model <- cyclesFiltered %>%
     , xVar = earlyLifeTrt
     , meanBarWidth = 0.7
     , barSize = 0.4
-    , color = "black"
+    , color = "magenta"
     , nudgeErrorLine = 0
   )
 
@@ -443,7 +458,7 @@ figCycles_lengthLog_model <- cyclesFiltered %>%
     lengthCycles_log_lmm_error
     , xVar = earlyLifeTrt
     , meanBarWidth = 0.7
-    , color = "black"
+    , color = "magenta"
     , nudgeErrorLine = 0
   )
 
@@ -459,6 +474,8 @@ figCyclesD <- cyclesPercLong %>%
     , dotSize = dotSize
     , strip.position = "top"
     , ylabel = "mean % days in stage"
+    , meanColor = "magenta"
+    , barColor = "magenta"
     ,
   ) +
   coord_cartesian(ylim = c(0, 80))
@@ -571,21 +588,23 @@ cortAdmin_cort <- maleCortAdmin_cort_filtered %>%
     , plotMean = FALSE
     , plotSE = FALSE
     , xBreaks = c(0, 1, 2, 3, 4, 5)
-    , xLabels = c("0h", "1h", "2h", "3h", "4h", "5h")
+    # , xLabels = c("0h", "1h", "2h", "3h", "4h", "5h")
+    , xLabels = c(0, 1, 2, 3, 4, 5)
     , pointAlpha = 0.7
+    , yUnitsNewLine = TRUE
   ) +
-  facet_wrap(
-    ~ dosage,
-    labeller = labeller(dosage = c("0" = "0mg/kg", "2" = "2mg/kg"))
-    , strip.position = "bottom"
-  ) +
+  # facet_wrap(
+  #   ~ dosage,
+  #   labeller = labeller(dosage = c("0" = "0mg/kg", "2" = "2mg/kg"))
+  #   , strip.position = "bottom"
+  # ) +
   # labs(
   #   x = "time since 1st administration (h)" # add a title to the x axis
-  # ) + 
+  # ) +
   theme(
-    legend.position = "none"
-    , 
-  )  + 
+    legend.position = "bottom"
+    , legend.margin = margin(-10,0,0,0)
+  )  +
   dosageFillShape()+
   plotError_LMM(
     maleCortAdmin_cort_lmm_error %>%
@@ -594,277 +613,22 @@ cortAdmin_cort <- maleCortAdmin_cort_filtered %>%
       )
     , xVar = time
     , meanBarWidth = 0.7
-    , color = "black"
+    , color = "magenta"
     , nudgeErrorLine = 0
   ) +
-  # labs(x = "time (hr)"
-  #      ) +
+  labs(x = "time (hr)"
+       ) +
   scale_y_continuous(
     breaks = seq(0, 750, 150)
-  )
-
-## Masses -----
-
-### Functions ----
-
-plotBodyMassAM_noMean <- plotCatVarFunc(
-  expr(Body_mass_AM)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  , thisYLab = "body mass (g)"
-  , addLegend = TRUE
-  , removeXTicks = TRUE
-  , addMeanSE = FALSE
-)
-
-plotChangeBodyMass_noMean <- plotCatVarFunc(
-  expr(bodyMass_diff)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  , thisYLab = "\u0394 body mass (g)"
-  , removeXTicks = TRUE
-  , addMeanSE = FALSE
-)
-
-plotPercChangeBodyMass_noMean <- plotCatVarFunc(
-  expr(percChangeBodyMass)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  , thisYLab = "% change in body mass"
-  , removeXTicks = TRUE
-  , addMeanSE = FALSE
-)
-
-plotRelAdrenalMass_noMean <- plotCatVarFunc(
-  expr(Adrenal_mass_perBodyAM_g)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  , thisYLab = "normalized adrenal\nmass (mg/g)"
-  # , thisYLab = "rel. mass (mg/g)"
-  , removeXTicks = TRUE
-  , addMeanSE = FALSE
-)
-
-plotRelReproTractMass_noMean <- plotCatVarFunc(
-  expr(ReproTract_mass_perBodyAM_g)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  , thisYLab = "normalized repro. tract\nmass (mg/g)"
-  # , thisYLab = "rel. mass (mg/g)"
-  , removeXTicks = TRUE
-  , addMeanSE = FALSE
-)
-
-plotRelSeminalVesicleMass_noMean <- plotCatVarFunc(
-  expr(ReproTract_mass_perBodyAM_g)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  , thisYLab = "normalized seminal\nvesicle mass (mg/g)"
-  # , thisYLab = "rel. mass (mg/g)"
-  , removeXTicks = TRUE
-  , addMeanSE = FALSE
-)
-
-plotRelUterineMass_noMean <- plotCatVarFunc(
-  expr(ReproTract_mass_perBodyAM_g)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  , thisYLab = "normalized uterine\nmass (mg/g)"
-  # , thisYLab = "rel. mass (mg/g)"
-  , removeXTicks = TRUE
-  , addMeanSE = FALSE
-)
-
-plotRelTesticularMass_noMean <- plotCatVarFunc(
-  expr(Gonad_mass_perBodyAM_g)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , twoLineXLabs = TRUE
-  , useFacetLabels = FALSE
-  , useSpecYLab = TRUE
-  # , thisYLab = "rel. testicular mass\n(mg/g)"
-  , thisYLab = "normalized testicular mass (mg/g)"
-  , removeXTicks = TRUE
-  , addMeanSE = FALSE
-)
-
-facetByHormoneStatus <- facet_wrap(
-  ~ hormoneStatus
-  , nrow = 1
-)
-
-### Graphs ----
-
-#### Males --------
-
-# Body mass AM
-figMaleMassA
-
-# % change in body mass
-
-# noramlized adrenal mass
-
-# normalized seminal vesicle mass
-
-# normalized testicular mass
-
-# Cort admin
-
-maleCortAdmin_plotByConsumption <- maleCortAdmin_cort %>%
-  plotCortByNutellaConsumption(
-    fontSize = 16
-  )
-
-latterCortAdmin_plotByConsumption <- latterCortAdmin_cort %>%
-  plotCortByNutellaConsumption(
-    fontSize = 16
-  )
-
-plotCortAdminAMBodyMass <- plotMaleCortAdminFunc(
-  expr(Body_mass_AM)
-  , thisYLab = "body mass (g)"
-)
-
-plotCortAdminPercChangeBodyMass <- plotMaleCortAdminFunc(
-  expr(percChangeBodyMass)
-  , thisYLab = "% change in body mass"
-)
-
-plotCortAdminTesticularMass <- plotMaleCortAdminFunc(
-  expr(Gonad_mass_perBodyAM_g)
-  , thisYLab = "rel. testicular mass (mg/g)"
-)
-
-plotCortAdminSeminalVesicleMass <- plotMaleCortAdminFunc(
-  expr(ReproTract_mass_perBodyAM_g)
-  , thisYLab = "rel. seminal vesicle mass (mg/g)"
-)
-
-plotCortAdminAdrenalMass <- plotMaleCortAdminFunc(
-  expr(Adrenal_mass_perBodyAM_g)
-  , thisYLab = "rel. adrenal vesicle mass (mg/g)"
-)
-
-
-maleCortAdmin_AMBodyMass <- plotCortAdminAMBodyMass(latterCortAdmin)
-maleCortAdmin_PercChangeBodyMass <- plotCortAdminPercChangeBodyMass(latterCortAdmin)
-maleCortAdmin_TesticularMass <- plotCortAdminTesticularMass(latterCortAdmin)
-maleCortAdmin_SeminalVesicleMass <- plotCortAdminSeminalVesicleMass(latterCortAdmin)
-maleCortAdmin_AdrenalMass <- plotCortAdminAdrenalMass(latterCortAdmin)
-
-
-figMassFacetA_model <- acuteStressFiltered_M_DiPro %>%
-  plotBodyMassAM_noMean() +
-  facetByHormoneStatus +
-  plotError_LMM(
-    bodyMassAM_lmm_error
-    , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
-    , color = "magenta"
-  )
-
-figMassFacetB_perc_model <- acuteStressFiltered_M_DiPro %>%
-  plotPercChangeBodyMass_noMean() +
-  facetByHormoneStatus +
-  plotError_LMM(
-    percChangeBodyMass_lmm_error
-    , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
-    , color = "magenta"
-  )
-
-figMassFacetC_model <- acuteStressFiltered_M_DiPro %>%
-  plotRelAdrenalMass_noMean(
-    zoom_y = TRUE
-    , ymin = 0
-    , ymax = 0.4
   ) +
-  facetByHormoneStatus +
-  plotError_LMM(
-    adrenalMass_lmm_error
-    , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
-    , color = "magenta"
+  scale_linetype_manual(
+    values = c("0" = "solid", 
+               "2" = "dotted"),
+    labels = c("0" = "0mg/kg",
+               "2" = "2mg/kg")
   )
 
-figMassFacetD_male_model <- acuteStressFiltered_M_DiPro %>%
-  filter(
-    sex == "M"
-  ) %>%
-  plotRelSeminalVesicleMass_noMean(
-    zoom_y = TRUE
-    , ymin = 0
-    , ymax = 10
-  ) +
-  facetByHormoneStatus +
-  plotError_LMM(
-    seminalVesicle_lmm_error
-    , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
-    , color = "magenta"
-  )
 
-figMassFacetD_female_model <- acuteStressFiltered_M_DiPro %>%
-  filter(
-    sex == "F"
-  ) %>%
-  plotRelUterineMass_noMean(
-    zoom_y = TRUE
-    , ymin = 0
-    , ymax = 10
-  ) +
-  facetByHormoneStatus +
-  plotError_LMM(
-    uterineMass_lmm_error
-    , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
-    , color = "magenta"
-  )
-
-figMass_testicular_model <- acuteStressFiltered_M_DiPro %>%
-  filter(
-    sex == "M"
-  ) %>%
-  plotRelTesticularMass_noMean()+
-  plotError_LMM(
-    testicularMass_lmm_error
-    , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
-    , color = "magenta"
-  )
   
 ## LH ----------------------------------------------------------------------
 
@@ -934,6 +698,8 @@ plotLH_2ndL_zoom <- plotLHFunc(
 LHplot_pro_2ndL_zoom <- LHFilteredPro %>%
   plotLH_2ndL_zoom()
 
+source("./01-scripts/05.5-run-LBN-masses-stats-plots.R")
+source("./01-scripts/05.5-run-LBN-female-masses-stats-plots.R")
 
 ## Surge amplitude ---------------------------------------------------------
 
@@ -1138,3 +904,268 @@ figGABAf_model <- GABApscs_240FilteredFiring %>%
 
 
 
+
+# # OLD -----------------
+# 
+# ## Masses -----
+# 
+# ### Functions ----
+# 
+# plotBodyMassAM_noMean <- plotCatVarFunc(
+#   expr(Body_mass_AM)
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , twoLineXLabs = TRUE
+#   , useFacetLabels = FALSE
+#   , useSpecYLab = TRUE
+#   , thisYLab = "body mass (g)"
+#   , addLegend = TRUE
+#   , removeXTicks = TRUE
+#   , addMeanSE = FALSE
+# )
+# 
+# plotChangeBodyMass_noMean <- plotCatVarFunc(
+#   expr(bodyMass_diff)
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , twoLineXLabs = TRUE
+#   , useFacetLabels = FALSE
+#   , useSpecYLab = TRUE
+#   , thisYLab = "\u0394 body mass (g)"
+#   , removeXTicks = TRUE
+#   , addMeanSE = FALSE
+# )
+# 
+# plotPercChangeBodyMass_noMean <- plotCatVarFunc(
+#   expr(percChangeBodyMass)
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , twoLineXLabs = TRUE
+#   , useFacetLabels = FALSE
+#   , useSpecYLab = TRUE
+#   , thisYLab = "% change in body mass"
+#   , removeXTicks = TRUE
+#   , addMeanSE = FALSE
+# )
+# 
+# plotRelAdrenalMass_noMean <- plotCatVarFunc(
+#   expr(Adrenal_mass_perBodyAM_g)
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , twoLineXLabs = TRUE
+#   , useFacetLabels = FALSE
+#   , useSpecYLab = TRUE
+#   , thisYLab = "normalized adrenal\nmass (mg/g)"
+#   # , thisYLab = "rel. mass (mg/g)"
+#   , removeXTicks = TRUE
+#   , addMeanSE = FALSE
+# )
+# 
+# plotRelReproTractMass_noMean <- plotCatVarFunc(
+#   expr(ReproTract_mass_perBodyAM_g)
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , twoLineXLabs = TRUE
+#   , useFacetLabels = FALSE
+#   , useSpecYLab = TRUE
+#   , thisYLab = "normalized repro. tract\nmass (mg/g)"
+#   # , thisYLab = "rel. mass (mg/g)"
+#   , removeXTicks = TRUE
+#   , addMeanSE = FALSE
+# )
+# 
+# plotRelSeminalVesicleMass_noMean <- plotCatVarFunc(
+#   expr(ReproTract_mass_perBodyAM_g)
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , twoLineXLabs = TRUE
+#   , useFacetLabels = FALSE
+#   , useSpecYLab = TRUE
+#   , thisYLab = "normalized seminal\nvesicle mass (mg/g)"
+#   # , thisYLab = "rel. mass (mg/g)"
+#   , removeXTicks = TRUE
+#   , addMeanSE = FALSE
+# )
+# 
+# plotRelUterineMass_noMean <- plotCatVarFunc(
+#   expr(ReproTract_mass_perBodyAM_g)
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , twoLineXLabs = TRUE
+#   , useFacetLabels = FALSE
+#   , useSpecYLab = TRUE
+#   , thisYLab = "normalized uterine\nmass (mg/g)"
+#   # , thisYLab = "rel. mass (mg/g)"
+#   , removeXTicks = TRUE
+#   , addMeanSE = FALSE
+# )
+# 
+# plotRelTesticularMass_noMean <- plotCatVarFunc(
+#   expr(Gonad_mass_perBodyAM_g)
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , twoLineXLabs = TRUE
+#   , useFacetLabels = FALSE
+#   , useSpecYLab = TRUE
+#   # , thisYLab = "rel. testicular mass\n(mg/g)"
+#   , thisYLab = "normalized testicular mass (mg/g)"
+#   , removeXTicks = TRUE
+#   , addMeanSE = FALSE
+# )
+# 
+# facetByHormoneStatus <- facet_wrap(
+#   ~ hormoneStatus
+#   , nrow = 1
+# )
+# 
+# ### Graphs ----
+# 
+# #### Males --------
+# 
+# # Body mass AM
+# figMaleMassA
+# 
+# # % change in body mass
+# 
+# # noramlized adrenal mass
+# 
+# # normalized seminal vesicle mass
+# 
+# # normalized testicular mass
+# 
+# # Cort admin
+# 
+# maleCortAdmin_plotByConsumption <- maleCortAdmin_cort %>%
+#   plotCortByNutellaConsumption(
+#     fontSize = 16
+#   )
+# 
+# latterCortAdmin_plotByConsumption <- latterCortAdmin_cort %>%
+#   plotCortByNutellaConsumption(
+#     fontSize = 16
+#   )
+# 
+# plotCortAdminAMBodyMass <- plotMaleCortAdminFunc(
+#   expr(Body_mass_AM)
+#   , thisYLab = "body mass (g)"
+# )
+# 
+# plotCortAdminPercChangeBodyMass <- plotMaleCortAdminFunc(
+#   expr(percChangeBodyMass)
+#   , thisYLab = "% change in body mass"
+# )
+# 
+# plotCortAdminTesticularMass <- plotMaleCortAdminFunc(
+#   expr(Gonad_mass_perBodyAM_g)
+#   , thisYLab = "rel. testicular mass (mg/g)"
+# )
+# 
+# plotCortAdminSeminalVesicleMass <- plotMaleCortAdminFunc(
+#   expr(ReproTract_mass_perBodyAM_g)
+#   , thisYLab = "rel. seminal vesicle mass (mg/g)"
+# )
+# 
+# plotCortAdminAdrenalMass <- plotMaleCortAdminFunc(
+#   expr(Adrenal_mass_perBodyAM_g)
+#   , thisYLab = "rel. adrenal vesicle mass (mg/g)"
+# )
+# 
+# 
+# maleCortAdmin_AMBodyMass <- plotCortAdminAMBodyMass(latterCortAdmin)
+# maleCortAdmin_PercChangeBodyMass <- plotCortAdminPercChangeBodyMass(latterCortAdmin)
+# maleCortAdmin_TesticularMass <- plotCortAdminTesticularMass(latterCortAdmin)
+# maleCortAdmin_SeminalVesicleMass <- plotCortAdminSeminalVesicleMass(latterCortAdmin)
+# maleCortAdmin_AdrenalMass <- plotCortAdminAdrenalMass(latterCortAdmin)
+# 
+# 
+# figMassFacetA_model <- acuteStressFiltered_M_DiPro %>%
+#   plotBodyMassAM_noMean() +
+#   facetByHormoneStatus +
+#   plotError_LMM(
+#     bodyMassAM_lmm_error
+#     , xVar = comboTrt
+#     , nudgeErrorLine = 0
+#     , nudgeMeanLine = 0
+#     , meanBarWidth = 0.7
+#     , color = "magenta"
+#   )
+# 
+# figMassFacetB_perc_model <- acuteStressFiltered_M_DiPro %>%
+#   plotPercChangeBodyMass_noMean() +
+#   facetByHormoneStatus +
+#   plotError_LMM(
+#     percChangeBodyMass_lmm_error
+#     , xVar = comboTrt
+#     , nudgeErrorLine = 0
+#     , nudgeMeanLine = 0
+#     , meanBarWidth = 0.7
+#     , color = "magenta"
+#   )
+# 
+# figMassFacetC_model <- acuteStressFiltered_M_DiPro %>%
+#   plotRelAdrenalMass_noMean(
+#     zoom_y = TRUE
+#     , ymin = 0
+#     , ymax = 0.4
+#   ) +
+#   facetByHormoneStatus +
+#   plotError_LMM(
+#     adrenalMass_lmm_error
+#     , xVar = comboTrt
+#     , nudgeErrorLine = 0
+#     , nudgeMeanLine = 0
+#     , meanBarWidth = 0.7
+#     , color = "magenta"
+#   )
+# 
+# figMassFacetD_male_model <- acuteStressFiltered_M_DiPro %>%
+#   filter(
+#     sex == "M"
+#   ) %>%
+#   plotRelSeminalVesicleMass_noMean(
+#     zoom_y = TRUE
+#     , ymin = 0
+#     , ymax = 10
+#   ) +
+#   facetByHormoneStatus +
+#   plotError_LMM(
+#     seminalVesicle_lmm_error
+#     , xVar = comboTrt
+#     , nudgeErrorLine = 0
+#     , nudgeMeanLine = 0
+#     , meanBarWidth = 0.7
+#     , color = "magenta"
+#   )
+# 
+# figMassFacetD_female_model <- acuteStressFiltered_M_DiPro %>%
+#   filter(
+#     sex == "F"
+#   ) %>%
+#   plotRelUterineMass_noMean(
+#     zoom_y = TRUE
+#     , ymin = 0
+#     , ymax = 10
+#   ) +
+#   facetByHormoneStatus +
+#   plotError_LMM(
+#     uterineMass_lmm_error
+#     , xVar = comboTrt
+#     , nudgeErrorLine = 0
+#     , nudgeMeanLine = 0
+#     , meanBarWidth = 0.7
+#     , color = "magenta"
+#   )
+# 
+# figMass_testicular_model <- acuteStressFiltered_M_DiPro %>%
+#   filter(
+#     sex == "M"
+#   ) %>%
+#   plotRelTesticularMass_noMean()+
+#   plotError_LMM(
+#     testicularMass_lmm_error
+#     , xVar = comboTrt
+#     , nudgeErrorLine = 0
+#     , nudgeMeanLine = 0
+#     , meanBarWidth = 0.7
+#     , color = "magenta"
+#   )

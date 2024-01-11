@@ -7348,7 +7348,7 @@ Demo_dam %>%
 damBehaveDates <- Demo_dam %>%
   filter(
     Litter_size >= 5
-    , cohort == 9
+    , cohort == 10
     , is.na(Sac_or_stop) | Sac_or_stop > DOB + 20
     , DOB > as_date("2023-04-11")
   ) %>%
@@ -7969,6 +7969,8 @@ cohort9_usage <- LBN_all %>%
     earlyLifeTrt,
     adultTrt
   )
+
+cohort9_usage
 ```
 ```{r}
 LBN_all %>%
@@ -8791,7 +8793,26 @@ LBN_data %>%
     cohort == 9
     , is.na(Pups_through_wean) | Pups_through_wean == TRUE
     , sex == "F"
+    , is.na(Sac_date) & is.na(Sac_stop_off)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  summarize(
+    n = n()
+    , .groups = "drop"
+  )
+```
+
+## Count unused and available
+```{r}
+LBN_data %>%
+  filter(
+    cohort == 10
+    , is.na(Pups_through_wean) | Pups_through_wean == TRUE
+    , sex == "F"
     , is.na(Sac_date)
+    , is.na(Sac_stop_off)
   ) %>%
   group_by(
     earlyLifeTrt
@@ -14158,4 +14179,438 @@ p <- ggplot(df, aes(time, potential)) +
 # Create the plot
 p
 ```
+# 2023-11-22 Offspring mass - splines with emmeans and mixed
+
+```{r}
+female_mass_lmm <- mixed(
+  mass ~ earlyLifeTrt * lspline(day, c(21, 35)) + (1|damID) + (1|mouseID)
+  , data =  mass_long %>%
+    filter(
+      day >= 11
+      , sex == "F"
+    )
+  , method = "KR"
+)
+
+
+female_mass_lmm_emm <- emmeans(
+  female_mass_lmm
+  , ~ earlyLifeTrt * lspline(day, c(21, 35))
+  , data = mass_long %>%
+  filter(
+    day >= 11
+  )
+  , at = list(day = c(11, 21, 35, 70))
+)
+
+female_mass_lmm_emm.pairs <- test(pairs(female_mass_lmm_emm, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+
+female_mass_lmm
+female_mass_lmm_emm
+female_mass_lmm_emm.pairs
+
+```
+
+```{r}
+male_mass_lmm <- mixed(
+  mass ~ earlyLifeTrt * lspline(day, c(21, 35)) + (1|damID) + (1|mouseID)
+  , data =  mass_long %>%
+    filter(
+      day >= 11
+      , sex == "M"
+    )
+  , method = "KR"
+)
+
+
+male_mass_lmm_emm <- emmeans(
+  male_mass_lmm
+  , ~ earlyLifeTrt * lspline(day, c(21, 35))
+  , data = mass_long %>%
+  filter(
+    day >= 11
+  )
+  , at = list(day = c(11, 21, 35, 70))
+)
+
+male_mass_lmm_emm.pairs <- test(pairs(male_mass_lmm_emm, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+
+male_mass_lmm
+male_mass_lmm_emm
+male_mass_lmm_emm.pairs
+
+```
+
+UM-GPT helped
+
+```{r}
+# Generate a data frame with the specific days and all combinations of other variables
+newdata <- expand.grid(day = unique(mass_long$day), earlyLifeTrt = unique(mass_long$earlyLifeTrt))
+
+newdata <- newdata %>% 
+  filter(
+    day >= 11
+  )
+
+PNDs <- unique(mass_long$day)
+PNDs <- PNDs[PNDs != 4]
+
+# Compute the emmeans for your model at these specific points
+female_mass_lmm_means <- emmeans(female_mass_lmm,  ~ earlyLifeTrt * lspline(day, c(21, 35)), at = list(day = PNDs, earlyLifeTrt = unique(mass_long$earlyLifeTrt)), data = newdata)
+
+female_mass_lmm_means_df <- as_tibble(female_mass_lmm_means)
+
+female_mass_lmm_errors <- female_mass_lmm_means_df %>%
+  rename(
+    y = emmean
+    , lower = asymp.LCL
+    , upper = asymp.UCL
+  ) %>%
+  mutate(
+    sex = "F"
+  )
+
+# # Now plot these predicted values
+# ggplot(female_mass_lmm_means_df, aes(x=day, y=emmean, color=earlyLifeTrt)) +
+#   geom_line() +
+#   geom_ribbon(aes(ymin = asymp.LCL, ymax = asymp.UCL), alpha = 0.2) +
+#   geom_point(data = mass_long, aes(x = day, y = mass, color = earlyLifeTrt)) +
+#   theme_minimal()
+
+```
+
+Something to fix/address - for the females, it's asymptotic, for the males, it's not with the number of observations
+
+```{r}
+# Compute the emmeans for your model at these specific points
+male_mass_lmm_means <- emmeans(male_mass_lmm,  ~ earlyLifeTrt * lspline(day, c(21, 35)), at = list(day = PNDs, earlyLifeTrt = unique(mass_long$earlyLifeTrt)), data = newdata)
+
+male_mass_lmm_means_df <- as_tibble(male_mass_lmm_means)
+
+male_mass_lmm_errors <- male_mass_lmm_means_df %>%
+  rename(
+    y = emmean
+    , lower = lower.CL
+    , upper = upper.CL
+  ) %>%
+  mutate(
+    sex = "M"
+  )
+```
+
+
+
+```{r}
+mass_lmm_errors <- female_mass_lmm_errors %>%
+  rbind(
+    male_mass_lmm_errors
+  )
+
+plotError_LMM_meanLine_mass <- function(
+    lmmData
+    , xVar
+    , barSize = 1.2
+    , nudgeErrorLine = 0 # to offset from current error bar. Remove
+    , ribbonAlpha = 0.2
+    , ... # into aes
+) {
+  geoms <- list(
+    geom_line(
+      aes(
+        x = {{ xVar }}
+        , y = y
+        , color = earlyLifeTrt
+        , ...
+      )
+      , data = lmmData
+      , size = barSize
+      , inherit.aes = FALSE # 2023-07-30
+    ),
+    geom_ribbon(
+      aes(
+        x = {{xVar}}
+        , ymin = lower
+        , ymax = upper
+        , fill = earlyLifeTrt
+        , ... 
+      )
+      , data = lmmData
+      , inherit.aes = FALSE
+      , size = barSize
+      , position = position_nudge(x = nudgeErrorLine)
+      , show.legend = FALSE
+      , alpha = ribbonAlpha
+    )
+  )
+  return(geoms)
+}
+
+# ggplot()+
+figOffA +
+  plotError_LMM_meanLine_mass(
+    mass_lmm_errors
+    , xVar = day
+    , fill = earlyLifeTrt
+    , barSize = .6
+    , ribbonAlpha = .4
+  ) +
+  scale_fill_manual(
+    values = c("STD" = "grey30", "LBN" = "cyan4")
+  )
+```
+# Male ALPS % change mass outlier
+
+```{r}
+acuteStressFilteredMales %>%
+  filter(
+    percChangeBodyMass > 0
+  )
+```
+
+# Diestrus LH response
+```{r}
+acuteStressFilteredDi %>%
+  scatterPlotComboTrt(
+    maxLH
+    , "maximum evening LH (ng/mL)"
+  )
+
+mixed(
+  maxLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFilteredDi
+  , method = "KR"
+)
+
+LHFilteredDi %>%
+  plotLHFunc(
+    c(1)
+    , fontSize = 11
+    , dotSize = 1
+    , ymax = 5
+  )()
+
+diLH_lmm <- mixed(
+  LH ~ earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
+  , data = LHFilteredDi %>%
+    mutate(
+      time = as.factor(time)
+    )
+  , method = "KR"
+)
+
+diLH_lmm
+```
+```{r}
+proLH_lmm <- mixed(
+  LH ~ earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
+  , data = LHFilteredPro %>%
+    filter(
+      mouseID %in% nonEphysMice$mouseID
+      , time %in% c(5, 5.5, 6.5, 7.5, 8.5, 9.5)
+    ) %>%
+    mutate(
+      time = as.factor(time)
+    )
+  , method = "KR"
+)
+proLH_lmm
+```
+
+```{r}
+mixed(
+  maxLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFilteredPro %>%
+    filter(
+      mouseID %in% nonEphysMice$mouseID
+    )
+  , method = "KR"
+)
+mixed(
+  LH_AUC ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFilteredPro %>%
+    filter(
+      mouseID %in% nonEphysMice$mouseID
+    )
+  , method = "KR"
+)
+```
+
+# Cohort 10 - Dates
+
+```{r}
+litters_cohort10 <- Demo_dam %>%
+  filter(
+    breedDate > as_date("2023-07-01")
+    , !is.na(earlyLifeTrt)
+  ) %>%
+  select(
+    damID
+    , breedDate
+    , DOB
+    , Litter_size_startPara
+  ) %>%
+  arrange(
+    DOB, breedDate
+  ) %>%
+  mutate(
+    DOB_est = breedDate + 21
+    , .after = breedDate
+  ) %>%
+  mutate(
+    PND4 = as_date(ifelse(!is.na(DOB), DOB + 4, DOB_est + 4))
+    , PND11 = as_date(ifelse(!is.na(DOB), DOB + 11, DOB_est + 11))
+    , PND21 = as_date(ifelse(!is.na(DOB), DOB + 21, DOB_est + 21))
+    , PND35 = as_date(ifelse(!is.na(DOB), DOB + 35, DOB_est + 35))
+    , PND49 = as_date(ifelse(!is.na(DOB), DOB + 49, DOB_est + 49))
+    , PND63 = as_date(ifelse(!is.na(DOB), DOB + 63, DOB_est + 63))
+    , PND70 = as_date(ifelse(!is.na(DOB), DOB + 70, DOB_est + 70))
+    , PND91 = as_date(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
+    , PND120 = as_date(ifelse(!is.na(DOB), DOB + 120, DOB_est + 120))
+    , .after = DOB
+  ) %>% left_join(
+    Demo_off %>%
+      filter(
+        sex == "F"
+      ) %>%
+      group_by(
+        damID
+      ) %>%
+      summarize(
+        numFemales = n()
+      )
+    , by = "damID"
+  ) 
+
+litters_cohort10
+
+saveDFsToExcel(
+  "cohort10litters"
+  , cohort10 = litters_cohort10
+)
+```
+# Cohort 10 - Dates
+
+```{r}
+litters_cohort10 <- Demo_dam %>%
+  filter(
+    breedDate > as_date("2023-07-01")
+    , !is.na(earlyLifeTrt)
+  ) %>%
+  select(
+    damID
+    , earlyLifeTrt
+    , breedDate
+    , DOB
+    , Litter_size_startPara
+  ) %>%
+  arrange(
+    earlyLifeTrt, DOB, breedDate
+  ) %>%
+  mutate(
+    DOB_est = breedDate + 21
+    , .after = breedDate
+  ) %>%
+  mutate(
+    PND91 = as_date(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
+    , .after = DOB
+  ) %>% left_join(
+    Demo_off %>%
+      filter(
+        sex == "F"
+      ) %>%
+      group_by(
+        damID
+      ) %>%
+      summarize(
+        numFemales = n()
+      )
+    , by = "damID"
+  ) %>%
+  select(
+    damID
+    , earlyLifeTrt
+    , PND91
+    , numFemales
+  ) %>%
+  filter(
+    numFemales >= 1
+  )
+
+litters_cohort10
+
+write.table(litters_cohort10, "clipboard", sep="\t", row.names = FALSE)
+```
+
+```{r}
+surged_contTable
+surged_contTable[1,1] = 19
+surged_contTable[1,2] = 5
+surged_contTable[2,1] = 14
+surged_contTable[2,2] = 15
+
+surged_ChiSq <- chisq_test(surged_contTable)
+
+surged_ChiSq %>% flextable()
+
+chisq_descriptives(surged_ChiSq) %>% flextable()
+```
+
+
+```{r}
+
+df <- GABApscsFilteredFiring
+
+# Get the unique levels of comboTrt
+comboTrt_levels <- levels(df$comboTrt)
+
+# Ensure the number of unique levels does not exceed 26
+if (length(comboTrt_levels) > 26) {
+  stop("There are more than 26 unique levels in 'comboTrt'")
+}
+
+# Create a mapping of comboTrt levels to letters
+mapping <- setNames(sample(LETTERS[1:length(comboTrt_levels)]), comboTrt_levels)
+
+# Create a new column with the mapped letters
+randomTrt <- df %>%
+  mutate(trt = mapping[comboTrt])
+
+randomTrt %>%
+  select(
+    cellID
+    , trt
+  ) 
+
+randomTrt %>%
+  select(
+    cellID
+    , trt
+  ) %>%
+write.table("clipboard", sep="\t", row.names=FALSE)
+```
+
+```{r}
+maleCortAdmin %>%
+  mutate(
+    NutellaAmnt = Body_mass_AM / 30 * 60
+  ) %>%
+  summarize(
+    minNutella = min(NutellaAmnt, na.rm = TRUE)
+    , maxNutella = max(NutellaAmnt, na.rm = TRUE)
+  )
+```
+
+```{r}
+GABApscs_240FilteredFiring %>%
+  mutate(
+    timeSinceSucrose = timeSinceSac - 0.5
+  ) %>%
+  summarize(
+    min = min(timeSinceSac, na.rm = TRUE)
+    , max = max(timeSinceSac, na.rm = TRUE)
+    , minACSF = min(timeSinceSucrose, na.rm = TRUE)
+    , maxACSF = max(timeSinceSucrose, na.rm = TRUE)
+  )
+```
+
 

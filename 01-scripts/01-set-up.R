@@ -36,7 +36,9 @@ if(!require(lmerTest))install.packages('lmerTest')
 if(!require(afex))install.packages('afex')
 if(!require(emmeans))install.packages('emmeans')
 if(!require(ggbeeswarm))install.packages('ggbeeswarm')
-
+if(!require(nparLD))install.packages('nparLD')
+if(!require(lspline))install.packages('lspline')
+# if(!require(gt))install.packages('gt')
 
 
 
@@ -77,6 +79,8 @@ library(lmerTest)
 library(afex)
 library(emmeans)
 library(ggbeeswarm)
+library(nparLD)
+library(lspline)
 
 drive_auth(email = "*@umich.edu")
 gs4_auth(token = drive_token())
