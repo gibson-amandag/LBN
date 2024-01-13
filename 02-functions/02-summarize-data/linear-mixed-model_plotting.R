@@ -37,7 +37,8 @@ plotError_LMM <- function(
       , data = lmmData
       , inherit.aes = FALSE
       , width = meanBarWidth
-      , size = barSize
+      # , size = barSize
+      , linewidth = barSize
       , color = color
       , position = position_nudge(x = nudgeMeanLine)
     )
@@ -49,7 +50,8 @@ plotError_LMM <- function(
       )
       , data = lmmData
       , inherit.aes = FALSE
-      , size = barSize
+      # , size = barSize
+      , linewidth = barSize
       , color = color
       , position = position_nudge(x = nudgeErrorLine)
     )
@@ -77,7 +79,8 @@ plotError_LMM_aes <- function(
       , data = lmmData
       , inherit.aes = FALSE
       , width = meanBarWidth
-      , size = barSize
+      # , size = barSize
+      , lineWidth = barSize
       , position = position_nudge(x = nudgeMeanLine)
     )
     , geom_linerange(
@@ -89,7 +92,8 @@ plotError_LMM_aes <- function(
       )
       , data = lmmData
       , inherit.aes = FALSE
-      , size = barSize
+      # , size = barSize
+      , linewidth = barSize
       , position = position_nudge(x = nudgeErrorLine)
     )
   )
@@ -111,7 +115,8 @@ plotError_LMM_meanLine <- function(
         , ...
       )
       , data = lmmData
-      , size = barSize
+      # , size = barSize
+      , linewidth = barSize
       , inherit.aes = FALSE # 2023-07-30
     ),
     geom_linerange(
@@ -123,7 +128,8 @@ plotError_LMM_meanLine <- function(
       )
       , data = lmmData
       , inherit.aes = FALSE
-      , size = barSize
+      # , size = barSize
+      , linewidth = barSize
       , position = position_nudge(x = nudgeErrorLine)
       , show.legend = FALSE
     )
@@ -148,7 +154,8 @@ plotError_LMM_meanLine_mass <- function(
         , ...
       )
       , data = lmmData
-      , size = barSize
+      # , size = barSize
+      , linewidth = barSize
       , inherit.aes = FALSE # 2023-07-30
     ),
     geom_ribbon(
@@ -161,7 +168,8 @@ plotError_LMM_meanLine_mass <- function(
       )
       , data = lmmData
       , inherit.aes = FALSE
-      , size = barSize
+      # , size = barSize
+      , linewidth = barSize
       , position = position_nudge(x = nudgeErrorLine)
       , show.legend = FALSE
       , alpha = ribbonAlpha

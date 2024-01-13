@@ -25,7 +25,8 @@ plotDamBehavior_test <- function(df, yVar){
       alpha = 0.5,
       aes(group = damID, color = damID),
       position = position_dodge(0.4),
-      size = 1
+      # size = 1
+      linewdith = 1
     ) +
     boxTheme() +
     expand_limits(x = c(0,23))
@@ -190,7 +191,8 @@ plotDamBehavior <- function(
         alpha = lineAlpha,
         aes(group = damID, color = color),
         position = position_dodge(dodgeVal),
-        size = lineSize
+        # size = lineSize
+        linewidth = lineSize
       )
       if(showDots){
         viz <- viz + geom_point(
@@ -210,7 +212,8 @@ plotDamBehavior <- function(
         # color = "black",
         aes(group = damID, color = earlyLifeTrt),
         position = position_dodge(dodgeVal),
-        size = lineSize
+        # size = lineSize
+        linewidth = lineSize
       )
       if(showDots){
         viz <- viz + geom_point(
@@ -385,7 +388,8 @@ behavior_overTime <- function(
       color = "black",
       aes(group = damID, linetype = earlyLifeTrt),
       position = position_dodge(0.4),
-      size = lineSize
+      # size = lineSize
+      linewidth = lineSize
     )
   
   if(dotSize_byFirstDay){
@@ -451,7 +455,8 @@ behavior_overTime_dodge <- function(
         , group = interaction(damID, earlyLifeTrt) 
       ),
       position = position_dodge(dodgeVal),
-      size = lineSize
+      # size = lineSize
+      linewidth = lineSize
     )
   
   if(dotSize_byFirstDay){
@@ -544,7 +549,8 @@ behavior_overTime_days <- function(
       alpha = lineAlpha,
       aes(group = damID, color = damID),
       position = position_dodge(0.4),
-      size = lineSize
+      # size = lineSize
+      linewidth = lineSize
     )
   } else {
     viz <- viz + geom_line(
@@ -552,7 +558,8 @@ behavior_overTime_days <- function(
       color = "black",
       aes(group = damID, linetype = earlyLifeTrt),
       position = position_dodge(0.4),
-      size = lineSize
+      # size = lineSize
+      linewidth = lineSize
     )
     
   }
@@ -670,7 +677,8 @@ plotDamFrame_days <- function(
       alpha = lineAlpha,
       aes(group = damID, color = damID),
       position = position_dodge(0.4),
-      size = lineSize
+      # size = lineSize
+      linewidth = lineSize
     )
   } else {
     viz <- viz + geom_line(
@@ -678,7 +686,8 @@ plotDamFrame_days <- function(
       color = "black",
       aes(group = damID, linetype = earlyLifeTrt),
       position = position_dodge(0.4),
-      size = lineSize
+      # size = lineSize
+      linewidth = lineSize
     )
     
   }

@@ -86,7 +86,8 @@ addMeanHorizontalBar <- function(
         fun = mean, 
         fun.max = mean, 
         width = width,
-        size = size,
+        # size = size,
+        linewidth = size,
         position = barPosition,
         color = meanColor,
         aes(...)
@@ -99,7 +100,8 @@ addMeanHorizontalBar <- function(
         fun = mean, 
         fun.max = mean, 
         width = width,
-        size = size,
+        # size = size,
+        linewidth = size,
         position = barPosition,
         color = meanColor,
         aes(linetype = {{ typeVar }}, ...)
@@ -118,7 +120,8 @@ addMeanSE_vertBar <- function(
   stat_summary(
     geom = "linerange", 
     fun.data = mean_se,
-    size = size,
+    # size = size,
+    linewidth = size,
     position = barPosition,
     color = barColor,
     aes(...),
@@ -138,7 +141,8 @@ addMedianHorizontalBar <- function(
     fun = median, 
     fun.max = median, 
     width = width,
-    size = size,
+    # size = size,
+    linewidth = size,
     color = color,
     alpha = alpha
   )
@@ -173,7 +177,7 @@ my_geom_line <- function(
       #   group = {{ lineGroupVar }}
       #   # aesList
       # ),
-      size = indivLineSize
+      linewidth = indivLineSize
     )
   )
 }
@@ -193,14 +197,16 @@ mean_geom_line <- function(
       fun = mean, 
       geom = "line", 
       if(useLineType){aes(linetype = {{ lineTypeVar }})}, 
-      size = meanLineSize, 
+      # size = meanLineSize, 
+      linewidth = meanLineSize,
       alpha = meanAlpha
     ),
     stat_summary(
       geom = "errorbar", 
       fun.data = mean_se, 
       if(useLineType){aes(group = {{ lineTypeVar }})}, 
-      size = errorBarSize, 
+      # size = errorBarSize, 
+      linewidth = errorBarSize, 
       width = errorBarWidth, 
       # color = errorBarColor, 
       alpha = errorBarAlpha
