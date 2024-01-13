@@ -32,7 +32,7 @@ LBN_data %>%
   createRemainingPPT(
     addToName = "LBN" 
     , includeYesterday = FALSE
-    , cyclesDF = cyclesFiltered
+    , cyclesDF = Cycles_off_all
     , IDVar = num_ID
     , trtVar = earlyLifeTrt
     )
