@@ -57,9 +57,10 @@ simplifyLMMOutput <- function(anovaTable){
     subEarlyLifeTrtInRowNames() %>%
     subAdultTrtInRowNames() %>%
     as.data.frame() %>%
-    rownames_to_column("factor") %>%
+    rownames_to_column("variable") %>%
     mutate(
-      `F (df)` = paste0(format(round(`F`, 2), nsmall = 2), " (", round(`num Df`), ", ", format(round(`den Df`, 1), nsmall = 1), ")")
+      `F` = format(round(`F`, 2), nsmall = 2)
+      , `df` = paste0(round(`num Df`), ", ", format(round(`den Df`, 1), nsmall = 1))
       , .after = `F`
     ) %>%
     rename(
@@ -67,15 +68,42 @@ simplifyLMMOutput <- function(anovaTable){
     ) %>%
     formatPCol() %>%
     select(
-      -c(`num Df`, `den Df`, `F`)
+      -c(`num Df`, `den Df`)
     )
+  return(tbl)
+}
+
+simplifyEMMOutput <- function(emmTbl){
+  tbl <- emmTbl %>%
+    rename(
+      SEM = SE
+    ) %>%
+    mutate(
+      `95% CI` = paste0("[", format(round(lower.CL, 2), nsmall = 2), ", ", format(round(upper.CL, 2), nsmall = 2), "]")
+      , level = as.character(level)
+    ) %>%
+    select(
+      -c(lower.CL, upper.CL)
+    )
+  return(tbl)
+}
+
+simplifyEMMPairsOutput <- function(pairsTbl){
+  tbl <- pairsTbl %>%
+    as_tibble() %>%
+    rename(
+      SEM = SE
+      , `t ratio` = t.ratio
+      , p = p.value
+    ) %>%
+    formatPCol()
   return(tbl)
 }
 
 addTableAndCaptionToDoc <- function(tbl, tableCaption, tableNum, doc){
   doc <- doc %>%
+    addTableLegend(tableNum, tableCaption) %>%
     body_add_flextable(tbl) %>%
-    body_add_par("") %>%
-    addTableLegend(tableNum, tableCaption)
+    body_add_par("")
   return(doc)
 }
