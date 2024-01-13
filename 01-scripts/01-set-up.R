@@ -31,7 +31,10 @@ if(!require(lemon))install.packages('lemon')
 if(!require(rvg))install.packages('rvg')
 if(!require(googledrive))install.packages('googledrive')
 if(!require(googlesheets4))install.packages('googlesheets4')
-if(!require(lme4))install.packages('lme4')
+if(!require(lme4))install.packages('lme4') 
+# 2024-01-11 install.packages("lme4", type = "source")
+# Had problems with compatibility with new Matrix
+# https://stackoverflow.com/questions/77481539/error-in-initializeptr-function-cholmod-factor-ldeta-not-provided-by-pack
 if(!require(lmerTest))install.packages('lmerTest')
 if(!require(afex))install.packages('afex')
 if(!require(emmeans))install.packages('emmeans')
@@ -61,7 +64,6 @@ library(ggpubr)
 library(rstatix)
 library(cowplot)
 library(extrafont)
-library(flextable)
 library(fs)
 library(DT)
 library(Cairo)
@@ -92,12 +94,15 @@ select <- dplyr::select
 # pdf text is still overlapping on windows
 
 
-## 2021-08-17 - had to install older version of Rttf2pt1 for the font_import from extrafont to work appropriately
-## https://github.com/wch/extrafont/issues/88
-## Download Rtools for Windows: https://cran.r-project.org/bin/windows/Rtools/
+# ## 2021-08-17 - had to install older version of Rttf2pt1 for the font_import from extrafont to work appropriately
+# ## https://github.com/wch/extrafont/issues/88
+# ## Download Rtools for Windows: https://cran.r-project.org/bin/windows/Rtools/
+# 
+# ## Run these lines once on the computer
+# remotes::install_version("Rttf2pt1", version = "1.3.8") # 2024-01-11: Don't use
 
-## Run these lines once on the computer
-# remotes::install_version("Rttf2pt1", version = "1.3.8")
+# 2024-01-11: New error about corrupt version when using that version. Installed just the normal
+# install.packages("Rttf2pt1")
 # font_import()
 
 if(! length(fonts()) > 0){
@@ -106,6 +111,8 @@ if(! length(fonts()) > 0){
   print("Loading fonts")
   loadfonts(dev="pdf")
 }
+
+library(flextable) # 2024-01-11, maybe some problems if loading before fonts are loaded
 
 # READ ENVIRONMENT --------------------------------------------------------
 
