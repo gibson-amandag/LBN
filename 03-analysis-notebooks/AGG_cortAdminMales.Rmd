@@ -120,7 +120,7 @@ maleCortAdmin_cort_wide
 ```{r}
 maleCortAdmin_filtered <- maleCortAdmin %>%
   filter(
-    Sac_date >= as_date("2023-07-19")
+    Sac_date >= date_parse("2023-07-19")
     , is.na(earlyLifeTrt) | earlyLifeTrt == "STD"
   )
 

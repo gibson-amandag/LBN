@@ -410,7 +410,7 @@ BD_cortOff %>%
 ```{r, fig.width=11}
 nutellaCortPlot <- BD_cortOff %>%
   filter(
-    Sac_date != as_date("2022-05-27")
+    Sac_date != date_parse("2022-05-27")
   ) %>%
   cortPlot(
     pointSize = 3,
@@ -472,7 +472,7 @@ Compared to the data in Beth's paper, where the cort values at 1h are around 200
 ```{r, fig.width=11}
 nutellaCortPlot <- BD_cortOff %>%
   filter(
-    Sac_date == as_date("2022-05-27")
+    Sac_date == date_parse("2022-05-27")
   ) %>%
   cortPlot(
     pointSize = 3,
@@ -574,7 +574,7 @@ BD_cortOff %>%
 ```{r, fig.width=11}
 nutellaCortPlot <- BD_cortOff %>%
   filter(
-    # Sac_date == as_date("2022-05-27")
+    # Sac_date == date_parse("2022-05-27")
   ) %>%
   cortPlot(
     pointSize = 3,
@@ -811,7 +811,7 @@ This plot only includes the mice habituated and sampled by Amanda on May 26 and 
 ```{r}
 nutellaCortPlot <- BD_cortOff %>%
   filter(
-    Sac_date != as_date("2022-04-29")
+    Sac_date != date_parse("2022-04-29")
   ) %>%
   cortPlot(
     pointSize = 3,
@@ -863,7 +863,7 @@ This is zoomed in to a maximum y-axis value of 500ng/mL
 ```{r}
 nutellaCortPlot <- BD_cortOff %>%
   filter(
-    Sac_date != as_date("2022-04-29")
+    Sac_date != date_parse("2022-04-29")
   ) %>%
   cortPlot(
     pointSize = 3,

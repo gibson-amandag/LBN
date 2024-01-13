@@ -75,7 +75,7 @@ View(AcuteStress_off %>%
 ```{r}
 samplingDF_today <- AcuteStress_off %>%
   filter(
-    # Sac_date == as_date("2022-01-12")
+    # Sac_date == date_parse("2022-01-12")
     Sac_date == dateToday
     # cohort == 5
   )

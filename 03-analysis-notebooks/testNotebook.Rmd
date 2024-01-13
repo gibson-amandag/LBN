@@ -305,7 +305,7 @@ dir_ls(
   fail = TRUE
 )
 
-paste(as_date("2021-08-22"))
+paste(date_parse("2021-08-22"))
 buildCycleFileName <- function(
   cycleID,
   date,
@@ -317,7 +317,7 @@ buildCycleFileName <- function(
   return(fileName)
 }
 
-buildCycleFileName(33, as_date("2021-08-22"), 4)
+buildCycleFileName(33, date_parse("2021-08-22"), 4)
 
 regExCycleFileName <- function(
   date,
@@ -330,14 +330,14 @@ regExCycleFileName <- function(
   regEx <- paste0("^.*", date, ".*[-_]", idText, "\\.jpg$")
   return(regEx)
 }
-writeLines(regExCycleFileName(as_date("2021-08-22"), 33))
+writeLines(regExCycleFileName(date_parse("2021-08-22"), 33))
 dir_ls(
   path = LBN_0006_CyclingFolder,
   all = TRUE,
   recurse = TRUE,
   type = "any",
   glob = NULL,
-  regexp = regExCycleFileName(as_date("2021-08-22"), 33),
+  regexp = regExCycleFileName(date_parse("2021-08-22"), 33),
   invert = FALSE,
   fail = TRUE
 )
@@ -522,7 +522,7 @@ createSamplingSlide <- function(
 
 df <- stressFilesDF %>%
   filter(
-    Sac_date == as_date("2021-08-12")
+    Sac_date == date_parse("2021-08-12")
   )
 
 df
@@ -878,7 +878,7 @@ lagToP90
 dateToday + round(lagToP70)
 dateToday + round(lagToP90)
 
-as_date("2021-09-15") + round(lagToP90)
+date_parse("2021-09-15") + round(lagToP90)
 ```
 
 ```{r}
@@ -2747,13 +2747,13 @@ for(row in 1:length(cycleTable$mouseID)){
   cycleID <- cycleTable$num_ID[row]
   startDate <- cycleTable$cycleStartDate[row]
   endDate <- startDate + 20
-  # print(paste0("mouse: ", mouseID,"; start: ", as_date(startDate), "; end: ", as_date(endDate)))
+  # print(paste0("mouse: ", mouseID,"; start: ", date_parse(startDate), "; end: ", date_parse(endDate)))
   cycleFolder <- cycleTable$cyclingFolderPath[row]
   for(date in startDate:endDate){
-    print(paste0("ID: ", cycleID, "; Date: ", as_date(date)))
+    print(paste0("ID: ", cycleID, "; Date: ", date_parse(date)))
     
     fileRegEx <- regExCycleFileName(
-      as_date(date),
+      date_parse(date),
       # "2021-08-17",
       cycleID
     )
@@ -2776,17 +2776,17 @@ for(row in 1:length(cycleTable$mouseID)){
         MouseID = mouseID
       ))){
         #copy
-        print(paste0("copying for ID: ", cycleID, "; Date: ", as_date(date)))
+        print(paste0("copying for ID: ", cycleID, "; Date: ", date_parse(date)))
         file_copy(
           thisFilePath, 
           file.path(copyFolderPath, thisFileName)
         )
       } else{
-        print(paste0("not copying for ID: ", cycleID, "; Date: ", as_date(date)))
+        print(paste0("not copying for ID: ", cycleID, "; Date: ", date_parse(date)))
       }
       
     }else {
-      print(paste0("No file found for ID: ", cycleID, "; Date: ", as_date(date)))
+      print(paste0("No file found for ID: ", cycleID, "; Date: ", date_parse(date)))
     }
   }
 }
@@ -2812,13 +2812,13 @@ for(row in 1:length(cycleTable$mouseID)){
   cycleID <- cycleTable$num_ID[row]
   startDate <- cycleTable$cycleStartDate[row]
   endDate <- cycleTable$endDate[row]
-  # print(paste0("mouse: ", mouseID,"; start: ", as_date(startDate), "; end: ", as_date(endDate)))
+  # print(paste0("mouse: ", mouseID,"; start: ", date_parse(startDate), "; end: ", date_parse(endDate)))
   cycleFolder <- cycleTable$cyclingFolderPath[row]
   for(date in startDate:endDate){
-    # print(paste0("ID: ", cycleID, "; Date: ", as_date(date)))
+    # print(paste0("ID: ", cycleID, "; Date: ", date_parse(date)))
     
     fileRegEx <- regExCycleFileName(
-      as_date(date),
+      date_parse(date),
       # "2021-08-17",
       cycleID
     )
@@ -2841,18 +2841,18 @@ for(row in 1:length(cycleTable$mouseID)){
       #   MouseID = mouseID
       # ))){
         #copy
-        # print(paste0("copying for ID: ", cycleID, "; Date: ", as_date(date)))
+        # print(paste0("copying for ID: ", cycleID, "; Date: ", date_parse(date)))
         file_copy(
           thisFilePath, 
           file.path(copyFolderPath, thisFileName),
           overwrite = TRUE
         )
     #   } else{
-    #     print(paste0("not copying for ID: ", cycleID, "; Date: ", as_date(date)))
+    #     print(paste0("not copying for ID: ", cycleID, "; Date: ", date_parse(date)))
     #   }
     #   
     # }else {
-    #   print(paste0("No file found for ID: ", cycleID, "; Date: ", as_date(date)))
+    #   print(paste0("No file found for ID: ", cycleID, "; Date: ", date_parse(date)))
     # }
   }
 }
@@ -4763,7 +4763,7 @@ saveDFsToExcel(
 
 ```{r}
 test <- getZT_DateTime(
-  as_date("2021-04-15"),
+  date_parse("2021-04-15"),
   PND = 4,
   ZT = 9,
   PND_byZT0 = TRUE
@@ -4774,11 +4774,11 @@ getZTHour(test)
 ```
 
 ```{r}
-get_year(as_date("2022-04-01"))
-myTime <- as_date_time(as_date("2022-03-13"), "America/New_York")
+get_year(date_parse("2022-04-01"))
+myTime <- as_date_time(date_parse("2022-03-13"), "America/New_York")
 zoned_time_parse_abbrev(myTime, "America/New_York")
 
-as.POSIXct(as_date("2022-03-13"), "America/New_York")
+as.POSIXct(date_parse("2022-03-13"), "America/New_York")
 
 
 x <- zoned_time_parse_complete("2019-01-01T00:00:00-05:00[America/New_York]")
@@ -6731,7 +6731,7 @@ damBehaveDates <- Demo_dam %>%
     Litter_size >= 5
     , cohort == 9
     , is.na(Sac_or_stop)
-    , DOB > as_date("2022-11-06")
+    , DOB > date_parse("2022-11-06")
   ) %>%
   arrange(
     cohort,
@@ -6845,7 +6845,7 @@ damBehaveDates <- Demo_dam %>%
     Litter_size >= 5
     , cohort == 9
     , is.na(Sac_or_stop) | Sac_or_stop > DOB + 20
-    , DOB > as_date("2023-01-01")
+    , DOB > date_parse("2023-01-01")
   ) %>%
   arrange(
     cohort,
@@ -6998,7 +6998,7 @@ damBehaveDates <- Demo_dam %>%
     Litter_size >= 5
     , cohort == 9
     , is.na(Sac_or_stop) | Sac_or_stop > DOB + 20
-    , DOB > as_date("2023-02-01")
+    , DOB > date_parse("2023-02-01")
   ) %>%
   arrange(
     cohort,
@@ -7112,7 +7112,7 @@ damBehaveDates <- Demo_dam %>%
     Litter_size >= 5
     , cohort == 9
     , is.na(Sac_or_stop) | Sac_or_stop > DOB + 20
-    , DOB > as_date("2023-03-01")
+    , DOB > date_parse("2023-03-01")
   ) %>%
   arrange(
     cohort,
@@ -7339,7 +7339,7 @@ Demo_dam %>%
   filter(
     Litter_size >= 5
     , cohort == 9
-    # , DOB > as_date("2023-04-10")
+    # , DOB > date_parse("2023-04-10")
   )
 ```
 
@@ -7350,7 +7350,7 @@ damBehaveDates <- Demo_dam %>%
     Litter_size >= 5
     , cohort == 10
     , is.na(Sac_or_stop) | Sac_or_stop > DOB + 20
-    , DOB > as_date("2023-04-11")
+    , DOB > date_parse("2023-04-11")
   ) %>%
   arrange(
     cohort,
@@ -7760,8 +7760,8 @@ saveDFsToExcel(
 ```{r}
 breeding_cohort9 <- Demo_dam %>%
   filter(
-    breedDate > as_date("2022-10-01")
-    , is.na(DOB) | DOB > as_date("2022-10-30")
+    breedDate > date_parse("2022-10-01")
+    , is.na(DOB) | DOB > date_parse("2022-10-30")
   ) %>%
   select(
     damID
@@ -7770,12 +7770,12 @@ breeding_cohort9 <- Demo_dam %>%
   ) %>%
   add_row(
     breedDate = c(
-      as_date("2022-11-11")
-      , as_date("2022-11-18")
-      , as_date("2022-11-23")
-      , as_date("2022-12-02")
-      , as_date("2022-12-09")
-      , as_date("2022-12-16")
+      date_parse("2022-11-11")
+      , date_parse("2022-11-18")
+      , date_parse("2022-11-23")
+      , date_parse("2022-12-02")
+      , date_parse("2022-12-09")
+      , date_parse("2022-12-16")
     )
   ) %>%
   arrange(
@@ -7786,11 +7786,11 @@ breeding_cohort9 <- Demo_dam %>%
     , .after = breedDate
   ) %>%
   mutate(
-    PND4 = as_date(ifelse(!is.na(DOB), DOB + 4, DOB_est + 4))
-    , PND11 = as_date(ifelse(!is.na(DOB), DOB + 11, DOB_est + 11))
-    , PND21 = as_date(ifelse(!is.na(DOB), DOB + 21, DOB_est + 21))
-    , PND70 = as_date(ifelse(!is.na(DOB), DOB + 70, DOB_est + 70))
-    , PND91 = as_date(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
+    PND4 = date_parse(ifelse(!is.na(DOB), DOB + 4, DOB_est + 4))
+    , PND11 = date_parse(ifelse(!is.na(DOB), DOB + 11, DOB_est + 11))
+    , PND21 = date_parse(ifelse(!is.na(DOB), DOB + 21, DOB_est + 21))
+    , PND70 = date_parse(ifelse(!is.na(DOB), DOB + 70, DOB_est + 70))
+    , PND91 = date_parse(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
   )
 
 saveDFsToExcel(
@@ -8619,7 +8619,7 @@ saveDFsToExcel(
 
 breeding_cohort9 <- Demo_dam %>%
   filter(
-    cohort == 9 | breedDate > as_date("2023-03-01")
+    cohort == 9 | breedDate > date_parse("2023-03-01")
     , is.na(Pups_through_wean) | Pups_through_wean
     # , is.na(Sac_or_stop) | Sac_or_stop >= (DOB + 21)
   ) %>%
@@ -8631,8 +8631,8 @@ breeding_cohort9 <- Demo_dam %>%
   ) %>%
   # add_row(
   #   breedDate = c(
-  #     as_date("2023-04-02")
-  #     , as_date("2023-04-09")
+  #     date_parse("2023-04-02")
+  #     , date_parse("2023-04-09")
   #   )
   # ) %>%
   arrange(
@@ -8643,14 +8643,14 @@ breeding_cohort9 <- Demo_dam %>%
     , .after = breedDate
   ) %>%
   mutate(
-    PND4 = as_date(ifelse(!is.na(DOB), DOB + 4, DOB_est + 4))
-    , PND11 = as_date(ifelse(!is.na(DOB), DOB + 11, DOB_est + 11))
-    , PND21 = as_date(ifelse(!is.na(DOB), DOB + 21, DOB_est + 21))
-    , PND35 = as_date(ifelse(!is.na(DOB), DOB + 35, DOB_est + 35))
-    , PND49 = as_date(ifelse(!is.na(DOB), DOB + 49, DOB_est + 49))
-    , PND63 = as_date(ifelse(!is.na(DOB), DOB + 63, DOB_est + 63))
-    , PND70 = as_date(ifelse(!is.na(DOB), DOB + 70, DOB_est + 70))
-    , PND91 = as_date(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
+    PND4 = date_parse(ifelse(!is.na(DOB), DOB + 4, DOB_est + 4))
+    , PND11 = date_parse(ifelse(!is.na(DOB), DOB + 11, DOB_est + 11))
+    , PND21 = date_parse(ifelse(!is.na(DOB), DOB + 21, DOB_est + 21))
+    , PND35 = date_parse(ifelse(!is.na(DOB), DOB + 35, DOB_est + 35))
+    , PND49 = date_parse(ifelse(!is.na(DOB), DOB + 49, DOB_est + 49))
+    , PND63 = date_parse(ifelse(!is.na(DOB), DOB + 63, DOB_est + 63))
+    , PND70 = date_parse(ifelse(!is.na(DOB), DOB + 70, DOB_est + 70))
+    , PND91 = date_parse(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
     , .after = DOB
   ) %>%
   left_join(
@@ -8682,7 +8682,7 @@ saveDFsToExcel(
 
 availability_cohort9 <- Demo_dam %>%
   filter(
-    cohort == 9 | breedDate > as_date("2023-03-01")
+    cohort == 9 | breedDate > date_parse("2023-03-01")
     , is.na(Pups_through_wean) | Pups_through_wean
     # , is.na(Sac_or_stop) | Sac_or_stop >= (DOB + 21)
   ) %>%
@@ -8701,7 +8701,7 @@ availability_cohort9 <- Demo_dam %>%
     , .after = breedDate
   ) %>%
   mutate(
-    PND91 = as_date(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
+    PND91 = date_parse(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
     , .after = DOB
   ) %>%
   left_join(
@@ -8742,7 +8742,7 @@ availability_cohort9 <- Demo_dam %>%
 
 availability_cohort9 %>%
   filter(
-    DOB > as_date("2022-12-20")
+    DOB > date_parse("2022-12-20")
   )
   
 ```
@@ -10120,7 +10120,7 @@ LBN_all %>%
   filter(
     sex == "F"
     , cohort == 9
-    , Sac_date <= as_date("2023-03-21")
+    , Sac_date <= date_parse("2023-03-21")
   ) %>%
   mutate(
     adultDi = ifelse(
@@ -10196,7 +10196,7 @@ LBN_data %>%
   filter(
     sex == "M"
     , is.na(Sac_date)
-    , DOB <= as_date("2023-02-01")
+    , DOB <= date_parse("2023-02-01")
     , cohort == 9
   )
 
@@ -10577,7 +10577,7 @@ availMales <- LBN_data %>%
     mouseID, damID, earlyLifeTrt, DOB
   ) %>%
   mutate(
-    ageJuly14 = as_date("2023-07-14") - DOB
+    ageJuly14 = date_parse("2023-07-14") - DOB
   )
 
 availMales %>%
@@ -12840,7 +12840,7 @@ LH_off %>%
 ```{r}
 goodMaleCortAdmin <- maleCortAdmin %>%
   filter(
-    Sac_date >= as_date("2023-07-19")
+    Sac_date >= date_parse("2023-07-19")
     # , earlyLifeTrt == "STD"
   ) %>%
   mutate(
@@ -14440,7 +14440,7 @@ mixed(
 ```{r}
 litters_cohort10 <- Demo_dam %>%
   filter(
-    breedDate > as_date("2023-07-01")
+    breedDate > date_parse("2023-07-01")
     , !is.na(earlyLifeTrt)
   ) %>%
   select(
@@ -14457,15 +14457,15 @@ litters_cohort10 <- Demo_dam %>%
     , .after = breedDate
   ) %>%
   mutate(
-    PND4 = as_date(ifelse(!is.na(DOB), DOB + 4, DOB_est + 4))
-    , PND11 = as_date(ifelse(!is.na(DOB), DOB + 11, DOB_est + 11))
-    , PND21 = as_date(ifelse(!is.na(DOB), DOB + 21, DOB_est + 21))
-    , PND35 = as_date(ifelse(!is.na(DOB), DOB + 35, DOB_est + 35))
-    , PND49 = as_date(ifelse(!is.na(DOB), DOB + 49, DOB_est + 49))
-    , PND63 = as_date(ifelse(!is.na(DOB), DOB + 63, DOB_est + 63))
-    , PND70 = as_date(ifelse(!is.na(DOB), DOB + 70, DOB_est + 70))
-    , PND91 = as_date(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
-    , PND120 = as_date(ifelse(!is.na(DOB), DOB + 120, DOB_est + 120))
+    PND4 = date_parse(ifelse(!is.na(DOB), DOB + 4, DOB_est + 4))
+    , PND11 = date_parse(ifelse(!is.na(DOB), DOB + 11, DOB_est + 11))
+    , PND21 = date_parse(ifelse(!is.na(DOB), DOB + 21, DOB_est + 21))
+    , PND35 = date_parse(ifelse(!is.na(DOB), DOB + 35, DOB_est + 35))
+    , PND49 = date_parse(ifelse(!is.na(DOB), DOB + 49, DOB_est + 49))
+    , PND63 = date_parse(ifelse(!is.na(DOB), DOB + 63, DOB_est + 63))
+    , PND70 = date_parse(ifelse(!is.na(DOB), DOB + 70, DOB_est + 70))
+    , PND91 = date_parse(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
+    , PND120 = date_parse(ifelse(!is.na(DOB), DOB + 120, DOB_est + 120))
     , .after = DOB
   ) %>% left_join(
     Demo_off %>%
@@ -14493,7 +14493,7 @@ saveDFsToExcel(
 ```{r}
 litters_cohort10 <- Demo_dam %>%
   filter(
-    breedDate > as_date("2023-07-01")
+    breedDate > date_parse("2023-07-01")
     , !is.na(earlyLifeTrt)
   ) %>%
   select(
@@ -14511,7 +14511,7 @@ litters_cohort10 <- Demo_dam %>%
     , .after = breedDate
   ) %>%
   mutate(
-    PND91 = as_date(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
+    PND91 = date_parse(ifelse(!is.na(DOB), DOB + 91, DOB_est + 91))
     , .after = DOB
   ) %>% left_join(
     Demo_off %>%

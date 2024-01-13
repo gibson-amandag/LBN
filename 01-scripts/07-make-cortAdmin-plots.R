@@ -6,7 +6,7 @@ BD_comboNutALPS <- rbind(
       cortNutTrt = adultTrt
     ), 
   BD_cort4 %>% 
-    filter(Sac_date == as_date("2022-05-27")) %>%
+    filter(Sac_date == date_parse("2022-05-27")) %>%
     mutate(
       cortNutTrt = dosage
     )

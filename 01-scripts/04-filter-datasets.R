@@ -819,22 +819,22 @@ if(filterByMinRecDuration){
 
 latterCortAdmin <- maleCortAdmin %>%
   filter(
-    Sac_date >= as_date("2023-07-19")
+    Sac_date >= date_parse("2023-07-19")
   )
 
 latterCortAdmin_cort <- maleCortAdmin_cort %>%
   filter(
-    Sac_date >= as_date("2023-07-19")
+    Sac_date >= date_parse("2023-07-19")
   )
 
 maleCortAdmin_filtered <- maleCortAdmin %>%
   filter(
-    Sac_date >= as_date("2023-07-19")
+    Sac_date >= date_parse("2023-07-19")
     , is.na(earlyLifeTrt) | earlyLifeTrt == "STD"
   )
 
 maleCortAdmin_cort_filtered <- maleCortAdmin_cort %>%
   filter(
-    Sac_date >= as_date("2023-07-19")
+    Sac_date >= date_parse("2023-07-19")
     , is.na(earlyLifeTrt) | earlyLifeTrt == "STD"
   )

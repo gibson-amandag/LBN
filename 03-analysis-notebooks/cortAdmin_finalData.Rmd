@@ -365,7 +365,7 @@ BD_cort_save <- BD_cort %>%
 
 cortAdminPilot <- BD_offspringInfo %>%
   filter(
-    Sac_date == as_date("2022-05-26") | Sac_date == as_date("2022-05-27")
+    Sac_date == date_parse("2022-05-26") | Sac_date == date_parse("2022-05-27")
   )  %>%
   select(
     - c(

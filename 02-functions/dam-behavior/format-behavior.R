@@ -45,7 +45,7 @@ getZT_DateTime <- function (
 
 getZTDate <- function(dateTime){
   # dateOnly <- as_year_month_day(dateTime)
-  dateOnly <- as_date(dateTime)
+  dateOnly <- date_parse(dateTime)
   dateOnly
   return(dateOnly)
 }

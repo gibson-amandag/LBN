@@ -102,18 +102,18 @@ damDatesFunc <- function(
     )
   
   #needed because of logical check
-  Dam_dates$mass_startPara <- as_date(Dam_dates$mass_startPara)
-  Dam_dates$mass_endPara <- as_date(Dam_dates$mass_endPara)
-  Dam_dates$mass_P10 <- as_date(Dam_dates$mass_P10)
-  Dam_dates$mass_P11 <- as_date(Dam_dates$mass_P11)
-  Dam_dates$mass_P12 <- as_date(Dam_dates$mass_P12)
-  Dam_dates$mass_P13 <- as_date(Dam_dates$mass_P13)
-  Dam_dates$mass_P14 <- as_date(Dam_dates$mass_P14)
-  Dam_dates$mass_P15 <- as_date(Dam_dates$mass_P15)
-  Dam_dates$mass_P16 <- as_date(Dam_dates$mass_P16)
-  Dam_dates$mass_P17 <- as_date(Dam_dates$mass_P17)
-  Dam_dates$mass_P19 <- as_date(Dam_dates$mass_P19)
-  Dam_dates$mass_P21 <- as_date(Dam_dates$mass_P21)
+  Dam_dates$mass_startPara <- date_parse(Dam_dates$mass_startPara)
+  Dam_dates$mass_endPara <- date_parse(Dam_dates$mass_endPara)
+  Dam_dates$mass_P10 <- date_parse(Dam_dates$mass_P10)
+  Dam_dates$mass_P11 <- date_parse(Dam_dates$mass_P11)
+  Dam_dates$mass_P12 <- date_parse(Dam_dates$mass_P12)
+  Dam_dates$mass_P13 <- date_parse(Dam_dates$mass_P13)
+  Dam_dates$mass_P14 <- date_parse(Dam_dates$mass_P14)
+  Dam_dates$mass_P15 <- date_parse(Dam_dates$mass_P15)
+  Dam_dates$mass_P16 <- date_parse(Dam_dates$mass_P16)
+  Dam_dates$mass_P17 <- date_parse(Dam_dates$mass_P17)
+  Dam_dates$mass_P19 <- date_parse(Dam_dates$mass_P19)
+  Dam_dates$mass_P21 <- date_parse(Dam_dates$mass_P21)
   
   return(Dam_dates)
 }
@@ -157,7 +157,7 @@ damDatesFunc_litter1 <- function(
         NA)
     )
   
-  Dam_dates$mass_P21 <- as_date(Dam_dates$mass_P21)
+  Dam_dates$mass_P21 <- date_parse(Dam_dates$mass_P21)
   
   return(Dam_dates)
 }
@@ -196,7 +196,7 @@ damDatesFunc_CRH <- function(
       mass_P21 = DOB + 21
     )
   
-  Dam_dates$mass_P21 <- as_date(Dam_dates$mass_P21)
+  Dam_dates$mass_P21 <- date_parse(Dam_dates$mass_P21)
   
   return(Dam_dates)
 }
@@ -250,11 +250,11 @@ offDatesFunc <- function(
     )
   
   #Because of the check of sex, it forces these into numerical rep of dates
-  Off_dates$check_VO <- as_date(Off_dates$check_VO)
-  Off_dates$check_Estrus <- as_date(Off_dates$check_Estrus)
-  Off_dates$start_cycle <- as_date(Off_dates$start_cycle)
-  Off_dates$end_cycle <- as_date(Off_dates$end_cycle)
-  Off_dates$check_PPS <- as_date(Off_dates$check_PPS)
+  Off_dates$check_VO <- date_parse(Off_dates$check_VO)
+  Off_dates$check_Estrus <- date_parse(Off_dates$check_Estrus)
+  Off_dates$start_cycle <- date_parse(Off_dates$start_cycle)
+  Off_dates$end_cycle <- date_parse(Off_dates$end_cycle)
+  Off_dates$check_PPS <- date_parse(Off_dates$check_PPS)
   
   return(Off_dates)
 }
@@ -285,11 +285,11 @@ offDatesFunc_litter1 <- function(
     )
   
   #Because of the check of sex, it forces these into numerical rep of dates
-  Off_dates$check_VO <- as_date(Off_dates$check_VO)
-  Off_dates$check_Estrus <- as_date(Off_dates$check_Estrus)
-  Off_dates$start_cycle <- as_date(Off_dates$start_cycle)
-  Off_dates$end_cycle <- as_date(Off_dates$end_cycle)
-  Off_dates$check_PPS <- as_date(Off_dates$check_PPS)
+  Off_dates$check_VO <- date_parse(Off_dates$check_VO)
+  Off_dates$check_Estrus <- date_parse(Off_dates$check_Estrus)
+  Off_dates$start_cycle <- date_parse(Off_dates$start_cycle)
+  Off_dates$end_cycle <- date_parse(Off_dates$end_cycle)
+  Off_dates$check_PPS <- date_parse(Off_dates$check_PPS)
   
   return(Off_dates)
 }

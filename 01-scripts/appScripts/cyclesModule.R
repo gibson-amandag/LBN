@@ -480,7 +480,7 @@ cyclesServer <- function(
                      df <- cycles_long() %>%
                        filter(
                          mouseID == input$selectedMouse,
-                         cycleDate == as_date(fileDate)
+                         cycleDate == date_parse(fileDate)
                        )
 
                      thisStage <- df$stage[1]
@@ -599,7 +599,7 @@ cyclesServer <- function(
               df <- cycles_long() %>%
                 filter(
                   mouseID == input$selectedMouse,
-                  cycleDate == as_date(fileDate)
+                  cycleDate == date_parse(fileDate)
                 )
 
               thisStage <- df$stage[1]

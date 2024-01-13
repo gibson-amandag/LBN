@@ -173,9 +173,9 @@ load_LBN_data <- function(
     )
   
   #Format Mat Dates as date
-  Maturation_off$VO_day = as_date(Maturation_off$VO_day)
-  Maturation_off$Estrus_day = as_date(Maturation_off$Estrus_day)
-  Maturation_off$PreputialSep_day = as_date(Maturation_off$PreputialSep_day)
+  Maturation_off$VO_day = date_parse(Maturation_off$VO_day)
+  Maturation_off$Estrus_day = date_parse(Maturation_off$Estrus_day)
+  Maturation_off$PreputialSep_day = date_parse(Maturation_off$PreputialSep_day)
   
   Maturation_off <- LBN_data %>%
     select(
