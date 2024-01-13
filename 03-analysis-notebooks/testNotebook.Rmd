@@ -14614,3 +14614,210 @@ GABApscs_240FilteredFiring %>%
 ```
 
 
+```{r}
+install.packages("gtsummary")
+```
+```{r}
+library(gtsummary)
+```
+
+```{r}
+
+```
+
+
+```{r}
+damFiltered %>%
+  select(
+    earlyLifeTrt
+    , damID
+    , Dam_Mass_P4
+    , Dam_Mass_P11
+    , Dam_Mass_P21
+    , Cort_dam_P11
+  ) %>%
+  tbl_summary(
+    include = c(
+      Dam_Mass_P4
+      , Dam_Mass_P11
+      , Dam_Mass_P21
+      , Cort_dam_P11
+    )
+    , by = earlyLifeTrt
+  ) %>%
+  add_n()
+```
+
+```{r}
+damBehavior_byPND %>%
+  select(
+    earlyLifeTrt
+    , PND
+    , Num_exits
+  ) %>%
+  tbl_summary(
+    by = earlyLifeTrt
+    , statistic = all_continuous() ~ "{N_nonmiss}"
+    , missing = "no"
+  )
+```
+
+```{r}
+damBehavior_count <- damBehavior_byPND %>%
+  filter(
+    !is.na(Num_exits)
+  ) %>%
+  count(earlyLifeTrt, PND) %>%
+  spread(key = PND, value = n)
+
+damMass_count <- damMassFiltered %>%
+  filter(
+    !is.na(mass)
+  ) %>%
+  rename(
+    PND = day
+  ) %>%
+  count(earlyLifeTrt, PND) %>%
+  spread(key = PND, value = n)
+
+damCort_count <- damFiltered %>%
+  filter(
+    !is.na(Cort_dam_P11)
+  ) %>%
+  mutate(
+    PND = 11
+  ) %>%
+  count(earlyLifeTrt, PND) %>%
+  spread(key = PND, value = n)
+
+damMass_count
+damCort_count
+damBehavior_count
+
+bind_rows(
+  list(
+    "dam mass" = damMass_count
+    , "dam serum cort" = damCort_count
+    , "dam behavior" = damBehavior_count
+  )
+  , .id = "variable"
+) %>%
+  select(
+    variable
+    , earlyLifeTrt
+    , `4`
+    , `5`
+    , `6`
+    , `7`
+    , `8`
+    , `9`
+    , `10`
+    , `11`
+    , `21`
+  )
+```
+
+
+
+```{r}
+# function to count non-missing values considering groups
+count_non_missing <- function(df, group_vars, count_vars) {
+  df %>% 
+    group_by(across(all_of(group_vars))) %>%
+    summarize(across(all_of(count_vars), ~ sum(!is.na(.))), .groups = 'drop') 
+}
+
+# Specify the variables to group by
+group_vars <- c("earlyLifeTrt", "PND")
+
+# Specify variables to count non-missing data
+count_vars <- c("Num_exits")
+
+# call the function
+count_table <- count_non_missing(damBehavior_byPND, group_vars, count_vars)
+
+count_table
+```
+
+# 2024-01-12
+
+Dams that need cort assayed
+
+```{r}
+damFiltered %>%
+  filter(
+    is.na(Cort_dam_P11)
+  ) %>%
+  select(
+    damID
+  ) %>%
+  write.table("clipboard", sep="\t", row.names = FALSE)
+```
+
+```{r}
+acuteStressFiltered %>%
+  filter(
+    is.na(cort_hr0)
+    , Sac_date >= date_parse("2023-09-01")
+  ) %>%
+  select(
+    mouseID
+  ) %>%
+  write.table("clipboard", sep="\t", row.names = FALSE)
+```
+
+```{r}
+maleCortAdmin_filtered %>%
+  group_by(
+    dosage
+  ) %>%
+  summarize(
+    n()
+  )
+```
+
+```{r}
+LBN_data %>%
+  filter(
+    sex == "M"
+    , cohort == 10
+    , earlyLifeTrt == "LBN"
+  ) %>%
+  group_by(
+    damID
+  ) %>%
+  mutate(
+    ageToday = Sys.Date() - DOB
+    , ageIn3wks = ageToday + 21
+  ) %>%
+  summarize(
+    n()
+    ,ageToday = mean(ageToday, na.rm = TRUE)
+    ,ageIn3wks = mean(ageIn3wks, na.rm = TRUE)
+  )
+
+maleCortAdmin_filtered %>%
+  calcAgeInDays() %>%
+  select(
+    mouseID
+    , AgeInDays
+  ) %>%
+  quartilesSummary()
+```
+
+
+```{r}
+acuteStressFilteredMales %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  summarize(
+    n()
+    , AgeInDays = max(AgeInDays)
+  )
+
+acuteStressFilteredMales %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  quartilesSummary(AgeInDays)
+```
+
