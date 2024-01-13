@@ -1,0 +1,1468 @@
+---
+title: "AGG Statistics consultation 2023-04-11"
+author: "Amanda Gibson"
+format: pptx
+editor: visual
+knitr:
+  opts_knit:
+    root.dir: "../../"
+reference-doc: "../../quartoPPT.pptx"
+execute:
+  echo: false
+  warning: false
+fig-width: 11.5
+fig-height: 5
+df-print: kable
+fig-format: svg
+# fig-dpi: 300
+---
+
+```{r setup, include=FALSE}
+options(digits=3)
+options(scipen = 999)
+# library(knitr)
+# inline_hook <- function (x) {
+#   if (is.numeric(x)) {
+#     # ifelse does a vectorized comparison
+#     # If integer, print without decimal; otherwise print two places
+#     res <- ifelse(x == round(x),
+#       sprintf("%d", x),
+#       sprintf("%.3f", x)
+#     )
+#     paste(res, collapse = ", ")
+#   }
+# }
+# knit_hooks$set(inline = inline_hook)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/05-make-LBN-plots.R")
+# source("./01-scripts/06-make-LBN-ANOVAs_noLitter.R")
+```
+
+```{r include=FALSE}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+<!-- ## Quarto -->
+
+<!-- Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <https://quarto.org/docs/presentations/>. -->
+
+<!-- ## Bullets -->
+
+<!-- When you click the **Render** button a document will be generated that includes: -->
+
+<!-- -   Content authored with markdown -->
+
+<!-- -   Output from executable code -->
+
+<!-- ## Code -->
+
+<!-- When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this: -->
+
+# Dam behavior
+
+## Dam numbers
+
+```{r}
+damFiltered %>%
+  left_join(
+    damBehavior_byDam %>% select(
+      damID, Num_exits
+    )
+    , by = "damID"
+  ) %>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  summarize(
+    litters = n()
+    , videoAnalyzed = sum(!is.na(Num_exits))
+  )
+```
+
+## LBN increases the number of exits from the nest
+
+```{r}
+damBehavior_byPND_ZT %>%
+  filter(
+    !is.na(Num_exits)
+  ) %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "# of exits"
+    , fontSize = 16
+    , addTriangleForMean = TRUE
+    , redMean = TRUE
+    , colorByDam = TRUE
+  )
+```
+
+## LBN increases the number of exits from the nest
+
+```{r}
+damBehavior_byPND %>%
+  filter(
+    !is.na(Num_exits)
+  ) %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "# of exits"
+    , fontSize = 16
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+  )
+```
+
+## LBN increases the \# of exits from the nest. \# of exits decreases with time
+
+```{r}
+lmm <- damBehavior_byPND %>%
+  mutate( # if going to use predictions (emmeans or predict) to interpret, instead of just looking at intercept, then this transformation is probably not necessary
+    PND = PND - 4
+  ) %>%
+  runLMM(
+    Num_exits ~ earlyLifeTrt * PND + (1|damID)
+  )
+
+
+mod <- lmer(
+  Num_exits ~ earlyLifeTrt * PND + (1|damID)
+  , damBehavior_byPND %>%
+    mutate(
+      PND = PND - 4
+    )
+)
+
+anova(mod)
+
+lmm$anova %>% formatLMM_ppt()
+
+Group_line <- ggpredict(lmm$model, c("PND", "earlyLifeTrt"))
+
+dfGroupLine <- Group_line %>%
+  as.data.frame() %>%
+  rename(
+    PND = x
+    , earlyLifeTrt = group
+  ) %>%
+  mutate(
+    PND = PND + 4
+  )
+
+dfGroupLine
+
+damBehavior_byPND %>%
+  filter(
+    !is.na(Num_exits)
+  ) %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "# of exits"
+    , fontSize = 16
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+  ) +
+  geom_line(
+    aes(x = PND, y = predicted)
+    , data = dfGroupLine
+    , inherit.aes = FALSE
+    , color = "red"
+  ) + 
+  geom_ribbon(
+    aes(
+      x = PND
+      , ymax = conf.high
+      , ymin = conf.low
+    )
+    , data = dfGroupLine
+    , inherit.aes = FALSE
+    , fill = "grey"
+    , alpha = 0.4
+  )
+  
+
+as.data.frame(Group_line)
+
+damBehavior_byPND %>%
+  filter(
+    !is.na(Num_exits)
+  ) %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "# of exits"
+    , fontSize = 16
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+  ) + geom_ribbon(aes(x = x, ymax = conf.high, ymin = conf.low), 
+              data = as.data.frame(Group_line), inherit.aes = FALSE,
+              alpha = 0.2, fill = 'lightblue') +
+  geom_line(aes(x = x, y = predicted), linetype = 1,
+            data = as.data.frame(Group_line), inherit.aes = FALSE)
+
+ggemmeans(lmm$model, c("PND", "earlyLifeTrt"))
+ggemmeans(lmm$model, c("earlyLifeTrt", "PND"))
+ggpredict(lmm$model, c("PND", "earlyLifeTrt"))
+
+ggemmeans(lmm$model, "earlyLifeTrt")
+ggpredict(lmm$model, "earlyLifeTrt")
+```
+
+```{r}
+lmm <- damBehavior_byPND %>%
+  makeFactors(PND) %>%
+  runLMM(
+    Num_exits ~ earlyLifeTrt * PND + (1|damID)
+  )
+
+Group_line <- ggemmeans(lmm$model, c("PND", "earlyLifeTrt"))
+
+dfGroupLine <- Group_line %>%
+  as.data.frame() %>%
+  rename(
+    PND = x
+    , earlyLifeTrt = group
+  )
+
+dfGroupLine
+
+damBehavior_byPND %>%
+  filter(
+    !is.na(Num_exits)
+  ) %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "# of exits"
+    , fontSize = 16
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , showMean = FALSE
+    , addVertError = FALSE
+  ) + geom_errorbar(
+    aes(
+      x = PND
+      , ymin = predicted
+      , ymax = predicted
+    )
+    , data = dfGroupLine %>%
+      mutate(
+        PND = as.numeric(paste(PND))
+      )
+    , inherit.aes = FALSE
+    , width = 0.8
+    , size = 0.4
+  ) + geom_linerange(
+    aes(
+      x = PND
+      , ymin = conf.low
+      , ymax = conf.high
+    )
+    , data = dfGroupLine %>%
+      mutate(
+        PND = as.numeric(paste(PND))
+      )
+    , inherit.aes = FALSE
+    , size = 0.4
+  )
+
+ggemmeans(
+  lmm$model
+  , c("earlyLifeTrt", "PND")
+)
+```
+
+```{r}
+library(emmeans)
+
+```
+
+```{r}
+
+# mod <- lmer(
+#   Num_exits ~ earlyLifeTrt * PND + (1|damID)
+#   , data = damBehavior_byPND %>%
+#   makeFactors(PND)
+#     
+# )
+
+damBehavior_byPND %>%
+  makeFactors(PND) %>%
+  group_by(PND) %>%
+  emmeans_test(
+    Num_exits ~ earlyLifeTrt
+    , model = lmm$model
+    , detailed = TRUE
+  )
+
+
+damBehavior.emm <- emmeans(
+  lmm$model
+  , pairwise ~ earlyLifeTrt | PND
+)
+
+pairs(damBehavior.emm[[1]])
+```
+
+# Potentially working for emmeans post-hoc - with PND as factor
+
+```{r}
+
+lmm <- damBehavior_byPND %>%
+  makeFactors(PND) %>%
+  runLMM(
+    Num_exits ~ earlyLifeTrt * PND + (1|damID)
+  )
+```
+
+```{r}
+
+EMM <- emmeans(
+  lmm$model
+  , ~ earlyLifeTrt * PND
+)
+EMM
+
+# this doesn't do corrections for 8 comparisons, because it's within groups
+
+# https://cran.r-project.org/web/packages/emmeans/vignettes/AQuickStart.html The default is to apply a separate Tukey adjustment to the P values in each by group (so if each group has just 2 means, no adjustment at all is applied). If you want to adjust the whole family combined, you need to undo the by variable and specify the desired adjustment (which can’t be Tukey because that method is invalid when you have more than one set of pairwise comparisons.)
+
+# pairs(EMM, simple = "earlyLifeTrt")
+
+# This works to correct for 8 comparisons - when PND is a factor variable
+
+test(pairs(EMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+## With PND as continuous
+
+This may overstate the differences on some of the days?
+
+```{r}
+
+lmm <- damBehavior_byPND %>%
+  runLMM(
+    Num_exits ~ earlyLifeTrt * PND + (1|damID)
+  )
+```
+
+```{r}
+
+EMM <- emmeans(
+  lmm$model
+  , ~ earlyLifeTrt * PND
+  , at = list(PND = c(4:11))
+)
+EMM
+
+# this doesn't do corrections for 8 comparisons, because it's within groups
+
+# https://cran.r-project.org/web/packages/emmeans/vignettes/AQuickStart.html The default is to apply a separate Tukey adjustment to the P values in each by group (so if each group has just 2 means, no adjustment at all is applied). If you want to adjust the whole family combined, you need to undo the by variable and specify the desired adjustment (which can’t be Tukey because that method is invalid when you have more than one set of pairwise comparisons.)
+
+# pairs(EMM, simple = "earlyLifeTrt")
+
+# This works to correct for 8 comparisons - when PND is a factor variable
+
+test(pairs(EMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+# Potentially working for emmeans post-hoc
+
+```{r}
+
+lmm <- mass_long %>%
+  filter(
+    day >= 11
+    , sex == "F"
+  ) %>%
+  mutate(
+    # day = day - 11
+  ) %>%
+  runLMM(
+    mass ~ earlyLifeTrt * lspline(day, c(21, 35)) + (1|damID) + (1|mouseID)
+    , printSummary = TRUE
+  )
+
+lmm$coefs %>% formatLMM_ppt()
+```
+
+```{r}
+
+EMM <- emmeans(
+  lmm$model
+  , ~ earlyLifeTrt * lspline(day, c(21, 35))
+  , data = mass_long %>%
+  filter(
+    day >= 11
+  )
+  , at = list(day = c(11, 21, 35, 70))
+)
+EMM
+
+# This works to correct for 8 comparisons - when PND is a factor variable
+
+test(pairs(EMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+```{r}
+
+# this is different than the lspline result
+
+# library(splines)
+# 
+# lmm <- mass_long %>%
+#   filter(
+#     day >= 11
+#     , sex == "M"
+#   ) %>%
+#   mutate(
+#     # day = day - 11
+#   ) %>%
+#   runLMM(
+#     mass ~ earlyLifeTrt * ns(day, knots = c(21, 35)) + (1|damID) + (1|mouseID)
+#   )
+# 
+# lmm$coefs %>% formatLMM_ppt()
+```
+
+```{r}
+
+lmm <- mass_long %>%
+  filter(
+    day >= 11
+    , sex == "M"
+  ) %>%
+  mutate(
+    # day = day - 11
+  ) %>%
+  runLMM(
+    mass ~ earlyLifeTrt * lspline(day, c(21, 35)) + (1|damID) + (1|mouseID)
+  )
+
+lmm$coefs %>% formatLMM_ppt()
+
+```
+
+```{r}
+EMM <- emmeans(
+  lmm$model
+  , ~ earlyLifeTrt * lspline(day, c(21, 35))
+  , data = mass_long %>%
+  filter(
+    day >= 11
+  )
+  , at = list(day = c(11, 21, 35, 70))
+)
+EMM
+
+# This works to correct for 8 comparisons - when PND is a factor variable
+
+test(pairs(EMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+It is different if the splines are not used
+
+```{r}
+
+lmm <- mass_long %>%
+  filter(
+    day >= 11
+    , sex == "M"
+  ) %>%
+  mutate(
+    # day = day - 11
+  ) %>%
+  runLMM(
+    mass ~ earlyLifeTrt * day + (1|damID) + (1|mouseID)
+  )
+
+lmm$coefs %>% formatLMM_ppt()
+
+```
+
+```{r}
+EMM <- emmeans(
+  lmm$model
+  , ~ earlyLifeTrt * day
+  , data = mass_long %>%
+  filter(
+    day >= 11
+  )
+  , at = list(day = c(11, 21, 35, 70))
+)
+EMM
+
+# This works to correct for 8 comparisons - when PND is a factor variable
+
+test(pairs(EMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+```{r}
+ggplot() +
+  geom_smooth(
+    method = "lmer"
+  )
+```
+
+## The linear mixed model allows us to estimate the effect of LBN and day on \# of exits
+
+```{r}
+lmm$coefs %>% formatLMM_ppt()
+
+coefs <- lmm$coefs
+
+damBehaviorIntercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+damBehaviorLBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+
+damBehaviorPND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "PND"
+    , valCol = "Estimate"
+  )
+
+damBehaviorLBNchangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:PND"
+    , valCol = "Estimate"
+  )
+```
+
+## The linear mixed model allows us to estimate the effect of LBN and day on \# of exits
+
+-   For a STD mouse on PND4, the predicted number of exits per hour is `r round(damBehaviorIntercept, 1)`
+-   For a LBN mouse on PND4, the predicted number of exits per hour is `r round(damBehaviorLBN+damBehaviorIntercept, 1)`
+-   For STD dams, the number of exits is predicted to `r ifelse(damBehaviorPND > 0, "increase", "decrease")` by `r abs(round(damBehaviorPND, 1))` each day
+-   For LBN dams, the number of exits is predicted to `r ifelse((damBehaviorPND + damBehaviorLBNchangePND) > 0, "increases", "decreases")` by `r abs(round((damBehaviorPND + damBehaviorLBNchangePND), 1))` exits per day
+
+## Pups in the LBN condition may spend more time outside of the nest at the start of the paradigm
+
+```{r}
+damFrames_byPND %>%
+  plotDamBehavior(
+    yVar = pupsTogether
+    , yLab = "% frames pups together"
+    , 16
+    , 3
+    , colorByDam = TRUE
+    , addTriangleForMean = TRUE
+    , redMean = TRUE
+  )
+```
+
+```{r}
+lmm <- damFrames_byPND %>%
+  makeFactors(
+    PND
+  ) %>%
+  mutate(
+    pupsApart = 100 - pupsTogether
+  ) %>%
+  runLMM(
+    pupsApart ~ earlyLifeTrt * PND + (1|damID)
+  )
+
+lmm
+```
+
+```{r}
+EMM <- emmeans(
+  lmm$model
+  , ~ earlyLifeTrt * PND
+)
+EMM
+
+# this doesn't do corrections for 8 comparisons, because it's within groups
+
+# https://cran.r-project.org/web/packages/emmeans/vignettes/AQuickStart.html The default is to apply a separate Tukey adjustment to the P values in each by group (so if each group has just 2 means, no adjustment at all is applied). If you want to adjust the whole family combined, you need to undo the by variable and specify the desired adjustment (which can’t be Tukey because that method is invalid when you have more than one set of pairwise comparisons.)
+
+# pairs(EMM, simple = "earlyLifeTrt")
+
+# This works to correct for 8 comparisons - when PND is a factor variable
+
+test(pairs(EMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+## Serum corticosterone in the dams was not different on the morning of P11
+
+```{r}
+damCort_plot
+```
+
+## LBN dams had a higher body mass at the start of the paradigm
+
+```{r}
+damMass_plot
+```
+
+```{r}
+lmm <- damMassFiltered %>%
+  makeFactors(day) %>%
+  runLMM(
+    mass ~ earlyLifeTrt * day + (1|damID)
+  )
+lmm$coefs %>% formatLMM_ppt()
+
+lmm$formated
+```
+
+Effect of day
+
+```{r}
+EMM <- emmeans(
+  lmm$model
+  , ~ day
+)
+
+EMM
+
+test(pairs(EMM, simple = "day"), by = NULL, adjust = "bonferroni")
+```
+
+Effect of LBN:
+
+LBN dams have a higher body mass, but this is not effected by treatment?
+
+```{r}
+EMM <- emmeans(
+  lmm$model
+  , ~ earlyLifeTrt
+)
+
+EMM
+
+test(pairs(EMM, simple = "earlyLifeTrt"), by = NULL, adjust = "bonferroni")
+```
+
+## LBN dams had a higher body mass at the start of the paradigm
+
+```{r}
+lmm$anova %>% formatLMM_ppt()
+```
+
+## LBN dams had a higher body mass at the start of the paradigm
+
+```{r}
+lmm$coefs %>% formatLMM_ppt()
+```
+
+# Offspring
+
+## Body mass of offspring seems to follow three roughly linear patterns: P11-P21, P22-P35, P42-P72
+
+```{r}
+mass_plot_1stL
+```
+
+## Body mass of mass LBN pups seems most impacted by the paradigm
+
+```{r}
+mass_plot_1stL +
+  coord_cartesian(x = c(11, 21), y = c(0, 16))
+```
+
+## Body mass of mass LBN pups seems most impacted by the paradigm
+
+```{r}
+lmm <- mass_long %>%
+  filter(
+    day >= 11 & day <= 21
+  ) %>%
+  mutate(
+    day = day - 11
+  ) %>%
+  runLMM(
+    mass ~ earlyLifeTrt * day * sex + (1|damID) + (1|mouseID)
+  )
+
+lmm$anova %>% formatLMM_ppt()
+```
+
+```{r}
+# install.packages("lspline")
+library(lspline)
+```
+
+```{r}
+install.packages("ggeffects")
+library(ggeffects)
+```
+
+```{r}
+lmer(
+  mass ~ earlyLifeTrt * day * sex + (1|damID) + (1|mouseID)
+  , mass_long %>%
+    filter(
+      day >= 11
+    ) %>%
+    mutate(
+      day = day - 11
+    ) %>%
+    makeFactors(day)
+)
+
+lmm <- mass_long %>%
+  filter(
+    day >= 11
+  ) %>%
+  mutate(
+    # day = day - 11
+  ) %>%
+  runLMM(
+    mass ~ earlyLifeTrt * lspline(day, c(21, 35)) * sex + (1|damID) + (1|mouseID)
+  )
+
+lmm$coefs %>% formatLMM_ppt()
+
+predict(lmm$model)
+
+mass_plot_1stL +
+  geom_smooth(
+    
+  )
+
+```
+
+## Body mass of male LBN pups seems most impacted by the paradigm
+
+```{r}
+
+lmm$coefs %>% formatLMM_ppt()
+
+coefs <- lmm$coefs
+
+mass11Intercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+mass11LBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+
+mass11Sex <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "sexM"
+    , valCol = "Estimate"
+  )
+
+mass11PND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "day"
+    , valCol = "Estimate"
+  )
+
+mass11LBNchangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:day"
+    , valCol = "Estimate"
+  )
+
+mass11LBNchangeSex <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:sexM"
+    , valCol = "Estimate"
+  )
+
+mass11SexChangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "day:sexM"
+    , valCol = "Estimate"
+  )
+
+mass11SexLBNchangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:day:sexM"
+    , valCol = "Estimate"
+  )
+```
+
+## Body mass of mass LBN pups seems most impacted by the paradigm
+
+-   Predicted body mass on P11:
+    -   STD female: `r round(mass11Intercept, 1)`g.
+    -   LBN female: `r round(mass11Intercept+mass11LBN, 1)`g
+    -   STD male: `r round(mass11Intercept+mass11Sex, 1)`g
+    -   LBN male: `r round(mass11Intercept+mass11LBN+mass11Sex+mass11LBNchangeSex, 1)`g
+-   Predicted change in body mass from P11 to P21:
+    -   STD female: `r round(mass11PND*10, 1)`g
+    -   LBN female: `r round((mass11PND+mass11LBNchangePND)*10, 1)`g
+    -   STD male: `r round((mass11PND+mass11SexChangePND)*10, 1)`g
+    -   LBN male: `r round((mass11PND+mass11SexChangePND+mass11SexLBNchangePND+mass11LBNchangePND)*10, 1)`g
+
+## After weaning, female LBN pups are a little bit slower to gain body mass
+
+```{r}
+mass_plot_1stL +
+  coord_cartesian(x = c(22, 35), y = c(0, 25))
+```
+
+## After weaning, female LBN pups are a little bit slower to gain body mass
+
+```{r}
+lmm <- mass_long %>%
+  filter(
+    day >= 22 & day <= 35
+  ) %>%
+  mutate(
+    day = day - 22
+  ) %>%
+  runLMM(
+    mass ~ earlyLifeTrt * day * sex + (1|damID) + (1|mouseID)
+  )
+
+lmm$anova %>% formatLMM_ppt()
+```
+
+## After weaning, female LBN pups are a little bit slower to gain body mass
+
+```{r}
+
+lmm$coefs %>% formatLMM_ppt()
+
+coefs <- lmm$coefs
+
+mass22Intercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+mass22LBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+
+mass22Sex <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "sexM"
+    , valCol = "Estimate"
+  )
+
+mass22PND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "day"
+    , valCol = "Estimate"
+  )
+
+mass22LBNchangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:day"
+    , valCol = "Estimate"
+  )
+
+mass22LBNchangeSex <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:sexM"
+    , valCol = "Estimate"
+  )
+
+mass22SexChangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "day:sexM"
+    , valCol = "Estimate"
+  )
+
+mass22SexLBNchangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:day:sexM"
+    , valCol = "Estimate"
+  )
+```
+
+## After weaning, female LBN pups are a little bit slower to gain body mass
+
+-   Predicted body mass on P22:
+    -   STD female: `r round(mass22Intercept, 1)`g
+    -   LBN female: `r round(mass22Intercept+mass22LBN, 1)`g
+    -   STD male: `r round(mass22Intercept+mass22LBN+mass22Sex+mass22LBNchangeSex, 1)`g
+    -   LBN male: `r round(mass22Intercept+mass22LBN+mass22Sex+mass22LBNchangeSex, 1)`g
+-   Change in body mass from P22 to P35:
+    -   STD female: `r round(mass22PND*13, 1)`g
+    -   LBN female: `r round((mass22PND+mass22LBNchangePND)*13, 1)`g
+    -   STD male: `r round((mass22PND+mass22SexChangePND)*13, 1)`g
+    -   LBN male: `r round((mass22PND+mass22SexChangePND+mass22SexLBNchangePND+mass22LBNchangePND)*13, 1)`g
+
+## From P42 to P72, LBN males may gain slighly less than STD males, but may be of low biological significance
+
+```{r}
+mass_plot_1stL +
+  coord_cartesian(x = c(42, 72))
+```
+
+## From P42 to P72, LBN males may gain slighly less than STD males, but may be of low biological significance
+
+```{r}
+lmm <- mass_long %>%
+  filter(
+    day >= 42
+  ) %>%
+  mutate(
+    day = day - 42
+  ) %>%
+  runLMM(
+    mass ~ earlyLifeTrt * day * sex + (1|damID) + (1|mouseID)
+  )
+
+lmm$anova %>% formatLMM_ppt()
+
+```
+
+## From P42 to P72, LBN males may gain slighly less than STD males, but may be of low biological significance
+
+```{r}
+
+coefs <- lmm$coefs
+
+coefs %>% formatLMM_ppt()
+
+mass42Intercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+mass42LBN <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN"
+    , valCol = "Estimate"
+  )
+
+mass42Sex <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "sexM"
+    , valCol = "Estimate"
+  )
+
+mass42PND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "day"
+    , valCol = "Estimate"
+  )
+
+mass42LBNchangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:day"
+    , valCol = "Estimate"
+  )
+
+mass42LBNchangeSex <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:sexM"
+    , valCol = "Estimate"
+  )
+
+mass42SexChangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "day:sexM"
+    , valCol = "Estimate"
+  )
+
+mass42SexLBNchangePND <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:day:sexM"
+    , valCol = "Estimate"
+  )
+```
+
+## From P42 to P72, LBN males may gain slighly less than STD males, but may be of low biological significance
+
+-   Predicted body mass on P42:
+    -   STD female: `r round(mass42Intercept, 1)`g
+    -   LBN female: `r round(mass42Intercept+mass42LBN, 1)`g
+    -   STD male: `r round(mass42Intercept+mass42LBN+mass42Sex+mass42LBNchangeSex, 1)`g
+    -   LBN male: `r round(mass42Intercept+mass42LBN+mass42Sex+mass42LBNchangeSex, 1)`g
+-   Change in body mass per week from P42 to P72:
+    -   STD female: `r round(mass42PND*7, 1)`g
+    -   LBN female: `r round((mass42PND+mass42LBNchangePND)*7, 1)`g
+    -   STD male: `r round((mass42PND+mass42SexChangePND)*7, 1)`g
+    -   LBN male: `r round((mass42PND+mass42SexChangePND+mass42SexLBNchangePND+mass42LBNchangePND)*7, 1)`g
+
+## Vaginal opening was not altered by LBN
+
+```{r fig.height=5, fig.width=5.67}
+#| layout-ncol: 2
+
+VO_age_plot
+VO_mass_plot
+```
+
+## Vaginal opening was not altered by LBN
+
+```{r}
+lmm_age <- maturationFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  runLMM(
+    VO_age ~ earlyLifeTrt + (1|damID)
+  )
+
+lmm_mass <- maturationFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  runLMM(
+    VO_mass ~ earlyLifeTrt + (1|damID)
+  )
+
+# combine into one table
+lmm_age$anova %>%
+  mutate(
+    effect = "VO age - earlyLifeTrt"
+  ) %>%
+  bind_rows(
+    lmm_mass$anova %>%
+      mutate(
+        effect = "VO mass - earlyLifeTrt"
+      )
+  ) %>%
+  rename(
+    p = `Pr(>F)`
+  )
+```
+
+## First estrus was not altered by LBN
+
+```{r fig.height=5, fig.width=5.67}
+#| layout-ncol: 2
+
+Estrus_age_plot
+Estrus_mass_plot
+```
+
+## First estrus was not altered by LBN
+
+```{r}
+lmm_age <- maturationFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  runLMM(
+    Estrus_age ~ earlyLifeTrt + (1|damID)
+  )
+
+lmm_mass <- maturationFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  runLMM(
+    Estrus_mass ~ earlyLifeTrt + (1|damID)
+  )
+
+# combine into one table
+lmm_age$anova %>%
+  mutate(
+    effect = "Estrus age - earlyLifeTrt"
+  ) %>%
+  bind_rows(
+    lmm_mass$anova %>%
+      mutate(
+        effect = "Estrus mass - earlyLifeTrt"
+      )
+  ) %>%
+  rename(
+    p = `Pr(>F)`
+  )
+```
+
+## Preputial separation was not altered by LBN
+
+```{r fig.height=5, fig.width=5.67}
+#| layout-ncol: 2
+
+PreputialSep_age_plot
+PreputialSep_mass_plot
+```
+
+## Preputial separation was not altered by LBN
+
+```{r}
+lmm_age <- maturationFiltered %>%
+  filter(
+    sex == "M"
+  ) %>%
+  runLMM(
+    PreputialSep_age ~ earlyLifeTrt + (1|damID)
+  )
+
+lmm_mass <- maturationFiltered %>%
+  filter(
+    sex == "M"
+  ) %>%
+  runLMM(
+    PreputialSep_mass ~ earlyLifeTrt + (1|damID)
+  )
+
+# combine into one table
+lmm_age$anova %>%
+  mutate(
+    effect = "Preputial separation age - earlyLifeTrt"
+  ) %>%
+  bind_rows(
+    lmm_mass$anova %>%
+      mutate(
+        effect = "Preputial separation mass - earlyLifeTrt"
+      )
+  ) %>%
+  rename(
+    p = `Pr(>F)`
+  )
+```
+
+# Estrous cycles - creating functions to analyze cycles
+
+## Characterizing estrous cycles
+
+```{r fig.height=5, fig.width=5.67}
+#| layout-ncol: 2
+repCycles_STD_1stL
+repCycles_LBN_1stL
+```
+
+## Characterizing estrous cycles
+
+::: columns
+::: {.column width="50%"}
+```{r fig.height=5, fig.width=5.67}
+repCycles_STD_1stL +
+  geom_point(aes(color = isStartCycle, alpha = isStartCycle))+
+  scale_color_manual(values = c("FALSE" = "black", "TRUE" = "red", "STD" = "grey30", "LBN" = "cyan4"))+
+  scale_alpha_manual(values = c("FALSE" = .1, "TRUE" = 1))
+```
+:::
+
+::: {.column width="50%"}
+::: incremental
+-   Cycle start day: An estrous day that is preceded by either a proestrous or diestrous day
+-   Cycle length: \# days between two cycle start days
+-   Track
+    -   Day of first cycle start
+    -   Day of last cycle start
+    -   Days that are "outside" of a cycle (before first cycle start or after last)
+:::
+:::
+:::
+
+## LBN does not alter estrous cycles
+
+```{r fig.height=5, fig.width=5.67}
+#| layout-ncol: 2
+
+cyclesFiltered %>%
+  scatterPlotLBN(
+    yVar = numCycles
+    , yLab = "# of cycles from P70-P90"
+    , dotSize = 3
+    , textSize = 16
+  )
+
+cyclesFiltered %>%
+  scatterPlotLBN(
+    yVar = cycleLength
+    , yLab = "cycle length (days)"
+    , dotSize = 3
+    , textSize = 16
+  )
+
+```
+
+## LBN does not alter estrous cycles
+
+```{r fig.height=5, fig.width=5.67}
+#| layout-ncol: 2
+cyclesFiltered %>%
+  scatterPlotLBN(
+    yVar = firstCycleDay
+    , yLab = "first cycle day"
+    , dotSize = 3
+    , textSize = 16
+  )
+
+cyclesFiltered %>%
+  scatterPlotLBN(
+    yVar = percDaysInCycles
+    , yLab = "% days in a cycle"
+    , dotSize = 3
+    , textSize = 16
+  )
+```
+
+```{r}
+lmm_numCycles <- cyclesFiltered %>%
+  runLMM(
+    numCycles ~ earlyLifeTrt + (1|damID)
+  )
+lmm_cycleLength <- cyclesFiltered %>%
+  runLMM(
+    cycleLength ~ earlyLifeTrt + (1|damID)
+  )
+lmm_firstCycleDay <- cyclesFiltered %>%
+  runLMM(
+    firstCycleDay ~ earlyLifeTrt + (1|damID)
+  )
+lmm_percDaysInCycles <- cyclesFiltered %>%
+  runLMM(
+    percDaysInCycles ~ earlyLifeTrt + (1|damID)
+  )
+
+lmm_numCycles$anova %>%
+  mutate(
+    effect = "# cycles - earlyLifeTrt"
+  ) %>%
+  bind_rows(
+    lmm_cycleLength$anova %>%
+      mutate(
+        effect = "cycle length - earlyLifeTrt"
+      )
+  ) %>%
+  bind_rows(
+    lmm_firstCycleDay$anova %>%
+      mutate(
+        effect = "first cycle day - earlyLifeTrt"
+      )
+  ) %>%
+  bind_rows(
+    lmm_percDaysInCycles$anova %>%
+      mutate(
+        effect = "% days in cycles - earlyLifeTrt"
+      )
+  ) %>%
+  rename(
+    p = `Pr(>F)`
+  )
+```
+
+## LBN does not alter the percent of days in estrous cycle stages
+
+```{r}
+percDaysStage_1stL
+```
+
+# Response to ALPS
+
+## LBN does not affect corticosterone response in males
+
+```{r}
+maleCortPlot_1stL
+```
+
+## LBN led to increased post-ALPS serum corticosterone in proestrous females
+
+```{r}
+proCortPlot_no723 <- cortFilteredPro %>%
+  filter(
+    mouseID != 723
+  ) %>%
+  plotCort_bothL()
+proCortPlot_no723
+```
+
+## The effect of LBN on ALPS is influenced by sex
+
+```{r}
+#| tbl-colwidths: [45, 11, 11, 11, 11, 11]
+
+
+lmm <- cortFiltered_M_DiPro %>%
+  filter(
+    mouseID != 723
+  ) %>%
+  runLMM(
+    cort ~ sex * earlyLifeTrt * adultTrt * time + (1|mouseID)
+  )
+
+lmm$coefs %>% formatLMM_ppt()
+
+coefs <- lmm$coefs
+
+cortIntercept <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "(Intercept)"
+    , valCol = "Estimate"
+  )
+
+cortTime <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "time"
+    , valCol = "Estimate"
+  )
+
+cortTime5h <- cortTime * 5
+
+cortALPSTime <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "adultTrtALPS:time"
+    , valCol = "Estimate"
+  )
+
+femaleSTDALPS5h <- cortTime5h + cortALPSTime * 5
+
+cortMaleALPSTime <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "sexM:adultTrtALPS:time"
+    , valCol = "Estimate"
+  )
+
+# not a significant contributor to the model
+maleSTDALPS5h <- femaleSTDALPS5h + cortMaleALPSTime * 5
+
+cortLBNALPStime <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "earlyLifeTrtLBN:adultTrtALPS:time"
+    , valCol = "Estimate"
+  )
+
+femaleLBNALPS5h <- femaleSTDALPS5h + cortLBNALPStime * 5
+
+cortMaleLBNALPSTime <- coefs %>%
+  getValWhereOtherValTrue(
+    matchCol = "effect"
+    , matchVal = "sexM:earlyLifeTrtLBN:adultTrtALPS:time"
+    , valCol = "Estimate"
+  )
+maleLBNALPS5h <- femaleLBNALPS5h + cortMaleLBNALPSTime *5
+```
+
+## The effect of LBN on ALPS is influenced by sex
+
+-   The estimated serum corticosterone level at the beginning of the paradigm is `r cortIntercept`ng/mL, and is not altered by sex or early-life treatment
+-   For adult CON animals
+    -   cort is expected to increase about `r cortTime5h`ng/mL at the end of the paradigm
+    -   this is not altered by sex or early-life treatment
+-   For adult ALPS animals, the expected cort rise for each group is:
+    -   pro STD-ALPS: `r femaleSTDALPS5h`
+    -   pro LBN-ALPS: `r femaleLBNALPS5h`
+    -   male STD-ALPS: `r maleSTDALPS5h` - note that this is not different than pro STD-ALPS
+    -   male LBN-ALPS: `r maleLBNALPS5h`
+
+# Body mass and ALPS
+
+## By chance, males that would receive ALPS had a higher body mass before treatment
+
+```{r}
+acuteStressFilteredMales %>%
+  scatterPlotComboTrt(
+    yVar = Body_mass_AM
+    , yLab = "body mass AM (g)"
+    , dotSize = dotSize
+    , fontSize = textSize
+  )
+```
+
+## By chance, males that would receive ALPS had a higher body mass before treatment
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  runLMM(
+    Body_mass_AM ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+lmm$coefs %>% formatLMM_ppt()
+```
+
+## By chance, males that would receive ALPS had a higher body mass before treatment
+
+```{r}
+lmm <- acuteStressFilteredMales %>%
+  runLMM(
+    Body_mass_AM ~ earlyLifeTrt * adultTrt + (1|damID)
+  )
+
+lmm$anova %>% formatLMM_ppt()
+```
+
+# GABA PSCs
+
+## LBN and ALPS do not affect the frequency or amplitude of GABA PSCs
+
+```{r fig.height=5, fig.width=5.67}
+#| layout-ncol: 2
+
+
+GABAfreqPlot
+GABAampPlot
+```
+
+## LBN and ALPS do not affect passive properties or recording quality
+
+```{r fig.height=5, fig.width=5.67}
+#| layout-ncol: 2
+
+
+RinputPlot
+
+RseriesPlot
+
+```
+
+## LBN and ALPS do not affect passive properties or recording quality
+
+```{r fig.height=5, fig.width=5.67}
+#| layout-ncol: 2
+
+
+capacitancePlot
+
+
+holdingCurrPlot
+```
+
+```{r}
+GABApscsFilteredFiring %>%
+  runLMM(
+    frequency ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  )
+
+GABApscsFilteredFiring %>%
+  runLMM(
+    frequency ~ earlyLifeTrt * adultTrt + (1|mouseID)
+  )
+```
