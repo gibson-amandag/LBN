@@ -345,6 +345,28 @@ maturationMassLong <- maturationFiltered %>%
     matType = factor(matType, levels = c("vaginal opening", "first estrus", "preputial separation"))
   )
 
+maturationMassLong_indivMice <- maturationFiltered %>%
+  select(
+    mouseID
+    , damID
+    , ends_with("_mass")
+  ) %>%
+  rename(
+    `mass_vaginal opening` = VO_mass
+    , `mass_first estrus` = Estrus_mass
+    , `mass_preputial separation` = PreputialSep_mass
+  ) %>%
+  pivot_longer(
+    cols = starts_with("mass_")
+    , names_to = "matType"
+    , names_prefix = "mass_"
+    , values_to = "mass"
+    , values_drop_na = TRUE
+  ) %>%
+  mutate(
+    matType = factor(matType, levels = c("vaginal opening", "first estrus", "preputial separation"))
+  )
+
 maturationAgeLong <- maturationFiltered %>%
   getAvgByDam(bySex = FALSE) %>%
   select(
@@ -367,10 +389,39 @@ maturationAgeLong <- maturationFiltered %>%
     matType = factor(matType, levels = c("vaginal opening", "first estrus", "preputial separation"))
   )
 
+maturationAgeLong_indivMice <- maturationFiltered %>%
+  select(
+    mouseID
+    , damID
+    , ends_with("_age")
+  ) %>%
+  rename(
+    `age_vaginal opening` = VO_age
+    , `age_first estrus` = Estrus_age
+    , `age_preputial separation` = PreputialSep_age
+  ) %>%
+  pivot_longer(
+    cols = starts_with("age_")
+    , names_to = "matType"
+    , names_prefix = "age_"
+    , values_to = "age"
+    , values_drop_na = TRUE
+  ) %>%
+  mutate(
+    matType = factor(matType, levels = c("vaginal opening", "first estrus", "preputial separation"))
+  )
+
 maturationByDamLong <- maturationAgeLong %>%
   left_join(
     maturationMassLong
     , by = c("damID", "matType")
+  ) %>%
+  addDamDemoData(damDemo_forOff = Demo_dam_for_offspring)
+
+maturationByMouseLong <- maturationAgeLong_indivMice %>%
+  left_join(
+    maturationMassLong_indivMice
+    , by = c("mouseID", "damID", "matType")
   ) %>%
   addDamDemoData(damDemo_forOff = Demo_dam_for_offspring)
 
