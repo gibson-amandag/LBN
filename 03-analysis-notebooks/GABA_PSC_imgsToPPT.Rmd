@@ -50,13 +50,16 @@ image_info <- data.frame(images = images,
                                                   "peaks" = "Relative Amplitude",
                                                   "der" = "Derivative",
                                                   "t50r" = "Rise Time",
-                                                  "fwhm" = "Full Width Half Maximum")),
+                                                  "fwhm" = "Full Width Half Maximum"
+                                                 , "decay9010" = "Decay time from 90% to 10% peak"
+                                                 , "int" = "interval"
+                                                 )),
                 max_num = str_extract(images, "(?<=max)\\d+"),
                 max_num = as.integer(max_num)) %>%
   dplyr::arrange(param, max_num)
 
 # Create a new ppt object
-ppt <- read_pptx()
+ppt <- read_pptx("genericPPT.pptx")
 
 # Loop over each PNG image
 for (i in 1:nrow(image_info)) {
