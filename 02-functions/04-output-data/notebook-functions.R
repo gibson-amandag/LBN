@@ -22,6 +22,16 @@ subAdultTrtInRowNames <- function(tbl) {
   return(tbl)
 }
 
+subSacCycleInRowNames <- function(tbl) {
+  row.names(tbl) <- gsub("Sac_cycle", "cycle stage", row.names(tbl))
+  return(tbl)
+}
+
+subColonInRowNames <- function(tbl) {
+  row.names(tbl) <- gsub("\\:", " x ", row.names(tbl))
+  return(tbl)
+}
+
 subnParColNames <- function(tbl) {
   if("Statistic" %in% colnames(tbl)) {
     colnames(tbl)[colnames(tbl) == 'Statistic'] <- 'F'
@@ -56,6 +66,8 @@ simplifyLMMOutput <- function(anovaTable){
   tbl <- anovaTable %>%
     subEarlyLifeTrtInRowNames() %>%
     subAdultTrtInRowNames() %>%
+    subSacCycleInRowNames() %>%
+    subColonInRowNames() %>%
     as.data.frame() %>%
     rownames_to_column("variable") %>%
     mutate(
@@ -107,3 +119,124 @@ addTableAndCaptionToDoc <- function(tbl, tableCaption, tableNum, doc){
     body_add_par("")
   return(doc)
 }
+
+makeManuscriptFlexTable <- function(
+    df
+    , headerDF = NULL
+    , vertLines = c()
+    , horzLines = c()
+    , fullWidth = TRUE
+    , vertMergeCols = c()
+    , round1Cols = c()
+    , round2Cols = c()
+    , round3Cols = c()
+){
+  if(!is.null(headerDF)){
+    tbl <- df %>%
+      flextable(
+        col_keys = headerDF$col_keys
+      ) %>%
+      set_header_df(
+        mapping = headerDF, key = "col_keys"
+      )
+  } else {
+    tbl <- df %>%
+      flextable(
+        
+      )
+  }
+  
+  if(length(vertMergeCols)>0){
+    for (col in vertMergeCols) {
+      tbl <- tbl %>%
+        merge_v(j = col)
+    }
+  }
+  
+  tbl <- tbl %>%
+    merge_h(part = "header") %>%
+    colformat_num(
+      na_str = ""
+    )
+  
+  if(fullWidth){
+    tbl <- tbl %>%
+      set_table_properties(
+        layout = "autofit"
+        , width = 1
+      )
+  } else {
+    tbl <- tbl %>%
+      set_table_properties(
+        layout = "autofit"
+      )
+  }
+  
+  if(length(round1Cols)>0){
+    tbl <- tbl %>%
+      colformat_double(j = round1Cols, digits = 1)
+  }
+  
+  if(length(round2Cols)>0){
+    tbl <- tbl %>%
+      colformat_double(j = round2Cols, digits = 2)
+  }
+  
+  if(length(round3Cols)>0){
+    tbl <- tbl %>%
+      colformat_double(j = round3Cols, digits = 3)
+  }
+  
+  tbl <- tbl %>%
+    theme_booktabs() %>%
+    align(
+      align = "center"
+      , part = "all"
+    )
+  
+  if(length(vertLines)>0){
+    for (col in vertLines) {
+      tbl <- tbl %>%
+        vline(j = col)
+    }
+  }
+  
+  if(length(horzLines)>0){
+    for (col in horzLines) {
+      tbl <- tbl %>%
+        hline(i = col)
+    }
+  }
+  
+  tbl <- tbl %>%
+    fix_border_issues(
+      
+    )
+  
+  return(tbl)
+}
+
+getLMMFormula <- function(lmm){
+  formula <- deparse(lmm$call$formula)
+  formula <- subEarlyLifeTrtInFormula(formula)
+  formula <- subDamIDInFormula(formula)
+  formula <- subMouseIDInFormula(formula)
+  return(formula)
+}
+
+subEarlyLifeTrtInFormula <- function(formula){
+  formula <- gsub("earlyLifeTrt", "early-life treatment", formula)
+  return(formula)
+}
+
+subDamIDInFormula <- function(formula){
+  formula <- gsub("damID", "dam", formula)
+  return(formula)
+}
+
+subMouseIDInFormula <- function(formula){
+  formula <- gsub("mouseID", "mouse", formula)
+  return(formula)
+}
+
+
