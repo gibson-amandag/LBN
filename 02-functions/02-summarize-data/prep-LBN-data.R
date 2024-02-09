@@ -13,13 +13,10 @@ filterLBN <- function(
         , cohort %in% cohorts
         , is.na(Pups_through_wean) | Pups_through_wean == TRUE
       )
-    if(exclude9011){
+    if(exclude9011 & "mouseID" %in% names(df)){
       df <- df %>%
         filter(
-          across(
-            # will remove row where mouseID == 9011, if mouseID column exists in DF
-            any_of("mouseID"), ~ .x != 9011
-          )
+          mouseID != 9011
         )
     }
     return(df)
