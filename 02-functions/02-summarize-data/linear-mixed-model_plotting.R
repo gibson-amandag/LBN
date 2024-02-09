@@ -80,7 +80,7 @@ plotError_LMM_aes <- function(
       , inherit.aes = FALSE
       , width = meanBarWidth
       # , size = barSize
-      , lineWidth = barSize
+      , linewidth = barSize
       , position = position_nudge(x = nudgeMeanLine)
     )
     , geom_linerange(
