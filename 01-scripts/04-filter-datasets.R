@@ -474,7 +474,9 @@ LHFiltered <- LH_off %>%
 
 
 # Filter acute stress -----------------------------------------------------
-proUterineMin = 125
+# proUterineMin = 125
+# proUterineMin = 115 # changed 2024-01-22
+proUterineMin = 125 # changed 2024-01-22
 diUterineMax = 100
 exclude653 = TRUE
 exclude723 = FALSE # Re-ran on 2023-07-16
@@ -882,10 +884,12 @@ maleCortAdmin_filtered <- maleCortAdmin %>%
   filter(
     Sac_date >= date_parse("2023-07-19")
     , is.na(earlyLifeTrt) | earlyLifeTrt == "STD"
+    , is.na(excludeCortAdmin) | excludeCortAdmin == FALSE
   )
 
 maleCortAdmin_cort_filtered <- maleCortAdmin_cort %>%
   filter(
     Sac_date >= date_parse("2023-07-19")
     , is.na(earlyLifeTrt) | earlyLifeTrt == "STD"
+    , is.na(excludeCortAdmin) | excludeCortAdmin == FALSE
   )
