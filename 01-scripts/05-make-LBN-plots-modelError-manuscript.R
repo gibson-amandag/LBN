@@ -1,5 +1,5 @@
 textSize <- 11
-dotSize <- 2
+dotSize <- 1.5
 # textSize <- 24
 # dotSize <- 3
 facetMatByLitter <- FALSE

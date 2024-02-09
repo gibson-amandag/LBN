@@ -28,7 +28,7 @@ subSacCycleInRowNames <- function(tbl) {
 }
 
 subColonInRowNames <- function(tbl) {
-  row.names(tbl) <- gsub("\\:", " x ", row.names(tbl))
+  row.names(tbl) <- gsub("\\:", " * ", row.names(tbl))
   return(tbl)
 }
 
@@ -45,7 +45,7 @@ subnParColNames <- function(tbl) {
 formatPCol <- function(df){
   df <- df %>%
     mutate(
-      p = ifelse(p < 0.001, "<0.001", format(round(p, 3), nsmall = 3))
+      p = ifelse(p < 0.001, "<0.001", format(round(p, 3), nsmall = 3, trim = TRUE))
     )
   return(df)
 }
@@ -71,8 +71,12 @@ simplifyLMMOutput <- function(anovaTable){
     as.data.frame() %>%
     rownames_to_column("variable") %>%
     mutate(
-      `F` = format(round(`F`, 2), nsmall = 2)
-      , `df` = paste0(round(`num Df`), ", ", format(round(`den Df`, 1), nsmall = 1))
+      `F` = format(round(`F`, 2), nsmall = 2, trim = TRUE)
+      , `df` = paste0(round(`num Df`), ", "
+                      , format(round(`den Df`, 1)
+                               , nsmall = 1
+                               , trim = TRUE
+                               ))
       , .after = `F`
     ) %>%
     rename(
@@ -86,14 +90,24 @@ simplifyLMMOutput <- function(anovaTable){
 }
 
 simplifyEMMOutput <- function(emmTbl){
+  levelExists <- "level" %in% colnames(emmTbl)
+  
   tbl <- emmTbl %>%
     rename(
       SEM = SE
     ) %>%
     mutate(
-      `95% CI` = paste0("[", format(round(lower.CL, 2), nsmall = 2), ", ", format(round(upper.CL, 2), nsmall = 2), "]")
-      , level = as.character(level)
-    ) %>%
+      `95% CI` = paste0("[", format(round(lower.CL, 2), nsmall = 2, trim = TRUE), ", ", format(round(upper.CL, 2), nsmall = 2, trim = TRUE), "]")
+    ) 
+  
+  if(levelExists){
+    tbl <- tbl %>%
+      mutate(
+        level = as.character(level)
+      )
+  }
+  
+  tbl <- tbl %>%
     select(
       -c(lower.CL, upper.CL)
     )
@@ -219,6 +233,8 @@ makeManuscriptFlexTable <- function(
 getLMMFormula <- function(lmm){
   formula <- deparse(lmm$call$formula)
   formula <- subEarlyLifeTrtInFormula(formula)
+  formula <- subAdultTrtInFormula(formula)
+  formula <- subCycleInFormula(formula)
   formula <- subDamIDInFormula(formula)
   formula <- subMouseIDInFormula(formula)
   return(formula)
@@ -226,6 +242,16 @@ getLMMFormula <- function(lmm){
 
 subEarlyLifeTrtInFormula <- function(formula){
   formula <- gsub("earlyLifeTrt", "early-life treatment", formula)
+  return(formula)
+}
+
+subAdultTrtInFormula <- function(formula){
+  formula <- gsub("adultTrt", "adult treatment", formula)
+  return(formula)
+}
+
+subCycleInFormula <- function(formula){
+  formula <- gsub("Sac_cycle", "cycle stage", formula)
   return(formula)
 }
 
