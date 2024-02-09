@@ -41,11 +41,11 @@ comboTrt_scatterAndLMM <- function(
     , thisYLab = ""
     , thisFontSize = textSize
     , thisDotSize = dotSize
-    , twoLineXLabs = FALSE
+    , twoLineXLabs = TRUE
     , useFacetLabels = FALSE
     , useSpecYLab = TRUE
     , addLegend = FALSE
-    , removeXTicks = TRUE
+    , removeXTicks = FALSE
     , alpha = 0.7
     , addMeanSE = FALSE
 ){
@@ -79,10 +79,19 @@ comboTrt_scatterAndLMM <- function(
       )
     
     if(twoLineXLabs){
-      plot <- plot + 
-        theme(
-          axis.text.x = element_text(angle = 35, vjust = 1, hjust=1)
+      # plot <- plot + 
+      #   theme(
+      #     axis.text.x = element_text(angle = 35, vjust = 1, hjust=1)
+      #   )
+      plot <- plot + scale_x_discrete(
+        labels = c(
+          "STD-CON" = "STD\nCON"
+          , "STD-ALPS" = "STD\nALPS"
+          , "LBN-CON" = "LBN\nCON"
+          , "LBN-ALPS" = "LBN\nALPS"
+          
         )
+      )
       
     }
     
@@ -393,6 +402,7 @@ maleBodyMassAM_ALPS <- acuteStressFilteredMales %>%
 maleBodyMassAM_ALPS_plot <- maleBodyMassAM_ALPS$plot
 maleBodyMassAM_ALPS_lmm <- maleBodyMassAM_ALPS$lmm
 
+# adult trt
 maleBodyMassAM_ALPS_lmm_emm_adultTrt <- emmeans(
   maleBodyMassAM_ALPS_lmm
   , "adultTrt"
@@ -406,6 +416,18 @@ maleBodyMassAM_ALPS_lmm_emm_adultTrt.pairs <- test(
   , adjust = "holm"
 )
 
+# early-life trt
+maleBodyMassAM_ALPS_lmm_emm_earlyLifeTrt <- emmeans(
+  maleBodyMassAM_ALPS_lmm
+  , "earlyLifeTrt"
+)
+
+maleBodyMassAM_ALPS_lmm_emm_earlyLifeTrt.pairs <- test(
+  pairs(maleBodyMassAM_ALPS_lmm_emm_earlyLifeTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
 ## % change body mass ----------
 malePercChangeBodyMass_ALPS <- acuteStressFilteredMales %>%
   statsAndPlot_PercChangeBodyMass_ALPS()
@@ -413,6 +435,19 @@ malePercChangeBodyMass_ALPS <- acuteStressFilteredMales %>%
 malePercChangeBodyMass_ALPS_plot <- malePercChangeBodyMass_ALPS$plot
 malePercChangeBodyMass_ALPS_lmm <- malePercChangeBodyMass_ALPS$lmm
 
+# early-life trt
+malePercChangeBodyMass_ALPS_lmm_emm_earlyLifeTrt <- emmeans(
+  malePercChangeBodyMass_ALPS_lmm
+  , "earlyLifeTrt"
+)
+
+malePercChangeBodyMass_ALPS_lmm_emm_earlyLifeTrt.pairs <- test(
+  pairs(malePercChangeBodyMass_ALPS_lmm_emm_earlyLifeTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+# adult trt
 malePercChangeBodyMass_ALPS_lmm_emm_adultTrt <- emmeans(
   malePercChangeBodyMass_ALPS_lmm
   , "adultTrt"
@@ -425,7 +460,28 @@ malePercChangeBodyMass_ALPS_lmm_emm_adultTrt.pairs <- test(
   , adjust = "holm"
 )
 
+
+# combo trt
+malePercChangeBodyMass_ALPS_lmm_emm_comboTrt <- emmeans(
+  malePercChangeBodyMass_ALPS_lmm
+  , "earlyLifeTrt"
+  , by = "adultTrt"
+)
+
+malePercChangeBodyMass_ALPS_lmm_emm_comboTrt.pairs <- test(
+  pairs(malePercChangeBodyMass_ALPS_lmm_emm_comboTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
 ## normalized adrenal mass -----------
+maleRelAdrenalMassPM_ALPS <- acuteStressFilteredMales %>%
+  statsAndPlot_RelAdrenalMassPM_ALPS(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = .2
+  )
+
 maleRelAdrenalMass_ALPS <- acuteStressFilteredMales %>%
   statsAndPlot_RelAdrenalMass_ALPS(
     zoom_y = TRUE
@@ -433,9 +489,25 @@ maleRelAdrenalMass_ALPS <- acuteStressFilteredMales %>%
     , ymax = .2
   )
 
+maleRelAdrenalMassPM_ALPS_plot <- maleRelAdrenalMassPM_ALPS$plot
+maleRelAdrenalMassPM_ALPS_lmm <- maleRelAdrenalMassPM_ALPS$lmm
+
 maleRelAdrenalMass_ALPS_plot <- maleRelAdrenalMass_ALPS$plot
 maleRelAdrenalMass_ALPS_lmm <- maleRelAdrenalMass_ALPS$lmm
 
+## AM - early life EMM
+maleRelAdrenalMass_ALPS_lmm_emm_earlyLifeTrt <- emmeans(
+  maleRelAdrenalMass_ALPS_lmm
+  , "earlyLifeTrt"
+)
+
+maleRelAdrenalMass_ALPS_lmm_emm_earlyLifeTrt.pairs <- test(
+  pairs(maleRelAdrenalMass_ALPS_lmm_emm_earlyLifeTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+## AM - adult EMM
 maleRelAdrenalMass_ALPS_lmm_emm_adultTrt <- emmeans(
   maleRelAdrenalMass_ALPS_lmm
   , "adultTrt"
@@ -445,6 +517,30 @@ maleRelAdrenalMass_ALPS_lmm_emm_adultTrt <- emmeans(
 # but this may be attributable to the difference in AM body mass
 maleRelAdrenalMass_ALPS_lmm_emm_adultTrt.pairs <- test(
   pairs(maleRelAdrenalMass_ALPS_lmm_emm_adultTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+## PM - earlyLife EMM
+maleRelAdrenalMassPM_ALPS_lmm_emm_earlyLifeTrt <- emmeans(
+  maleRelAdrenalMassPM_ALPS_lmm
+  , "earlyLifeTrt"
+)
+
+maleRelAdrenalMassPM_ALPS_lmm_emm_earlyLifeTrt.pairs <- test(
+  pairs(maleRelAdrenalMassPM_ALPS_lmm_emm_earlyLifeTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+## PM - adult EMM
+maleRelAdrenalMassPM_ALPS_lmm_emm_adultTrt <- emmeans(
+  maleRelAdrenalMassPM_ALPS_lmm
+  , "adultTrt"
+)
+
+maleRelAdrenalMassPM_ALPS_lmm_emm_adultTrt.pairs <- test(
+  pairs(maleRelAdrenalMassPM_ALPS_lmm_emm_adultTrt)
   , by = NULL
   , adjust = "holm"
 )
@@ -460,11 +556,45 @@ maleAdrenalMass_ALPS <- acuteStressFilteredMales %>%
 maleAdrenalMass_ALPS_plot <- maleAdrenalMass_ALPS$plot
 maleAdrenalMass_ALPS_lmm <- maleAdrenalMass_ALPS$lmm
 
+## earlyLife EMM
+maleAdrenalMass_ALPS_lmm_emm_earlyLifeTrt <- emmeans(
+  maleAdrenalMass_ALPS_lmm
+  , "earlyLifeTrt"
+)
+
+maleAdrenalMass_ALPS_lmm_emm_earlyLifeTrt.pairs <- test(
+  pairs(maleAdrenalMass_ALPS_lmm_emm_earlyLifeTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+## adult EMM
+maleAdrenalMass_ALPS_lmm_emm_adultTrt <- emmeans(
+  maleAdrenalMass_ALPS_lmm
+  , "adultTrt"
+)
+
+maleAdrenalMass_ALPS_lmm_emm_adultTrt.pairs <- test(
+  pairs(maleAdrenalMass_ALPS_lmm_emm_adultTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
 # no differences in absolute mass - is this a better measure because
 # we've got all these differences in body mass that make it hard to know how to normalize?
 
 
 ## normalized seminal vesicle mass -----------
+maleRelSeminalVesicleMassPM_ALPS <- acuteStressFilteredMales %>%
+  statsAndPlot_RelSeminalVesicleMassPM_ALPS(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  )
+
+maleRelSeminalVesicleMassPM_ALPS_plot <- maleRelSeminalVesicleMassPM_ALPS$plot
+maleRelSeminalVesicleMassPM_ALPS_lmm <- maleRelSeminalVesicleMassPM_ALPS$lmm
+
 maleRelSeminalVesicleMass_ALPS <- acuteStressFilteredMales %>%
   statsAndPlot_RelSeminalVesicleMass_ALPS(
     zoom_y = TRUE
@@ -475,6 +605,8 @@ maleRelSeminalVesicleMass_ALPS <- acuteStressFilteredMales %>%
 maleRelSeminalVesicleMass_ALPS_plot <- maleRelSeminalVesicleMass_ALPS$plot
 maleRelSeminalVesicleMass_ALPS_lmm <- maleRelSeminalVesicleMass_ALPS$lmm
 
+## AM - early-life
+
 maleRelSeminalVesicleMass_ALPS_lmm_emm_earlyLifeTrt <- emmeans(
   maleRelSeminalVesicleMass_ALPS_lmm
   , "earlyLifeTrt"
@@ -484,6 +616,47 @@ maleRelSeminalVesicleMass_ALPS_lmm_emm_earlyLifeTrt <- emmeans(
 # to AM body mass
 maleRelSeminalVesicleMass_ALPS_lmm_emm_earlyLifeTrt.pairs <- test(
   pairs(maleRelSeminalVesicleMass_ALPS_lmm_emm_earlyLifeTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+## AM - adult
+
+maleRelSeminalVesicleMass_ALPS_lmm_emm_adultTrt <- emmeans(
+  maleRelSeminalVesicleMass_ALPS_lmm
+  , "adultTrt"
+)
+
+# LBN males have larger seminal vesicle mass when normalized
+# to AM body mass
+maleRelSeminalVesicleMass_ALPS_lmm_emm_adultTrt.pairs <- test(
+  pairs(maleRelSeminalVesicleMass_ALPS_lmm_emm_adultTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+## PM - early-life
+
+maleRelSeminalVesicleMassPM_ALPS_lmm_emm_earlyLifeTrt <- emmeans(
+  maleRelSeminalVesicleMassPM_ALPS_lmm
+  , "earlyLifeTrt"
+)
+
+maleRelSeminalVesicleMassPM_ALPS_lmm_emm_earlyLifeTrt.pairs <- test(
+  pairs(maleRelSeminalVesicleMassPM_ALPS_lmm_emm_earlyLifeTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+## PM - adult
+
+maleRelSeminalVesicleMassPM_ALPS_lmm_emm_adultTrt <- emmeans(
+  maleRelSeminalVesicleMassPM_ALPS_lmm
+  , "adultTrt"
+)
+
+maleRelSeminalVesicleMassPM_ALPS_lmm_emm_adultTrt.pairs <- test(
+  pairs(maleRelSeminalVesicleMassPM_ALPS_lmm_emm_adultTrt)
   , by = NULL
   , adjust = "holm"
 )
@@ -502,7 +675,40 @@ maleSeminalVesicleMass_ALPS_lmm <- maleSeminalVesicleMass_ALPS$lmm
 # no differences in absolute mass from early-life treatment
 # trend towards increase in seminal vesicle mass from adult stress
 
+maleSeminalVesicleMass_ALPS_lmm_emm_earlyLifeTrt <- emmeans(
+  maleSeminalVesicleMass_ALPS_lmm
+  , "earlyLifeTrt"
+)
+
+maleSeminalVesicleMass_ALPS_lmm_emm_earlyLifeTrt.pairs <- test(
+  pairs(maleSeminalVesicleMass_ALPS_lmm_emm_earlyLifeTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+maleSeminalVesicleMass_ALPS_lmm_emm_adultTrt <- emmeans(
+  maleSeminalVesicleMass_ALPS_lmm
+  , "adultTrt"
+)
+
+maleSeminalVesicleMass_ALPS_lmm_emm_adultTrt.pairs <- test(
+  pairs(maleSeminalVesicleMass_ALPS_lmm_emm_adultTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+
 ## normalized testicular mass -----------
+maleRelTestesMassPM_ALPS <- acuteStressFilteredMales %>%
+  statsAndPlot_RelTestesMassPM_ALPS(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  )
+
+maleRelTestesMassPM_ALPS_plot <- maleRelTestesMassPM_ALPS$plot
+maleRelTestesMassPM_ALPS_lmm <- maleRelTestesMassPM_ALPS$lmm
+
 maleRelTestesMass_ALPS <- acuteStressFilteredMales %>%
   statsAndPlot_RelTestesMass_ALPS(
     zoom_y = TRUE
@@ -513,6 +719,21 @@ maleRelTestesMass_ALPS <- acuteStressFilteredMales %>%
 maleRelTestesMass_ALPS_plot <- maleRelTestesMass_ALPS$plot
 maleRelTestesMass_ALPS_lmm <- maleRelTestesMass_ALPS$lmm
 
+# AM - Early-life trt
+
+maleRelTestesMass_ALPS_lmm_emm_earlyLifeTrt <- emmeans(
+  maleRelTestesMass_ALPS_lmm
+  , "earlyLifeTrt"
+)
+
+maleRelTestesMass_ALPS_lmm_emm_earlyLifeTrt.pairs <- test(
+  pairs(maleRelTestesMass_ALPS_lmm_emm_earlyLifeTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+# AM - Adult trt
+
 maleRelTestesMass_ALPS_lmm_emm_adultTrt <- emmeans(
   maleRelTestesMass_ALPS_lmm
   , "adultTrt"
@@ -522,6 +743,30 @@ maleRelTestesMass_ALPS_lmm_emm_adultTrt <- emmeans(
 # to AM body mass
 maleRelTestesMass_ALPS_lmm_emm_adultTrt.pairs <- test(
   pairs(maleRelTestesMass_ALPS_lmm_emm_adultTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+# PM - early-life trt
+maleRelTestesMassPM_ALPS_lmm_emm_earlyLifeTrt <- emmeans(
+  maleRelTestesMassPM_ALPS_lmm
+  , "earlyLifeTrt"
+)
+
+maleRelTestesMassPM_ALPS_lmm_emm_earlyLifeTrt.pairs <- test(
+  pairs(maleRelTestesMassPM_ALPS_lmm_emm_earlyLifeTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+# PM - adult trt
+maleRelTestesMassPM_ALPS_lmm_emm_adultTrt <- emmeans(
+  maleRelTestesMassPM_ALPS_lmm
+  , "adultTrt"
+)
+
+maleRelTestesMassPM_ALPS_lmm_emm_adultTrt.pairs <- test(
+  pairs(maleRelTestesMassPM_ALPS_lmm_emm_adultTrt)
   , by = NULL
   , adjust = "holm"
 )
@@ -571,6 +816,19 @@ maleBodyMassAM_dosage <- maleCortAdmin_filtered %>%
 maleBodyMassAM_dosage_plot <- maleBodyMassAM_dosage$plot
 maleBodyMassAM_dosage_lmm <- maleBodyMassAM_dosage$lmm
 
+## Emmeans 
+
+maleBodyMassAM_dosage_lmm_emm_dosage <- emmeans(
+  maleBodyMassAM_dosage_lmm
+  , "dosage"
+)
+
+maleBodyMassAM_dosage_lmm_emm_dosage.pairs <- test(
+  pairs(maleBodyMassAM_dosage_lmm_emm_dosage)
+  , by = NULL
+  , adjust = "holm"
+)
+
 ## % change body mass ----------
 malePercChangeBodyMass_dosage <- maleCortAdmin_filtered %>%
   statsAndPlot_PercChangeBodyMass_dosage()
@@ -580,7 +838,45 @@ malePercChangeBodyMass_dosage_lmm <- malePercChangeBodyMass_dosage$lmm
 
 # trend to lose more mass with corticosterone
 
+
+## Emmeans 
+
+malePercChangeBodyMass_dosage_lmm_emm_dosage <- emmeans(
+  malePercChangeBodyMass_dosage_lmm
+  , "dosage"
+)
+
+malePercChangeBodyMass_dosage_lmm_emm_dosage.pairs <- test(
+  pairs(malePercChangeBodyMass_dosage_lmm_emm_dosage)
+  , by = NULL
+  , adjust = "holm"
+)
+
 ## normalized adrenal mass -----------
+maleRelAdrenalMassPM_dosage <- maleCortAdmin_filtered %>%
+  statsAndPlot_RelAdrenalMassPM_dosage(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = .2
+  )
+
+maleRelAdrenalMassPM_dosage_plot <- maleRelAdrenalMassPM_dosage$plot
+maleRelAdrenalMassPM_dosage_lmm <- maleRelAdrenalMassPM_dosage$lmm
+
+## Emmeans 
+
+maleRelAdrenalMassPM_dosage_lmm_emm_dosage <- emmeans(
+  maleRelAdrenalMassPM_dosage_lmm
+  , "dosage"
+)
+
+maleRelAdrenalMassPM_dosage_lmm_emm_dosage.pairs <- test(
+  pairs(maleRelAdrenalMassPM_dosage_lmm_emm_dosage)
+  , by = NULL
+  , adjust = "holm"
+)
+
+
 maleRelAdrenalMass_dosage <- maleCortAdmin_filtered %>%
   statsAndPlot_RelAdrenalMass_dosage(
     zoom_y = TRUE
@@ -590,6 +886,19 @@ maleRelAdrenalMass_dosage <- maleCortAdmin_filtered %>%
 
 maleRelAdrenalMass_dosage_plot <- maleRelAdrenalMass_dosage$plot
 maleRelAdrenalMass_dosage_lmm <- maleRelAdrenalMass_dosage$lmm
+
+## Emmeans 
+
+maleRelAdrenalMass_dosage_lmm_emm_dosage <- emmeans(
+  maleRelAdrenalMass_dosage_lmm
+  , "dosage"
+)
+
+maleRelAdrenalMass_dosage_lmm_emm_dosage.pairs <- test(
+  pairs(maleRelAdrenalMass_dosage_lmm_emm_dosage)
+  , by = NULL
+  , adjust = "holm"
+)
 
 # no change
 
@@ -604,9 +913,45 @@ maleAdrenalMass_dosage <- maleCortAdmin_filtered %>%
 maleAdrenalMass_dosage_plot <- maleAdrenalMass_dosage$plot
 maleAdrenalMass_dosage_lmm <- maleAdrenalMass_dosage$lmm
 
+## Emmeans 
+
+maleAdrenalMass_dosage_lmm_emm_dosage <- emmeans(
+  maleAdrenalMass_dosage_lmm
+  , "dosage"
+)
+
+maleAdrenalMass_dosage_lmm_emm_dosage.pairs <- test(
+  pairs(maleAdrenalMass_dosage_lmm_emm_dosage)
+  , by = NULL
+  , adjust = "holm"
+)
+
 # very weak trend, increased adrenal mass with cort
 
 ## normalized seminal vesicle mass -----------
+maleRelSeminalVesicleMassPM_dosage <- maleCortAdmin_filtered %>%
+  statsAndPlot_RelSeminalVesicleMassPM_dosage(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  )
+
+maleRelSeminalVesicleMassPM_dosage_plot <- maleRelSeminalVesicleMassPM_dosage$plot
+maleRelSeminalVesicleMassPM_dosage_lmm <- maleRelSeminalVesicleMassPM_dosage$lmm
+
+## Emmeans 
+
+maleRelSeminalVesicleMassPM_dosage_lmm_emm_dosage <- emmeans(
+  maleRelSeminalVesicleMassPM_dosage_lmm
+  , "dosage"
+)
+
+maleRelSeminalVesicleMassPM_dosage_lmm_emm_dosage.pairs <- test(
+  pairs(maleRelSeminalVesicleMassPM_dosage_lmm_emm_dosage)
+  , by = NULL
+  , adjust = "holm"
+)
+
 maleRelSeminalVesicleMass_dosage <- maleCortAdmin_filtered %>%
   statsAndPlot_RelSeminalVesicleMass_dosage(
     zoom_y = TRUE
@@ -616,6 +961,19 @@ maleRelSeminalVesicleMass_dosage <- maleCortAdmin_filtered %>%
 
 maleRelSeminalVesicleMass_dosage_plot <- maleRelSeminalVesicleMass_dosage$plot
 maleRelSeminalVesicleMass_dosage_lmm <- maleRelSeminalVesicleMass_dosage$lmm
+
+## Emmeans 
+
+maleRelSeminalVesicleMass_dosage_lmm_emm_dosage <- emmeans(
+  maleRelSeminalVesicleMass_dosage_lmm
+  , "dosage"
+)
+
+maleRelSeminalVesicleMass_dosage_lmm_emm_dosage.pairs <- test(
+  pairs(maleRelSeminalVesicleMass_dosage_lmm_emm_dosage)
+  , by = NULL
+  , adjust = "holm"
+)
 
 # no change
 
@@ -630,9 +988,45 @@ maleSeminalVesicleMass_dosage <- maleCortAdmin_filtered %>%
 maleSeminalVesicleMass_dosage_plot <- maleSeminalVesicleMass_dosage$plot
 maleSeminalVesicleMass_dosage_lmm <- maleSeminalVesicleMass_dosage$lmm
 
+## Emmeans 
+
+maleSeminalVesicleMass_dosage_lmm_emm_dosage <- emmeans(
+  maleSeminalVesicleMass_dosage_lmm
+  , "dosage"
+)
+
+maleSeminalVesicleMass_dosage_lmm_emm_dosage.pairs <- test(
+  pairs(maleSeminalVesicleMass_dosage_lmm_emm_dosage)
+  , by = NULL
+  , adjust = "holm"
+)
+
 # no change
 
 ## normalized testicular mass -----------
+maleRelTestesMassPM_dosage <- maleCortAdmin_filtered %>%
+  statsAndPlot_RelTestesMassPM_dosage(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  )
+
+maleRelTestesMassPM_dosage_plot <- maleRelTestesMassPM_dosage$plot
+maleRelTestesMassPM_dosage_lmm <- maleRelTestesMassPM_dosage$lmm
+
+## Emmeans 
+
+maleRelTestesMassPM_dosage_lmm_emm_dosage <- emmeans(
+  maleRelTestesMassPM_dosage_lmm
+  , "dosage"
+)
+
+maleRelTestesMassPM_dosage_lmm_emm_dosage.pairs <- test(
+  pairs(maleRelTestesMassPM_dosage_lmm_emm_dosage)
+  , by = NULL
+  , adjust = "holm"
+)
+
 maleRelTestesMass_dosage <- maleCortAdmin_filtered %>%
   statsAndPlot_RelTestesMass_dosage(
     zoom_y = TRUE
@@ -642,6 +1036,19 @@ maleRelTestesMass_dosage <- maleCortAdmin_filtered %>%
 
 maleRelTestesMass_dosage_plot <- maleRelTestesMass_dosage$plot
 maleRelTestesMass_dosage_lmm <- maleRelTestesMass_dosage$lmm
+
+## Emmeans 
+
+maleRelTestesMass_dosage_lmm_emm_dosage <- emmeans(
+  maleRelTestesMass_dosage_lmm
+  , "dosage"
+)
+
+maleRelTestesMass_dosage_lmm_emm_dosage.pairs <- test(
+  pairs(maleRelTestesMass_dosage_lmm_emm_dosage)
+  , by = NULL
+  , adjust = "holm"
+)
 
 # weak trend for decrease in testicular mass with cort
 
@@ -655,5 +1062,18 @@ maleTestesMass_dosage <- maleCortAdmin_filtered %>%
 
 maleTestesMass_dosage_plot <- maleTestesMass_dosage$plot
 maleTestesMass_dosage_lmm <- maleTestesMass_dosage$lmm
+
+## Emmeans 
+
+maleTestesMass_dosage_lmm_emm_dosage <- emmeans(
+  maleTestesMass_dosage_lmm
+  , "dosage"
+)
+
+maleTestesMass_dosage_lmm_emm_dosage.pairs <- test(
+  pairs(maleBodyMassAM_dosage_lmm_emm_dosage)
+  , by = NULL
+  , adjust = "holm"
+)
 
 # weak trend for decrease in testicular mass with cort
