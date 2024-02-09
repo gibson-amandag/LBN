@@ -14755,14 +14755,16 @@ damFiltered %>%
 ```
 
 ```{r}
-acuteStressFiltered %>%
+df <- acuteStressFiltered %>%
   filter(
     is.na(cort_hr0)
     , Sac_date >= date_parse("2023-09-01")
   ) %>%
   select(
     mouseID
-  ) %>%
+  )
+df <- df[sample(nrow(df)),]
+df %>%
   write.table("clipboard", sep="\t", row.names = FALSE)
 ```
 
@@ -14775,6 +14777,28 @@ maleCortAdmin_filtered %>%
     n()
   )
 ```
+
+```{r}
+LBN_data %>%
+  filter(
+    sex == "M"
+    , cohort == 10
+    , earlyLifeTrt == "LBN"
+  ) %>%
+  select(
+    mouseID, damID
+  ) %>%
+  write.table("clipboard", sep = "\t", row.names = FALSE)
+```
+
+```{r}
+LBN_data %>%
+  filter(
+    mouseID == 10018
+  )
+```
+
+
 
 ```{r}
 LBN_data %>%
@@ -14819,5 +14843,437 @@ acuteStressFilteredMales %>%
 acuteStressFilteredMales %>%
   group_by(earlyLifeTrt, adultTrt) %>%
   quartilesSummary(AgeInDays)
+```
+
+```{r}
+GABApscsFilteredFiring %>%
+  select(
+    # cellID, adultTrt
+    cellID, earlyLifeTrt
+  ) %>%
+  write.table("clipboard", sep="\t", row.names=FALSE)
+```
+
+
+```{r}
+eventPeaks <- loadExcelSheet(dataFolder, LBN_DataName, "eventPeaks")
+
+eventPeaks <- eventPeaks %>%
+  left_join(
+    cellInfo
+    , by = "cellID"
+  ) %>%
+  left_join(
+      slicingInfo,
+      by = "mouseID"
+    ) %>%
+  left_join(
+    acuteStressFiltered
+    , by = "mouseID"
+  )
+
+eventPeaks
+
+peakModel <- mixed(
+  relPeak ~ earlyLifeTrt * adultTrt + (1|cellID) #+ (1|mouseID) + (1|damID)
+  , data = eventPeaks
+  , method = "KR"
+)
+
+peakModel$anova_table
+
+summary(peakModel)
+```
+
+```{r}
+AcuteStress_off %>%
+  filter(
+    mouseID == 1003
+  
+  )
+```
+
+
+```{r}
+acuteStressFilteredAll %>%
+  filter(
+    # mouseID == 1003
+    ReproTract_mass < 125 & ReproTract_mass > 100
+    , Sac_cycle == "proestrus"
+  ) %>%
+  select(
+    mouseID
+    , ReproTract_mass
+    , maxLH
+    , adultTrt
+  )
+
+acuteStressFiltered_M_DiPro %>%
+  filter(
+    mouseID == 1003
+  )
+
+acuteStressFilteredAll %>%
+  filter(
+    cohort == 10
+    , sex == "F"
+    , damStrain == "CBA"
+  ) %>%
+  select(
+    mouseID
+    , damID
+    , damStrain
+  )
+
+damFiltered %>%
+  mutate(
+    damStrain = trimws(damStrain)
+  ) %>%
+  filter(
+    cohort == 10
+    , damStrain != "CBA"
+  ) %>%
+  select(
+    damID
+    , damStrain
+  )
+```
+
+```{r}
+uterineMassPlot <- acuteStressFilteredAll %>%
+  filter(
+    sex == "F"
+    , Sac_cycle == "proestrus"
+  ) %>%
+  scatterPlotComboTrt(
+    yVar = ReproTract_mass
+    , "uterine mass (mg)"
+    , addMeanSE = FALSE
+    , zoom_y = TRUE
+    , ymin = 50
+    , ymax = 215
+  ) +
+  geom_hline(yintercept = 125, color = "blue") +
+  geom_hline(yintercept = 115, color = "blue")
+
+uterineMassPlot
+
+flexSave(
+  "uterineMass"
+  , plot = uterineMassPlot
+  , width = 11
+  , height = 5.5
+)
+```
+
+
+```{r}
+normUterineMassPlot <- acuteStressFilteredAll %>%
+  filter(
+    sex == "F"
+    , Sac_cycle == "proestrus"
+  ) %>%
+  scatterPlotComboTrt(
+    yVar = ReproTract_mass_perBody_g
+    , "normalized uterine mass (mg/g)"
+    , addMeanSE = FALSE
+  # ) +
+  # geom_hline(yintercept = 125, color = "blue") +
+  # geom_hline(yintercept = 115, color = "blue"
+             )
+
+normUterineMassPlot
+
+flexSave(
+  "uterineMass"
+  , plot = normUterineMassPlot
+  , width = 11
+  , height = 5.5
+)
+```
+
+```{r}
+uterineMass_LH_plot <- acuteStressFilteredAll %>%
+  filter(
+    sex == "F"
+    , Sac_cycle == "proestrus"
+    , adultTrt == "CON"
+    , !is.na(LH_hr6.5)
+  ) %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = maxLH
+    , yLab = "maximum evening LH (ng/mL)"
+    , xVar = ReproTract_mass
+    , xLab = "uterine mass (mg)"
+  ) +
+  geom_vline(xintercept = 115, color = "blue") +
+  geom_vline(xintercept = 125, color = "blue") +
+  geom_hline(yintercept = 3, color = "magenta")
+
+uterineMass_LH_plot
+
+flexSave(
+  "uterineMass_LH"
+  , plot = uterineMass_LH_plot
+  , width = 11
+  , height = 5.5
+)
+```
+
+## Slides for 115-125
+
+```{r}
+samplingDF_ALPS <- AcuteStress_off %>%
+  filter(
+    sex == "F",
+    !is.na(cyclingFolderPath),
+    # cohort %in% c(10),
+    cohort %in% c(7, 9, 10),
+    !is.na(Sac_date),
+    !is.na(adultTrt),
+    Sac_cycle == "proestrus"
+  ) %>%
+  arrange(
+    comboTrt
+    , ReproTract_mass
+  )
+
+samplingDF_ALPS <- samplingDF_ALPS %>%
+  addRegExForSamplingDF(
+    # arrangeByTrt = TRUE
+  ) %>%
+  addSamplingImgFilePaths()
+
+samplingDF_ALPS <- samplingDF_ALPS %>%
+  arrange(
+    comboTrt
+  )
+
+samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
+samplingPPT <- ph_with(
+  samplingPPT,
+  value = "LBN Cycling Images, Uterine Mass, and LH Values",
+  location = ph_location_label("Title 1")
+)
+addSamplingSlidesFromDF(
+  samplingDF_ALPS, 
+  samplingPPT = samplingPPT, 
+  cyclingDF = Cycles_off_all %>%
+    filter(
+      mouseID %in% samplingDF_ALPS$mouseID
+    )
+)
+print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0(
+  "LBN_ALPS_proestrus_samplingImgs" 
+  # , "_byTrt_"
+  , "_"
+  , dateToday,
+  ".pptx")
+  )
+)
+```
+
+## Slides for diestrus
+
+```{r}
+samplingDF_ALPS <- AcuteStress_off %>%
+  filter(
+    sex == "F",
+    !is.na(cyclingFolderPath),
+    cohort %in% c(7, 9, 10),
+    !is.na(Sac_date),
+    !is.na(adultTrt),
+    Sac_cycle == "diestrus"
+    , ReproTract_mass > 100
+  ) %>%
+  arrange(
+    comboTrt
+    , ReproTract_mass
+  )
+
+samplingDF_ALPS <- samplingDF_ALPS %>%
+  addRegExForSamplingDF(
+    # arrangeByTrt = TRUE
+  ) %>%
+  addSamplingImgFilePaths()
+
+samplingDF_ALPS <- samplingDF_ALPS %>%
+  arrange(
+    comboTrt
+  )
+
+samplingPPT <- read_pptx("./samplingSlideTemplate.pptx")
+samplingPPT <- add_slide(samplingPPT, layout = "Title Slide")
+samplingPPT <- ph_with(
+  samplingPPT,
+  value = "LBN Cycling Images, Uterine Mass, and LH Values",
+  location = ph_location_label("Title 1")
+)
+addSamplingSlidesFromDF(
+  samplingDF_ALPS, 
+  samplingPPT = samplingPPT, 
+  cyclingDF = Cycles_off_all %>%
+    filter(
+      mouseID %in% samplingDF_ALPS$mouseID
+    )
+)
+print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0(
+  "LBN_ALPS_HighDiestrus_samplingImgs" 
+  # , "_byTrt_"
+  , "_"
+  , dateToday,
+  ".pptx")
+  )
+)
+```
+```{r}
+samplingDF_ALPS %>%
+  select(
+    mouseID
+    , Sac_date
+    , uterinePicPath
+  ) %>%
+  filter(
+    is.na(uterinePicPath)
+  ) %>%
+  arrange(
+    Sac_date
+  )
+
+acuteStressFilteredAll %>%
+  filter(
+    Sac_date == date_parse("2023-05-11")
+  )
+
+AcuteStress_off %>%
+  filter(
+    Sac_date == date_parse("2023-05-11")
+  )
+
+AcuteStress_off %>%
+  filter(
+    mouseID == 959
+  )
+```
+
+```{r}
+# acuteStressFiltered %>%
+damFiltered %>%
+  filter(
+    if_any("mouseID", ~.x != 1002)
+  )
+# df <- df %>%
+damFiltered %>%
+  filter(
+    across(
+      # will remove row where mouseID == 9011, if mouseID column exists in DF
+      any_of("mouseID"), ~ .x != 9011
+    )
+  )
+```
+
+
+```{r}
+acuteStressFilteredAll %>%
+  filter(
+    cohort == 10
+  )  %>%
+  mutate(
+    proState = ifelse(ReproTract_mass > 125, "uterusGreater125", "uterusLess125")
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , proState
+  ) %>%
+  summarize(
+    n()
+  )
+```
+
+
+```{r}
+LBN_data %>%
+  filter(
+    cohort == 10
+    , sex == "F"
+    , is.na(Sac_stop_off)
+    , is.na(Sac_date)
+    , DOB > (Sys.Date() - 90)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  summarize(
+    n()
+  )
+```
+
+```{r}
+acuteStressFilteredAll %>%
+  filter(
+    sex == "F"
+    , Sac_cycle == "proestrus"
+    , ReproTract_mass < 135 & ReproTract_mass > 100
+  ) %>%
+  select(
+    mouseID
+    , comboTrt
+    , ReproTract_mass
+    , ReproTract_mass_perBody_g
+    , ReproTract_mass_perBodyAM_g
+  ) %>%
+  arrange(
+    ReproTract_mass
+  )
+```
+
+```{r}
+diProUterineMasses <- acuteStressFilteredAll %>%
+  filter(
+    sex == "F"
+    , !is.na(ReproTract_mass)
+  ) %>%
+  scatterPlot_general(
+    xVar = comboTrt
+    , xLab = ""
+    , yVar = ReproTract_mass
+    , yLab = "uterine mass (mg)"
+    , fillVar = Sac_cycle
+    , fillLimits = c("diestrus", "proestrus")
+    , fillValues = c("magenta", "blue")
+    , addMean = FALSE
+    , addSE = FALSE
+    , zoom_y = TRUE
+    , ymin = 50
+    , ymax = 215
+  ) +
+  geom_hline(yintercept = 125, color = "blue") +
+  geom_hline(yintercept = 115, color = "blue") +
+  geom_hline(yintercept = 100, color = "magenta") +
+  theme(
+    legend.position = "bottom"
+  ) +
+  labs(
+    fill = "cycle stage"
+  )
+
+diProUterineMasses
+
+flexSave(
+  "diProUterineMasses"
+  , plot = diProUterineMasses
+  , width = 11
+  , height = 5.5
+)
+```
+
+```{r}
+acuteStressFilteredAll %>%
+  filter(
+    sex == "F"
+    , Sac_cycle == "diestrus"
+    , ReproTract_mass > 100
+  )
 ```
 
