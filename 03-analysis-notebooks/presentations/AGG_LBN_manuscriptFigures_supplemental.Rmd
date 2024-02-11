@@ -1,0 +1,1627 @@
+---
+title: "R Notebook"
+output: html_notebook
+# fig-width: 11.5
+# fig-height: 5
+df-print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# knitr::opts_chunk$set(fig.width=11.5, fig.height=5) 
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/06-run-LBN-stats.R")
+source("./01-scripts/05-make-LBN-plots-modelError-manuscript.R")
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+set_flextable_defaults(
+  font.family = "Arial"
+  , font.size = 11
+)
+
+doc <- read_docx("./manuscriptTemplate.docx")
+supDoc <- read_docx("./manuscriptTemplate.docx")
+
+saveTables <- function(){
+  print(doc, target = "my_report.docx")
+  print(supDoc, targe = "supplementalTable.docx")
+}
+```
+
+# Column Sizes
+```{r}
+# JNeuro values (in cm)
+twoCols <- 17.4
+oneAndHalfCols <- 11.5
+oneCol <- 8.5
+
+manuscriptFolder <- file.path(plotOutputFolder, "manuscript")
+```
+
+# Figure 1 - Dams figDams
+
+```{r}
+# trying to fix font errors
+# this seems to work for not putting the axis label on top of the tick labels
+# but the axes don't actually align with align_plots
+# update - Maybe works???? IDK WHAT I DID!
+set_null_device("png") 
+
+# # this works for aligning the axes with align_plots
+# # but then faceted plot yaxis label overlaps
+# set_null_device("pdf")
+# 
+# # this works for aligning the axes with align_plots
+# # but then faceted plot yaxis label overlaps
+# set_null_device("cairo_pdf")
+```
+
+
+```{r}
+figDamsPlots <- cowplot::align_plots(
+  figDams_exits
+  , figDams_offNest
+  # , figDams_mass
+  , align = "v"
+  , axis = "l"
+)
+
+figDamsBehaviorPlots <- cowplot::align_plots(figDamsPlots[[1]], figDams_meanExits, figDamsPlots[[2]], figDams_meanOffNest, align = "h", axis = "bt")
+
+figDamsBehaviorRightPlots <- cowplot::align_plots(
+  figDamsBehaviorPlots[[2]]
+  , figDamsBehaviorPlots[[4]]
+  , align = "v"
+  , axis = "l"
+)
+
+figDams <- plot_grid(
+  plot_grid(
+    NULL
+    , figDams_mass
+    , figDamsD
+    , nrow = 1
+    , rel_widths = c(1.5, 1, 1)
+    , align = "h"
+    , axis = "bt"
+    , labels = c("A", "B", "C")
+  )
+  # NULL
+  , plot_grid(
+      figDamsBehaviorPlots[[1]]
+      , figDamsBehaviorRightPlots[[1]]
+      , ncol = 2
+      , labels = c("D", "E")
+      , label_fontfamily = "Arial"
+      , label_size = textSize
+      , rel_widths = c(3, 1)
+  )
+  , plot_grid(
+      figDamsBehaviorPlots[[3]]
+      , figDamsBehaviorRightPlots[[2]]
+      , ncol = 2
+      , labels = c("F", "G")
+      , label_fontfamily = "Arial"
+      , label_size = textSize
+      , rel_widths = c(3, 1)
+  )
+  # , plot_grid(
+  #   figDams_mass
+  #   , figDamsD
+  #   , nrow = 1
+  #   , align = "h"
+  #   , axis = "bt"
+  #   , labels = c("F", "G", "H")
+  #   , label_fontfamily = "Arial"
+  #   , label_size = textSize
+  # )
+  , nrow = 3
+  # , rel_heights = c(0.5, 1, 1, 1)
+  # , labels = c("A", NULL, NULL, NULL)
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+figDams
+```
+
+
+```{r}
+flexSave(
+  "figDams"
+  , plot = figDams
+  , width = twoCols
+  , height = 28/3*2
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+
+## Table - counts of dams
+
+```{r}
+damCountTblNum <- 1
+tableNum <- damCountTblNum
+```
+
+
+```{r}
+tableCaption <- "Number of dams in each treatment group for studies reported in Figure 1. Dam behavior includes values for number of nest exits per hour and percent of time spent off the nest."
+
+tbl <- dam_count_flexTable
+tbl
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+## Table - dam mass
+
+```{r}
+testFormula <- getLMMFormula(damMass_lmm)
+testFormula <- gsub("PND", "PND@", testFormula)
+tableCaption <- paste0("Linear mixed model of the dam mass on PND4, 11, and 21 fit with the equation ", testFormula, ". PND was treated as a factor variable. The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for this model. PND = postnatal day")
+
+tbl <- damMass_flexTable
+
+tbl
+```
+
+```{r}
+# damMassTblNum <- damCountTblNum + 1 #2
+damMassTblNum <- 1 # first non supplemental
+tableNum <- damMassTblNum
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+### emmeans
+
+```{r}
+tableCaption <- "Estimated marginal means (emmean) from linear mixed model of dam mass for early-life treatment and PND factors. The Kenward-Roger approximation for degrees of freedom was used for this model. CI = confidence interval; PND = postnatal day"
+
+tbl <- damMass_lmm_emm_flexTable
+
+tbl
+```
+
+```{r}
+# damMassEmmTblNum <- damMassTblNum + 1
+damMassEmmTblNum <- damCountTblNum + 1
+tableNum <- damMassEmmTblNum
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+### pairs
+
+```{r}
+# damMassEmmPairsTblNum <- damMassEmmTblNum + 1
+damMassEmmPairsTblNum <- damMassTblNum + 1
+tableNum <- damMassEmmPairsTblNum
+```
+
+```{r}
+tableCaption <- "Pairwise comparisons of contrasts from estimated marginal means of linear mixed model for dam mass. The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for htis model. Holm's method was used to adjust p-values for multiple comparisons. PND = postnatal day."
+
+tbl <- damMass_emmPairs_flexTable
+tbl
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+## Table - dam cort
+
+```{r}
+damCortTblNum <- damMassEmmPairsTblNum + 1
+tableNum <- damCortTblNum
+```
+
+```{r}
+tableCaption <- "Two-sided t-test of the effect of limited bedding and nesting (LBN) on serum corticosterone in dams on postnatal day 11. CI = confidence interval"
+
+tbl <- damCort_flexTable
+tbl
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, 5, doc)
+```
+
+## Table - Dam behavior
+
+```{r}
+damBehaviorTblNum <- damCortTblNum + 1
+tableNum <- damBehaviorTblNum
+```
+
+```{r}
+tableCaption <- paste0("Dam behavior parameters analyzed with nonparametric longitudinal model using the nparLD package in R, with the ", numExits_nparLD$model.name, ". The subject variable was each dam, early-life treatment (standard or limited bedding and nesting cage) was the between-subject factor ('whole-plot' factor), and PND was the within-subject factor ('sub-plot' repeated factor). PND=postnatal day")
+
+tbl <- damBehavior_flexTable
+tbl
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+
+```{r eval=FALSE, include=FALSE}
+numExits_nparLD$ANOVA.test
+
+percOffNest_nparLD$ANOVA.test
+
+damMass_lmm
+
+damMass_lmm_EMM.earlyLifeTrt.pairs
+
+damMass_lmm_EMM.PND.pairs
+
+damCort_t.Test
+```
+
+
+# Figure 2 - Offspring maturation figOff
+
+## grouped maturation
+```{r}
+figOffLeftPlots <- cowplot::align_plots(
+  figOffA
+  , figOffAge_model
+  , figOffMass_model
+  , align = "v", axis = "l"
+)
+
+figOffRightPlots <- cowplot::align_plots(
+  figOff_femaleAGD
+  , figOff_maleAGD
+  , align = "vh", axis = "ltrb"
+)
+
+figOffLab1 <- plot_grid(
+  NULL
+  , NULL
+  , NULL
+  , NULL
+  , ncol = 4
+  , labels = c("       B", "    C", " D", "H")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figOffLab2 <- plot_grid(
+  NULL
+  , NULL
+  , NULL
+  , NULL
+  , ncol = 4
+  , labels = c("       E", "    F", " G", "I")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figOffMat <- plot_grid(
+  figOffLab1
+  , plot_grid(
+      figOffLeftPlots[[2]]
+      , figOffRightPlots[[1]]
+      , ncol = 2
+      , rel_widths = c(3, 1)
+  )
+  , figOffLab2
+  , plot_grid(
+      figOffLeftPlots[[3]]
+      , figOffRightPlots[[2]]
+      , ncol = 2
+      , rel_widths = c(3, 1)
+  )
+  , nrow = 4
+  , rel_heights = c(0.01, 1, 0.01, 1)
+)
+
+figOff <- plot_grid(
+  figOffLeftPlots[[1]]
+  , figOffMat
+  , nrow = 2
+  , labels = c("A", NULL)
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , rel_heights = c(1.5, 2)
+)
+figOff
+```
+
+```{r}
+flexSave(
+  "figOff"
+  , plot = figOff
+  , width = twoCols
+  , height = 28/3*1.75
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+## Table - offspring counts
+
+```{r}
+tbl <- massCount_flexTable
+tbl
+```
+
+```{r}
+# offMassCountTblNum <- damBehaviorTblNum + 1
+offMassCountTblNum <- damMassEmmTblNum + 1
+tableNum <- offMassCountTblNum
+tableCaption <- "Number of male and female offspring and litters with mass measurements at PND11, 21, 35, and 70. PND = postnatal day"
+```
+
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+
+## Table - offspring mass
+
+```{r}
+tbl <- massLMM_flexTable
+tbl
+```
+
+
+```{r}
+# offMassTblNum <- offMassCountTblNum + 1
+offMassTblNum <- damBehaviorTblNum + 1
+tableNum <- offMassTblNum
+```
+
+```{r}
+testFormula <- deparse(female_mass_lmm$call$formula)
+testFormula <- gsub("lspline\\(day, c\\(21, 35\\)\\)", "PND@", testFormula)
+testFormula <- paste(testFormula, collapse = " ")
+testFormula <- gsub("\\s+", " ", testFormula)
+tableCaption <- paste0("Linear mixed model of the offspring mass from PND11-72 fit with the equation ", testFormula, ". PND@: Linear splines at PND21 and 35 allow the model to change the slope of the line for the segments between PND11-21, from 21-35, and from 35-72. The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for this model. Male and female offspring were fit with separate models. PND = postnatal day")
+```
+
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+### Table - male emmeans
+
+```{r}
+tbl <- maleMass_emm_flexTable
+tbl
+```
+
+```{r}
+# offMassTblNum_emm <- offMassTblNum + 1
+offMassTblNum_emm <- offMassCountTblNum + 1
+tableNum <- offMassTblNum_emm
+```
+
+```{r}
+tableCaption <- "Estimated marginal means (emmean) from linear mixed model of male offspring mass for the interaction of early-life treatment and PND factors. The Kenward-Roger approximation for degrees of freedom was used for this model. CI = confidence interval. PND = postnatal day"
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+### Table - male emmeans comp
+
+```{r}
+tbl <- maleMass_emm.pairs_flexTable
+tbl
+```
+
+```{r}
+# offMassTblNum_emm_pairs <- offMassTblNum_emm + 1
+offMassTblNum_emm_pairs <- offMassTblNum + 1
+tableNum <- offMassTblNum_emm_pairs
+```
+
+```{r}
+tableCaption <- "Pairwise comparisons of contrasts from estimated marginal means of linear mixed model for male offspring mass. The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for this model. Holm's method was used to adjust p-values for multiple comparisons. PND = postnatal day."
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+## Table - count maturation
+```{r}
+tbl <- matCount_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Number of offspring and litters with age and mass measurements for vaginal opening and first estrus in females and preputial separation in males"
+```
+
+```{r}
+# offMatCountTblNum <- offMassTblNum_emm_pairs + 1
+offMatCountTblNum <- offMassTblNum_emm + 1
+tableNum <- offMatCountTblNum
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+
+## Table - VO, estrus, PPS
+
+```{r}
+tbl <- matMass_lmm_flexTable
+tbl
+```
+
+
+```{r}
+testFormula <- deparse(VO_age_lmm$call$formula)
+testFormula <- gsub("VO_age", "maturation feature", testFormula)
+tableCaption <- paste0("Linear mixed models for maturation with the equation ", testFormula, ". Models were fit for age and for mass at vaginal opening, first estrus, and preputial separation. The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for these models.")
+```
+
+```{r}
+# offMatTblNum <- offMatCountTblNum + 1
+offMatTblNum <- offMassTblNum_emm_pairs + 1
+tableNum <- offMatTblNum
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+## Table - AGD
+
+```{r}
+tbl <- AGD_flexTable
+
+tbl
+```
+
+```{r}
+testFormula <- deparse(AGD_lmm$call$formula)
+testFormula <- gsub("AGD_adult", "AGD", testFormula)
+tableCaption <- paste0("Linear mixed models for anogenital distance (AGD) with the equation ", testFormula, ". The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for these models.")
+```
+
+```{r}
+AGDTblNum <- offMatTblNum + 1
+tableNum <- AGDTblNum
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+### Table - AGD emms
+
+```{r}
+tbl <- AGD_lmm_emm_sex_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Estimated marginal means (emmean) from linear mixed model of anogenital distance for early-life treatment and sex. The Kenward-Roger approximation for degrees of freedom was used for this model. CI = confidence interval"
+```
+
+```{r}
+# AGDTblNum_emm <- AGDTblNum + 1
+AGDTblNum_emm <- offMatCountTblNum + 1
+tableNum <- AGDTblNum_emm
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+### Table - AGD pairs
+
+```{r}
+tbl <- AGD_lmm_emm_sex.pairs_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Pairwise comparisons of contrasts from estimated marginal means of linear mixed model for anogenital distance. The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for this model. F = female; M = male."
+```
+
+```{r}
+# AGDTblNum_emm_pairs <- AGDTblNum_emm + 1
+AGDTblNum_emm_pairs <- AGDTblNum + 1
+tableNum <- AGDTblNum_emm_pairs
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+# Figure 3 - Cycles
+
+```{r}
+figCyclesLeftPlots <- cowplot::align_plots(
+  figCyclesA
+  , figCycles_numCycles_model
+  , align = "v", axis = "l"
+)
+
+figCycles2ndRow <- plot_grid(
+  figCyclesLeftPlots[[2]]
+  , figCycles_lengthLog_model
+  , figCyclesD
+  , ncol = 3
+  , labels = c("B", "C", "D")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , align = "h"
+  , axis = "bt"
+  , rel_widths = c(1, 1, 2)
+)
+
+figCycles <- plot_grid(
+  figCyclesLeftPlots[[1]]
+  , figCycles2ndRow
+  , nrow = 2
+  , rel_heights = c(2.2, 3)
+  , labels = c("A", NULL)
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+figCycles
+```
+
+```{r}
+flexSave(
+  "figCycles"
+  , plot = figCycles
+  , width = twoCols
+  , height = 28/3
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+## Cycles count
+
+```{r}
+## No table, incorporate into text
+cyclesFiltered %>%
+  filter(
+    !is.na(numCycles)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  summarize(
+    mice = n()
+    , litters = n_distinct(damID)
+    , .groups = "drop"
+  )
+```
+## Table - Cycles length
+
+```{r}
+tbl <- cycles_flexTable
+tbl
+```
+
+```{r}
+cyclesNumFormula <- getLMMFormula(numCycles_lmm)
+cyclesNumFormula <- gsub("numCycles", "# of cycles", cyclesNumFormula)
+
+lengthCyclesFormula <- getLMMFormula(lengthCycles_log_lmm)
+lengthCyclesFormula <- gsub("cycleLength", "cycle length", lengthCyclesFormula)
+
+cycles_ChiSq_n <- cycles_ChiSq$n[1]
+
+tableCaption <- paste0("Statistics for estrous cycles from postnatal days 70-90. The number of cycles was fit with the linear mixed model equation `", cyclesNumFormula, "`. The log of the mean cycle length in days was fit with equation `", lengthCyclesFormula, "`. The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for these models. The number of days spent in each cycle stage was assessed with a Chi-squared test (n = ", cycles_ChiSq_n, ").")
+```
+
+
+```{r}
+cyclesTblNum <- AGDTblNum_emm_pairs + 1
+tableNum <- cyclesTblNum
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+# Figure 4 - Corticosterone
+
+```{r}
+figCort <- plot_grid(
+  figCortA
+  , figCortB
+  , figCortC
+  , nrow = 3
+  , align = "vh", axis = "ltrb"
+  , labels = c("A", "B", "C")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figCort
+
+```
+
+```{r}
+flexSave(
+  "figCort"
+  , plot = figCort
+  , width = twoCols
+  , height = 28/3 * 2
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+## count
+
+```{r}
+tbl <- cortCount_flexTable
+tbl
+```
+
+
+```{r}
+tableCaption <- "Number of litters and mice with serum corticosterone measurements before and after adult treatment. Abbreviations: STD, standard-reared; LBN, limited bedding and nesting; CON, adult control; ALPS, acute, layered, psychosocial stress in adulthood."
+```
+
+```{r}
+# cortCountNum <- cyclesTblNum + 1
+cortCountNum <- AGDTblNum_emm + 1
+tableNum <- cortCountNum
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+## cort lmm 
+
+```{r}
+tbl <- cort_flexTable
+tbl
+```
+
+```{r}
+maleFormula <- getLMMFormula(male_cort_lmm)
+maleFormula1 <- paste0(maleFormula[1], gsub("    \\(", "\\(", maleFormula[2]))
+
+femaleFormula <- getLMMFormula(female_cort_lmm)
+femaleFormula1 <- paste0(femaleFormula[1], gsub("    ", "", femaleFormula[2]))
+
+maleFormula1
+femaleFormula1
+
+tableCaption <- paste0("Statistics for serum corticosterone in male and female offspring. Data from males were fit with the linear mixed model equation `", maleFormula1, "`. Data from females were fit with the linear mixed model equation `", femaleFormula1, "`. The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for these models.")
+tableCaption
+```
+
+```{r}
+# cortLMMNum <- cortCountNum + 1
+cortLMMNum <- cyclesTblNum + 1
+tableNum <- cortLMMNum
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+### Adult trt + time emm
+
+```{r}
+tbl <- cortLMM_emm_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Estimated marginal means (emmean) from linear mixed model of corticosterone for adult treatment (CON: control; ALPS: adult stress) and time (hr). For males, results are averaged over the levels of early-life treatment. For females, results are averaged over the levels of early-life treatment and cycle stage. The emmeans and confidence intervals (CI) are back-transformed from the log scale to the response scale (ng/mL). The Kenward-Roger approximation for degrees of freedom was used for these models."
+```
+
+```{r}
+# cortLMMNum_emm <- cortLMMNum + 1
+cortLMMNum_emm <- cortCountNum + 1
+tableNum <- cortLMMNum_emm
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+### Adult trt + time pairs
+
+```{r}
+tbl <- cortLMM_emm.pairs_flexTable
+tbl
+```
+
+Holm p-value adjustment for 2 tests and Kenward-Roger for DF
+```{r}
+tableCaption <- "Pairwise comparison of estimated marginal means from linear mixed model of corticosterone for adult treatment (CON: control; ALPS: adult stress) and time (hr). For males, results are averaged over the levels of early-life treatment. For females, results are averaged over the levels of early-life treatment and cycle stage. Tests were performed on the log scale. The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for these models."
+```
+
+```{r}
+# cortLMMNum_emm.pairs <- cortLMMNum_emm + 1
+cortLMMNum_emm.pairs <- cortLMMNum + 1
+tableNum <- cortLMMNum_emm.pairs
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+### Cycle stage + time emm
+
+```{r}
+tbl <- femaleCortLMM_emm_cycleTime_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Estimated marginal means (emmean) in female mice from linear mixed model of corticosterone for estrous cycle stage and time (hr). Results are averaged over the levels of early-life treatment and adult treatment. The emmeans and confidence intervals (CI) are back-transformed from the log scale to the response scale (ng/mL). The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for these models."
+```
+
+```{r}
+# femaleCortLMM_emm_cycleTime_num <- cortLMMNum_emm.pairs + 1
+femaleCortLMM_emm_cycleTime_num <- cortLMMNum_emm + 1
+tableNum <- femaleCortLMM_emm_cycleTime_num
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+#### Cycle stage + time pairs
+
+```{r}
+tbl <- femaleCortLMM_emm_cycleTime.pairs_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Pairwise comparison of estimated marginal means in female mice from linear mixed model of corticosterone for estrous cycle stage and time (hr). Results are averaged over the levels of early-life treatment and adult treatment. Tests were performed on the log scale. The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for these models."
+```
+
+```{r}
+# femaleCortLMM_emm_cycleTime_num.pairs <- femaleCortLMM_emm_cycleTime_num + 1
+femaleCortLMM_emm_cycleTime_num.pairs <- cortLMMNum_emm.pairs + 1
+tableNum <- femaleCortLMM_emm_cycleTime_num.pairs
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+
+# Figure 5 - Male masses - ALPS
+
+```{r eval=FALSE, include=FALSE}
+figMaleMassALPS_left <- align_plots(
+  maleBodyMassAM_ALPS_plot+rremove("legend")
+  , maleAdrenalMass_ALPS_plot
+  , maleRelAdrenalMass_ALPS_plot
+  , align = "v"
+  , axis = "l"
+)
+
+figMaleMassALPS_middle <- align_plots(
+  maleSeminalVesicleMass_ALPS_plot
+  , maleRelSeminalVesicleMass_ALPS_plot
+  , align = "v"
+  , axis = "lr"
+)
+figMaleMassALPS_right <- align_plots(
+  maleTestesMass_ALPS_plot
+  , maleRelTestesMass_ALPS_plot
+  , align = "v"
+  , axis = "lr"
+)
+
+figMaleMassALPS <- plot_grid(
+  get_legend(maleBodyMassAM_ALPS_plot)
+  , plot_grid(
+    figMaleMassALPS_left[[1]]
+    , malePercChangeBodyMass_ALPS_plot
+    , nrow = 1
+  ),
+  plot_grid(
+    figMaleMassALPS_left[[2]]
+    , figMaleMassALPS_middle[[1]]
+    , figMaleMassALPS_right[[1]]
+    , nrow = 1
+  ),
+  plot_grid(
+    figMaleMassALPS_left[[3]]
+    , figMaleMassALPS_middle[[2]]
+    , figMaleMassALPS_right[[2]]
+    , nrow = 1
+  )
+  , nrow = 4
+  , rel_heights = c(0.1, 1, 1, 1)
+)
+figMaleMassALPS
+```
+
+3-by-3 layout
+```{r eval=FALSE, include=FALSE}
+figMaleMassALPS <- plot_grid(
+  get_legend(maleBodyMassAM_ALPS_plot)
+  , plot_grid(
+    maleBodyMassAM_ALPS_plot + rremove("legend")
+    , malePercChangeBodyMass_ALPS_plot
+    , NULL
+    , maleAdrenalMass_ALPS_plot
+    , maleSeminalVesicleMass_ALPS_plot
+    , maleTestesMass_ALPS_plot
+    , maleRelAdrenalMass_ALPS_plot
+    , maleRelSeminalVesicleMass_ALPS_plot
+    , maleRelTestesMass_ALPS_plot
+    , nrow = 3
+    , ncol = 3
+    , align = "hv"
+    , axis = "tlbr"
+    , labels = c("A", "B", "", "C", "E", "G", "D", "F", "H")
+  )
+  , nrow = 2
+  ,rel_heights = c(0.1, 3)
+)
+figMaleMassALPS
+```
+
+
+4-by-2 layout, AM
+```{r eval=FALSE, include=FALSE}
+figMaleMassALPS <- plot_grid(
+  get_legend(maleBodyMassAM_ALPS_plot)
+  , plot_grid(
+    maleBodyMassAM_ALPS_plot + rremove("legend")
+    , malePercChangeBodyMass_ALPS_plot
+    , maleAdrenalMass_ALPS_plot
+    , maleRelAdrenalMass_ALPS_plot
+    , maleSeminalVesicleMass_ALPS_plot
+    , maleRelSeminalVesicleMass_ALPS_plot
+    , maleTestesMass_ALPS_plot
+    , maleRelTestesMass_ALPS_plot
+    # , nrow = 3
+    , ncol = 2
+    , align = "hv"
+    , axis = "tlbr"
+    , labels = c("A", "B", "C", "D", "E", "F", "G", "H")
+  )
+  , nrow = 2
+  ,rel_heights = c(0.1, 3)
+)
+figMaleMassALPS
+```
+
+4-by-2 layout, PM
+```{r}
+figMaleMassALPS <- plot_grid(
+  get_legend(maleBodyMassAM_ALPS_plot)
+  , plot_grid(
+    maleBodyMassAM_ALPS_plot + rremove("legend")
+    , malePercChangeBodyMass_ALPS_plot
+    , maleAdrenalMass_ALPS_plot
+    , maleRelAdrenalMassPM_ALPS_plot
+    , maleSeminalVesicleMass_ALPS_plot
+    , maleRelSeminalVesicleMassPM_ALPS_plot
+    , maleTestesMass_ALPS_plot
+    , maleRelTestesMassPM_ALPS_plot
+    # , nrow = 3
+    , ncol = 2
+    , align = "hv"
+    , axis = "tlbr"
+    , labels = c("A", "B", "C", "D", "E", "F", "G", "H")
+  )
+  , nrow = 2
+  ,rel_heights = c(0.1, 3)
+)
+figMaleMassALPS
+```
+
+
+```{r}
+flexSave(
+  "figMaleMassALPS"
+  , plot = figMaleMassALPS
+  , width = twoCols
+  , height = 28
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+## Count
+
+```{r}
+tbl <- maleMass_ALPSAM_counts_flexTable
+tbl
+tbl <- maleMass_ALPSPM_counts_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Number of litters and male mice with mass measurements on the day of adult treatment. Abbreviations: STD, standard-reared; LBN, limited bedding and nesting; CON, adult control; ALPS, acute, layered, psychosocial stress in adulthood."
+```
+
+```{r}
+# maleMass_ALPS_countsNum <- femaleCortLMM_emm_cycleTime_num.pairs + 1
+maleMass_ALPS_countsNum <- femaleCortLMM_emm_cycleTime_num + 1
+tableNum <- maleMass_ALPS_countsNum
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+
+## lmm
+
+```{r}
+tbl <- maleALPS_RelAM_flexTable
+tbl
+tbl <- maleALPS_RelPM_flexTable
+tbl
+```
+
+
+```{r}
+tableCaption <- "Statistics from linear mixed models of male masses on day of adult treatment. Data were fit with the formula `feature ~ early-life treatment * adult treatment + (1 | dam).` The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for this model."
+```
+
+```{r}
+# maleMass_ALPS_lmm_num <- maleMass_ALPS_countsNum + 1
+maleMass_ALPS_lmm_num <- femaleCortLMM_emm_cycleTime_num.pairs + 1
+tableNum <- maleMass_ALPS_lmm_num
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+### EMM
+```{r}
+tbl <- maleALPS_RelAM_EMM_flexTable
+tbl
+tbl <- maleALPS_RelPM_EMM_flexTable
+tbl
+```
+
+
+```{r}
+tableCaption <- "Estimated marginal means (emmean) from linear mixed models of male masses for the effects of early-life treatment (STD: standard rearing; LBN: limited bedding and nesting) and adult treatment (CON: control; ALPS: adult stress). The Kenward-Roger approximation for degrees of freedom was used for these models. CI = confidence interval."
+```
+
+```{r}
+# maleMass_ALPS_lmm_emm_num <- maleMass_ALPS_lmm_num + 1
+maleMass_ALPS_lmm_emm_num <- maleMass_ALPS_countsNum + 1
+tableNum <- maleMass_ALPS_lmm_emm_num
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+### Pairs
+
+```{r}
+tbl <- maleALPS_RelAM_EMM.pairs_flexTable
+tbl
+tbl <- maleALPS_RelPM_EMM.pairs_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Pairwise comparison of estimated marginal means from linear mixed models of male masses for the effects of early-life treatment (STD: standard rearing; LBN: limited bedding and nesting) and adult treatment (CON: control; ALPS: adult stress). The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for these models."
+```
+
+```{r}
+# maleMass_ALPS_lmm_emm.pairs_num <- maleMass_ALPS_lmm_emm_num + 1
+maleMass_ALPS_lmm_emm.pairs_num <- maleMass_ALPS_lmm_num + 1
+tableNum <- maleMass_ALPS_lmm_emm.pairs_num
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+
+```{r}
+maleBodyMassAM_ALPS_lmm
+malePercChangeBodyMass_ALPS_lmm
+maleAdrenalMass_ALPS_lmm
+maleRelAdrenalMass_ALPS_lmm
+maleRelAdrenalMassPM_ALPS_lmm
+maleSeminalVesicleMass_ALPS_lmm
+maleRelSeminalVesicleMass_ALPS_lmm
+maleRelSeminalVesicleMassPM_ALPS_lmm
+maleTestesMass_ALPS_lmm
+maleRelTestesMass_ALPS_lmm
+maleRelTestesMassPM_ALPS_lmm
+```
+
+
+# Figure 6 - Male cort administration
+
+```{r eval=FALSE, include=FALSE}
+figMaleCortAdmin_aligned <- align_plots(
+  maleBodyMassAM_dosage_plot
+  , maleAdrenalMass_dosage_plot
+  , maleSeminalVesicleMass_dosage_plot
+  , maleTestesMass_dosage_plot
+  , malePercChangeBodyMass_dosage_plot
+  , maleRelAdrenalMass_dosage_plot
+  , maleRelSeminalVesicleMass_dosage_plot
+  , maleRelTestesMass_dosage_plot
+  , cortAdmin_cort
+  , align = "v"
+  , axis = "l"
+)
+
+figMaleMass_dosage <- plot_grid(
+  figMaleCortAdmin_aligned[[1]]
+  , figMaleCortAdmin_aligned[[2]]
+  , figMaleCortAdmin_aligned[[3]]
+  , figMaleCortAdmin_aligned[[4]]
+  , figMaleCortAdmin_aligned[[5]]
+  , figMaleCortAdmin_aligned[[6]]
+  , figMaleCortAdmin_aligned[[7]]
+  , figMaleCortAdmin_aligned[[8]]
+  , nrow = 3
+  , ncol = 3
+  , align = "h"
+  , axis = "tb"
+  , labels = c("B", "D", "F", "H", "C", "E", "G", "I")
+)
+
+figMaleCortAdmin <- plot_grid(
+  figMaleCortAdmin_aligned[[9]]
+  , figMaleMass_dosage
+  , nrow = 2
+  , rel_heights = c(1.5, 3.3)
+  , labels = c("A", "")
+)
+figMaleCortAdmin
+```
+
+```{r}
+figMaleCortAdmin_left <- align_plots(
+  cortAdmin_cort
+  , maleAdrenalMass_dosage_plot
+  , maleRelAdrenalMass_dosage_plot
+  , align = "v"
+  , axis = "l"
+)
+figMaleCortAdmin_middle <- align_plots(
+  maleSeminalVesicleMass_dosage_plot
+  , maleRelSeminalVesicleMass_dosage_plot
+  , align = "v"
+  , axis = "l"
+)
+figMaleCortAdmin_right <- align_plots(
+  maleTestesMass_dosage_plot
+  , maleRelTestesMass_dosage_plot
+  , align = "v"
+  , axis = "l"
+)
+figMaleCortAdmin_top <- align_plots(
+  maleBodyMassAM_dosage_plot
+  , malePercChangeBodyMass_dosage_plot
+  , align = "vh"
+  , axis = "tblr"
+)
+
+figMaleCortAdmin_row1 <- plot_grid(
+  figMaleCortAdmin_left[[1]]
+  , figMaleCortAdmin_top[[1]]
+  , figMaleCortAdmin_top[[2]]
+  , nrow = 1
+  , align = "h"
+  , axis = "tb"
+  , labels = c("A", "B", "C")
+  , rel_widths = c(2, 1, 1)
+)
+figMaleCortAdmin_row2 <- plot_grid(
+  figMaleCortAdmin_left[[2]]
+  , figMaleCortAdmin_middle[[1]]
+  , figMaleCortAdmin_right[[1]]
+  , nrow = 1
+  , align = "h"
+  , axis = "tb"
+  , labels = c("D", "F", "H")
+)
+figMaleCortAdmin_row3 <- plot_grid(
+  figMaleCortAdmin_left[[3]]
+  , figMaleCortAdmin_middle[[2]]
+  , figMaleCortAdmin_right[[2]]
+  , nrow = 1
+  , align = "h"
+  , axis = "tb"
+  , labels = c("E", "G", "I")
+)
+
+figMaleCortAdmin <- plot_grid(
+  figMaleCortAdmin_row1
+  , figMaleCortAdmin_row2
+  , figMaleCortAdmin_row3
+  , nrow = 3
+  , rel_heights = c(0.9, 1, 1)
+)
+
+figMaleCortAdmin
+```
+
+
+```{r}
+flexSave(
+  "figMaleCortAdmin"
+  , plot = figMaleCortAdmin
+  , width = twoCols
+  , height = 28/3*2
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+## Cort count
+
+```{r}
+tbl <- malesCortAdmin_cortCount_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Number of litters and mice with serum corticosterone measurements during male corticosterone administration studies in vehicle treated (0mg/kg) and corticsterone treated (2mg/kg) groups (Figure 6a)."
+```
+
+```{r}
+# malesCortAdmin_cortCount_num <- maleMass_ALPS_lmm_emm.pairs_num + 1
+malesCortAdmin_cortCount_num <- maleMass_ALPS_lmm_emm_num + 1
+tableNum <- malesCortAdmin_cortCount_num
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+## Cort LMM 
+
+```{r}
+tbl <- maleCortAdmin_cort_flexTable
+tbl
+```
+
+```{r}
+maleCortAdmin_cort_formula <-  getLMMFormula(maleCortAdmin_cort_lmm)
+
+tableCaption <- paste0("Statistics for serum corticosterone in males with vehicle or corticosterone administration. Data were fit with the linear mixed model equation `", maleCortAdmin_cort_formula, "`. The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for this model.")
+```
+```{r}
+# malesCortAdmin_cortLMM_num <- malesCortAdmin_cortCount_num + 1
+malesCortAdmin_cortLMM_num <- maleMass_ALPS_lmm_emm.pairs_num + 1
+tableNum <- malesCortAdmin_cortLMM_num
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+### EMM
+
+```{r}
+tbl <- maleCortAdmin_cortLMM_emm_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Estimated marginal means (emmean) from linear mixed model of serum corticosterone for the interaction of dosage (vehicle: 0mg/kg; corticosterone: 2mg/kg) and time. The emmeans and confidence intervals (CI) are back-transformed from the log scale to the response scale (ng/mL). The Kenward-Roger approximation for degrees of freedom was used for this model."
+```
+
+```{r}
+# malesCortAdmin_cortLMM_EMM_num <- malesCortAdmin_cortLMM_num + 1
+malesCortAdmin_cortLMM_EMM_num <- malesCortAdmin_cortCount_num + 1
+tableNum <- malesCortAdmin_cortLMM_EMM_num
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+### pairs
+
+```{r}
+tbl <- maleCortAdmin_cortLMM_emm.pairs_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Pairwise comparison of estimated marginal means from linear mixed model of serum corticosterone for the interaction of dosage (vehicle: 0mg/kg; corticosterone: 2mg/kg) and time. The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for these models. Holm's method was used to adjust p-values for multiple comparisons."
+```
+
+```{r}
+# malesCortAdmin_cortLMM_EMM.pairs_num <- malesCortAdmin_cortLMM_EMM_num + 1
+malesCortAdmin_cortLMM_EMM.pairs_num <- malesCortAdmin_cortLMM_num + 1
+tableNum <- malesCortAdmin_cortLMM_EMM.pairs_num
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+## Mass count 
+
+```{r}
+tbl <- maleMassCortAM_counts_flexTable 
+tbl
+tbl <- maleMassCortPM_counts_flexTable
+tbl
+```
+
+
+```{r}
+tableCaption <- "Number of litters and male mice with mass measurements on the day of vehicle (0mg/kg) or corticosterone (2mg/kg) treatment."
+```
+
+```{r}
+# maleCortAdmin_massCount_num <- malesCortAdmin_cortLMM_EMM.pairs_num + 1
+maleCortAdmin_massCount_num <- malesCortAdmin_cortLMM_EMM_num + 1
+tableNum <- maleCortAdmin_massCount_num
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+## mass LMM
+
+```{r}
+tbl <- male_dosage_RelAM_flexTable
+tbl
+
+tbl <- male_dosage_RelPM_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Statistics from linear mixed models of male masses on day of vehicle (0mg/kg) or corticosterone (2mg/kg) treatment. Data were fit with the formula `feature ~ dosage + (1 | dam).` The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for this model."
+```
+
+```{r}
+# maleCortAdmin_mass_lmm_num <- maleCortAdmin_massCount_num + 1
+maleCortAdmin_mass_lmm_num <- malesCortAdmin_cortLMM_EMM.pairs_num + 1
+tableNum <- maleCortAdmin_mass_lmm_num
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+### EMM
+
+```{r}
+tbl <- male_dosage_RelAM_EMM_flexTable
+tbl
+
+tbl <- male_dosage_RelPM_EMM_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Estimated marginal means (emmean) from linear mixed models of male masses on day of vehicle (0mg/kg) or corticosterone (2mg/kg) treatment. The Kenward-Roger approximation for degrees of freedom was used for these models. CI = confidence interval."
+```
+
+```{r}
+# maleCortAdmin_mass_lmm_emm_num <- maleCortAdmin_mass_lmm_num + 1
+maleCortAdmin_mass_lmm_emm_num <- maleCortAdmin_massCount_num + 1
+tableNum <- maleCortAdmin_mass_lmm_emm_num
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+### Pairs
+
+```{r}
+tbl <- male_dosage_RelAM_EMM.pairs_flexTable
+tbl
+
+tbl <- male_dosage_RelPM_EMM.pairs_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Pairwise comparison of estimated marginal means from linear mixed models of male masses on day of vehicle (0mg/kg) or corticosterone (2mg/kg) treatment. The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for these models."
+```
+
+```{r}
+# maleCortAdmin_mass_lmm_emm.pairs_num <- maleCortAdmin_mass_lmm_emm_num + 1
+maleCortAdmin_mass_lmm_emm.pairs_num <- maleCortAdmin_mass_lmm_num + 1
+tableNum <- maleCortAdmin_mass_lmm_emm.pairs_num
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+
+```{r eval=FALSE, include=FALSE}
+maleBodyMassAM_dosage_lmm
+malePercChangeBodyMass_dosage_lmm
+maleAdrenalMass_dosage_lmm
+maleRelAdrenalMass_dosage_lmm
+maleRelAdrenalMassPM_dosage_lmm
+maleSeminalVesicleMass_dosage_lmm
+maleRelSeminalVesicleMass_dosage_lmm
+maleRelSeminalVesicleMassPM_dosage_lmm
+maleTestesMass_dosage_lmm
+maleRelTestesMass_dosage_lmm
+maleRelTestesMassPM_dosage_lmm
+```
+
+# Figure 7 - Female masses
+
+```{r}
+figFemalesMasses_plots <- align_plots(
+    femaleBodyMassAM_ALPS_plot + rremove("legend") 
+    , femalePercChangeBodyMass_ALPS_plot
+    , femaleAdrenalMass_ALPS_plot
+    , femaleUterineMass_ALPS_plot
+    , femaleRelAdrenalMass_ALPS_plot
+    , femaleRelUterineMass_ALPS_plot
+    , align = "hv"
+    , axis = "lrtb"
+)
+
+figFemalesMasses <- plot_grid(
+  get_legend(femaleBodyMassAM_ALPS_plot)
+  , plot_grid(
+    figFemalesMasses_plots[[1]]
+    , figFemalesMasses_plots[[2]]
+    , ncol = 2
+    , labels = c("A", "B")
+  )
+  , plot_grid(
+    figFemalesMasses_plots[[3]]
+    , figFemalesMasses_plots[[5]]
+    , ncol = 2
+    , labels = c("C", "D")
+  )
+  , plot_grid(
+    figFemalesMasses_plots[[4]]
+    , figFemalesMasses_plots[[6]]
+    , ncol = 2
+    , labels = c("E", "F")
+  )
+  , nrow = 4
+  , rel_heights = c(0.1, 1, 1, 1)
+)
+figFemalesMasses
+```
+
+```{r}
+flexSave(
+  "figFemalesMasses"
+  , plot = figFemalesMasses
+  , width = twoCols
+  , height = 28/3*2
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+## Count
+
+```{r}
+tbl <- NULL
+```
+
+```{r}
+tableCaption <- ""
+```
+
+
+
+```{r}
+# femaleMass_ALPS_countsNum <- maleCortAdmin_mass_lmm_emm.pairs_num + 1
+femaleMass_ALPS_countsNum <- maleCortAdmin_mass_lmm_emm_num + 1
+tableNum <- femaleMass_ALPS_countsNum
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+## LMM
+
+```{r}
+tbl <- femaleALPS_RelAM_flexTable
+tbl
+
+tbl <- femaleALPS_RelPM_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Statistics from linear mixed models of female masses on day of adult treatment. Data were fit with the formula `feature ~ early-life treatment * adult treatment * cycle stage + (1 | dam).` The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for this model."
+```
+
+```{r}
+# femaleMass_ALPS_lmm_num <- femaleMass_ALPS_countsNum + 1
+femaleMass_ALPS_lmm_num <- maleCortAdmin_mass_lmm_emm.pairs_num + 1
+tableNum <- femaleMass_ALPS_lmm_num
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+### EMM
+
+```{r}
+tbl <- femaleALPS_RelAM_EMM_flexTable
+tbl
+
+tbl <- femaleALPS_RelPM_EMM_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Estimated marginal means (emmean) from linear mixed models of female masses on day of adult treatment. The Kenward-Roger approximation for degrees of freedom was used for these models. CI = confidence interval; STD = standard rearing; LBN = limited bedding and nesting; ALPS = adult stress."
+```
+
+
+```{r}
+# femaleMass_ALPS_lmm_emm_num <- femaleMass_ALPS_lmm_num + 1
+femaleMass_ALPS_lmm_emm_num <- femaleMass_ALPS_countsNum + 1
+tableNum <- femaleMass_ALPS_lmm_emm_num
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+### Pairs
+
+```{r}
+tbl <- femaleALPS_RelAM_EMM.pairs_flexTable
+tbl 
+
+tbl <- femaleALPS_RelPM_EMM.pairs_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Pairwise comparison of estimated marginal means from linear mixed models of female masses on day of adult treatment. The Kenward-Roger approximation for degrees of freedom was used to obtain p-values for these models. STD = standard rearing; LBN = limited bedding and nesting; ALPS = adult stress."
+```
+
+```{r}
+# femaleMass_ALPS_lmm_emm.pairs_num <- femaleMass_ALPS_lmm_emm_num + 1
+femaleMass_ALPS_lmm_emm.pairs_num <- femaleMass_ALPS_lmm_num + 1
+tableNum <- femaleMass_ALPS_lmm_emm.pairs_num
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+```{r eval=FALSE, include=FALSE}
+femaleBodyMassAM_ALPS_lmm 
+femalePercChangeBodyMass_ALPS_lmm
+femalePercChangeBodyMass_ALPS_lmm_emm_adultTrt.pairs
+femaleAdrenalMass_ALPS_lmm
+femaleAdrenalMass_ALPS_lmm_emm_earlyLifeTrt.pairs
+femaleRelAdrenalMass_ALPS_lmm
+femaleUterineMass_ALPS_lmm
+femaleUterineMass_ALPS_lmm_emm_sacCycle.pairs
+# weak trend for interaction
+femaleUterineMass_ALPS_lmm_emm_sacCycleAdultTrt.pairs
+femaleRelUterineMass_ALPS_lmm
+femaleRelUterineMass_ALPS_lmm_emm_sacCycle.pairs
+#weak trend for interaction
+femaleRelUterineMass_ALPS_lmm_emm_sacCycleAdultTrt.pairs
+```
+
+
+# Figure 8 - LH
+
+
+# Figure 9 - GABA PSCs
+
+```{r}
+figGABA_aligned <- cowplot::align_plots(
+  figGABAa_model
+  , figGABAb_model
+  , figGABAc_model
+  , figGABAd_model
+  , figGABAe_model
+  , figGABAf_model
+  , align = "vh"
+  , axis = "lrtb"
+)
+
+figGABA1stRow <- plot_grid(
+  figGABA_aligned[[1]]
+  , figGABA_aligned[[2]]
+  , figGABA_aligned[[3]]
+  , ncol = 3
+  , labels = c("A", "B", "C")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figGABA2ndRow <- plot_grid(
+  figGABA_aligned[[4]]
+  , figGABA_aligned[[5]]
+  , figGABA_aligned[[6]]
+  , ncol = 3
+  , labels = c("D", "E", "F")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figGABA <- plot_grid(
+  figGABA1stRow
+  , figGABA2ndRow
+  , NULL
+  , nrow = 3
+  , labels = c("", "", "G")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , rel_heights = c(2, 2, 1)
+)
+
+figGABA
+```
+
+```{r}
+flexSave(
+  "figGABA"
+  , plot = figGABA
+  , width = twoCols
+  # , height = 28/2
+  , height = 28/3*2
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
