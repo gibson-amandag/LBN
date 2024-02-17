@@ -511,6 +511,24 @@ matMass_lmm_flexTable <- matTbl %>%
 
 ## AGD --------------------------
 
+### Count ---------
+
+maturationFiltered %>%
+  filter(
+    !is.na(AGD_adult) 
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , sex
+  ) %>%
+  summarize(
+    litters = n_distinct(damID),
+    mice = n(), 
+    .groups = "drop"
+  )
+
+### lmm -------
+
 AGD_tbl <- AGD_lmm$anova_table %>%
   simplifyLMMOutput()
 
@@ -2376,7 +2394,7 @@ male_dosage_RelAM_EMM_tbl <- bind_rows(
   list(
     # a = maleBodyMassAM_dosage_LMM_EMM_dosage_tbl
     c = malePercChangeBodyMass_dosage_LMM_EMM_dosage_tbl
-    , e = maleAdrenalMass_dosage_LMM_EMM_dosage_tbl
+    # , e = maleAdrenalMass_dosage_LMM_EMM_dosage_tbl
     # , g = maleRelAdrenalMass_dosage_LMM_EMM_dosage_tbl
     # , i = maleSeminalVesicleMass_dosage_LMM_EMM_dosage_tbl
     # , k = maleRelSeminalVesicleMass_dosage_LMM_EMM_dosage_tbl
@@ -2403,7 +2421,7 @@ male_dosage_RelPM_EMM_tbl <- bind_rows(
   list(
     # a = maleBodyMassAM_dosage_LMM_EMM_dosage_tbl
     c = malePercChangeBodyMass_dosage_LMM_EMM_dosage_tbl
-    , e = maleAdrenalMass_dosage_LMM_EMM_dosage_tbl
+    # , e = maleAdrenalMass_dosage_LMM_EMM_dosage_tbl
     # , g = maleRelAdrenalMassPM_dosage_LMM_EMM_dosage_tbl
     # , i = maleSeminalVesicleMass_dosage_LMM_EMM_dosage_tbl
     # , k = maleRelSeminalVesicleMassPM_dosage_LMM_EMM_dosage_tbl
@@ -2457,7 +2475,7 @@ male_dosage_RelPM_EMM_flexTable <- male_dosage_RelPM_EMM_tbl %>%
     headerDF = male_dosage_EMM_header
     , vertMergeCols = c("feature")
     , vertLines = c(1, 5)
-    # , horzLines = c(2, 4, 6)
+    , horzLines = c(1)
     , round1Cols = c("df_0", "df_2")
     , round2Cols = c("emmean_0", "emmean_2")
     , round3Cols = c("SEM_0", "SEM_2")
@@ -2535,7 +2553,7 @@ male_dosage_RelAM_EMM.pairs_tbl <- bind_rows(
   list(
     # a = maleBodyMassAM_dosage_LMM_EMM.pairs_dosage_tbl
     c = malePercChangeBodyMass_dosage_LMM_EMM.pairs_dosage_tbl
-    , e = maleAdrenalMass_dosage_LMM_EMM.pairs_dosage_tbl
+    # , e = maleAdrenalMass_dosage_LMM_EMM.pairs_dosage_tbl
     # , g = maleRelAdrenalMass_dosage_LMM_EMM.pairs_dosage_tbl
     # , i = maleSeminalVesicleMass_dosage_LMM_EMM.pairs_dosage_tbl
     # , k = maleRelSeminalVesicleMass_dosage_LMM_EMM.pairs_dosage_tbl
@@ -2551,7 +2569,7 @@ male_dosage_RelPM_EMM.pairs_tbl <- bind_rows(
   list(
     # a = maleBodyMassAM_dosage_LMM_EMM.pairs_dosage_tbl
     c = malePercChangeBodyMass_dosage_LMM_EMM.pairs_dosage_tbl
-    , e = maleAdrenalMass_dosage_LMM_EMM.pairs_dosage_tbl
+    # , e = maleAdrenalMass_dosage_LMM_EMM.pairs_dosage_tbl
     # , g = maleRelAdrenalMassPM_dosage_LMM_EMM.pairs_dosage_tbl
     # , i = maleSeminalVesicleMass_dosage_LMM_EMM.pairs_dosage_tbl
     # , k = maleRelSeminalVesicleMassPM_dosage_LMM_EMM.pairs_dosage_tbl
@@ -2590,7 +2608,8 @@ male_dosage_RelAM_EMM.pairs_flexTable <- male_dosage_RelAM_EMM.pairs_tbl %>%
 male_dosage_RelPM_EMM.pairs_flexTable <- male_dosage_RelPM_EMM.pairs_tbl %>%
   makeManuscriptFlexTable(
     vertMergeCols = c("feature")
-    # , horzLines = c(2, 3, 4, 5, 7, 9)
+    , horzLines = c(1)
+    , vertLines = c(1)
     , round1Cols = c("df")
     , round2Cols = c("estimate", "t ratio")
     , round3Cols = c("SEM")
@@ -2599,7 +2618,348 @@ male_dosage_RelPM_EMM.pairs_flexTable <- male_dosage_RelPM_EMM.pairs_tbl %>%
 # Figure 7------------------
 
 ## Counts ---------------
+femaleMassALPSPM_count_di <- acuteStressFilteredDi%>%
+  pivot_longer(
+    cols = c(
+      Body_mass_AM
+      , percChangeBodyMass
+      , Adrenal_mass
+      , Adrenal_mass_perBody_g
+      , ReproTract_mass
+      , ReproTract_mass_perBody_g
+    )
+    , names_to = "feature"
+    , values_to = "mass"
+  ) %>%
+  select(
+    earlyLifeTrt
+    , adultTrt
+    , mouseID
+    , damID
+    , feature
+    , mass
+  ) %>%
+  filter(
+    !is.na(mass)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+    , feature
+  ) %>%
+  summarize(
+    mice = n()
+    , litters = n_distinct(damID)
+    , .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = c(litters, mice)
+    , names_to = "measure"
+    , values_to = "value"
+  ) %>%
+  unite(
+    "combined"
+    , earlyLifeTrt, adultTrt, measure, sep = "_"
+  ) %>%
+  pivot_wider(
+    names_from = combined
+    , values_from = value
+  ) %>%
+  mutate(
+    feature = case_when(
+      feature == "Body_mass_AM" ~ "AM body mass (g)"
+      , feature == "percChangeBodyMass" ~ "% change body mass"
+      , feature == "Adrenal_mass" ~ "adrenal mass (mg)"
+      , feature == "Adrenal_mass_perBody_g" ~ "adrenal mass normalized to PM mass (mg/g)"
+      , feature == "ReproTract_mass" ~ "uterine mass (mg)"
+      , feature == "ReproTract_mass_perBody_g" ~ "uterine mass normalized to PM mass (mg/g)"
+    )
+  ) %>%
+  mutate(
+    feature = factor(
+      feature
+      , levels = c(
+        "AM body mass (g)"
+        ,"% change body mass"
+        ,"adrenal mass (mg)"
+        ,"adrenal mass normalized to PM mass (mg/g)"
+        ,"uterine mass (mg)"
+        ,"uterine mass normalized to PM mass (mg/g)"
+      )
+    )
+  ) %>%
+  arrange(
+    feature
+  )
+femaleMassALPSPM_count_pro <- acuteStressFilteredPro%>%
+  pivot_longer(
+    cols = c(
+      Body_mass_AM
+      , percChangeBodyMass
+      , Adrenal_mass
+      , Adrenal_mass_perBody_g
+      , ReproTract_mass
+      , ReproTract_mass_perBody_g
+    )
+    , names_to = "feature"
+    , values_to = "mass"
+  ) %>%
+  select(
+    earlyLifeTrt
+    , adultTrt
+    , mouseID
+    , damID
+    , feature
+    , mass
+  ) %>%
+  filter(
+    !is.na(mass)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+    , feature
+  ) %>%
+  summarize(
+    mice = n()
+    , litters = n_distinct(damID)
+    , .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = c(litters, mice)
+    , names_to = "measure"
+    , values_to = "value"
+  ) %>%
+  unite(
+    "combined"
+    , earlyLifeTrt, adultTrt, measure, sep = "_"
+  ) %>%
+  pivot_wider(
+    names_from = combined
+    , values_from = value
+  ) %>%
+  mutate(
+    feature = case_when(
+      feature == "Body_mass_AM" ~ "AM body mass (g)"
+      , feature == "percChangeBodyMass" ~ "% change body mass"
+      , feature == "Adrenal_mass" ~ "adrenal mass (mg)"
+      , feature == "Adrenal_mass_perBody_g" ~ "adrenal mass normalized to PM mass (mg/g)"
+      , feature == "ReproTract_mass" ~ "uterine mass (mg)"
+      , feature == "ReproTract_mass_perBody_g" ~ "uterine mass normalized to PM mass (mg/g)"
+    )
+  ) %>%
+  mutate(
+    feature = factor(
+      feature
+      , levels = c(
+        "AM body mass (g)"
+        ,"% change body mass"
+        ,"adrenal mass (mg)"
+        ,"adrenal mass normalized to PM mass (mg/g)"
+        ,"uterine mass (mg)"
+        ,"uterine mass normalized to PM mass (mg/g)"
+      )
+    )
+  ) %>%
+  arrange(
+    feature
+  )
 
+femaleMassALPSPM_counts <- bind_rows(
+  list(
+    "diestrus" = femaleMassALPSPM_count_di
+    , "proestrus" = femaleMassALPSPM_count_pro
+  )
+  , .id = "cycle stage"
+)
+
+femaleMassALPSPM_counts_header <- data.frame(
+  col_keys = colnames(femaleMassALPSPM_counts)
+  , line1 = c("", "", rep("STD", 4), rep("LBN", 4))
+  , line2 = c("", "", rep(c(rep("CON", 2), rep("ALPS", 2)), 2))
+  , line3 = c("cycle stage", "feature", rep(c("litters", "mice"), 4))
+  , stringsAsFactors = FALSE
+)
+
+femaleMass_ALPSPM_counts_flexTable <- femaleMassALPSPM_counts %>%
+  makeManuscriptFlexTable(
+    headerDF = femaleMassALPSPM_counts_header
+    , vertMergeCols = c("cycle stage")
+    , vertLines = c(2, 4, 6, 8)
+    , horzLines = c(2, 4, 6, 8, 10, 12)
+  )
+
+### AM rel counts ----------
+femaleMassALPSAM_count_di <- acuteStressFilteredDi%>%
+  pivot_longer(
+    cols = c(
+      Body_mass_AM
+      , percChangeBodyMass
+      , Adrenal_mass
+      , Adrenal_mass_perBodyAM_g
+      , ReproTract_mass
+      , ReproTract_mass_perBodyAM_g
+    )
+    , names_to = "feature"
+    , values_to = "mass"
+  ) %>%
+  select(
+    earlyLifeTrt
+    , adultTrt
+    , mouseID
+    , damID
+    , feature
+    , mass
+  ) %>%
+  filter(
+    !is.na(mass)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+    , feature
+  ) %>%
+  summarize(
+    mice = n()
+    , litters = n_distinct(damID)
+    , .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = c(litters, mice)
+    , names_to = "measure"
+    , values_to = "value"
+  ) %>%
+  unite(
+    "combined"
+    , earlyLifeTrt, adultTrt, measure, sep = "_"
+  ) %>%
+  pivot_wider(
+    names_from = combined
+    , values_from = value
+  ) %>%
+  mutate(
+    feature = case_when(
+      feature == "Body_mass_AM" ~ "AM body mass (g)"
+      , feature == "percChangeBodyMass" ~ "% change body mass"
+      , feature == "Adrenal_mass" ~ "adrenal mass (mg)"
+      , feature == "Adrenal_mass_perBodyAM_g" ~ "adrenal mass normalized to AM mass (mg/g)"
+      , feature == "ReproTract_mass" ~ "uterine mass (mg)"
+      , feature == "ReproTract_mass_perBodyAM_g" ~ "uterine mass normalized to AM mass (mg/g)"
+    )
+  ) %>%
+  mutate(
+    feature = factor(
+      feature
+      , levels = c(
+        "AM body mass (g)"
+        ,"% change body mass"
+        ,"adrenal mass (mg)"
+        ,"adrenal mass normalized to AM mass (mg/g)"
+        ,"uterine mass (mg)"
+        ,"uterine mass normalized to AM mass (mg/g)"
+      )
+    )
+  ) %>%
+  arrange(
+    feature
+  )
+femaleMassALPSAM_count_pro <- acuteStressFilteredPro%>%
+  pivot_longer(
+    cols = c(
+      Body_mass_AM
+      , percChangeBodyMass
+      , Adrenal_mass
+      , Adrenal_mass_perBodyAM_g
+      , ReproTract_mass
+      , ReproTract_mass_perBodyAM_g
+    )
+    , names_to = "feature"
+    , values_to = "mass"
+  ) %>%
+  select(
+    earlyLifeTrt
+    , adultTrt
+    , mouseID
+    , damID
+    , feature
+    , mass
+  ) %>%
+  filter(
+    !is.na(mass)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+    , feature
+  ) %>%
+  summarize(
+    mice = n()
+    , litters = n_distinct(damID)
+    , .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = c(litters, mice)
+    , names_to = "measure"
+    , values_to = "value"
+  ) %>%
+  unite(
+    "combined"
+    , earlyLifeTrt, adultTrt, measure, sep = "_"
+  ) %>%
+  pivot_wider(
+    names_from = combined
+    , values_from = value
+  ) %>%
+  mutate(
+    feature = case_when(
+      feature == "Body_mass_AM" ~ "AM body mass (g)"
+      , feature == "percChangeBodyMass" ~ "% change body mass"
+      , feature == "Adrenal_mass" ~ "adrenal mass (mg)"
+      , feature == "Adrenal_mass_perBodyAM_g" ~ "adrenal mass normalized to AM mass (mg/g)"
+      , feature == "ReproTract_mass" ~ "uterine mass (mg)"
+      , feature == "ReproTract_mass_perBodyAM_g" ~ "uterine mass normalized to AM mass (mg/g)"
+    )
+  ) %>%
+  mutate(
+    feature = factor(
+      feature
+      , levels = c(
+        "AM body mass (g)"
+        ,"% change body mass"
+        ,"adrenal mass (mg)"
+        ,"adrenal mass normalized to AM mass (mg/g)"
+        ,"uterine mass (mg)"
+        ,"uterine mass normalized to AM mass (mg/g)"
+      )
+    )
+  ) %>%
+  arrange(
+    feature
+  )
+
+femaleMassALPSAM_counts <- bind_rows(
+  list(
+    "diestrus" = femaleMassALPSAM_count_di
+    , "proestrus" = femaleMassALPSAM_count_pro
+  )
+  , .id = "cycle stage"
+)
+
+femaleMassALPSAM_counts_header <- data.frame(
+  col_keys = colnames(femaleMassALPSAM_counts)
+  , line1 = c("", "", rep("STD", 4), rep("LBN", 4))
+  , line2 = c("", "", rep(c(rep("CON", 2), rep("ALPS", 2)), 2))
+  , line3 = c("cycle stage", "feature", rep(c("litters", "mice"), 4))
+  , stringsAsFactors = FALSE
+)
+
+femaleMass_ALPSAM_counts_flexTable <- femaleMassALPSAM_counts %>%
+  makeManuscriptFlexTable(
+    headerDF = femaleMassALPSAM_counts_header
+    , vertMergeCols = c("cycle stage")
+    , vertLines = c(2, 4, 6, 8)
+    , horzLines = c(2, 4, 6, 8, 10, 12)
+  )
 
 ## LMM ----------------
 
@@ -2919,4 +3279,227 @@ femaleALPS_RelPM_EMM.pairs_flexTable <- femaleALPS_RelPM_EMM.pairs_tbl %>%
     , round1Cols = c("df")
     , round2Cols = c("estimate", "t ratio")
     , round3Cols = c("SEM")
+  )
+
+# Figure 8 ----------------
+
+## Counts -----------
+
+LHcount_di <- acuteStressFilteredDi %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  summarize(
+    litters = n_distinct(damID)
+    , mice = n()
+    , .groups = "drop"
+  )
+
+LHcount_ephys <- acuteStressFilteredPro_ephys %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  summarize(
+    litters = n_distinct(damID)
+    , mice = n()
+    , .groups = "drop"
+  )
+
+LHcount_sampling <- acuteStressFilteredPro_sampling %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  summarize(
+    litters = n_distinct(damID)
+    , mice = n()
+    , .groups = "drop"
+  )
+
+LHcount <- bind_rows(
+  list(
+    "diestrus" = LHcount_di
+    , "proestrus: ephys" = LHcount_ephys
+    , "proestrus: sampling" = LHcount_sampling
+  ),
+  .id = "usage"
+) %>%
+  pivot_longer(cols = c(litters, mice), names_to = "Measure", values_to = "Value") %>%
+  unite("unitedName", earlyLifeTrt, adultTrt, Measure, sep = "_") %>%
+  pivot_wider(
+    names_from = unitedName,
+    values_from = Value
+  )
+
+LHCount_header <- data.frame(
+  col_keys = colnames(LHcount)
+  , line1 = c("", rep("STD", 4), rep("LBN", 4))
+  , line2 = c("", rep(c(rep("CON", 2), rep("ALPS", 2)), 2))
+  , line3 = c("usage", rep(c("litters", "mice"), 4))
+  , stringsAsFactors = FALSE
+)
+
+LHCount_flexTable <- LHcount %>%
+  makeManuscriptFlexTable(
+    headerDF = LHCount_header
+    # , vertLines = c(2, 4, 6, 8, 10, 12)
+    # , horzLines = c(2)
+    # , vertMergeCols = c("earlyLifeTrt")
+    , vertLines = c(1, 3, 5, 7)
+    , horzLines = c(1, 2)
+    , vertMergeCols = c("usage")
+  )
+
+## Diestrous - avg evening ------------
+
+LH_diAfternoonLMM_tbl <- LH_diAfternoon_lmm$anova_table %>%
+  simplifyLMMOutput()
+
+LH_diAfternoon_flexTable <- LH_diAfternoonLMM_tbl %>%
+  makeManuscriptFlexTable(
+    vertLines = c(1)
+    , fullWidth = FALSE
+  )
+
+## Proestrous - max evening ----------
+
+LH_proEphysLMM_tbl <-  LH_proEphys_lmm$anova_table %>%
+  simplifyLMMOutput()
+
+LH_proSamplingLMM_tbl <-  LH_proSampling_lmm$anova_table %>%
+  simplifyLMMOutput()
+
+LH_pro_tbl <- bind_rows(
+  list(
+    "electrophysiology" = LH_proEphysLMM_tbl
+    , "sampling" = LH_proSamplingLMM_tbl
+  )
+  , .id = "model"
+) %>%
+  pivot_wider(
+    id_cols = variable, names_from = model, values_from = c("F", "df", "p")
+  )
+
+LH_pro_header <- data.frame(
+  col_keys = c("variable", "F_electrophysiology", "df_electrophysiology", "p_electrophysiology"
+               , "F_sampling", "df_sampling", "p_sampling"
+  )
+  , line2 = c("", rep("electrophysiology", 3), rep("sampling", 3))
+  , line3 = c("variable", "F", "df", "p"
+              , "F", "df", "p")
+)
+
+LH_pro_flexTable <- LH_pro_tbl %>%
+  makeManuscriptFlexTable(
+    headerDF = LH_pro_header
+    , vertLines = c(1, 4)
+  )
+
+### EMMs -----------------
+LH_proEphysLMM_emm_earlyLifeTrt_tbl <-  LH_proEphys_lmm_emm_earlyLifeTrt %>%
+  as_tibble() %>%
+  simplifyEMMOutput() %>%
+  mutate(
+    usage = "electrophysiology"
+  )
+
+LH_proEphysLMM_emm_adultTrt_tbl <-  LH_proEphys_lmm_emm_adultTrt %>%
+  as_tibble() %>%
+  simplifyEMMOutput() %>%
+  mutate(
+    usage = "electrophysiology"
+  )
+
+LH_proSamplingLMM_emm_adultTrt_tbl <-  LH_proSampling_lmm_emm_adultTrt %>%
+  as_tibble() %>%
+  simplifyEMMOutput() %>%
+  mutate(
+    usage = "sampling"
+  )
+
+LH_proLMM_EMM <- bind_rows(
+  LH_proEphysLMM_emm_earlyLifeTrt_tbl
+  , LH_proEphysLMM_emm_adultTrt_tbl
+  , LH_proSamplingLMM_emm_adultTrt_tbl
+) %>%
+  relocate(
+    adultTrt
+    , .after = earlyLifeTrt
+  ) %>%
+  relocate(
+    usage
+    , .before = earlyLifeTrt
+  )
+
+LH_proLMM_EMM_flexTable <- LH_proLMM_EMM %>%
+  makeManuscriptFlexTable(
+    vertLines = c(3)
+    , horzLines = c(2, 4)
+    , vertMergeCols = "usage"
+    , round1Cols = c("df")
+    , round2Cols = c("emmean")
+    , round3Cols = c("SEM")
+  )
+
+### Pairs ---------------
+
+LH_proEphysLMM_emm_earlyLifeTrt.pairs_tbl <-  LH_proEphys_lmm_emm_earlyLifeTrt.pairs %>%
+  simplifyEMMPairsOutput() %>%
+  mutate(
+    usage = "electrophysiology"
+  )
+
+LH_proEphysLMM_emm_adultTrt.pairs_tbl <-  LH_proEphys_lmm_emm_adultTrt.pairs %>%
+  simplifyEMMPairsOutput() %>%
+  mutate(
+    usage = "electrophysiology"
+  )
+
+LH_proSamplingLMM_emm_adultTrt.pairs_tbl <-  LH_proSampling_lmm_emm_adultTrt.pairs %>%
+  simplifyEMMPairsOutput() %>%
+  mutate(
+    usage = "sampling"
+  )
+
+LH_proLMM_EMM.pairs <- bind_rows(
+  LH_proEphysLMM_emm_earlyLifeTrt.pairs_tbl
+  , LH_proEphysLMM_emm_adultTrt.pairs_tbl
+  , LH_proSamplingLMM_emm_adultTrt.pairs_tbl
+) %>%
+  relocate(
+    usage
+    , .before = contrast
+  )
+
+LH_proLMM_EMM.pairs_flexTable <- LH_proLMM_EMM.pairs %>%
+  makeManuscriptFlexTable(
+    vertLines = c(2)
+    , horzLines = c(1, 2)
+    , vertMergeCols = "usage"
+    , round1Cols = c("df")
+    , round2Cols = c("estimate", "t ratio")
+    , round3Cols = c("SEM")
+  )
+
+
+### Chi-sq ------------
+
+propSurgedChiSq_tbl <- propSurged.Chi.Sq.res %>%
+  select(
+    statistic
+    , df
+    , p
+  ) %>%
+  formatPCol() %>%
+  mutate(
+    variable = "early-life treatment"
+    , .before = "statistic"
+  ) %>%
+  rename(
+    `Chi-sq` = statistic
+  )
+
+propSurgedChiSq_flexTable <- propSurgedChiSq_tbl %>%
+  makeManuscriptFlexTable(
+    round2Cols = c("Chi-sq")
+    , vertLines = c(1)
   )

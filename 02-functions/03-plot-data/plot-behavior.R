@@ -88,6 +88,7 @@ plotDamBehavior <- function(
         !! enquo(yVar)
         , damID
         , colorByGroups = FALSE
+        , pkg = "rainbow"
         , earlyLifeTrt
       )
   }

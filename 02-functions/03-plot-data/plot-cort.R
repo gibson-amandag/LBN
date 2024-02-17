@@ -519,6 +519,76 @@ LHPlot_noMean <- function(
     guides(linetype = "none")
 }
 
+LHPlot_noMean_lineColor <- function(
+  df_long,
+  fontSize = 11,
+  dotSize = 0.5,
+  zoom_x = FALSE, #Zoom to a part of x axis
+  xmin = NULL,
+  xmax = NULL,
+  zoom_y = FALSE, #Zoom to a part of y axis
+  ymin = NULL,
+  ymax = NULL
+  , addPoint = TRUE
+  , xBreaks = c(5, 5.5, 6.5, 7.5, 8.5, 9.5)
+  , xLabels = c("", -2, -1, 0, 1, 2)
+){
+  plot <- ggplot(
+    df_long,
+    aes(
+      x = time,
+      y = LH,
+      group = comboTrt
+    )
+  ) +
+    geom_line(
+      # alpha = 0.4,
+      aes(group = mouseID, color = color),
+      position = position_dodge(0.15)
+    )
+  
+  if(addPoint){
+    plot <- plot +
+      geom_point(
+        alpha = 1
+        ## Normal comboTrt fill
+        # , aes(fill=comboTrt,group=mouseID, shape=comboTrt)
+        
+        , shape = 21
+        ## Fill by Color
+        # , aes(fill=color,group=mouseID)
+        
+        ## fill black
+        , aes(group = mouseID)
+        , color = "black"
+        , fill = "black"
+        
+        , position = position_dodge(0.15) 
+        , size = dotSize
+      # ) +
+      # comboTrtFillShape(
+
+      )
+  }
+    
+  plot <- plot +
+    theme_pubr() +
+    labs(
+      y = "LH (ng/mL)",
+      x = "time (hr) relative to lights out"
+    ) +
+    scale_x_continuous(
+      breaks = xBreaks,
+      labels = xLabels
+    )+
+    scale_color_identity()+
+    textTheme(size = fontSize)+
+    boxTheme()+
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) + #this just zooms in on the graph, versus scale_[]_continuous actually eliminates data not in the range
+    guides(linetype = "none")
+  return(plot)
+}
+
 LHPlot_adultTrt_color <- function(
   df_long,
   trtVar = adultTrt,
@@ -538,6 +608,7 @@ LHPlot_adultTrt_color <- function(
   #     LH
   #     , mouseID
   #     , colorByGroups = FALSE
+  #     , pkg = "rainbow"
   #     , adultTrt
   #   )
   
@@ -756,6 +827,7 @@ propSurgedPlotCombo <- function(
 propSurgedPlotCombo_forSBN <- function(
   df,
   fontSize = 11
+  , labelSize = 12
 ){
   viz <- df %>%
     ggplot(aes(
@@ -771,7 +843,7 @@ propSurgedPlotCombo_forSBN <- function(
         vjust = 1.3,
         colour = "grey80",
         position = "fill",
-        size = 12
+        size = labelSize
       )+
       labs(y = "% with LH surge") + 
       # scale_color_manual(values = c(
@@ -1242,9 +1314,13 @@ scatterPlotComboTrt_surgeAmp <- function(
     ymin = NULL,
     ymax = NULL
     , jitterWidth = 0.35
-    , alpha = 0.7 # changed 2023-06-18 from 1
+    , surgedAlpha = .8
+    , notSurgedAlpha = 0.4
     , addSurgeMinLine = TRUE
     , surgeMin = 3
+    , surgeLineColor = "magenta"
+    , twoLineXLabs = FALSE
+    , tiltedXLabs = FALSE
 ){
   viz <- df %>%
     filter(
@@ -1278,7 +1354,6 @@ scatterPlotComboTrt_surgeAmp <- function(
     theme_pubr()+
     expand_limits(y=0)+
     coord_cartesian(if(FALSE){xlim = c(NULL, NULL)}, if(zoom_y){ylim = c(ymin, ymax)}) +
-    # coord_cartesian(if(zoom_y){ylim = c(ymin, ymax)}) +
     theme(
       axis.title.x = element_blank(),
       legend.position = "none"
@@ -1286,7 +1361,7 @@ scatterPlotComboTrt_surgeAmp <- function(
     textTheme(size = fontSize)+
     boxTheme() +
     # scale_color_manual(values = c("surged" = "magenta", "no surge" = "black")) +
-    scale_alpha_manual(values = c("surged" = 0.8, "no surge" = 0.3))
+    scale_alpha_manual(values = c("surged" = surgedAlpha, "no surge" = notSurgedAlpha))
   
   if(addMeanSE){
     viz <- viz +
@@ -1295,8 +1370,29 @@ scatterPlotComboTrt_surgeAmp <- function(
   }
   
   if(addSurgeMinLine){
-    viz <- viz + geom_hline(yintercept = surgeMin, color = "magenta", alpha = 0.6)
+    viz <- viz + geom_hline(yintercept = surgeMin, color = surgeLineColor, alpha = 0.6)
     
+  }
+  
+  if(twoLineXLabs){
+    viz <- viz + 
+      scale_x_discrete(
+        labels = c(
+          "STD-CON" = "STD\nCON"
+          , "STD-ALPS" = "STD\nALPS"
+          , "LBN-CON" = "LBN\nCON"
+          , "LBN-ALPS" = "LBN\nALPS"
+          
+        )
+      )
+    
+  } else {
+    if(tiltedXLabs){
+      viz <- viz + 
+        theme(
+          axis.text.x = element_text(angle = 35, vjust = 1, hjust=1)
+        )
+    }
   }
   
   

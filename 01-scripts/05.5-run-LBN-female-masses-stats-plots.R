@@ -38,10 +38,10 @@ comboTrtCycle_scatterAndLMM <- function(
     , thisYLab = ""
     , thisFontSize = textSize
     , thisDotSize = dotSize
-    , twoLineXLabs = FALSE
+    , twoLineXLabs = TRUE
     , useSpecYLab = TRUE
     , addLegend = FALSE
-    , removeXTicks = TRUE
+    , removeXTicks = FALSE
     , alpha = 0.7
     , addMeanSE = FALSE
 ){
@@ -79,9 +79,25 @@ comboTrtCycle_scatterAndLMM <- function(
       )
     
     if(twoLineXLabs){
+      # plot <- plot + 
+      #   theme(
+      #     axis.text.x = element_text(angle = 35, vjust = 1, hjust=1)
+      #   )
       plot <- plot + 
-        theme(
-          axis.text.x = element_text(angle = 35, vjust = 1, hjust=1)
+        scale_x_discrete(
+          labels = c(
+            "STD-CON" = "STD\nCON"
+            , "STD-ALPS" = "STD\nALPS"
+            , "LBN-CON" = "LBN\nCON"
+            , "LBN-ALPS" = "LBN\nALPS"
+
+          )
+        ) +
+        theme( # fully vertical
+          axis.text.x = element_text(
+            angle = 90
+            , vjust = 0.5
+            )
         )
       
     }

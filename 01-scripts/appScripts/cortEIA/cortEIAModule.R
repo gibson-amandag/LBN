@@ -212,7 +212,7 @@ cortEIAUI <- function(id){
             "Samples Estimates",
             h3("Samples Estimates"),
             p("Using the curve we calculated above, we can now estimate the amount of corticosterone that was in each well"),
-            p("From the pg/well, we can calculate the concentration (in pg/mL) of the sample + assay buffer dilution if we know the volume added to the well", em("pg/well * volPerWell")),
+            p("From the pg/well, we can calculate the concentration (in pg/mL) of the sample + assay buffer dilution if we know the volume added to the well", em("pg/well / mL/well")),
             p("From the pg/mL concentration, we can convert to ng/mL", em("pg/mL / 1000")),
             p("Finally, using the dilution factor of the original serum sample in the assay buffer, we can calculate the corticosterone concentration of the origianl serum sample", 
               em("ng/mL * dilutionFactor")),

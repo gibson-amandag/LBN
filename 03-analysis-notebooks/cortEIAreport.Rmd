@@ -120,7 +120,7 @@ stdCurve()$coefficients
 # Calculations
 
 Using the curve we calculated above, we can now estimate the amount of corticosterone that was in each well.
-From the pg/well, we can calculate the concentration (in pg/mL) of the sample + assay buffer dilution if we know the volume added to the well: *pg/well \* volPerWell*
+From the pg/well, we can calculate the concentration (in pg/mL) of the sample + assay buffer dilution if we know the volume added to the well: *pg/well \/ mL/well*
 From the pg/mL concentration, we can convert to ng/mL: *pg/mL / 1000*
 Finally, using the dilution factor of the original serum sample in the assay buffer, we can calculate the corticosterone concentration of the original serum sample: *ng/mL \* dilutionFactor*
 

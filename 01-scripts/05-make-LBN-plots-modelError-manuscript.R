@@ -153,7 +153,7 @@ figDamsD <- damFiltered %>%
   ) %>%
   scatterPlotLBN(
     yVar = Cort_dam_P11,
-    yLab = "corticosterone\n(ng/mL)",
+    yLab = "dam corticosterone\n(ng/mL)",
     textSize = textSize,
     dotSize = dotSize,
     zoom_y = FALSE
@@ -172,7 +172,7 @@ figDams_mass <- damFiltered %>%
     lineTypeVar = earlyLifeTrt,
     lineGroupVar = damID,
     xtitle = "PND", #x axis label
-    ytitle = "mass (g)", #y axis label
+    ytitle = "dam mass (g)", #y axis label
     title = NULL, # plot title
     individualLines = TRUE, # plot individual lines
     meanLines = FALSE, # plot mean lines with SE
@@ -222,7 +222,7 @@ figOffA <- massFiltered %>%
     lineTypeVar = earlyLifeTrt,
     lineGroupVar = damID,
     xtitle = "postnatal day", #x axis label
-    ytitle = "mass (g)", #y axis label
+    ytitle = "mean mass (g)", #y axis label
     title = NULL, # plot title
     individualLines = TRUE, # plot individual lines
     meanLines = FALSE, # plot mean lines with SE #2023-11-22 to add model error
@@ -580,7 +580,7 @@ cortAdmin_cort <- maleCortAdmin_cort_filtered %>%
     pointSize = dotSize,
     fontSize = textSize,
     groupVar = dosage,
-    lineTypeGuide = c("solid", "dotted"),
+    lineTypeGuide = c("dotted", "solid"),
     positionDodge = 0.2, #this controls the spread of the data visually
     zoom_y = TRUE,
     ymax = 750,
@@ -622,14 +622,198 @@ cortAdmin_cort <- maleCortAdmin_cort_filtered %>%
     breaks = seq(0, 750, 150)
   ) +
   scale_linetype_manual(
-    values = c("0" = "solid", 
-               "2" = "dotted"),
+    values = c("0" = "dotted", 
+               "2" = "solid"),
     labels = c("0" = "0mg/kg",
                "2" = "2mg/kg")
   )
 
+## LH ----------------------------------------------------------------------
 
-  
+### Diestrus -----------------
+
+figLH_diAfternoon <- acuteStressFilteredDi %>%
+  plotCatVarFunc(
+    expr(avgLH)
+    , fontSize = textSize
+    , dotSize = dotSize
+    , twoLineXLabs = TRUE
+    , useFacetLabels = FALSE
+    , addMeanSE = FALSE
+    , useSpecYLab = TRUE
+    , thisYLab = "avg. evening LH (ng/mL)"
+  )(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 40
+  ) +
+  plotError_LMM(
+    LH_diAfternoon_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+
+### Pro - ephys -----------
+
+figLH_ephysMax <- acuteStressFilteredPro_ephys %>%
+  scatterPlotComboTrt_surgeAmp(
+    yVar = maxLH
+    , yLab = "max evening LH (ng/mL)"
+    , dotSize = dotSize
+    , fontSize = textSize
+    , addMeanSE = FALSE
+    , surgeMin = surgeMin
+    , surgeLineColor = "grey"
+    , twoLineXLabs = TRUE
+  ) +
+  plotError_LMM(
+    LH_proEphys_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+
+### Pro - ephys - surged ---------------
+
+
+figLH_ephysSurged <- acuteStressFilteredPro_ephys %>%
+  propSurgedPlotCombo_forSBN(
+    fontSize = textSize
+    , labelSize = 5
+  )
+
+### Pro - sampling - over time -----------
+
+figLH_samplingTime <- LHFilteredPro_sampling %>%
+  filter(
+    time > 0
+  ) %>%
+  addOrderedColors(
+    maxLH
+    , mouseID
+    , colorByGroups = FALSE
+    , pkg = "viridis"
+    , comboTrt
+  ) %>%
+  mutate(
+    color = ifelse(
+      maxLH < surgeMin
+      , "#C0C0C0"
+      , color
+    )
+  ) %>%
+  LHPlot_noMean_lineColor(
+    fontSize = textSize
+    , dotSize = .75
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 40
+    , addPoint = TRUE
+  ) + theme(
+    legend.position = "none"
+  ) + facet_wrap(
+    ~comboTrt,
+    scale = "free"
+  )
+
+LHSamplingDF_color <- LHFilteredPro_sampling %>%
+  filter(
+    time > 0
+  ) %>%
+  addOrderedColors(
+    maxLH
+    , mouseID
+    , colorByGroups = FALSE
+    , pkg = "viridis"
+    , comboTrt
+  ) %>%
+  mutate(
+    color = ifelse(
+      maxLH < surgeMin
+      , "#C0C0C0"
+      , color
+    )
+  )
+
+plotLH_overTime_color <-  function(df){
+  df %>%
+    LHPlot_noMean_lineColor(
+      fontSize = textSize
+      , dotSize = .75
+      , zoom_y = TRUE
+      , ymin = 0
+      , ymax = 40
+      , addPoint = TRUE
+    ) + theme(
+      legend.position = "none"
+    ) + facet_wrap(
+      ~comboTrt,
+      scale = "free"
+    )
+}
+
+figLH_samplingTime_STDCON <- LHSamplingDF_color %>%
+  filter(
+    comboTrt == "STD-CON"
+  ) %>%
+  plotLH_overTime_color()
+
+figLH_samplingTime_LBNCON <- LHSamplingDF_color %>%
+  filter(
+    comboTrt == "LBN-CON"
+  ) %>%
+  plotLH_overTime_color()
+
+figLH_samplingTime_STDALPS <- LHSamplingDF_color %>%
+  filter(
+    comboTrt == "STD-ALPS"
+  ) %>%
+  plotLH_overTime_color()
+
+figLH_samplingTime_LBNALPS <- LHSamplingDF_color %>%
+  filter(
+    comboTrt == "LBN-ALPS"
+  ) %>%
+  plotLH_overTime_color()
+
+
+### Pro - sampling max -----------
+
+figLH_samplingMax <- acuteStressFilteredPro_sampling %>%
+  scatterPlotComboTrt_surgeAmp(
+    yVar = maxLH
+    , yLab = "max evening LH (ng/mL)"
+    , dotSize = dotSize
+    , fontSize = textSize
+    , addMeanSE = FALSE
+    , surgeMin = surgeMin
+    , surgeLineColor = "grey"
+    , twoLineXLabs = TRUE
+  ) +
+  plotError_LMM(
+    LH_proSampling_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+
+
+### Pro - sampling - surged ---------------
+
+
+figLH_samplingSurged <- acuteStressFilteredPro_sampling %>%
+  propSurgedPlotCombo_forSBN(
+    fontSize = textSize
+    , labelSize = 5
+  )
+
 ## LH ----------------------------------------------------------------------
 
 plotLH_bothL <- plotLHFunc(

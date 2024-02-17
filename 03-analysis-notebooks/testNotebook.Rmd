@@ -15277,3 +15277,913 @@ acuteStressFilteredAll %>%
   )
 ```
 
+
+# LH morning values
+
+```{r}
+diAMLH_summary <- LHFilteredDi %>%
+  filter(
+    time == 0
+  ) %>%
+  meanSummary(LH)
+
+diAMLH_summary
+
+diAMLH_summary$mean[1] + diAMLH_summary$sd[1]*2
+
+proAMLH_summary <- LHFilteredPro %>%
+  filter(
+    time == 0
+  ) %>%
+  meanSummary(LH)
+
+proAMLH_summary
+
+proAMLH_summary$mean[1] + proAMLH_summary$sd[1]*2
+
+
+```
+
+```{r}
+cortFilteredPro %>%
+  filter(
+    adultTrt == "CON"
+    , time == 5
+  ) %>%
+  meanSummary(cort)
+```
+
+```{r}
+cortAdminCortDF %>%
+  filter(
+    dosage == 0
+    , time == 5
+  ) %>%
+  meanSummary(cort)
+```
+
+```{r}
+cortFilteredPro %>%
+  filter(
+    adultTrt == "CON"
+    , earlyLifeTrt == "STD"
+    , time == 5
+  ) %>%
+  mutate(
+    trt = "CON"
+  ) %>%
+  bind_rows(
+    cortAdminCortDF %>%
+      filter(
+        dosage == 0
+        , time == 5
+      ) %>%
+      mutate(
+        trt = "Nutella"
+      )
+  ) %>%
+  t_test(
+    cort ~ trt
+  )
+```
+
+```{r}
+massFiltered %>%
+  filter(
+    sex == "F"
+    , !is.na(Mass_P11) & is.na(Mass_P35)
+  ) %>%
+  select(
+    mouseID
+    , Sac_stop_off
+  )
+```
+
+```{r}
+LBN_data %>%
+  filterLBNCohorts() %>%
+  filter(
+    sex == "M"
+  ) %>%
+  select(
+    mouseID
+    , damID
+    , Mass_P11
+    , Mass_P35
+    , PreputialSep_age
+    , PreputialSep_mass
+  ) %>%
+  filter(
+    is.na(Mass_P35) & !is.na(PreputialSep_mass)
+  )
+
+Mass_postWean_off %>%
+  filter(
+    mouseID == 9050
+  )
+
+Mass_off %>%
+  select(mouseID, mouseID_spec
+         # , damID
+       ) %>%
+  filter(
+    # damID == "D102-01"
+    mouseID == 9050
+  )
+
+Maturation_off %>%
+  select(
+    mouseID, damID
+  ) %>%
+  filter(
+    mouseID == 9050
+  )
+```
+
+```{r}
+Mass_litter_off %>%
+  filter(
+    mouseID_spec == "D102-01_04"
+  )
+
+# Add the numeric mouseID to the litter mass dataframe
+Mass_litter_off <- Mass_litter_off %>%
+  makeFactors(mouseID_spec) %>%
+  left_join(
+    Demo_off %>% select(mouseID, mouseID_spec),
+    by = "mouseID_spec"
+  )
+
+Mass_postWean_off <- makeFactors(Mass_postWean_off, mouseID)
+
+#Combine pre-wean and post-wean mass dataframes
+Mass_off <- Mass_litter_off %>%
+  full_join(
+    Mass_postWean_off,
+    by = "mouseID"
+  ) %>%
+  relocate(
+    mouseID,
+    .after = "mouseID_spec"
+  )
+```
+
+
+```{r}
+massFiltered %>%
+  filter(
+    damID == "D102-01"
+  )
+```
+
+```{r}
+femaleMassALPSPM_count_di <- acuteStressFilteredDi%>%
+  pivot_longer(
+    cols = c(
+      Body_mass_AM
+      , percChangeBodyMass
+      , Adrenal_mass
+      , Adrenal_mass_perBody_g
+      , ReproTract_mass
+      , ReproTract_mass_perBody_g
+    )
+    , names_to = "feature"
+    , values_to = "mass"
+  ) %>%
+  select(
+    earlyLifeTrt
+    , adultTrt
+    , mouseID
+    , damID
+    , feature
+    , mass
+  ) %>%
+  filter(
+    !is.na(mass)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+    , feature
+  ) %>%
+  summarize(
+    mice = n()
+    , litters = n_distinct(damID)
+    , .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = c(litters, mice)
+    , names_to = "measure"
+    , values_to = "value"
+  ) %>%
+  unite(
+    "combined"
+    , earlyLifeTrt, adultTrt, measure, sep = "_"
+  ) %>%
+  pivot_wider(
+    names_from = combined
+    , values_from = value
+  ) %>%
+  mutate(
+    feature = case_when(
+      feature == "Body_mass_AM" ~ "AM body mass (g)"
+      , feature == "percChangeBodyMass" ~ "% change body mass"
+      , feature == "Adrenal_mass" ~ "adrenal mass (mg)"
+      , feature == "Adrenal_mass_perBody_g" ~ "adrenal mass normalized to PM mass (mg/g)"
+      , feature == "ReproTract_mass" ~ "seminal vesicle mass (mg)"
+      , feature == "ReproTract_mass_perBody_g" ~ "seminal vesicle mass normalized to PM mass (mg/g)"
+      , feature == "Gonad_mass" ~ "testicular mass (mg)"
+      , feature == "Gonad_mass_perBody_g" ~ "testicular mass normalized to PM mass (mg/g)"
+    )
+  ) %>%
+  mutate(
+    feature = factor(
+      feature
+      , levels = c(
+        "AM body mass (g)"
+        ,"% change body mass"
+        ,"adrenal mass (mg)"
+        ,"adrenal mass normalized to PM mass (mg/g)"
+        ,"seminal vesicle mass (mg)"
+        ,"seminal vesicle mass normalized to PM mass (mg/g)"
+        ,"testicular mass (mg)"
+        ,"testicular mass normalized to PM mass (mg/g)"
+      )
+    )
+  ) %>%
+  arrange(
+    feature
+  )
+```
+
+```{r}
+cortStdInfo %>%
+  filter(
+    modelType == "4PLC"
+    , stdPgPerWell > 1
+  ) %>%
+  group_by(
+    plateID
+    , stdPgPerWell
+  ) %>%
+  summarize(
+    CVnetOD = mean(CVnetOD, na.rm = TRUE)
+    , .groups = "drop"
+  ) %>%
+  group_by(
+    stdPgPerWell
+  ) %>%
+  summarize(
+    CV = mean(CVnetOD, na.rm = TRUE)
+    , n = n()
+  )
+```
+# 2024-02-13: Cort assays remaining
+
+```{r}
+df <- acuteStressFiltered %>%
+  filter(
+    is.na(cort_hr0)
+    , Sac_date >= date_parse("2023-09-01")
+  ) %>%
+  select(
+    mouseID
+  )
+df
+
+cortAdminMales_toAssay <- maleCortAdmin_filtered %>%
+  filter(
+    is.na(cort_hr0)
+  ) %>%
+  select(
+    mouseID
+  )
+
+df <- df[sample(nrow(df)),]
+df %>%
+  rep(each = 2) %>%
+  write.table("clipboard", sep="\t", row.names = FALSE)
+
+cortAdminMales_toAssay <- cortAdminMales_toAssay[sample(nrow(cortAdminMales_toAssay)),]
+cortAdminMales_toAssay %>%
+  rep(each = 6) %>%
+  write.table("clipboard", sep="\t", row.names = FALSE)
+
+```
+
+```{r}
+cyclesFiltered %>%
+  filter(
+    numCycles < 3.1 & numCycles > 2.9
+  )
+
+
+```
+```{r}
+
+```
+
+
+# Combined, all information data table, from filtered
+
+```{r}
+LBN_all_1 <- massFiltered %>%
+  select(
+    mouseID
+    , damID
+    , sex
+    , earlyLifeTrt
+    , Sac_stop_off
+    , cohort
+    , starts_with("Mass_")
+    , -c(Mass_P9, Mass_P10, Mass_P2)
+  ) %>%
+  full_join(
+    maturationFiltered %>%
+      select(
+        mouseID
+        , VO_age
+        , VO_mass
+        , Estrus_age
+        , Estrus_mass
+        , PreputialSep_age
+        , PreputialSep_mass
+        , AGD_adult
+      )
+    , by = "mouseID"
+  )
+
+LBN_all_2 <- LBN_all_1 %>%
+  full_join(
+    cyclesFiltered %>%
+      select(
+        mouseID
+        , starts_with("Day")
+        , numCycles
+        , cycleLength
+        , percD
+        , percE
+        , percP
+      )
+    , by = "mouseID"
+  )
+
+LBN_all_3 <- LBN_all_2 %>%
+  full_join(
+    acuteStressFiltered %>%
+      select(
+        mouseID
+        , adultTrt
+        , comboTrt
+        , sex
+        , Sac_cycle
+        , Sac_date
+        , cort_hr0
+        , cort_hr5
+        , exclude_cort_hr0
+        , exclude_cort_hr5
+        , starts_with("LH")
+        , maxLH
+        , Body_mass_AM
+        , Body_mass_sac
+        , Adrenal_mass
+        , Adrenal_mass_perBodyAM_g
+        , Adrenal_mass_perBody_g
+        , ReproTract_mass
+        , ReproTract_mass_perBodyAM_g
+        , ReproTract_mass_perBody_g
+        , Gonad_mass
+        , Gonad_mass_perBodyAM_g
+        , Gonad_mass_perBody_g
+      ) %>%
+      mutate(
+        hitCycle = ifelse(
+          sex == "M"
+          , NA
+          , ifelse(
+            Sac_cycle == "proestrus" & ReproTract_mass >= proUterineMin
+            , TRUE
+            , ifelse(
+              Sac_cycle == "diestrus" & ReproTract_mass <= diUterineMax
+            , TRUE
+            , FALSE
+            )
+          )
+        )
+      ) %>%
+      select(
+        -sex
+      )
+    , by = "mouseID"
+  )
+
+LBN_all_4 <- LBN_all_3 %>%
+  left_join(
+    slicingInfo %>%
+      select(
+        mouseID
+        , Sac_hr
+      )
+    , by = "mouseID"
+  ) %>%
+  full_join(
+    GABApscs_240Filtered %>%
+      group_by(
+        mouseID
+      ) %>%
+      summarize(
+        nCells = n()
+        , .groups = "drop"
+      )
+    , by = "mouseID"
+  )
+
+LBN_all_5 <- LBN_all_4 %>%
+  full_join(
+    maleCortAdmin %>%
+      select(
+        mouseID
+        , damID
+        , earlyLifeTrt
+        , dosage
+        , Sac_date
+        , cort_hr0
+        , cort_hr1
+        , cort_hr2
+        , cort_hr3
+        , cort_hr4
+        , cort_hr5
+        , Body_mass_AM
+        , Body_mass_sac
+        , bodyMass_diff
+        , Adrenal_mass
+        , Adrenal_mass_perBody_g
+        , Adrenal_mass_perBodyAM_g
+        , ReproTract_mass
+        , ReproTract_mass
+        , ReproTract_mass_perBody_g
+        , Gonad_mass_perBody_g
+        , Gonad_mass_perBodyAM_g
+        , Gonad_mass_perBodyAM_g
+      # ) %>%
+      # rename(
+      #   cortAdminSacDate = Sac_date
+      #   , cortAdmin_cort_hr0 = cort_hr0
+      #   , cortAdmin_cort_hr1 = cort_hr1
+      #   , cortAdmin_cort_hr2 = cort_hr2
+      #   , cortAdmin_cort_hr3 = cort_hr3
+      #   , cortAdmin_cort_hr4 = cort_hr4
+      #   , cortAdmin_cort_hr5 = cort_hr5
+      )
+      , by = c(
+        "mouseID"
+        , "damID"
+        , "earlyLifeTrt"
+      )
+      , suffix = c("", "_cortAdmin")
+    
+  )
+
+LBN_all_5
+
+LBN_all_6 <- LBN_all_5 %>%
+  relocate(
+    adultTrt
+    , comboTrt
+    , Sac_cycle
+    , Sac_date
+    , dosage
+    , .after = earlyLifeTrt
+  ) %>%
+  mutate(
+    usage = case_when(
+      !is.na(dosage) ~ "cortAdmin"
+      , !is.na(Sac_stop_off) ~ "noUse"
+      , sex == "F" & Sac_cycle == "diestrus" ~ "diestrus"
+      , sex == "F" & !is.na(Sac_hr) ~ "proEphys"
+      , sex == "F" & Sac_cycle == "proestrus" ~ "proSamp"
+      , sex == "M" & !is.na(Sac_date) ~ "maleALPS"
+      , TRUE ~ NA
+      # Add to mark what the use was, easier filter
+    )
+    , usage = factor(usage, levels = c(
+      "diestrus"
+      , "proSamp"
+      , "proEphys"
+      , "maleALPS"
+      , "cortAdmin"
+      , "noUse"
+    ))
+    , .after = mouseID
+  ) %>%
+  mutate(
+    sex = case_when(
+      usage == "cortAdmin" ~ "M"
+      , TRUE ~ sex
+    )
+  ) %>%
+  relocate(
+    dosage
+    # , cortAdminSacDate
+    , .before = Sac_date_cortAdmin
+  ) %>%
+  relocate(
+    hitCycle
+    , .after = Sac_cycle
+  ) %>%
+  arrange(
+    usage
+    , hitCycle
+    , earlyLifeTrt
+    , adultTrt
+    , cohort
+    , mouseID
+  )
+
+LBN_all_info_filtered <- LBN_all_6
+
+LBN_all_info_filtered
+
+saveDFsToExcel(
+  "manuscriptDataSet"
+  , LBN_allData = LBN_all_info_filtered
+)
+
+saveManuscriptInfoDFsToExcel(
+  "manuscriptDataSet"
+  , LBN_offspring = LBN_all_info_filtered
+)
+
+
+```
+
+# LH analysis prep
+
+```{r}
+LHFilteredDi %>%
+  # LHPlot_noMean(
+  LHPlot(
+    fontSize = textSize
+    , dotSize = dotSize
+  ) +
+  facet_wrap(
+    ~comboTrt
+  )
+
+LHFilteredDi %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+    , time
+  ) %>%
+  meanSummary(
+    LH
+  )
+
+mixed(
+  LH ~ earlyLifeTrt * adultTrt * time + (1|damID) + (1|mouseID)
+  , LHFilteredDi %>%
+    filter(
+      time != 0
+    )
+  , method = "KR"
+)
+
+acuteStressFilteredDi_avgLH <- acuteStressFilteredDi %>%
+  left_join(
+    LHFilteredDi %>%
+      filter(
+        time %in% c(5, 7.5)
+      ) %>%
+      group_by(
+        mouseID
+      ) %>%
+      summarize(
+        avgLH = mean(LH, na.rm = TRUE)
+        , .groups = "drop"
+      )
+    , by = "mouseID"
+  )
+
+acuteStressFilteredDi_avgLH %>%
+  scatterPlotComboTrt(
+    yVar = avgLH
+    , yLab = "avg afternoon LH (ng/mL)"
+    , dotSize = dotSize
+    , fontSize = textSize
+    , addMeanSE = TRUE
+  )
+
+mixed(
+  avgLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , acuteStressFilteredDi_avgLH
+  , method = "KR"
+)
+  
+```
+
+```{r}
+mixed(
+  LH ~ earlyLifeTrt*Sac_cycle + (1|damID)
+  , LHFilteredFemales %>%
+    filter(
+      time == 0
+    )
+  , method = "KR"
+)
+```
+
+```{r}
+LH_proLMM <- mixed(
+  LH ~ earlyLifeTrt * adultTrt * time + (1|damID) + (1|mouseID)
+  , LHFilteredPro %>%
+    filter(
+      time %in% c(5, 5.5, 6.5, 7.5, 8.5, 9.5)
+    ) %>%
+    mutate(
+      time = factor(time)
+    )
+  , method = "KR"
+)
+
+LH_proLMM
+
+
+maxLH_proLMM <- mixed(
+  maxLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , acuteStressFilteredPro %>%
+    filter(
+      ! mouseID %in% slicingInfo$mouseID
+    )
+  , method = "KR"
+)
+
+maxLH_proLMM
+
+maxLH_proLMM_emm <- emmeans(
+  maxLH_proLMM
+  , "earlyLifeTrt"
+  , by = "adultTrt"
+)
+
+maxLH_proLMM_emm
+
+test(pairs(maxLH_proLMM_emm, simple = "earlyLifeTrt"), by = NULL, adjust = "holm")
+
+
+acuteStressFilteredPro %>%
+  filter(
+    ! mouseID %in% slicingInfo$mouseID
+  ) %>%
+  scatterPlotComboTrt_surgeAmp(
+    yVar = maxLH
+    , yLab = "maximum evening LH (ng/mL)"
+    , dotSize = dotSize
+    , fontSize = textSize
+    , addMeanSE = FALSE
+    , addSurgeMinLine = TRUE
+    , surgeMin = 3
+  )
+
+acuteStressFilteredPro %>%
+  filter(
+    !mouseID %in% slicingInfo$mouseID
+    , !is.na(maxLH)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    n()
+  )
+
+surgedDF %>%
+  filter(
+    !is.na(LH_hr7.5) & !is.na(LH_hr5.5)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    n()
+  )
+```
+
+```{r}
+acuteStressFilteredPro %>%
+  group_by(
+    forEphys 
+    , earlyLifeTrt
+    , adultTrt
+    , surged
+  ) %>%
+  summarize(
+    n()
+  )
+```
+
+```{r}
+acuteStressFilteredPro_ephys %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+    , surged
+  ) %>%
+  summarize(
+    n()
+  )
+```
+
+```{r}
+acuteStressFilteredPro_sampling %>%
+  filter(
+    is.na(LH_hr7.5)
+  )
+```
+
+
+```{r}
+LHFilteredPro_ephys %>%
+  filter(
+    time %in% c(5, 5.5)
+  ) %>%
+  addOrderedColors(
+    maxLH
+    , mouseID
+    , colorByGroups = FALSE
+    , pkg = "viridis"
+    , comboTrt
+  ) %>%
+  mutate(
+    color = ifelse(
+      maxLH < surgeMin
+      , "#C0C0C0"
+      , color
+    )
+  ) %>%
+  LHPlot_noMean_lineColor(
+    fontSize = textSize
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 40
+    , xBreaks = c(5, 5.5)
+    , xLabels = c(-2.5, -2)
+  ) + theme(
+    legend.position = "none"
+  ) + facet_wrap(
+    ~comboTrt,
+    scale = "free"
+  # ) +
+  # geom_hline(
+  #   yintercept = surgeMin
+  #   , color = "blue"
+  #   , alpha = 0.3
+  )
+```
+
+```{r}
+
+LHpro_ephys_lmm <- mixed(
+  LH ~ earlyLifeTrt * adultTrt * time + (1|damID) + (1|mouseID)
+  , LHFilteredPro_ephys %>%
+    mutate(
+      time = factor(time)
+    )
+  , method = "KR"
+)
+
+LHpro_ephys_lmm
+
+LHpro_ephys_lmm_emm <- emmeans(
+  LHpro_ephys_lmm
+  , "earlyLifeTrt"
+  , by = c("adultTrt", "time")
+)
+
+pairs(
+  LHpro_ephys_lmm_emm
+  , simple = "earlyLifeTrt"
+  , by = c("adultTrt", "time")
+  , adjust = "holm"
+)
+
+mixed(
+  maxLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , acuteStressFilteredPro_ephys
+  , method = "KR"
+)
+
+```
+
+
+```{r}
+LHFilteredPro_sampling %>%
+  filter(
+    time > 0
+  ) %>%
+  addOrderedColors(
+    maxLH
+    , mouseID
+    , colorByGroups = FALSE
+    , pkg = "viridis"
+    , comboTrt
+  ) %>%
+  mutate(
+    color = ifelse(
+      maxLH < surgeMin
+      , "#C0C0C0"
+      , color
+    )
+  ) %>%
+  LHPlot_noMean_lineColor(
+    fontSize = textSize
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 40
+    # , addPoint = FALSE
+  ) + theme(
+    legend.position = "none"
+  ) + facet_wrap(
+    ~comboTrt,
+    scale = "free"
+  # ) +
+  # geom_hline(
+  #   yintercept = surgeMin
+  #   , color = "blue"
+  #   , alpha = 0.3
+  )
+```
+
+```{r}
+ephysSurgedBinomial <- glm(surged ~ earlyLifeTrt + adultTrt + earlyLifeTrt:adultTrt
+    , family = "binomial" 
+    , data = acuteStressFilteredPro_ephys
+    )
+
+summary(ephysSurgedBinomial)
+```
+```{r}
+samplingSurgedBinomial <- glm(surged ~ earlyLifeTrt * adultTrt
+    , family = "binomial" 
+    , data = acuteStressFilteredPro_sampling
+    )
+
+summary(samplingSurgedBinomial)
+```
+
+```{r}
+summary(
+  glm(surged ~ adultTrt
+    , family = "binomial"
+    , data = acuteStressFilteredPro_sampling)
+)
+```
+
+```{r}
+mixed(
+  surged ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFilteredPro_sampling
+  , 
+  , method = "KR"
+)
+```
+
+```{r}
+contTable <- table(
+  acuteStressFilteredPro_sampling$comboTrt
+  , acuteStressFilteredPro_sampling$surged
+)
+
+contTable
+
+propSurged.Chi.Sq <- chisq.test(contTable)
+
+propSurged.Chi.Sq
+
+```
+
+```{r}
+# Pairwise comparison example: STD-CON vs STD-ALPS
+pairwise_table <- matrix(c(0, 8, 8, 8), nrow = 2, byrow = TRUE)
+
+# Fisher's exact test as counts are low in some cells
+pairwise_result <- fisher.test(pairwise_table)
+
+# Adjusting the p-value for multiple comparisons
+p_value_adjusted <- pairwise_result$p.value * 6  # Since there are 6 comparisons
+
+# Display adjusted p-value
+p_value_adjusted
+```
+
+
+```{r}
+
+propSurged.Chi.Sq.descriptives <- chisq_descriptives(propSurged.Chi.Sq.res)
+
+propSurged.Chi.Sq.descriptives
+```
+

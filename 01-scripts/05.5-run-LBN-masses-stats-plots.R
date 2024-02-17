@@ -163,12 +163,12 @@ statsAndPlot_AdrenalMass_ALPS <- comboTrt_scatterAndLMM(
 
 statsAndPlot_RelAdrenalMass_ALPS <- comboTrt_scatterAndLMM(
   expr(Adrenal_mass_perBodyAM_g)
-  , thisYLab = "normalized to AM mass\nadrenal mass (mg/g)"
+  , thisYLab = " \nadrenal mass (mg/g)\nnormalized to AM mass"
 )
 
 statsAndPlot_RelAdrenalMassPM_ALPS <- comboTrt_scatterAndLMM(
   expr(Adrenal_mass_perBody_g)
-  , thisYLab = "normalized to PM mass\nadrenal mass (mg/g)"
+  , thisYLab = " \nadrenal mass (mg/g)\nnormalized to PM mass"
 )
 
 statsAndPlot_SeminalVesicleMass_ALPS <- comboTrt_scatterAndLMM(
@@ -178,12 +178,12 @@ statsAndPlot_SeminalVesicleMass_ALPS <- comboTrt_scatterAndLMM(
 
 statsAndPlot_RelSeminalVesicleMass_ALPS <- comboTrt_scatterAndLMM(
   expr(ReproTract_mass_perBodyAM_g)
-  , thisYLab = "normalized to AM mass\nseminal vesicle mass (mg/g)"
+  , thisYLab = "seminal vesicle mass (mg/g)\nnormalized to AM mass"
 )
 
 statsAndPlot_RelSeminalVesicleMassPM_ALPS <- comboTrt_scatterAndLMM(
   expr(ReproTract_mass_perBody_g)
-  , thisYLab = "normalized to PM mass\nseminal vesicle mass (mg/g)"
+  , thisYLab = "seminal vesicle mass (mg/g)\nnormalized to PM mass"
 )
 
 statsAndPlot_TestesMass_ALPS <- comboTrt_scatterAndLMM(
@@ -193,12 +193,12 @@ statsAndPlot_TestesMass_ALPS <- comboTrt_scatterAndLMM(
 
 statsAndPlot_RelTestesMass_ALPS <- comboTrt_scatterAndLMM(
   expr(Gonad_mass_perBodyAM_g)
-  , thisYLab = "normalized to AM mass\ntesticular mass (mg/g)"
+  , thisYLab = "testicular mass (mg/g)\nnormalized to AM mass"
 )
 
 statsAndPlot_RelTestesMassPM_ALPS <- comboTrt_scatterAndLMM(
   expr(Gonad_mass_perBody_g)
-  , thisYLab = "normalized to PM mass\ntesticular mass (mg/g)"
+  , thisYLab = "testicular mass (mg/g)\nnormalized to PM mass"
 )
 
 
@@ -354,12 +354,12 @@ statsAndPlot_AdrenalMass_dosage <- dosage_scatterAndLMM(
 
 statsAndPlot_RelAdrenalMass_dosage <- dosage_scatterAndLMM(
   expr(Adrenal_mass_perBodyAM_g)
-  , thisYLab = "normalized to AM mass\nadrenal mass (mg/g)"
+  , thisYLab = "adrenal mass (mg/g)\nnormalized to AM mass"
 )
 
 statsAndPlot_RelAdrenalMassPM_dosage <- dosage_scatterAndLMM(
   expr(Adrenal_mass_perBody_g)
-  , thisYLab = "normalized to PM mass\nadrenal mass (mg/g)"
+  , thisYLab = "adrenal mass (mg/g)\nnormalized to PM mass"
 )
 
 statsAndPlot_SeminalVesicleMass_dosage <- dosage_scatterAndLMM(
@@ -369,12 +369,12 @@ statsAndPlot_SeminalVesicleMass_dosage <- dosage_scatterAndLMM(
 
 statsAndPlot_RelSeminalVesicleMass_dosage <- dosage_scatterAndLMM(
   expr(ReproTract_mass_perBodyAM_g)
-  , thisYLab = "normalized to AM mass\nseminal vesicle mass (mg/g)"
+  , thisYLab = "seminal vesicle mass (mg/g)\nnormalized to AM mass"
 )
 
 statsAndPlot_RelSeminalVesicleMassPM_dosage <- dosage_scatterAndLMM(
   expr(ReproTract_mass_perBody_g)
-  , thisYLab = "normalized to PM mass\nseminal vesicle mass (mg/g)"
+  , thisYLab = "seminal vesicle mass (mg/g)\nnormalized to PM mass"
 )
 
 statsAndPlot_TestesMass_dosage <- dosage_scatterAndLMM(
@@ -384,12 +384,12 @@ statsAndPlot_TestesMass_dosage <- dosage_scatterAndLMM(
 
 statsAndPlot_RelTestesMass_dosage <- dosage_scatterAndLMM(
   expr(Gonad_mass_perBodyAM_g)
-  , thisYLab = "normalized to AM mass\ntesticular mass (mg/g)"
+  , thisYLab = "testicular mass (mg/g)\nnormalized to AM mass"
 )
 
 statsAndPlot_RelTestesMassPM_dosage <- dosage_scatterAndLMM(
   expr(Gonad_mass_perBody_g)
-  , thisYLab = "normalized to PM mass\ntesticular mass (mg/g)"
+  , thisYLab = "testicular mass (mg/g)\nnormalized to PM mass"
 )
 
 # ALPS effects ------------------
@@ -1071,7 +1071,7 @@ maleTestesMass_dosage_lmm_emm_dosage <- emmeans(
 )
 
 maleTestesMass_dosage_lmm_emm_dosage.pairs <- test(
-  pairs(maleBodyMassAM_dosage_lmm_emm_dosage)
+  pairs(maleTestesMass_dosage_lmm_emm_dosage)
   , by = NULL
   , adjust = "holm"
 )

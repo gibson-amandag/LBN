@@ -596,6 +596,125 @@ female_cort_lmm_error <- female_cort_lmm_emm %>%
 # Male masses -------------------------------------------------------------
 
 
+# LH ----------------------------------------------------------------------
+
+## Diestrus ---------------------------------------------------------------
+
+LH_diAfternoon_lmm <- mixed(
+  avgLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFilteredDi
+  , method = "KR"
+)
+
+### Errors for graph ----------------------
+
+LH_diAfternoon_lmm_errors <- LH_diAfternoon_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+## Pro ephys --------------------------------------------------------------
+
+LH_proEphys_lmm <- mixed(
+  maxLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFilteredPro_ephys
+  , method = "KR"
+)
+
+### Post-hoc ---------------
+
+LH_proEphys_lmm_emm_earlyLifeTrt <- emmeans(
+    LH_proEphys_lmm
+    , "earlyLifeTrt"
+  )
+
+LH_proEphys_lmm_emm_earlyLifeTrt.pairs <- test(
+  pairs(LH_proEphys_lmm_emm_earlyLifeTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+LH_proEphys_lmm_emm_adultTrt <- emmeans(
+    LH_proEphys_lmm
+    , "adultTrt"
+  )
+
+LH_proEphys_lmm_emm_adultTrt.pairs <- test(
+  pairs(LH_proEphys_lmm_emm_adultTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+LH_proEphys_lmm_emm <- emmeans(
+  LH_proEphys_lmm
+  , "earlyLifeTrt"
+  , by = "adultTrt"
+)
+
+LH_proEphys_lmm_emm.pairs <- test(
+  pairs(LH_proEphys_lmm_emm)
+  , by = NULL
+  , adjust = "holm"
+)
+
+
+### Errors for graph ------------------------
+
+LH_proEphys_lmm_errors <- LH_proEphys_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+
+## Pro sampling --------------------------------------------------------------
+
+LH_proSampling_lmm <- mixed(
+  maxLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFilteredPro_sampling
+  , method = "KR"
+)
+
+### Post-hoc ------------
+LH_proSampling_lmm_emm_adultTrt <- emmeans(
+  LH_proSampling_lmm
+  , "adultTrt"
+)
+
+LH_proSampling_lmm_emm_adultTrt.pairs <- test(
+  pairs(LH_proSampling_lmm_emm_adultTrt)
+  , by = NULL
+  , adjust = "holm"
+)
+
+### Errors for graph ------------------------
+
+LH_proSampling_lmm_errors <- LH_proSampling_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+
+## Chi-squared pro ---------
+
+pro_ALPS_only <- acuteStressFilteredPro_sampling %>%
+  filter(
+    adultTrt == "ALPS"
+  )
+
+ALPS_contTable <- table(
+  pro_ALPS_only$earlyLifeTrt
+  , pro_ALPS_only$surged
+)
+
+propSurged.Chi.Sq.res <- chisq_test(ALPS_contTable) 
+
+propSurged.Chi.Sq.descriptives <-  chisq_descriptives(propSurged.Chi.Sq.res)
 
 # GABA - capacitance ------------------------------------------------------
 

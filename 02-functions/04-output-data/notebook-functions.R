@@ -45,7 +45,13 @@ subnParColNames <- function(tbl) {
 formatPCol <- function(df){
   df <- df %>%
     mutate(
-      p = ifelse(p < 0.001, "<0.001", format(round(p, 3), nsmall = 3, trim = TRUE))
+      p = ifelse(
+        p < 0.001, "<0.001"
+        , ifelse(
+          p > 0.999, ">0.999"
+          , format(round(p, 3), nsmall = 3, trim = TRUE)
+        )
+      )
     )
   return(df)
 }

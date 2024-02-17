@@ -1011,6 +1011,7 @@ plotCatVarFunc <- function(
     , fontSize = 16
     , dotSize = 3
     , twoLineXLabs = FALSE
+    , tiltedXLabs = FALSE
     , useFacetLabels = TRUE
     , useSpecYLab = FALSE
     , thisYLab = ""
@@ -1050,19 +1051,23 @@ plotCatVarFunc <- function(
     
     if(twoLineXLabs){
       plot <- plot + 
-        # scale_x_discrete(
-        #   labels = c(
-        #     "STD-CON" = "STD\nCON"
-        #     , "STD-ALPS" = "STD\nALPS"
-        #     , "LBN-CON" = "LBN\nCON"
-        #     , "LBN-ALPS" = "LBN\nALPS"
-        #     
-        #   )
-        # ) + 
-        theme(
-          axis.text.x = element_text(angle = 35, vjust = 1, hjust=1)
+        scale_x_discrete(
+          labels = c(
+            "STD-CON" = "STD\nCON"
+            , "STD-ALPS" = "STD\nALPS"
+            , "LBN-CON" = "LBN\nCON"
+            , "LBN-ALPS" = "LBN\nALPS"
+
+          )
         )
       
+    } else {
+      if(tiltedXLabs){
+        plot <- plot + 
+          theme(
+            axis.text.x = element_text(angle = 35, vjust = 1, hjust=1)
+          )
+      }
     }
     
     if(useFacetLabels){

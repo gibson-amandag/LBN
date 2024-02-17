@@ -746,12 +746,75 @@ LHFilteredDi <- LHFiltered %>%
   filterLHDi()
 
 
+# Left so things don't break, but adding in surged to the general acuteStressFilteredPro df
 surgedDF <- acuteStressFilteredPro %>%
   filter(
     !is.na(maxLH)
   ) %>%
   mutate(
     surged = maxLH > surgeMin
+  )
+
+acuteStressFilteredPro <- acuteStressFilteredPro %>%
+  mutate(
+    surged = ifelse(
+      is.na(maxLH)
+      , NA
+      , maxLH > surgeMin
+    )
+    , forEphys = ifelse(
+      mouseID %in% slicingInfo$mouseID
+      , TRUE
+      , FALSE
+    )
+  )
+
+acuteStressFilteredPro_ephys <- acuteStressFilteredPro %>%
+  filter(
+    forEphys == TRUE
+  )
+
+acuteStressFilteredPro_sampling <- acuteStressFilteredPro %>%
+  filter(
+    forEphys == FALSE
+  )
+
+acuteStressFilteredDi <- acuteStressFilteredDi %>%
+  left_join(
+    LHFilteredDi %>%
+      filter(
+        time %in% c(5, 7.5)
+      ) %>%
+      group_by(
+        mouseID
+      ) %>%
+      summarize(
+        avgLH = mean(LH, na.rm = TRUE)
+        , .groups = "drop"
+      )
+    , by = "mouseID"
+  )
+
+
+LHFilteredPro <- LHFilteredPro %>%
+  mutate(
+    forEphys = ifelse(
+      mouseID %in% slicingInfo$mouseID
+      , TRUE
+      , FALSE
+    )
+  )
+
+LHFilteredPro_ephys <- LHFilteredPro %>%
+  filter(
+    forEphys == TRUE
+    , time %in% c(0, 5, 5.5)
+  )
+
+LHFilteredPro_sampling <- LHFilteredPro %>%
+  filter(
+    forEphys == FALSE
+    , time %in% c(0, 5, 5.5, 6.5, 7.5, 8.5, 9.5)
   )
 
 

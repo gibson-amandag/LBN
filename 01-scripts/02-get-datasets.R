@@ -53,6 +53,9 @@ cellExclusion <- loadExcelSheet(dataFolder, LBN_DataName, "cellExclusion")
 
 damFrames <- loadExcelSheet(dataFolder, LBN_DataName, "damFrames")
 
+
+cortStdInfo <- loadExcelSheet(dataFolder, LBN_DataName, "cortStdInfo")
+
 # FORMAT DATASETS ---------------------------------------------------------
 
 #Make factor variables
