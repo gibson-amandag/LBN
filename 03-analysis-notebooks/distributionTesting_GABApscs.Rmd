@@ -1,0 +1,1137 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+pscProps <- loadExcelSheet(dataFolder, LBN_DataName, "pscProps")
+
+# pscProps <- pscProps %>%
+#   makeFactors(
+#     cols = cellID
+#   )
+
+pscProps <- pscProps %>%
+  left_join(
+    GABApscs_240 %>%
+      select(
+        cellID
+        , mouseID
+        , damID
+        , earlyLifeTrt
+        , adultTrt
+      )
+    , by = "cellID"
+  )
+```
+
+```{r}
+pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  meanSummary(
+    relPeak
+  )
+```
+
+
+```{r}
+GABApscs_240
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+
+Quantile summary
+
+```{r}
+install.packages("lqmm")
+```
+
+```{r}
+
+library(lqmm)
+
+# Assuming you have:
+# - `data`: Your dataset.
+# - `property`: A dependent variable.
+# - `earlyLifeTrt`: Early life treatment factor.
+# - `adultTrt`: Adult treatment factor.
+# - `mouseID`: Mouse ID factor.
+# - `cellID`: Cell ID factor.
+
+# Let's create a list to store models for different quantiles
+quantiles <- c(0.25, 0.5, 0.75)
+models <- list()
+
+# for (tau in quantiles) {
+#  models[[as.character(tau)]] <- lqmm(
+#     fixed = relPeak ~ earlyLifeTrt * adultTrt, 
+#     random = ~ 1 | mouseID/cellID,
+#     tau = tau, 
+#     data = data
+#   )
+# 
+# # Let's examine the summaries for each quantile
+# for (tau in names(models)) {
+#   cat("Summary for tau =", tau, "quantile:\n")
+#   print(summary(models[[tau]]))
+#   cat("\n\n")
+# }
+
+for (tau in quantiles) {
+  models[[as.character(tau)]] <- lqmm(
+    fixed = relPeak ~ earlyLifeTrt * adultTrt, 
+    random = ~ 1 | mouseID/cellID,
+    tau = tau, 
+    data = pscProps
+  )
+}
+
+# Let's examine the summaries for each quantile
+# This loop is separate from the one above and therefore needs its own opening curly brace.
+for (tau in names(models)) {
+  cat("Summary for tau =", tau, "quantile:\n")
+  print(summary(models[[tau]]))
+  cat("\n\n")
+}
+```
+
+
+```{r}
+# Fit models for specified quantiles
+for (tau in quantiles) {
+  model <- lqmm(
+    fixed = relPeak ~ earlyLifeTrt * adultTrt, 
+    random = ~ 1 | mouseID/cellID,
+    tau = tau, 
+    data = pscProps
+  )
+  models[[as.character(tau)]] <- model
+}
+
+# Examine the summaries for each quantile
+for (tau in names(models)) {
+  cat("Summary for tau =", tau, "quantile:\n")
+  print(summary(models[[tau]]))
+  cat("\n\n")
+}
+```
+
+
+```{r}
+model <- lqmm(
+  fixed = relPeak ~ earlyLifeTrt * adultTrt,
+  random = ~ 1 | mouseID,
+  tau = 0.50,
+  data = pscProps
+)
+
+```
+
+```{r}
+model <- lqmm(
+  fixed = relPeak ~ 1,  # A simple intercept-only model
+  random = ~ 1 | mouseID,
+  tau = 0.50,
+  data = pscProps
+)
+
+summary(model)
+```
+
+```{r}
+install.packages("lqmm")
+```
+
+
+```{r}
+library(lqmm)
+# set.seed(123)  # Set seed for reproducibility
+
+# Create sample data
+num_mice <- 30  # Let's assume we have 30 mice
+num_measurements <- 5  # Each mouse has 5 measurements
+
+# Generate a data frame
+sample_data <- expand.grid(
+  mouseID = factor(1:num_mice),       # Mouse ID factor
+  measurementID = 1:num_measurements  # Measurement within each mouse
+)
+
+# Simulate a response variable with some random noise and a treatment effect
+sample_data$response <- 10 +  # Some baseline response level
+                         ifelse(sample_data$mouseID %% 2 == 0, 3, -2) +  # Treatment A or B effect
+                         rnorm(nrow(sample_data), mean = 0, sd = 1)  # Add some noise
+
+# Simulate a treatment factor with two levels
+# (e.g., even mouse IDs receive treatment A, odd receive treatment B)
+sample_data$treatment <- ifelse(sample_data$mouseID %% 2 == 0, "TreatmentA", "TreatmentB")
+sample_data$treatment <- as.factor(sample_data$treatment)  # Convert to factor
+
+# Simple lqmm with random intercept for each mouse
+model <- lqmm(
+  fixed = response ~ treatment,
+  random = ~ 1 | mouseID,
+  tau = 0.5,  # Fitting at the median (0.5 quantile)
+  data = sample_data
+)
+
+# View the summary of the model
+summary(model)
+```
+
+```{r}
+model <- lqmm(fixed = response ~ treatment, tau = 0.5, data = sample_data)
+```
+
+
+```{r}
+# We will also assume that pscProps$relPeak, pscProps$earlyLifeTrt, and pscProps$adultTrt are appropriately formatted.
+# Convert mouseID to character as shown in the Orthodont example, if it's not already:
+pscProps$mouseID <- as.character(pscProps$mouseID)
+pscProps$cellID <- as.character(pscProps$cellID)
+
+# Fit a simple quantile regression with random intercept for mouseID
+# Note: 'group' instead of 'groups', no nesting with '/', and mouseID as a character
+fit_lqmm <- lqmm(
+  fixed = relPeak ~ earlyLifeTrt * adultTrt,
+  random = ~ 1,
+  group = mouseID,
+  tau = 0.5,  # median
+  data = pscProps
+)
+
+# Check the summary
+summary(fit_lqmm)
+```
+
+```{r}
+# Generate sample data
+sample_size <- 100  # Define the total number of observations
+
+# Create a data frame with a binary treatment variable and a random mouseID
+sample_data <- data.frame(
+  mouseID = as.character(rep(1:10, each = sample_size / 10)), # 10 mice, each with 10 measurements
+  treatment = sample(rep(c("Control", "Treatment"), each = sample_size / 2)), # Binary treatment
+  response = rnorm(sample_size, mean = 100, sd = 10) # Response with normal distribution
+)
+
+# Add an effect of treatment and random noise by mouseID
+sample_data$response[sample_data$treatment == "Treatment"] <- sample_data$response[sample_data$treatment == "Treatment"] + 20
+sample_data$response <- sample_data$response + rnorm(n = 10, mean = 0, sd = 5)[as.numeric(sample_data$mouseID)]
+
+# Convert 'treatment' to a factor
+sample_data$treatment <- as.factor(sample_data$treatment)
+
+# Fit a quantile regression model using lqmm
+fit_sample_lqmm <- lqmm(
+  fixed = response ~ treatment,
+  random = ~ 1,
+  group = mouseID,
+  tau = 0.5,  # median
+  data = sample_data
+)
+
+# Check the summary of the model
+summary(fit_sample_lqmm)
+```
+
+
+```{r}
+str(pscProps)
+```
+
+```{r}
+summary(pscProps$relPeak)
+```
+
+
+```{r}
+levels(pscProps$earlyLifeTrt)
+levels(pscProps$adultTrt)
+```
+
+```{r}
+sum(is.na(pscProps$relPeak))
+sum(is.nan(pscProps$relPeak))
+sum(is.infinite(pscProps$relPeak))
+
+any(is.na(pscProps$mouseID))
+any(is.na(pscProps$earlyLifeTrt))
+any(is.na(pscProps$adultTrt))
+```
+
+```{r}
+table(pscProps$mouseID)
+```
+
+```{r}
+head(pscProps, n = 20)  # Show the first 20 rows of the data
+```
+
+
+```{r}
+# Convert 'mouseID' to a factor
+pscProps$mouseID <- as.factor(pscProps$mouseID)
+
+# Fit a basic quantile regression model with random intercepts for 'mouseID'
+fit_basic_lqmm <- lqmm(
+  fixed = relPeak ~ earlyLifeTrt + adultTrt,
+  random = ~ 1,
+  group = mouseID,
+  tau = 0.25,  # median
+  data = pscProps
+)
+
+# Check the summary of the model
+summary(fit_basic_lqmm)
+```
+
+
+```{r}
+subset_pscProps <- pscProps[pscProps$mouseID %in% c("701", "702", "713", "714"),]
+
+# Fit the model on the subset
+fit_basic_lqmm_subset <- lqmm(
+  fixed = relPeak ~ earlyLifeTrt + adultTrt,
+  random = ~ 1,
+  group = mouseID,
+  tau = 0.5,
+  data = subset_pscProps
+)
+
+pscProps %>%
+  group_by(
+    mouseID
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    n()
+  )
+```
+
+This one works with fwhm. It doesn't for relPeak
+```{r}
+testModel <- lqmm(fwhm ~ earlyLifeTrt * adultTrt
+     , random = ~1
+     , group = cellID
+     , tau = 0.5
+     , data = pscProps
+   )
+```
+This one works with fwhm. It doesn't for relPeak
+```{r}
+testModel <- lqmm(fwhm ~ earlyLifeTrt * adultTrt
+     , random = ~ 1
+     , group = cellID
+     , tau = 0.5
+     , data = pscProps
+   )
+```
+
+# Full width half max - Quantile analysis - works
+
+```{r}
+# Let's create a list to store models for different quantiles
+quantiles <- c(
+  0.25
+  , 0.5
+  , 0.75
+)
+models <- list()
+
+for (tau in quantiles) {
+  models[[as.character(tau)]] <- lqmm(
+    fwhm ~ earlyLifeTrt * adultTrt
+    , random = ~ 1
+    , group = cellID
+    , tau = tau
+    , data = pscProps
+    , control = lqmmControl(
+      LP_max_iter = 2000
+    ) 
+   )
+  
+}
+
+# Let's examine the summaries for each quantile
+for (tau in names(models)) {
+  cat("Summary for tau =", tau, "quantile:\n")
+  print(summary(models[[tau]]))
+  cat("\n\n")
+}
+```
+
+# Rise time - Quantile analysis - works
+
+```{r}
+# Let's create a list to store models for different quantiles
+quantiles <- c(
+  0.25
+  , 0.5
+  , 0.75
+)
+models <- list()
+
+for (tau in quantiles) {
+  models[[as.character(tau)]] <- lqmm(
+    riseTime ~ earlyLifeTrt * adultTrt
+    , random = ~ 1
+    , group = cellID
+    , tau = tau
+    , data = pscProps
+    , control = lqmmControl(
+      LP_max_iter = 2000
+    ) 
+   )
+  
+}
+
+# Let's examine the summaries for each quantile
+for (tau in names(models)) {
+  cat("Summary for tau =", tau, "quantile:\n")
+  print(summary(models[[tau]]))
+  cat("\n\n")
+}
+```
+
+# Decay time - Quantile analysis - doesn't work
+
+```{r}
+# Let's create a list to store models for different quantiles
+quantiles <- c(
+  0.25
+  , 0.5
+  , 0.75
+)
+models <- list()
+
+for (tau in quantiles) {
+  models[[as.character(tau)]] <- lqmm(
+    decay9010 ~ earlyLifeTrt * adultTrt
+    , random = ~ 1
+    , group = cellID
+    , tau = tau
+    , data = pscProps
+    , control = lqmmControl(
+      LP_max_iter = 2000
+    ) 
+   )
+  
+}
+
+# Let's examine the summaries for each quantile
+for (tau in names(models)) {
+  cat("Summary for tau =", tau, "quantile:\n")
+  print(summary(models[[tau]]))
+  cat("\n\n")
+}
+```
+# Relative peak - quantile analysis - doesn't work
+
+```{r}
+# Let's create a list to store models for different quantiles
+quantiles <- c(
+  0.25
+  , 0.5
+  , 0.75
+)
+models <- list()
+
+for (tau in quantiles) {
+  models[[as.character(tau)]] <- lqmm(
+    relPeak ~ earlyLifeTrt * adultTrt
+    , random = ~ 1
+    , group = cellID
+    , tau = tau
+    , data = pscProps
+    , control = lqmmControl(
+      LP_max_iter = 2000
+    ) 
+   )
+  
+}
+
+# Let's examine the summaries for each quantile
+for (tau in names(models)) {
+  cat("Summary for tau =", tau, "quantile:\n")
+  print(summary(models[[tau]]))
+  cat("\n\n")
+}
+```
+
+# kSamples distributions
+
+```{r}
+install.packages("kSamples")
+```
+
+```{r}
+library(kSamples)
+```
+
+## 4-way Anderson-Darling
+
+```{r}
+group_STD_CON <- pscProps$relPeak[pscProps$earlyLifeTrt == "STD" & pscProps$adultTrt == "CON"]
+group_STD_ALPS <- pscProps$relPeak[pscProps$earlyLifeTrt == "STD" & pscProps$adultTrt == "ALPS"]
+group_LBN_CON <- pscProps$relPeak[pscProps$earlyLifeTrt == "LBN" & pscProps$adultTrt == "CON"]
+group_LBN_ALPS <- pscProps$relPeak[pscProps$earlyLifeTrt == "LBN" & pscProps$adultTrt == "ALPS"]
+
+# Perform the Anderson-Darling test to compare the four distributions
+ad_test_result <- ad.test(group_STD_CON, group_STD_ALPS, group_LBN_CON, group_LBN_ALPS)
+
+# Output the results
+print(ad_test_result)
+```
+
+### Pairwise
+
+```{r}
+groups_list <- list(
+  "STD-CON" = group_STD_CON
+  , "STD-ALPS" = group_STD_ALPS
+  , "LBN-CON" = group_LBN_CON
+  , "LBN-ALPS" = group_LBN_ALPS
+)
+# Pairwise Anderson-Darling tests
+pairs <- combn(length(groups_list), 2, simplify = FALSE)
+pairwise_results <- lapply(pairs, function(p) {
+  list(groups = p, 
+       test_result = ad.test(groups_list[[p[1]]], groups_list[[p[2]]]))
+})
+
+# Print the pairwise test results
+for (result in pairwise_results) {
+  cat("Comparing Group", result$groups[1], "and Group", result$groups[2], ":\n")
+  print(result$test_result)
+  cat("\n")
+}
+```
+
+```{r}
+getAD_Pval <- function(result, version = 1, fromPaired = FALSE){
+  if(fromPaired){
+    result <- result$test_result
+  }
+  tbl <- result$ad
+  tbl_tibble <- tbl %>% as.tibble()
+  p_val <- tbl_tibble$` asympt. P-value`[[version]]
+  return(p_val)
+}
+```
+
+
+### Adjusted
+```{r}
+# Assuming 'pairwise_results' contains the results of your pairwise Anderson-Darling tests
+# Extracting p-values from the test results
+p_values <- sapply(pairwise_results, function(result){
+  p_val <- getAD_Pval(result, fromPaired = TRUE)
+  return(p_val)
+})
+
+# Apply the Holm correction to the p-values
+p_adjusted <- p.adjust(p_values, method = "holm")
+
+# Pairwise comparison labels
+pair_labels <- sapply(pairs, function(p) paste("Group", p[1], "vs Group", p[2]))
+
+# Combine the labels and adjusted p-values into a data frame for a clearer presentation
+comparison_results <- data.frame(
+  Pair = pair_labels,
+  P_Value = p_values,
+  P_Adjusted = p_adjusted
+)
+
+# Print the results with Holm correction
+print(comparison_results)
+```
+
+
+Missing the pairwise
+
+
+```{r}
+# Bootstrap undersampling function
+undersample_data <- function(data, max_per_cell = 15) {
+  # Split data by cellID
+  data_split <- split(data, data$cellID)
+  
+  # Sample up to max_per_cell observations per cellID
+  data_sampled <- do.call("rbind", lapply(data_split, function(events) {
+    if(nrow(events) > max_per_cell) {
+      events[sample(1:nrow(events), max_per_cell), ]
+    } else {
+      events
+    }
+  }))
+  
+  return(data_sampled)
+}
+
+# Initialize list to store ad.test results from each bootstrap iteration
+bootstrap_results <- vector("list", 500)
+
+# Perform the ad.test 200 times using undersampled data
+for (i in 1:500) {
+  # Create an undersampled dataset
+  undersampled_data <- undersample_data(pscProps)
+  
+  # Calculate the Anderson-Darling test from the undersampled data
+  group_STD_CON <- undersampled_data$relPeak[undersampled_data$earlyLifeTrt == "STD" & undersampled_data$adultTrt == "CON"]
+  group_STD_ALPS <- undersampled_data$relPeak[undersampled_data$earlyLifeTrt == "STD" & undersampled_data$adultTrt == "ALPS"]
+  group_LBN_CON <- undersampled_data$relPeak[undersampled_data$earlyLifeTrt == "LBN" & undersampled_data$adultTrt == "CON"]
+  group_LBN_ALPS <- undersampled_data$relPeak[undersampled_data$earlyLifeTrt == "LBN" & undersampled_data$adultTrt == "ALPS"]
+  
+  # Perform the 4-way Anderson-Darling test
+  ad_test_result <- kSamples::ad.test(group_STD_CON, group_STD_ALPS, group_LBN_CON, group_LBN_ALPS)
+  
+  # Store results in list
+  bootstrap_results[[i]] <- ad_test_result
+}
+
+# Extract p-values from each result and apply the Holm correction
+bootstrap_p_values <- sapply(bootstrap_results, function(result){
+  p_val <- getAD_Pval(result)
+  return(p_val)
+})
+
+average_p_value <- format(round(mean(bootstrap_p_values), 3), nsmall = 3)
+
+print(paste("Average p-value across bootstrap replications:", average_p_value))
+```
+
+```{r}
+pscProps %>%
+  group_by(
+    cellID
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    nEvents = n()
+    , .groups = "drop"
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(
+    nEvents
+  )
+```
+
+
+Saving the mean vectors - doesn't work
+
+```{r}
+# Extended bootstrap undersampling function to return list of vectors
+undersample_data_groups <- function(data, max_per_cell = 15) {
+  # Split data by cellID
+  data_split <- split(data, data$cellID)
+  
+  # Sample up to max_per_cell observations per cellID
+  data_sampled <- do.call("rbind", lapply(data_split, function(events) {
+    if(nrow(events) > max_per_cell) {
+      events[sample(1:nrow(events), max_per_cell), ]
+    } else {
+      events
+    }
+  }))
+
+  # Split into groups after undersampling
+  group_vectors <- list(
+    STD_CON = data_sampled$relPeak[data_sampled$earlyLifeTrt == "STD" & data_sampled$adultTrt == "CON"],
+    STD_ALPS = data_sampled$relPeak[data_sampled$earlyLifeTrt == "STD" & data_sampled$adultTrt == "ALPS"],
+    LBN_CON = data_sampled$relPeak[data_sampled$earlyLifeTrt == "LBN" & data_sampled$adultTrt == "CON"],
+    LBN_ALPS = data_sampled$relPeak[data_sampled$earlyLifeTrt == "LBN" & data_sampled$adultTrt == "ALPS"]
+  )
+  
+  return(group_vectors)
+}
+
+# Create matrices to store accumulated values for each group
+group_STD_CON_accum <- matrix(nrow=500, ncol=15)
+group_STD_ALPS_accum <- matrix(nrow=500, ncol=15)
+group_LBN_CON_accum <- matrix(nrow=500, ncol=15)
+group_LBN_ALPS_accum <- matrix(nrow=500, ncol=15)
+
+# Perform the ad.test 500 times using undersampled data
+for (i in 1:500) {
+  # Get the undersampled group vectors
+  groups <- undersample_data_groups(pscProps)
+  
+  # Accumulate the values
+  group_STD_CON_accum[i, ] <- groups$STD_CON
+  group_STD_ALPS_accum[i, ] <- groups$STD_ALPS
+  group_LBN_CON_accum[i, ] <- groups$LBN_CON
+  group_LBN_ALPS_accum[i, ] <- groups$LBN_ALPS
+}
+
+# Function to calculate the mean across each column (observation) in the matrices
+mean_across_iterations <- function(matrix) {
+  colMeans(matrix, na.rm=TRUE)
+}
+
+# Calculate the average vectors across all bootstrap iterations
+average_vector_STD_CON <- mean_across_iterations(group_STD_CON_accum)
+average_vector_STD_ALPS <- mean_across_iterations(group_STD_ALPS_accum)
+average_vector_LBN_CON <- mean_across_iterations(group_LBN_CON_accum)
+average_vector_LBN_ALPS <- mean_across_iterations(group_LBN_ALPS_accum)
+
+# Perform a final Anderson-Darling test using the average vectors
+final_ad_test_result <- kSamples::ad.test(
+  average_vector_STD_CON,
+  average_vector_STD_ALPS,
+  average_vector_LBN_CON,
+  average_vector_LBN_ALPS
+)
+
+# Output the final test result
+print(final_ad_test_result)
+```
+
+This only gives one value for each group
+```{r}
+# Extended bootstrap undersampling function to return list of vectors
+undersample_data_groups <- function(data, max_per_cell = 15) {
+  # Split data by cellID
+  data_split <- split(data, data$cellID)
+  
+  # Sample up to max_per_cell observations per cellID
+  data_sampled <- do.call("rbind", lapply(data_split, function(events) {
+    if(nrow(events) > max_per_cell) {
+      events[sample(1:nrow(events), max_per_cell), ]
+    } else {
+      events
+    }
+  }))
+
+  # Split into groups after undersampling
+  group_vectors <- list(
+    STD_CON = data_sampled$relPeak[data_sampled$earlyLifeTrt == "STD" & data_sampled$adultTrt == "CON"],
+    STD_ALPS = data_sampled$relPeak[data_sampled$earlyLifeTrt == "STD" & data_sampled$adultTrt == "ALPS"],
+    LBN_CON = data_sampled$relPeak[data_sampled$earlyLifeTrt == "LBN" & data_sampled$adultTrt == "CON"],
+    LBN_ALPS = data_sampled$relPeak[data_sampled$earlyLifeTrt == "LBN" & data_sampled$adultTrt == "ALPS"]
+  )
+  
+  return(group_vectors)
+}
+
+# Function to compile all values into a list while doing the bootstrap
+accumulate_samples <- function(group_list, group_samples) {
+  for (group_name in names(group_list)) {
+    group_list[[group_name]] <- c(group_list[[group_name]], group_samples[[group_name]])
+  }
+  return(group_list)
+}
+
+# Initialize lists to accumulate values
+group_samples_list <- list(
+  STD_CON = c(),
+  STD_ALPS = c(),
+  LBN_CON = c(),
+  LBN_ALPS = c()
+)
+
+# Perform the ad.test 500 times using undersampled data
+for (i in 1:500) {
+  # Get the undersampled group vectors
+  groups <- undersample_data_groups(pscProps)
+  
+  # Accumulate sample values across all bootstrap iterations
+  group_samples_list <- accumulate_samples(group_samples_list, groups)
+}
+
+# Function to calculate the mean of vectors in a list
+mean_of_vector_list <- function(vector_list) {
+  sapply(vector_list, function(x) mean(x, na.rm = TRUE))
+}
+
+# Calculate the average vector for each group
+average_vectors <- mean_of_vector_list(group_samples_list)
+
+# Conduct the Anderson-Darling test
+final_ad_test_result <- ad.test(
+  x = list(
+    average_vectors[['STD_CON']],
+    average_vectors[['STD_ALPS']],
+    average_vectors[['LBN_CON']],
+    average_vectors[['LBN_ALPS']]
+  )
+)
+
+# Output the final test result
+print(final_ad_test_result)
+```
+
+```{r}
+# Extended bootstrap undersampling function to return list of vectors
+undersample_data_groups <- function(data, max_per_cell = 15) {
+  # Split data by cellID
+  data_split <- split(data, data$cellID)
+  
+  # Sample up to max_per_cell observations per cellID
+  data_sampled <- do.call("rbind", lapply(data_split, function(events) {
+    if(nrow(events) > max_per_cell) {
+      events[sample(1:nrow(events), max_per_cell), ]
+    } else {
+      events
+    }
+  }))
+
+  # Split into groups after undersampling
+  group_vectors <- list(
+    STD_CON = data_sampled$relPeak[data_sampled$earlyLifeTrt == "STD" & data_sampled$adultTrt == "CON"],
+    STD_ALPS = data_sampled$relPeak[data_sampled$earlyLifeTrt == "STD" & data_sampled$adultTrt == "ALPS"],
+    LBN_CON = data_sampled$relPeak[data_sampled$earlyLifeTrt == "LBN" & data_sampled$adultTrt == "CON"],
+    LBN_ALPS = data_sampled$relPeak[data_sampled$earlyLifeTrt == "LBN" & data_sampled$adultTrt == "ALPS"]
+  )
+  
+  return(group_vectors)
+}
+
+# Function to accumulate samples in a list of vectors for each group
+accumulate_samples <- function(accumulated_samples, new_samples) {
+  lapply(names(accumulated_samples), function(group) {
+    list(c(accumulated_samples[[group]], new_samples[[group]]))
+  })
+}
+
+# Initialize lists to accumulate values for each group (one list per group)
+accumulated_samples_list <- list(
+  STD_CON = vector("list", 500),
+  STD_ALPS = vector("list", 500),
+  LBN_CON = vector("list", 500),
+  LBN_ALPS = vector("list", 500)
+)
+
+# Perform the bootstrap 500 times using undersampled data
+for (i in 1:500) {
+  groups <- undersample_data_groups(pscProps) # Your existing function
+  
+  # Accumulate the samples across all bootstrap iterations for each group
+  accumulated_samples_list <- lapply(names(accumulated_samples_list), function(group) {
+    accumulated_samples_list[[group]][[i]] <- groups[[group]]
+    accumulated_samples_list[[group]]
+  })
+}
+
+accumulated_samples_list[["STD_CON"]]
+
+# Now, accumulated_samples_list contains a list of vectors for the distribution of relPeak for each group
+
+# To calculate average vectors for each group
+average_vectors <- lapply(accumulated_samples_list, function(group_list) {
+  mean_values <- sapply(group_list, mean, na.rm = TRUE)
+  mean(mean_values, na.rm = TRUE)
+})
+
+# Now average_vectors contains an average of means for each bootstrap sample per treatment group.
+# The average_vectors will look like this: list(STD_CON = X.XX, STD_ALPS = X.XX, ...)
+print(average_vectors[["STD_CON"]])
+```
+
+
+
+
+
+
+```{r}
+# Bootstrap undersampling function (same as before)
+undersample_data <- function(data, max_per_cell = 20) {
+  # ... (Function definition remains the same as previously provided)
+}
+
+# Function for performing all pairwise Anderson-Darling tests
+pairwise_ad_test <- function(groups_list) {
+  pairs <- combn(names(groups_list), 2, simplify = FALSE)
+  pairwise_results <- lapply(pairs, function(p) {
+    list(groups = p, 
+         test_result = ad.test(groups_list[[p[1]]], groups_list[[p[2]]]))
+  })
+  
+  # Extract p-values
+  p_values <- sapply(pairwise_results, function(result) result$test_result$p.value)
+  
+  # Holm correction
+  p_adjusted <- p.adjust(p_values, method = "holm")
+  names(p_adjusted) <- sapply(pairs, function(p) paste(p[1], "vs", p[2]))
+  
+  return(p_adjusted)
+}
+
+# Store p-value matrices for each bootstrap iteration
+p_value_matrices <- vector("list", 200)
+
+# Perform 200 bootstrap replications
+for (i in 1:200) {
+  # Create an undersampled dataset
+  undersampled_data <- undersample_data(pscProps)
+  
+  # Split into groups
+  groups_list <- list(
+    STD_CON = undersampled_data$relPeak[undersampled_data$earlyLifeTrt == "STD" & undersampled_data$adultTrt == "CON"],
+    STD_ALPS = undersampled_data$relPeak[undersampled_data$earlyLifeTrt == "STD" & undersampled_data$adultTrt == "ALPS"],
+    LBN_CON = undersampled_data$relPeak[undersampled_data$earlyLifeTrt == "LBN" & undersampled_data$adultTrt == "CON"],
+    LBN_ALPS = undersampled_data$relPeak[undersampled_data$earlyLifeTrt == "LBN" & undersampled_data$adultTrt == "ALPS"]
+  )
+  
+  # Perform pairwise Anderson-Darling tests with Holm correction
+  p_value_matrices[[i]] <- pairwise_ad_test(groups_list)
+}
+
+# Average the adjusted p-values across all pairwise comparisons and bootstrap replications
+average_pvalues <- Reduce("+", p_value_matrices) / length(p_value_matrices)
+
+# Display the averaged adjusted p-values
+print(average_pvalues)
+```
+
+
+
+# Getting an average vector for each group and then running the anderson-darling test on this
+
+```{r}
+average_sorted_vectors <- function(vector_list, sortDec = FALSE) {
+  # Check if all vectors are of the same length
+  lengths <- sapply(vector_list, length)
+  unique_lengths <- unique(lengths)
+  
+  if(length(unique_lengths) != 1) {
+    stop("Not all vectors are of the same length.")
+  }
+  
+  # Sort each vector individually
+  sorted_vectors <- lapply(vector_list, function(x) sort(x, decreasing = sortDec))
+  
+  # Calculate the average for each position
+  average_vector <- Reduce("+", sorted_vectors) / length(sorted_vectors)
+  
+  # Return the average vector
+  return(average_vector)
+}
+
+# Extended bootstrap undersampling function to return list of vectors
+undersample_data_groups <- function(data, max_per_cell = 15) {
+  # Split data by cellID
+  data_split <- split(data, data$cellID)
+  
+  # Sample up to max_per_cell observations per cellID
+  data_sampled <- do.call("rbind", lapply(data_split, function(events) {
+    if(nrow(events) > max_per_cell) {
+      events[sample(1:nrow(events), max_per_cell), ]
+    } else {
+      events
+    }
+  }))
+
+  # Split into groups after undersampling
+  group_vectors <- list(
+    STD_CON = data_sampled$relPeak[data_sampled$earlyLifeTrt == "STD" & data_sampled$adultTrt == "CON"],
+    STD_ALPS = data_sampled$relPeak[data_sampled$earlyLifeTrt == "STD" & data_sampled$adultTrt == "ALPS"],
+    LBN_CON = data_sampled$relPeak[data_sampled$earlyLifeTrt == "LBN" & data_sampled$adultTrt == "CON"],
+    LBN_ALPS = data_sampled$relPeak[data_sampled$earlyLifeTrt == "LBN" & data_sampled$adultTrt == "ALPS"]
+  )
+  
+  return(group_vectors)
+}
+
+nIterations <- 50
+
+STD_CON_vals = vector("list", nIterations)
+STD_ALPS_vals = vector("list", nIterations)
+LBN_CON_vals = vector("list", nIterations)
+LBN_ALPS_vals = vector("list", nIterations)
+
+# Perform the ad.test 500 times using undersampled data
+for (i in 1:nIterations) {
+  # Get the undersampled group vectors
+  groups <- undersample_data_groups(pscProps)
+  
+  # Accumulate sample values across all bootstrap iterations
+  STD_CON_vals[[i]] = groups$STD_CON
+  STD_ALPS_vals[[i]] = groups$STD_ALPS
+  LBN_CON_vals[[i]] = groups$LBN_CON
+  LBN_ALPS_vals[[i]] = groups$LBN_ALPS
+}
+
+# doesn't ultimately matter, but sorted descending since this is relPeak
+STD_CON_avg <- average_sorted_vectors(STD_CON_vals, sortDec = TRUE)
+STD_ALPS_avg <- average_sorted_vectors(STD_ALPS_vals, sortDec = TRUE)
+LBN_CON_avg <- average_sorted_vectors(LBN_CON_vals, sortDec = TRUE)
+LBN_ALPS_avg <- average_sorted_vectors(LBN_ALPS_vals, sortDec = TRUE)
+
+
+# Conduct the Anderson-Darling test
+final_ad_test_result <- ad.test(
+  x = list(
+    STD_CON_avg
+    , STD_ALPS_avg
+    , LBN_CON_avg
+    , LBN_ALPS_avg
+  )
+)
+
+# Output the final test result
+print(final_ad_test_result)
+```
+
+```{r}
+# Convert average vectors to data frames
+data_STD_CON <- data.frame(
+  Value = STD_CON_avg
+  , earlyLifeTrt = "STD"
+  , adultTrt = "CON"
+)
+data_STD_ALPS <- data.frame(
+  Value = STD_ALPS_avg
+  , earlyLifeTrt = "STD"
+  , adultTrt = "ALPS"
+)
+data_LBN_CON <- data.frame(
+  Value = LBN_CON_avg
+  , earlyLifeTrt = "LBN"
+  , adultTrt = "CON"
+)
+data_LBN_ALPS <- data.frame(
+  Value = LBN_ALPS_avg
+  , earlyLifeTrt = "LBN"
+  , adultTrt = "ALPS"
+)
+
+# Calculate ECDF for each group within the data
+calc_ecdf <- function(data){
+  data <- data %>%
+    arrange(Value) %>%
+    mutate(CumProb = ecdf(-Value)(-Value)
+    #        ) %>%
+    # mutate(Value = -Value # Flip the values for reverse plotting
+           )  
+  return(data)
+}
+
+# Apply the function to each data frame separately
+data_STD_CON <- calc_ecdf(data_STD_CON)
+data_STD_ALPS <- calc_ecdf(data_STD_ALPS)
+data_LBN_CON <- calc_ecdf(data_LBN_CON)
+data_LBN_ALPS <- calc_ecdf(data_LBN_ALPS)
+
+# Combine all data frames into one
+cdf_data <- rbind(data_STD_CON, data_STD_ALPS, data_LBN_CON, data_LBN_ALPS) %>%
+  combineStress()
+
+# Plot using ggplot2
+plot_max15 <- ggplot(cdf_data, aes(x = Value, y = CumProb, color = comboTrt)) +
+  geom_step() +
+  scale_x_reverse() +
+  labs(
+    x = "relative peak (pA)", 
+    y = "Cumulative Probability", 
+    color = "Treatment"
+  ) +
+  boxTheme() + 
+  textTheme(size = 16) +
+  comboTrtLineColor() +
+  coord_cartesian(xlim = c(0, -100))
+
+plot_max100
+plot_max15
+```
+```{r}
+group_vectors <- list(
+    STD_CON = pscProps$relPeak[pscProps$earlyLifeTrt == "STD" & pscProps$adultTrt == "CON"],
+    STD_ALPS = pscProps$relPeak[pscProps$earlyLifeTrt == "STD" & pscProps$adultTrt == "ALPS"],
+    LBN_CON = pscProps$relPeak[pscProps$earlyLifeTrt == "LBN" & pscProps$adultTrt == "CON"],
+    LBN_ALPS = pscProps$relPeak[pscProps$earlyLifeTrt == "LBN" & pscProps$adultTrt == "ALPS"]
+  )
+
+
+# Convert average vectors to data frames
+data_STD_CON <- data.frame(
+  Value = group_vectors[["STD_CON"]]
+  , earlyLifeTrt = "STD"
+  , adultTrt = "CON"
+)
+data_STD_ALPS <- data.frame(
+  Value = group_vectors[["STD_ALPS"]]
+  , earlyLifeTrt = "STD"
+  , adultTrt = "ALPS"
+)
+data_LBN_CON <- data.frame(
+  Value = group_vectors[["LBN_CON"]]
+  , earlyLifeTrt = "LBN"
+  , adultTrt = "CON"
+)
+data_LBN_ALPS <- data.frame(
+  Value = group_vectors[["LBN_ALPS"]]
+  , earlyLifeTrt = "LBN"
+  , adultTrt = "ALPS"
+)
+
+# Calculate ECDF for each group within the data
+calc_ecdf <- function(data){
+  data <- data %>%
+    arrange(Value) %>%
+    mutate(CumProb = ecdf(-Value)(-Value)
+    #        ) %>%
+    # mutate(Value = -Value # Flip the values for reverse plotting
+           )  
+  return(data)
+}
+
+# Apply the function to each data frame separately
+data_STD_CON <- calc_ecdf(data_STD_CON)
+data_STD_ALPS <- calc_ecdf(data_STD_ALPS)
+data_LBN_CON <- calc_ecdf(data_LBN_CON)
+data_LBN_ALPS <- calc_ecdf(data_LBN_ALPS)
+
+# Combine all data frames into one
+cdf_data <- rbind(data_STD_CON, data_STD_ALPS, data_LBN_CON, data_LBN_ALPS) %>%
+  combineStress()
+
+# Plot using ggplot2
+ggplot(cdf_data, aes(x = Value, y = CumProb, color = comboTrt)) +
+  geom_step() +
+  scale_x_reverse() +
+  labs(
+    x = "relative peak (pA)", 
+    y = "Cumulative Probability", 
+    color = "Treatment"
+  ) +
+  boxTheme() + 
+  textTheme(size = 16) +
+  comboTrtLineColor() +
+  coord_cartesian(xlim = c(0, -100))
+```
+
+
+```{r}
+
+
+# Example usage:
+vec1 <- c(30, 20, 50, 40)
+vec2 <- c(25, 25, 15, 45)
+vec3 <- c(35, 15, 25, 55) # Added a third vector for demonstration
+
+# Combine the vectors into a list
+list_of_vectors <- list(vec1, vec2, vec3)
+
+# Call the average_sorted_vectors function
+result_vector <- average_sorted_vectors(list_of_vectors)
+result_vector
+```
+

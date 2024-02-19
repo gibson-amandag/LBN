@@ -143,6 +143,23 @@ comboTrtFillShape <- function(
   return(layers)
 }
 
+comboTrtLineColor <- function(
+  STD_CON_color = "grey",
+  STD_ALPS_color = "black",
+  LBN_CON_color = "lightblue1",
+  LBN_ALPS_color = "darkcyan"
+){
+  layers <- list(
+    scale_color_manual(
+      "treatment", 
+      values = c("STD-CON"=STD_CON_color, 
+                 "STD-ALPS"=STD_ALPS_color, 
+                 "LBN-CON"=LBN_CON_color, 
+                 "LBN-ALPS"=LBN_ALPS_color))
+  )
+  return(layers)
+}
+
 dosageFillShape <- function(
   color_0 = "black",
   color_2 = "black",
