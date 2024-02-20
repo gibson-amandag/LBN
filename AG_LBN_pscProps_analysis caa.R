@@ -6,10 +6,10 @@ pscProps$damID <- factor(pscProps$damID)
 pscProps$earlyLifeTrt <- factor(pscProps$earlyLifeTrt, levels = c("STD", "LBN"))
 pscProps$adultTrt <- factor(pscProps$adultTrt, levels = c("CON", "ALPS"))
 
+summary(pscProps)
+
 library(tidyverse)
 library(lqmm)
-
-# Full width half maximum - works -------------------------
 
 quantiles <- c(
   0.25
@@ -17,33 +17,38 @@ quantiles <- c(
   , 0.75
 )
 
+# Full width half maximum - works -------------------------
+
 FWHM_models <- lqmm(
-    fwhm ~ earlyLifeTrt * adultTrt
-    , random = ~ 1
-    , group = cellID
-    , tau = quantiles
-    , data = pscProps
-    , control = lqmmControl(
-      LP_max_iter = 2000
-    ) 
+  fwhm ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 2000
+  ) 
 )
 
-print(summary(FWHM_models))
+FWHM_models
+summary(FWHM_models)
 
 # Rise time - works -------------------------
 
 riseTime_models <- lqmm(
-    riseTime ~ earlyLifeTrt * adultTrt
-    , random = ~ 1
-    , group = cellID
-    , tau = quantiles
-    , data = pscProps
-    , control = lqmmControl(
-      LP_max_iter = 2000
-    ) 
+  riseTime ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 2000
+  ) 
 )
 
-print(summary(riseTime_models))
+riseTime_models
+summary(riseTime_models)
+
 
 # Decay time - NA/inf error ----------------
 
@@ -58,7 +63,8 @@ decay9010_models <- lqmm(
   ) 
 )
 
-print(summary(decay9010_models))
+decay9010_models
+summary(decay9010_models)
 
 # Amplitude - NA/inf error ----------------
 
@@ -73,7 +79,8 @@ relPeak_models <- lqmm(
   ) 
 )
 
-print(summary(relPeak_models))
+relPeak_models
+summary(relPeak_models)
 
 # Troubleshooting -----------------------
 ## Summary statistics -----------------
@@ -133,6 +140,8 @@ ggplot(pscProps, aes(sample = riseTime)) +
 # Scaled relPeak, this seems to work --------------------
 
 pscProps$relPeak_scaled <- scale(pscProps$relPeak)
+summary(pscProps$relPeak_scaled)
+attributes(pscProps$relPeak_scaled)
 
 relPeak_scaled_models <- lqmm(
   relPeak_scaled ~ earlyLifeTrt * adultTrt
@@ -145,7 +154,8 @@ relPeak_scaled_models <- lqmm(
   ) 
 )
 
-print(summary(relPeak_scaled_models))
+relPeak_scaled_models
+summary(relPeak_scaled_models)
 
 # Scaled decay9010, this seems to work --------------------
 
@@ -162,4 +172,65 @@ decay9010_scaled_models <- lqmm(
   ) 
 )
 
-print(summary(decay9010_scaled_models))
+decay9010_scaled_models
+summary(decay9010_scaled_models)
+
+
+# log10 transformations --------------------------------
+
+# ultimately need to set a seed before running these, as it changes with each run
+logrelPeak_models <- lqmm(
+  -log10(-relPeak) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 2500
+  ) 
+)
+
+# logrelPeak_models
+# summary(logrelPeak_models)
+
+logdecay9010_models <- lqmm(
+  log10(decay9010) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 2500
+  ) 
+)
+
+# logdecay9010_models
+# summary(logdecay9010_models)
+
+logFWHM_models <- lqmm(
+  log10(fwhm) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 2500
+  ) 
+)
+
+# logFWHM_models
+# summary(logFWHM_models)
+
+logriseTime_models <- lqmm(
+  log10(riseTime) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 2500
+  ) 
+)
+
+# logriseTime_models
+summary(logriseTime_models)

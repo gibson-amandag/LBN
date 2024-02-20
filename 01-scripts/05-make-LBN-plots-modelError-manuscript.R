@@ -482,6 +482,8 @@ figCyclesD <- cyclesPercLong %>%
 
 # ALPS --------------------------------------------------------------------
 
+source("./01-scripts/05.5-run-LBN-masses-stats-plots.R")
+source("./01-scripts/05.5-run-LBN-female-masses-stats-plots.R")
 
 ## Cort --------------------------------------------------------------------
 
@@ -814,148 +816,7 @@ figLH_samplingSurged <- acuteStressFilteredPro_sampling %>%
     , labelSize = 5
   )
 
-## LH ----------------------------------------------------------------------
 
-plotLH_bothL <- plotLHFunc(
-  c(1, 2)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , ymax = 40
-)
-
-LHplot_pro_bothL <- LHFilteredPro %>%
-  plotLH_bothL()
-
-plotLH_bothL_zoom <- plotLHFunc(
-  c(1, 2)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , ymax = 10
-  , addSurgeLine = TRUE
-  , surgeMin = surgeMin
-)
-
-LHplot_pro_bothL_zoom <- LHFilteredPro %>%
-  plotLH_bothL_zoom()
-
-plotLH_1stL <- plotLHFunc(
-  c(1)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , ymax = 40
-)
-
-LHplot_pro_1stL <- LHFilteredPro %>%
-  plotLH_1stL()
-
-plotLH_1stL_zoom <- plotLHFunc(
-  c(1)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , ymax = 10
-  , addSurgeLine = TRUE
-  , surgeMin = surgeMin
-)
-
-LHplot_pro_1stL_zoom <- LHFilteredPro %>%
-  plotLH_1stL_zoom()
-
-plotLH_2ndL <- plotLHFunc(
-  c(2)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , ymax = 40
-)
-
-LHplot_pro_2ndL <- LHFilteredPro %>%
-  plotLH_2ndL()
-
-plotLH_2ndL_zoom <- plotLHFunc(
-  c(2)
-  , fontSize = textSize
-  , dotSize = dotSize
-  , ymax = 10
-  , addSurgeLine = TRUE
-  , surgeMin = surgeMin
-)
-
-LHplot_pro_2ndL_zoom <- LHFilteredPro %>%
-  plotLH_2ndL_zoom()
-
-source("./01-scripts/05.5-run-LBN-masses-stats-plots.R")
-source("./01-scripts/05.5-run-LBN-female-masses-stats-plots.R")
-
-## Surge amplitude ---------------------------------------------------------
-
-plotSurgeAmp_bothL <- plotSurgeAmpFunc(
-  c(1, 2)
-  , surgeMin = surgeMin
-  , fontSize = textSize
-  , dotSize = dotSize
-  , angleX = FALSE
-  , addSurgeMinLine = TRUE
-  , ymax = 40
-)
-
-plotSurgeAmp_1stL <- plotSurgeAmpFunc(
-  c(1)
-  , surgeMin = surgeMin
-  , fontSize = textSize
-  , dotSize = dotSize
-  , angleX = FALSE
-  , addSurgeMinLine = TRUE
-  , ymax = 40
-)
-
-plotSurgeAmp_2ndL <- plotSurgeAmpFunc(
-  c(2)
-  , surgeMin = surgeMin
-  , fontSize = textSize
-  , dotSize = dotSize
-  , angleX = FALSE
-  , addSurgeMinLine = TRUE
-  , ymax = 40
-)
-
-LHamp_bothL_plot <- surgedDF %>%
-  plotSurgeAmp_bothL()
-
-LHamp_1stL_plot <- surgedDF %>%
-  plotSurgeAmp_1stL()
-
-LHamp_2ndL_plot <- surgedDF %>%
-  plotSurgeAmp_2ndL()
-
-
-
-## % surged ----------------------------------------------------------------
-
-plotPercSurged_bothL <- plotPercSurgedFunc(
-  c(1, 2)
-  , fontSize = textSize
-  , labelFontSize = 10
-)
-
-percSurgedPlot_bothL <- surgedDF %>%
-  plotPercSurged_bothL()
-
-plotPercSurged_1stL <- plotPercSurgedFunc(
-  c(1)
-  , fontSize = textSize
-  , labelFontSize = 10
-)
-
-percSurgedPlot_1stL <- surgedDF %>%
-  plotPercSurged_1stL()
-
-plotPercSurged_2ndL <- plotPercSurgedFunc(
-  c(2)
-  , fontSize = textSize
-  , labelFontSize = 10
-)
-
-percSurgedPlot_2ndL <- surgedDF %>%
-  plotPercSurged_2ndL()
 
 
 # GABA PSCs ---------------------------------------------------------------
@@ -964,7 +825,8 @@ plotCapacitance_noMean <- plotCatVarFunc(
   expr(capacitance)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = FALSE
+  , twoLineXLabs = TRUE
+  , tiltedXLabs = TRUE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -973,7 +835,8 @@ plotRseries_noMean <- plotCatVarFunc(
   expr(Rseries)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = FALSE
+  , twoLineXLabs = TRUE
+  , tiltedXLabs = TRUE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -982,7 +845,8 @@ plotRinput_noMean <- plotCatVarFunc(
   expr(Rinput)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = FALSE
+  , twoLineXLabs = TRUE
+  , tiltedXLabs = TRUE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -991,7 +855,8 @@ plotHoldingCurr_noMean <- plotCatVarFunc(
   expr(holdingCurrent)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = FALSE
+  , twoLineXLabs = TRUE
+  , tiltedXLabs = TRUE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -1000,7 +865,7 @@ plotGABAfreq_noMean <- plotCatVarFunc(
   expr(frequency)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = FALSE
+  , twoLineXLabs = TRUE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -1009,7 +874,7 @@ plotGABAamp_noMean <- plotCatVarFunc(
   expr(relPeak)
   , fontSize = textSize
   , dotSize = dotSize
-  , twoLineXLabs = FALSE
+  , twoLineXLabs = TRUE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -1086,7 +951,79 @@ figGABAf_model <- GABApscs_240FilteredFiring %>%
     , color = "magenta"
   )
 
+## Distribution plots ----------------
 
+relPeak_byCell <- pscProps %>%
+  plotPSCProp_negLog(
+    yVar = relPeak
+    , yLab = "amplitude (pA)"
+    , byCell = TRUE
+    , reverseColor = FALSE
+  )
+
+relPeak_byTrt <- pscProps %>%
+  plotPSCProp_negLog(
+    yVar = relPeak
+    , yLab = "amplitude (pA)"
+    , byCell = FALSE
+    , reverseColor = FALSE
+  )
+
+riseTime_byCell <- pscProps %>%
+  plotPSCProp_log(
+    yVar = riseTime
+    , yLab = "rise time (ms)"
+    , logBreaks = c(0.00125, 0.0025, 0.005, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12)
+    , logLabels = c("0.00125", "0.0025", "0.005", "0.01", "0.02", "0.04", "0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12")
+    , byCell = TRUE
+  )
+
+riseTime_byTrt <- pscProps %>%
+  plotPSCProp_log(
+    yVar = riseTime
+    , yLab = "rise time (ms)"
+    , logBreaks = c(0.00125, 0.0025, 0.005, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12)
+    , logLabels = c("0.00125", "0.0025", "0.005", "0.01", "0.02", "0.04", "0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12")
+    , byCell = FALSE
+  )
+
+decayTime_byCell <- pscProps %>%
+  plotPSCProp_log(
+    yVar = decay9010
+    , yLab = "decay time from 90% to 10% peak (ms)"
+    , logBreaks = c(0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96, 81.92, 163.84)
+    , logLabels = c("0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96", "81.92", "163.84")
+    , byCell = TRUE
+  )
+
+decayTime_byTrt <- pscProps %>%
+  plotPSCProp_log(
+    yVar = decay9010
+    , yLab = "decay time from 90% to 10% peak (ms)"
+    , logBreaks = c(0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96, 81.92, 163.84)
+    , logLabels = c("0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96", "81.92", "163.84")
+    , byCell = FALSE
+  )
+
+fwhm_byCell <- pscProps %>%
+  plotPSCProp_log(
+    yVar = fwhm
+    , yLab = "full width at half maximum (ms)"
+    , logBreaks = c(0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96)
+    , logLabels = c("0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96")
+    , byCell = TRUE
+  ) +
+  expand_limits(y = 0.16)
+
+fwhm_byTrt <- pscProps %>%
+  plotPSCProp_log(
+    yVar = fwhm
+    , yLab = "full width at half maximum (ms)"
+    , logBreaks = c(0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96)
+    , logLabels = c("0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96")
+    , byCell = FALSE
+  ) +
+  expand_limits(y = 0.16)
 
 
 # # OLD -----------------
@@ -1353,3 +1290,146 @@ figGABAf_model <- GABApscs_240FilteredFiring %>%
 #     , meanBarWidth = 0.7
 #     , color = "magenta"
 #   )
+
+
+# ## LH ----------------------------------------------------------------------
+# 
+# plotLH_bothL <- plotLHFunc(
+#   c(1, 2)
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , ymax = 40
+# )
+# 
+# LHplot_pro_bothL <- LHFilteredPro %>%
+#   plotLH_bothL()
+# 
+# plotLH_bothL_zoom <- plotLHFunc(
+#   c(1, 2)
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , ymax = 10
+#   , addSurgeLine = TRUE
+#   , surgeMin = surgeMin
+# )
+# 
+# LHplot_pro_bothL_zoom <- LHFilteredPro %>%
+#   plotLH_bothL_zoom()
+# 
+# plotLH_1stL <- plotLHFunc(
+#   c(1)
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , ymax = 40
+# )
+# 
+# LHplot_pro_1stL <- LHFilteredPro %>%
+#   plotLH_1stL()
+# 
+# plotLH_1stL_zoom <- plotLHFunc(
+#   c(1)
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , ymax = 10
+#   , addSurgeLine = TRUE
+#   , surgeMin = surgeMin
+# )
+# 
+# LHplot_pro_1stL_zoom <- LHFilteredPro %>%
+#   plotLH_1stL_zoom()
+# 
+# plotLH_2ndL <- plotLHFunc(
+#   c(2)
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , ymax = 40
+# )
+# 
+# LHplot_pro_2ndL <- LHFilteredPro %>%
+#   plotLH_2ndL()
+# 
+# plotLH_2ndL_zoom <- plotLHFunc(
+#   c(2)
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , ymax = 10
+#   , addSurgeLine = TRUE
+#   , surgeMin = surgeMin
+# )
+# 
+# LHplot_pro_2ndL_zoom <- LHFilteredPro %>%
+#   plotLH_2ndL_zoom()
+
+
+
+# ## Surge amplitude ---------------------------------------------------------
+# 
+# plotSurgeAmp_bothL <- plotSurgeAmpFunc(
+#   c(1, 2)
+#   , surgeMin = surgeMin
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , angleX = FALSE
+#   , addSurgeMinLine = TRUE
+#   , ymax = 40
+# )
+# 
+# plotSurgeAmp_1stL <- plotSurgeAmpFunc(
+#   c(1)
+#   , surgeMin = surgeMin
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , angleX = FALSE
+#   , addSurgeMinLine = TRUE
+#   , ymax = 40
+# )
+# 
+# plotSurgeAmp_2ndL <- plotSurgeAmpFunc(
+#   c(2)
+#   , surgeMin = surgeMin
+#   , fontSize = textSize
+#   , dotSize = dotSize
+#   , angleX = FALSE
+#   , addSurgeMinLine = TRUE
+#   , ymax = 40
+# )
+# 
+# LHamp_bothL_plot <- surgedDF %>%
+#   plotSurgeAmp_bothL()
+# 
+# LHamp_1stL_plot <- surgedDF %>%
+#   plotSurgeAmp_1stL()
+# 
+# LHamp_2ndL_plot <- surgedDF %>%
+#   plotSurgeAmp_2ndL()
+# 
+# 
+# 
+# ## % surged ----------------------------------------------------------------
+# 
+# plotPercSurged_bothL <- plotPercSurgedFunc(
+#   c(1, 2)
+#   , fontSize = textSize
+#   , labelFontSize = 10
+# )
+# 
+# percSurgedPlot_bothL <- surgedDF %>%
+#   plotPercSurged_bothL()
+# 
+# plotPercSurged_1stL <- plotPercSurgedFunc(
+#   c(1)
+#   , fontSize = textSize
+#   , labelFontSize = 10
+# )
+# 
+# percSurgedPlot_1stL <- surgedDF %>%
+#   plotPercSurged_1stL()
+# 
+# plotPercSurged_2ndL <- plotPercSurgedFunc(
+#   c(2)
+#   , fontSize = textSize
+#   , labelFontSize = 10
+# )
+# 
+# percSurgedPlot_2ndL <- surgedDF %>%
+#   plotPercSurged_2ndL()

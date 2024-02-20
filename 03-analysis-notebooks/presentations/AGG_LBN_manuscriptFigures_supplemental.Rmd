@@ -18,6 +18,7 @@ source(file.path(scriptsFolder, "02-get-datasets.R"))
 source("./01-scripts/04-filter-datasets.R")
 source("./01-scripts/06-run-LBN-stats.R")
 source("./01-scripts/05-make-LBN-plots-modelError-manuscript.R")
+source("./01-scripts/06-make-LBN-tables.R")
 ```
 
 ```{r}
@@ -93,6 +94,8 @@ figDams <- plot_grid(
     , align = "h"
     , axis = "bt"
     , labels = c("A", "B", "C")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
   )
   # NULL
   , plot_grid(
@@ -952,6 +955,8 @@ figMaleMassALPS <- plot_grid(
     , align = "hv"
     , axis = "tlbr"
     , labels = c("A", "B", "C", "D", "E", "F", "G", "H")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
   )
   , nrow = 2
   ,rel_heights = c(0.1, 3)
@@ -1222,6 +1227,8 @@ figMaleCortAdmin_row1 <- plot_grid(
   , axis = "tb"
   , labels = c("A", "B", "C")
   , rel_widths = c(1, 2, 1)
+  , label_fontfamily = "Arial"
+  , label_size = textSize
 )
 figMaleCortAdmin_row2 <- plot_grid(
   figMaleCortAdmin_left[[1]]
@@ -1231,6 +1238,8 @@ figMaleCortAdmin_row2 <- plot_grid(
   , align = "h"
   , axis = "tb"
   , labels = c("D", "F", "H")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
 )
 figMaleCortAdmin_row3 <- plot_grid(
   figMaleCortAdmin_left[[2]]
@@ -1240,6 +1249,8 @@ figMaleCortAdmin_row3 <- plot_grid(
   , align = "h"
   , axis = "tb"
   , labels = c("E", "G", "I")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
 )
 
 figMaleCortAdmin <- plot_grid(
@@ -1525,18 +1536,24 @@ figFemalesMasses <- plot_grid(
     , figFemalesMasses_plots[[2]]
     , ncol = 2
     , labels = c("A", "B")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
   )
   , plot_grid(
     figFemalesMasses_plots[[3]]
     , figFemalesMasses_plots[[5]]
     , ncol = 2
     , labels = c("C", "D")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
   )
   , plot_grid(
     figFemalesMasses_plots[[4]]
     , figFemalesMasses_plots[[6]]
     , ncol = 2
     , labels = c("E", "F")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
   )
   , nrow = 4
   , rel_heights = c(0.1, 1, 1, 1)
@@ -1855,6 +1872,8 @@ figLH <- plot_grid(
   , align = "hv"
   , axis = "tblr"
   , labels = c("A", "B", "C", "D", "", "E", "", "", "F")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
 )
 
 figLH
@@ -2000,17 +2019,18 @@ tableCaption <- paste0("Statistics for a Chi-squared test (n = ", propSurged_Chi
 ```
 
 ```{r}
-propSurged_num <- LH_pro_lmm_pairs_num + 1
+# propSurged_num <- LH_pro_lmm_pairs_num + 1
+propSurged_num <- LH_pro_lmm_pairs_num
 tableNum <- propSurged_num
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 
 
-# Figure 9 - GABA PSCs
+# Figure 9 - GABA PSCs - passives and frequency
 
 ```{r}
 figGABA_aligned <- cowplot::align_plots(
@@ -2053,6 +2073,53 @@ figGABA <- plot_grid(
   , label_fontfamily = "Arial"
   , label_size = textSize
   , rel_heights = c(2, 2, 1)
+)
+
+figGABA
+```
+```{r}
+figGABA1stRow <- plot_grid(
+  figGABAa_model
+  , figGABAb_model
+  , figGABAc_model
+  , figGABAd_model
+  , ncol = 4
+  , labels = c("A", "B", "C", "D")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , align = "vh"
+  , axis = "lrtb"
+)
+
+figGABALastCol <- plot_grid(
+  figGABAe_model
+  , figGABAf_model
+  , ncol = 1
+  , labels = c("F", "G")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , align = "vh"
+  , axis = "lrtb"
+)
+
+figGABA2ndRow <- plot_grid(
+  NULL
+  , figGABALastCol
+  , ncol = 2
+  , labels = c("E", "")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , rel_widths = c(2, 1)
+)
+
+figGABA <- plot_grid(
+  figGABA1stRow
+  , figGABA2ndRow
+  , nrow = 2
+  , labels = c("", "", "G")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , rel_heights = c(1.2, 2)
 )
 
 figGABA

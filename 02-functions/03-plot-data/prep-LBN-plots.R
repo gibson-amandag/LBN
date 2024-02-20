@@ -1060,7 +1060,15 @@ plotCatVarFunc <- function(
 
           )
         )
-      
+      if(tiltedXLabs){
+        plot <- plot +
+          theme( # fully vertical
+            axis.text.x = element_text(
+              angle = 90
+              , vjust = 0.5
+            )
+          )
+      }
     } else {
       if(tiltedXLabs){
         plot <- plot + 

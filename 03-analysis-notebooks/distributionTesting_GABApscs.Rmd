@@ -27,6 +27,11 @@ pscProps <- pscProps %>%
       )
     , by = "cellID"
   )
+
+saveDFsToCSV(
+  saveFolder = "./"
+  ,"pscProps" = pscProps
+)
 ```
 
 ```{r}
@@ -61,6 +66,10 @@ install.packages("lqmm")
 ```{r}
 
 library(lqmm)
+
+```
+
+```{r}
 
 # Assuming you have:
 # - `data`: Your dataset.
@@ -374,6 +383,80 @@ for (tau in names(models)) {
 }
 ```
 
+```{r}
+fwhm_quartile <- pscProps %>%
+  group_by(
+    cellID
+    , mouseID
+    , damID
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(
+    fwhm
+  )
+
+anova_test(
+  fwhm_quartile
+  , q1 ~ earlyLifeTrt * adultTrt
+  , type = 3
+)
+
+mixed(
+  q1 ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , fwhm_quartile
+  , method = "KR"
+)
+```
+```{r}
+relPeak_quartile <- pscProps %>%
+  group_by(
+    cellID
+    , mouseID
+    , damID
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(
+    relPeak
+  )
+
+anova_test(
+  relPeak_quartile
+  , q1 ~ earlyLifeTrt * adultTrt
+  , type = 3
+)
+
+mixed(
+  q1 ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , relPeak_quartile
+  , method = "KR"
+)
+anova_test(
+  relPeak_quartile
+  , median ~ earlyLifeTrt * adultTrt
+  , type = 3
+)
+
+mixed(
+  median ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , relPeak_quartile
+  , method = "KR"
+)
+anova_test(
+  relPeak_quartile
+  , q3 ~ earlyLifeTrt * adultTrt
+  , type = 3
+)
+
+mixed(
+  q3 ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , relPeak_quartile
+  , method = "KR"
+)
+```
+
+
 # Rise time - Quantile analysis - works
 
 ```{r}
@@ -427,7 +510,7 @@ for (tau in quantiles) {
     , data = pscProps
     , control = lqmmControl(
       LP_max_iter = 2000
-    ) 
+    )
    )
   
 }
@@ -471,6 +554,41 @@ for (tau in names(models)) {
   cat("\n\n")
 }
 ```
+
+Remove the lowest 1% and highest 1% of data
+```{r}
+lower_bound <- quantile(pscProps$relPeak, probs = 0.15)
+upper_bound <- quantile(pscProps$relPeak, probs = 0.85)
+
+pscProps_outliersRemoved <- pscProps %>%
+  filter(
+    relPeak > lower_bound & relPeak < upper_bound
+  )
+
+relPeak_models <- list()
+
+for (tau in quantiles) {
+  relPeak_models[[as.character(tau)]] <- lqmm(
+    relPeak ~ earlyLifeTrt * adultTrt
+    , random = ~ 1
+    , group = cellID
+    , tau = tau
+    , data = pscProps_outliersRemoved
+    , control = lqmmControl(
+      LP_max_iter = 2000
+    ) 
+  )
+  
+}
+
+# Summaries for each quantile
+for (tau in names(relPeak_models)) {
+  cat("Summary for tau =", tau, "quantile:\n")
+  print(summary(relPeak_models[[tau]]))
+  cat("\n\n")
+}
+```
+
 
 # kSamples distributions
 

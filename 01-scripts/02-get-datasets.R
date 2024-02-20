@@ -529,7 +529,6 @@ GABApscs_120 <- GABApscs_120 %>%
   )
 
 GABApscs_240 <- GABApscs_240 %>%
-  select(-group) %>%
   left_join(
     cellExclusion %>%
       select(
