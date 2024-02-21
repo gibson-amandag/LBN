@@ -2033,51 +2033,6 @@ tableNum <- propSurged_num
 # Figure 9 - GABA PSCs - passives and frequency
 
 ```{r}
-figGABA_aligned <- cowplot::align_plots(
-  figGABAa_model
-  , figGABAb_model
-  , figGABAc_model
-  , figGABAd_model
-  , figGABAe_model
-  , figGABAf_model
-  , align = "vh"
-  , axis = "lrtb"
-)
-
-figGABA1stRow <- plot_grid(
-  figGABA_aligned[[1]]
-  , figGABA_aligned[[2]]
-  , figGABA_aligned[[3]]
-  , ncol = 3
-  , labels = c("A", "B", "C")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-)
-
-figGABA2ndRow <- plot_grid(
-  figGABA_aligned[[4]]
-  , figGABA_aligned[[5]]
-  , figGABA_aligned[[6]]
-  , ncol = 3
-  , labels = c("D", "E", "F")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-)
-
-figGABA <- plot_grid(
-  figGABA1stRow
-  , figGABA2ndRow
-  , NULL
-  , nrow = 3
-  , labels = c("", "", "G")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-  , rel_heights = c(2, 2, 1)
-)
-
-figGABA
-```
-```{r}
 figGABA1stRow <- plot_grid(
   figGABAa_model
   , figGABAb_model
@@ -2091,35 +2046,35 @@ figGABA1stRow <- plot_grid(
   , axis = "lrtb"
 )
 
-figGABALastCol <- plot_grid(
+figGABA2ndRow <- plot_grid(
   figGABAe_model
-  , figGABAf_model
-  , ncol = 1
-  , labels = c("F", "G")
+  , NULL
+  , ncol = 2
+  , labels = c("E", "F")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , rel_widths = c(1, 2)
+)
+
+figGABA3rdRow <- plot_grid(
+  figGABA2a_model
+  , figGABA2b_model
+  , figGABA2c_model
+  , figGABA2d_model
+  , ncol = 4
+  , labels = c("G", "H", "I", "J")
   , label_fontfamily = "Arial"
   , label_size = textSize
   , align = "vh"
   , axis = "lrtb"
 )
 
-figGABA2ndRow <- plot_grid(
-  NULL
-  , figGABALastCol
-  , ncol = 2
-  , labels = c("E", "")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-  , rel_widths = c(2, 1)
-)
-
 figGABA <- plot_grid(
   figGABA1stRow
   , figGABA2ndRow
-  , nrow = 2
-  , labels = c("", "", "G")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-  , rel_heights = c(1.2, 2)
+  , figGABA3rdRow
+  , nrow = 3
+  # , rel_heights = c(.8, 1, .8)
 )
 
 figGABA
@@ -2136,3 +2091,78 @@ flexSave(
   , filePath = manuscriptFolder
 )
 ```
+
+# Figure 10 - PSC properties
+
+```{r}
+figGABA2_left <- plot_grid(
+  relPeak_byCell
+  , riseTime_byCell
+  , decayTime_byCell
+  , fwhm_byCell
+  , nrow = 4
+  , labels = c("A", "C", "E", "G")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , align = "vh"
+  , axis = "lrtb"
+)
+
+figGABA2_right <- plot_grid(
+  relPeak_byTrt
+  , riseTime_byTrt
+  , decayTime_byTrt
+  , fwhm_byTrt
+  , nrow = 4
+  , labels = c("B", "D", "F", "H")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , align = "vh"
+  , axis = "lrtb"
+)
+
+figGABA2 <- plot_grid(
+  figGABA2_left
+  , figGABA2_right
+  , ncol = 2
+  # , rel_widths = c(2, 1)
+)
+
+figGABA2
+
+```
+
+```{r}
+flexSave(
+  "figPSC_props"
+  , plot = figGABA2
+  , width = twoCols
+  # , height = 28/2
+  , height = 28/3*2
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+```{r}
+logModels_flexTable
+```
+
+```{r}
+logFWHM_models
+summary(logFWHM_models)
+```
+
+
+
+
+```{r}
+pscProps %>%
+  filter(
+    log10(fwhm) > 3.3
+  )
+```
+
+
+
+

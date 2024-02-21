@@ -3502,4 +3502,119 @@ propSurgedChiSq_flexTable <- propSurgedChiSq_tbl %>%
   makeManuscriptFlexTable(
     round2Cols = c("Chi-sq")
     , vertLines = c(1)
+    , fullWidth = FALSE
   )
+
+
+# Figure 9 -----------------------------------------
+
+## Counts -------------------
+
+GABApsc_cellCounts_flexTable <- GABApscs_240Filtered %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  summarize(
+    litters = n_distinct(damID)
+    , mice = n_distinct(mouseID)
+    , cells = n()
+    , .groups = "drop"
+  ) %>%
+  makeManuscriptFlexTable(
+    vertLines = c(2)
+    , horzLines = c(1, 2, 3)
+    , fullWidth = FALSE
+    , vertMergeCols = "earlyLifeTrt"
+  )
+GABApscs_240Filtered %>%
+  filter(
+    !is.na(relPeak)
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  summarize(
+    litters = n_distinct(damID)
+    , mice = n_distinct(mouseID)
+    , cells = n()
+    , .groups = "drop"
+  ) %>%
+  makeManuscriptFlexTable(
+    vertLines = c(2)
+    , horzLines = c(1, 2, 3)
+    , fullWidth = FALSE
+    , vertMergeCols = "earlyLifeTrt"
+  )
+
+
+pscProps %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    events = n()
+    , .groups = "drop"
+  )
+
+
+
+
+## Quantiles ---------------------
+
+logAmplitude_models_sum_tbl <- logAmplitude_models_sum$tTable %>%
+  simplifyAllQuartilesOutput()
+
+logRiseTime_models_sum_tbl <- logRiseTime_models_sum$tTable %>%
+  simplifyAllQuartilesOutput()
+
+logDecayTime_models_sum_tbl <- logDecayTime_models_sum$tTable %>%
+  simplifyAllQuartilesOutput()
+
+logFWHM_models_sum_tbl <- logFWHM_models_sum$tTable %>%
+  simplifyAllQuartilesOutput()
+
+logModels_tbl <- bind_rows(
+  list(
+    "amplitude (pA)" = logAmplitude_models_sum_tbl
+    , "rise time (ms)" = logRiseTime_models_sum_tbl
+    , "decay time (ms)" = logDecayTime_models_sum_tbl
+    , "FWHM (ms)" = logFWHM_models_sum_tbl
+  )
+  , .id = "feature"
+) %>%
+  pivot_wider(
+    id_cols = c(feature, `fixed effect`), names_from = quartile, values_from = c("Value", "SEM", "95% CI", "p")
+  )
+
+logModels_header <- data.frame(
+  col_keys = c("feature", "fixed effect"
+               , "Value_0.25", "SEM_0.25", "95% CI_0.25", "p_0.25"
+               , "Value_0.5", "SEM_0.5", "95% CI_0.5", "p_0.5"
+               , "Value_0.75", "SEM_0.75", "95% CI_0.75", "p_0.75"
+  )
+  , line2 = c("", ""
+              , rep("25th percentile", 4)
+              , rep("50th percentile", 4)
+              , rep("75th percentile", 4)
+              )
+  , line3 = c("feature", "fixed effect"
+              , "Value", "SEM", "95% CI", "p"
+              , "Value", "SEM", "95% CI", "p"
+              , "Value", "SEM", "95% CI", "p"
+              )
+)
+
+logModels_flexTable <- logModels_tbl %>%
+  makeManuscriptFlexTable(
+    headerDF = logModels_header
+    , vertLines = c(2, 6, 10)
+    , horzLines = c(4, 8, 12, 16)
+    , round2Cols = c("Value_0.25", "Value_0.5", "Value_0.75")
+    , round3Cols = c("SEM_0.25", "SEM_0.5", "SEM_0.75")
+    , vertMergeCols = c("feature")
+  )
+
+
+
+

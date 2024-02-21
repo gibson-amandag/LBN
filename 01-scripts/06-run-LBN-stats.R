@@ -829,13 +829,14 @@ numEvents_nb.GLMM_errors <- numEvents_nb.GLMM %>%
 # GABA - PSC amplitude ----------------------------------------------------
 
 relAmplitude_lmm <- mixed(
-  relPeak ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  # relPeak ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  amplitude ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
   , data = GABApscs_240FilteredFiring
   , method = "KR"
 )
 
 
-# Errors for graph --------------------------------------------------------
+## Errors for graph --------------------------------------------------------
 
 relAmplitude_lmm_errors <- relAmplitude_lmm %>%
   getErrorDF_LMM(
@@ -844,6 +845,139 @@ relAmplitude_lmm_errors <- relAmplitude_lmm %>%
   ) %>%
   combineStress()
 
+## Quantiles ------------------------------------
+
+quantiles <- c(
+  0.25
+  , 0.5
+  , 0.75
+)
+
+logAmplitude_models <- lqmm(
+  log10(amplitude) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 2500
+  )
+)
+
+logAmplitude_models_sum <- summary(
+  logAmplitude_models
+  , seed = 741
+)
+
+# GABA - Rise time ----------------------------------------------------
+
+riseTime_lmm <- mixed(
+  riseTime ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+
+## Errors for graph --------------------------------------------------------
+
+riseTime_lmm_errors <- riseTime_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+## Quantiles ----------------------------
+
+
+logRiseTime_models <- lqmm(
+  log10(riseTime) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 2500
+  )
+)
+
+logRiseTime_models_sum <- summary(
+  logRiseTime_models
+  , seed = 741
+)
+
+# GABA - Decay time ----------------------------------------------------
+
+decayTime_lmm <- mixed(
+  decay9010 ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+
+## Errors for graph --------------------------------------------------------
+
+decayTime_lmm_errors <- decayTime_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+## Quantiles ------------------------------------
+
+logDecayTime_models <- lqmm(
+  log10(decay9010) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 2500
+  )
+)
+
+logDecayTime_models_sum <- summary(
+  logDecayTime_models
+  , seed = 741
+)
+
+# GABA - FWHM ----------------------------------------------------
+
+fwhm_lmm <- mixed(
+  fwhm ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+
+## Errors for graph --------------------------------------------------------
+
+fwhm_lmm_errors <- fwhm_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "adultTrt"
+  ) %>%
+  combineStress()
+
+
+## Quantiles ------------------------------------
+
+logFWHM_models <- lqmm(
+  log10(fwhm) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 2500
+  )
+)
+
+logFWHM_models_sum <- summary(
+  logFWHM_models
+  , seed = 741
+)
 
 
 # Cort admin --------------------------------------------------------------

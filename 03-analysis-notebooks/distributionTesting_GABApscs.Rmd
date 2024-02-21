@@ -557,8 +557,8 @@ for (tau in names(models)) {
 
 Remove the lowest 1% and highest 1% of data
 ```{r}
-lower_bound <- quantile(pscProps$relPeak, probs = 0.15)
-upper_bound <- quantile(pscProps$relPeak, probs = 0.85)
+lower_bound <- quantile(pscProps$relPeak, probs = 0.2)
+upper_bound <- quantile(pscProps$relPeak, probs = 0.8)
 
 pscProps_outliersRemoved <- pscProps %>%
   filter(
@@ -588,6 +588,38 @@ for (tau in names(relPeak_models)) {
   cat("\n\n")
 }
 ```
+
+```{r}
+summary(lqmm(
+  fixed = fwhm ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = c(.25, .5, .75)
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 2000
+  )
+))
+```
+
+
+```{r}
+# Base R plot
+qqnorm(pscProps$relPeak)
+qqline(pscProps$relPeak) # Adds a trend line
+
+# ggplot2
+library(ggplot2)
+
+ggplot(pscProps, aes(sample = relPeak)) +
+  stat_qq() +
+  stat_qq_line() +
+  ggtitle("Q-Q Plot of relPeak") +
+  xlab("Theoretical Quantiles") +
+  ylab("Sample Quantiles") +
+  theme_minimal()
+```
+
 
 
 # kSamples distributions
@@ -1251,5 +1283,1655 @@ list_of_vectors <- list(vec1, vec2, vec3)
 # Call the average_sorted_vectors function
 result_vector <- average_sorted_vectors(list_of_vectors)
 result_vector
+```
+
+```{r}
+emmeans(
+  logriseTime_models
+  , "adultTrt"
+  , by = "earlyLifeTrt"
+)
+
+logriseTime_models$y
+
+
+```
+
+```{r}
+lqmm(
+  log10(riseTime) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 2000
+  )
+)
+```
+```{r}
+logrelPeak_models_sum <- summary(logrelPeak_models)
+```
+# Summary 
+
+```{r}
+# ultimately need to set a seed before running these, I think, as it changes with each run
+logrelPeak_models_sum <- summary(logrelPeak_models)
+logdecay9010_models_sum <- summary(logdecay9010_models)
+logFWHM_models_sum <- summary(logFWHM_models)
+logriseTime_models_sum <- summary(logriseTime_models)
+```
+
+```{r}
+logrelPeak_models_sum
+logdecay9010_models_sum
+logFWHM_models_sum
+logriseTime_models_sum
+```
+
+
+```{r}
+group_vectors <- list(
+    STD_CON = pscProps$relPeak[pscProps$earlyLifeTrt == "STD" & pscProps$adultTrt == "CON"],
+    STD_ALPS = pscProps$relPeak[pscProps$earlyLifeTrt == "STD" & pscProps$adultTrt == "ALPS"],
+    LBN_CON = pscProps$relPeak[pscProps$earlyLifeTrt == "LBN" & pscProps$adultTrt == "CON"],
+    LBN_ALPS = pscProps$relPeak[pscProps$earlyLifeTrt == "LBN" & pscProps$adultTrt == "ALPS"]
+  )
+
+
+# Convert average vectors to data frames
+data_STD_CON <- data.frame(
+  Value = group_vectors[["STD_CON"]]
+  , earlyLifeTrt = "STD"
+  , adultTrt = "CON"
+)
+data_STD_ALPS <- data.frame(
+  Value = group_vectors[["STD_ALPS"]]
+  , earlyLifeTrt = "STD"
+  , adultTrt = "ALPS"
+)
+data_LBN_CON <- data.frame(
+  Value = group_vectors[["LBN_CON"]]
+  , earlyLifeTrt = "LBN"
+  , adultTrt = "CON"
+)
+data_LBN_ALPS <- data.frame(
+  Value = group_vectors[["LBN_ALPS"]]
+  , earlyLifeTrt = "LBN"
+  , adultTrt = "ALPS"
+)
+
+# Calculate ECDF for each group within the data
+calc_ecdf <- function(data){
+  data <- data %>%
+    arrange(Value) %>%
+    mutate(CumProb = ecdf(-Value)(-Value))  
+  return(data)
+}
+
+# Apply the function to each data frame separately
+data_STD_CON <- calc_ecdf(data_STD_CON)
+data_STD_ALPS <- calc_ecdf(data_STD_ALPS)
+data_LBN_CON <- calc_ecdf(data_LBN_CON)
+data_LBN_ALPS <- calc_ecdf(data_LBN_ALPS)
+
+# Combine all data frames into one
+cdf_data <- rbind(data_STD_CON, data_STD_ALPS, data_LBN_CON, data_LBN_ALPS) %>%
+  combineStress()
+
+# Plot using ggplot2
+ggplot(cdf_data, aes(x = Value, y = CumProb, color = comboTrt)) +
+  geom_step() +
+  scale_x_reverse() +
+  labs(
+    x = "relative peak (pA)", 
+    y = "Cumulative Probability", 
+    color = "Treatment"
+  ) +
+  boxTheme() + 
+  textTheme(size = 16) +
+  comboTrtLineColor() +
+  coord_cartesian(xlim = c(0, -100))
+```
+
+```{r}
+pscProps_log <- pscProps %>%
+  mutate(
+    logPeak = -log(-relPeak)
+    , .after = relPeak
+  ) %>%
+  combineStress()
+
+pscProps_log %>%
+  arrange(- relPeak)
+```
+
+```{r}
+
+pscProps_log %>%
+  ggplot(aes(x = logPeak, color = comboTrt)) +
+  stat_ecdf() +
+  comboTrtLineColor() +
+  coord_cartesian(
+    xlim = c(-4.2, -3.8)
+    , ylim = c(.2, .3)
+  )
+```
+
+```{r}
+# Create a new data frame for the prediction
+new_data <- data.frame(
+  earlyLifeTrt = factor(c("STD", "STD", "LBN", "LBN"), levels = c("STD", "LBN")),
+  adultTrt = factor(c("CON", "ALPS", "CON", "ALPS"), levels = c("CON", "ALPS")),
+  `(Intercept)` = 1
+) %>%
+  combineStress() %>%
+  rename(
+    `earlyLifeTrtLBN` = earlyLifeTrt
+    ,`adultTrtALPS` = adultTrt
+    ,`earlyLifeTrtLBN:adultTrtALPS` = comboTrt
+  )
+
+predict(logrelPeak_models, newdata = new_data)
+
+pscProps %>%
+  filter(
+    earlyLifeTrt == "STD"
+    , adultTrt == "ALPS"
+  ) %>%
+  group_by(
+    cellID
+  )
+
+# Predict the conditional quantile for the combination of treatments
+predicted_value <- predict(logrelPeak_models$)
+
+# See the predicted value
+predicted_value
+```
+
+```{r}
+## Orthodont data
+data(Orthodont)
+
+# Random intercept model
+fitOi.lqmm <- lqmm(distance ~ age, random = ~ 1, group = Subject,
+	tau = c(0.1,0.5,0.9), data = Orthodont)
+
+# Predict (y - Xb)	
+predict(fitOi.lqmm, level = 0)
+
+# Predict (y - Xb - Zu)
+predict(fitOi.lqmm, level = 1)
+
+# 95% confidence intervals
+predint(fitOi.lqmm, level = 0, alpha = 0.05)
+
+```
+
+```{r}
+pscProps %>%
+  combineStress() %>%
+  ggplot(
+    aes(
+      x = comboTrt,
+      y = relPeak,
+      # color = cellID
+      # , fill = cellID
+      color = -log(-relPeak)
+      , fill = -log(-relPeak)
+    )
+  ) +
+  jitterGeom(
+    size = .5,
+    alpha = .6,
+    width = .35,
+    height = 0
+  ) +
+  theme_pubr()+
+  expand_limits(y=0)+
+  # coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = textSize)+
+  boxTheme() +
+  theme(
+    axis.title.x = element_blank()
+  ) + 
+  labs(y = "-log(-amplitude (pA))") +
+  # scale_color_viridis(discrete = TRUE) +
+  # scale_fill_viridis(discrete = TRUE)
+  scale_color_viridis() +
+  scale_fill_viridis()
+```
+```{r}
+pscProps %>%
+  combineStress() %>%
+  ggplot(
+    aes(
+      x = comboTrt,
+      y = -log(-relPeak),
+      # color = cellID
+      # , fill = cellID
+      color = -log(-relPeak)
+      , fill = -log(-relPeak)
+    )
+  ) +
+  jitterGeom(
+    size = .5,
+    alpha = .6,
+    width = .35,
+    height = 0
+  ) +
+  theme_pubr()+
+  expand_limits(y=0)+
+  # coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = textSize)+
+  boxTheme() +
+  theme(
+    axis.title.x = element_blank()
+  ) + 
+  labs(y = "-log(-amplitude (pA))") +
+  # scale_color_viridis(discrete = TRUE) +
+  # scale_fill_viridis(discrete = TRUE)
+  scale_color_viridis() +
+  scale_fill_viridis()
+```
+```{r}
+pscProps %>%
+  combineStress() %>%
+  ggplot(
+    aes(
+      x = cellID,
+      y = -log(-relPeak),
+      color = -log(-relPeak)
+      , fill = -log(-relPeak)
+    )
+  ) +
+  jitterGeom(
+    size = 1,
+    alpha = .6,
+    width = .35,
+    height = 0
+  ) +
+  theme_pubr()+
+  expand_limits(y=0)+
+  # coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = textSize)+
+  boxTheme() +
+  theme(
+    axis.title.x = element_blank()
+    , axis.text.x = element_blank()
+  ) + 
+  labs(y = "-log(-amplitude (pA))") +
+  # scale_color_viridis(discrete = TRUE) +
+  # scale_fill_viridis(discrete = TRUE)
+  scale_color_viridis() +
+  scale_fill_viridis() +
+  facet_wrap(
+    ~ comboTrt
+    , nrow = 1
+    , scales = "free_x"
+  )
+```
+```{r}
+# Define the custom transformation
+neg_log_trans <- trans_new(
+  name = "neg_log",
+  transform = function(y) -log10(-y),
+  inverse = function(y) -10^(-y)
+)
+
+pscProps %>%
+  combineStress() %>%
+  ggplot(
+    aes(
+      x = cellID,
+      y = relPeak,
+      color = -log(-relPeak)
+      , fill = -log(-relPeak)
+    )
+  ) +
+  jitterGeom(
+    size = 1,
+    alpha = .6,
+    width = .35,
+    height = 0
+  ) +
+  theme_pubr()+
+  expand_limits(y=-1)+
+  # coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = textSize)+
+  boxTheme() +
+  theme(
+    axis.title.x = element_blank()
+    , axis.text.x = element_blank()
+  ) + 
+  labs(y = "-log(-amplitude (pA))") +
+  # scale_color_viridis(discrete = TRUE) +
+  # scale_fill_viridis(discrete = TRUE)
+  scale_color_viridis() +
+  scale_fill_viridis() +
+  facet_wrap(
+    ~ comboTrt
+    , nrow = 1
+    , scales = "free_x"
+  ) +
+  scale_y_continuous(trans = neg_log_trans, labels = scales::math_format())
+```
+```{r}
+pscProps %>%
+  combineStress() %>%
+  ggplot(
+    aes(
+      x = cellID,
+      y = relPeak,
+      color = -log(-relPeak)
+      , fill = -log(-relPeak)
+    )
+  ) +
+  jitterGeom(
+    size = 1,
+    alpha = .6,
+    width = .35,
+    height = 0
+  ) +
+  theme_pubr()+
+  expand_limits(y=-1)+
+  # coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = textSize)+
+  boxTheme() +
+  theme(
+    axis.title.x = element_blank()
+    , axis.text.x = element_blank()
+  ) + 
+  labs(y = "-log(-amplitude (pA))") +
+  # scale_color_viridis(discrete = TRUE) +
+  # scale_fill_viridis(discrete = TRUE)
+  scale_color_viridis() +
+  scale_fill_viridis() +
+  facet_wrap(
+    ~ comboTrt
+    , nrow = 1
+    , scales = "free_x"
+  ) +
+  scale_y_continuous(trans = neg_log_trans, breaks = trans_breaks("neg_log", function(x) -10^(-x)), labels = trans_format("neg_log", math_format(-10^.x)))
+```
+```{r}
+# Define the custom transformation
+neg_log_trans <- trans_new(
+  name = "neg_log"
+  , transform = function(y) -log10(-y)
+  , inverse = function(y) -10^(-y)
+  # , breaks = c(-1, -10, -50, -100, -150, -200, -250, -300, -350, -400)
+  , domain = c(-Inf, -0.0001)
+)
+
+df_counts <- pscProps %>%
+  group_by(cellID) %>%
+    summarize(
+      count = n()
+      , .groups = "drop"
+    ) %>%
+    arrange(
+      desc(count)
+    )
+
+pscProps %>%
+  mutate(
+    cellID = factor(
+      cellID
+      , levels = df_counts$cellID
+    )
+  ) %>%
+  combineStress() %>%
+  ggplot(
+    aes(
+      x = cellID,
+      y = relPeak,
+      color = -log(-relPeak)
+      , fill = -log(-relPeak)
+    )
+  ) +
+  jitterGeom(
+    size = .75,
+    alpha = .6,
+    width = .35,
+    height = 0
+  ) +
+  theme_pubr()+
+  # expand_limits(y=-1)+
+  # coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = textSize)+
+  boxTheme() +
+  theme(
+    # axis.title.x = element_blank()
+    axis.text.x = element_blank()
+  ) + 
+  labs(y = "amplitude (pA)", x = "cell") +
+  # scale_color_viridis(discrete = TRUE) +
+  # scale_fill_viridis(discrete = TRUE)
+  scale_color_viridis() +
+  scale_fill_viridis() +
+  facet_wrap(
+    ~ comboTrt
+    , nrow = 1
+    , scales = "free_x"
+  ) +
+  scale_y_continuous(
+    trans = neg_log_trans
+    , breaks = c(-2.5, -5, -10, -20, -40, -80, -160, -320, -480)
+  )
+```
+
+```{r}
+pscProps %>%
+  combineStress() %>%
+  ggplot(
+    aes(
+      x = comboTrt,
+      y = relPeak,
+      color = cellID
+      , fill = cellID
+    )
+  ) +
+  jitterGeom(
+    size = .75,
+    alpha = .6,
+    width = .35,
+    height = 0
+  ) +
+  theme_pubr()+
+  # expand_limits(y=0)+
+  # coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = textSize)+
+  boxTheme() +
+  theme(
+    axis.title.x = element_blank()
+  ) + 
+  labs(y = "amplitude (pA)") +
+  scale_color_viridis(discrete = TRUE) +
+  scale_fill_viridis(discrete = TRUE) +
+  scale_y_continuous(
+    trans = neg_log_trans
+    , breaks = c(-2.5, -5, -10, -20, -40, -80, -160, -320, -480)
+  )
+```
+
+```{r}
+pscProps %>%
+  mutate(
+    cellID = factor(
+      cellID
+      , levels = df_counts$cellID
+    )
+  ) %>%
+  combineStress() %>%
+  ggplot(
+    aes(
+      x = cellID,
+      y = riseTime,
+      color = log(riseTime)
+      , fill = log(riseTime)
+    )
+  ) +
+  jitterGeom(
+    size = .75,
+    alpha = .6,
+    width = .35,
+    height = 0
+  ) +
+  theme_pubr()+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = textSize)+
+  boxTheme() +
+  theme(
+    # axis.title.x = element_blank()
+    axis.text.x = element_blank()
+  ) + 
+  labs(y = "rise time (ms)", x = "cell") +
+  # scale_color_viridis(discrete = TRUE) +
+  # scale_fill_viridis(discrete = TRUE)
+  scale_color_viridis() +
+  scale_fill_viridis() +
+  facet_wrap(
+    ~ comboTrt
+    , nrow = 1
+    , scales = "free_x"
+  # ) +
+  # scale_y_log10(
+  #   breaks = c(0.00125, 0.0025, 0.005, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12)
+  #   , labels = c("0.00125", "0.0025", "0.005", "0.01", "0.02", "0.04", "0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12")
+  )
+```
+```{r}
+pscProps %>%
+  mutate(
+    cellID = factor(
+      cellID
+      , levels = df_counts$cellID
+    )
+  ) %>%
+  combineStress() %>%
+  ggplot(
+    aes(
+      x = cellID,
+      y = riseTime,
+      color = log(riseTime)
+      , fill = log(riseTime)
+    )
+  ) +
+  jitterGeom(
+    size = .75,
+    alpha = .6,
+    width = .35,
+    height = 0
+  ) +
+  theme_pubr()+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = textSize)+
+  boxTheme() +
+  theme(
+    # axis.title.x = element_blank()
+    axis.text.x = element_blank()
+  ) + 
+  labs(y = "rise time (ms)", x = "cell") +
+  # scale_color_viridis(discrete = TRUE) +
+  # scale_fill_viridis(discrete = TRUE)
+  scale_color_viridis() +
+  scale_fill_viridis() +
+  facet_wrap(
+    ~ comboTrt
+    , nrow = 1
+    , scales = "free_x"
+  ) +
+  scale_y_log10(
+    breaks = c(0.00125, 0.0025, 0.005, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12)
+    , labels = c("0.00125", "0.0025", "0.005", "0.01", "0.02", "0.04", "0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12")
+  )
+```
+
+```{r}
+pscProps %>%
+  filter(
+    riseTime < 0.01
+  )
+pscProps %>%
+  filter(
+    riseTime < 0.1
+  )
+```
+
+# Add Quartile Colors Function
+```{r}
+add_quartile_colors <- function(
+    data
+    , group_col
+    , value_col
+    , reverse_order = FALSE
+) {
+  data <- data %>%
+    group_by({{ group_col }}) %>%
+    mutate(
+      QuartileID = cut({{ value_col }},
+                       breaks = quantile({{ value_col }}, probs = 0:4/4, na.rm = TRUE),
+                       include.lowest = TRUE,
+                       labels = FALSE)
+    ) %>% 
+    ungroup()
+  
+  # quartile_colors <- viridis(4, option = "D")
+  quartile_colors <- c("1" = "#2c7bb6", "2" = "#abd9e9", "3" = "#fdae61", "4" = "#d7191c")
+  if (reverse_order) {
+    color_assignment <- (4 - as.numeric(data$QuartileID)) +1
+  } else {
+    color_assignment <- as.numeric(data$QuartileID)
+  }
+
+  data$Color <- quartile_colors[color_assignment]
+
+  data <- data %>%
+    select(-QuartileID)
+
+    # mutate(
+    #   Color = viridis(4, option = "D")[as.numeric(QuartileID)]
+    # ) %>%
+    # select(-QuartileID)
+
+  return(data)
+}
+
+pscProps %>%
+  add_quartile_colors(
+    cellID
+    , relPeak
+    , reverse_order = TRUE
+  )
+```
+
+
+
+# Plotting function - log
+
+```{r}
+plotPSCProp_log <- function(
+  df
+  , yVar
+  , yLab
+  , logBreaks
+  , logLabels
+  , byCell = TRUE
+  , dotSize = 0.75
+  , dotAlpha = 0.6
+  , jitterWidth = 0.35
+  , byQuartiles = TRUE
+  , sortByQuartile = TRUE
+){
+  if(byCell){
+    if(sortByQuartile){
+      df_counts <- df %>%
+        group_by(cellID) %>%
+          summarize(
+            quartile25 = quantile({{ yVar }}, probs = 0.25, na.rm = TRUE)
+            , .groups = "drop"
+          ) %>%
+          arrange(
+            desc(quartile25)
+          )
+      
+    } else {
+      df_counts <- df %>%
+        group_by(cellID) %>%
+          summarize(
+            count = n()
+            , .groups = "drop"
+          ) %>%
+          arrange(
+            desc(count)
+          )
+      
+    }
+    
+    df <- df %>%
+      mutate(
+        cellID = factor(
+          cellID
+          , levels = df_counts$cellID
+        )
+      )
+  }
+  
+  df <- df %>%
+    combineStress()
+  
+  if(byQuartiles){
+    df <- df %>%
+      add_quartile_colors(
+        if(byCell){cellID} else {comboTrt}
+        , value_col = {{ yVar }}
+      )
+  }
+  
+  viz <- df %>%
+    ggplot(
+      aes(
+        x = if(byCell){cellID} else{comboTrt}
+        , y = {{ yVar }}
+        , color = if(byQuartiles){Color} else {log({{ yVar }})}
+        , fill = if(byQuartiles){Color} else {log({{ yVar }})}
+      )
+  ) +
+  jitterGeom(
+    size = dotSize,
+    alpha = dotAlpha,
+    width = jitterWidth,
+    height = 0
+  ) +
+  theme_pubr()+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = textSize)+
+  boxTheme() +
+  theme(
+    axis.text.x = element_blank()
+  ) + 
+  labs(y = yLab, x = ifelse(byCell, "cell", ""))
+  
+  if(byQuartiles){
+    viz <- viz +
+      scale_color_identity() +
+      scale_fill_identity()
+  } else {
+    viz <- viz +
+      scale_color_viridis() +
+      scale_fill_viridis()
+  }
+  
+  viz <- viz +
+    facet_wrap(
+      ~ comboTrt
+      , nrow = 1
+      , scales = "free_x"
+      , strip.position = "bottom"
+    ) +
+    scale_y_log10(
+      breaks = logBreaks
+      , labels = logLabels
+    )
+  
+  return(viz)
+}
+```
+
+# Plotting function - neg log - quartiles
+
+```{r}
+plotPSCProp_negLog_quartiles <- function(
+  df
+  , yVar
+  , yLab
+  , logBreaks = c(-2.5, -5, -10, -20, -40, -80, -160, -320, -480)
+  , logLabels = c("-2.5", "-5", "-10", "-20", "-40", "-80", "-160", "-320", "-480")
+  , byCell = TRUE
+  , dotSize = 0.75
+  , dotAlpha = 0.6
+  , jitterWidth = 0.35
+){
+  # Define the custom transformation
+  neg_log_trans <- trans_new(
+    name = "neg_log"
+    , transform = function(y) -log10(-y)
+    , inverse = function(y) -10^(-y)
+    , domain = c(-Inf, -0.0001)
+  )
+  
+  if(byCell){
+    df_counts <- df %>%
+      group_by(cellID) %>%
+        summarize(
+          count = n()
+          , .groups = "drop"
+        ) %>%
+        arrange(
+          desc(count)
+        )
+    
+    df <- df %>%
+      mutate(
+        cellID = factor(
+          cellID
+          , levels = df_counts$cellID
+        )
+      )
+  }
+  
+  df <- df %>%
+    combineStress() %>%
+    add_quartile_colors(
+      if(byCell){cellID} else {comboTrt}
+      , value_col = {{ yVar }}
+    )
+  
+  viz <- df %>%
+    ggplot(
+      aes(
+        x = if(byCell){cellID} else{comboTrt}
+        , y = {{ yVar }}
+        , color = Color
+        , fill = Color
+      )
+  ) +
+  jitterGeom(
+    size = dotSize,
+    alpha = dotAlpha,
+    width = jitterWidth,
+    height = 0
+  ) +
+  theme_pubr()+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = textSize)+
+  boxTheme() +
+  theme(
+    axis.text.x = element_blank()
+  ) + 
+  labs(y = yLab, x = ifelse(byCell, "cell", "")) +
+  scale_color_identity() +
+  scale_fill_identity() +
+  facet_wrap(
+    ~ comboTrt
+    , nrow = 1
+    , scales = "free_x"
+  ) +
+  scale_y_continuous(
+    trans = neg_log_trans
+    , breaks = logBreaks
+    , labels = logLabels
+  )
+  
+  return(viz)
+}
+```
+
+# Plotting function - neg log
+
+```{r}
+plotPSCProp_negLog <- function(
+  df
+  , yVar
+  , yLab
+  , logBreaks = c(-2.5, -5, -10, -20, -40, -80, -160, -320, -480)
+  , logLabels = c("-2.5", "-5", "-10", "-20", "-40", "-80", "-160", "-320", "-480")
+  , byCell = TRUE
+  , dotSize = 0.75
+  , dotAlpha = 0.6
+  , jitterWidth = 0.35
+  , byQuartiles = TRUE
+  , reverseColor = FALSE
+  , sortByQuartile = TRUE
+){
+  # Define the custom transformation
+  neg_log_trans <- trans_new(
+    name = "neg_log"
+    , transform = function(y) -log10(-y)
+    , inverse = function(y) -10^(-y)
+    , domain = c(-Inf, -0.0001)
+  )
+  
+  if(byCell){
+    if(sortByQuartile){
+      df_counts <- df %>%
+        group_by(cellID) %>%
+          summarize(
+            quartile25 = quantile({{ yVar }}, probs = 0.25, na.rm = TRUE)
+            , .groups = "drop"
+          ) %>%
+          arrange(
+            desc(quartile25)
+          )
+      
+    } else {
+      df_counts <- df %>%
+        group_by(cellID) %>%
+          summarize(
+            count = n()
+            , .groups = "drop"
+          ) %>%
+          arrange(
+            desc(count)
+          )
+      
+    }
+    
+    df <- df %>%
+      mutate(
+        cellID = factor(
+          cellID
+          , levels = df_counts$cellID
+        )
+      )
+  }
+  
+  df <- df %>%
+    combineStress()
+  
+  if(byQuartiles){
+    df <- df %>%
+      add_quartile_colors(
+        if(byCell){cellID} else {comboTrt}
+        , value_col = {{ yVar }}
+        , reverse_order = reverseColor
+      )
+  }
+  
+  viz <- df %>%
+    ggplot(
+      aes(
+        x = if(byCell){cellID} else{comboTrt}
+        , y = {{ yVar }}
+        , color = if(byQuartiles){Color} else {- log(- {{ yVar }})}
+        , fill = if(byQuartiles){Color} else {- log(- {{ yVar }})}
+      )
+  ) +
+  jitterGeom(
+    size = dotSize,
+    alpha = dotAlpha,
+    width = jitterWidth,
+    height = 0
+  ) +
+  theme_pubr()+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = textSize)+
+  boxTheme() +
+  theme(
+    axis.text.x = element_blank()
+  ) + 
+  labs(y = yLab, x = ifelse(byCell, "cell", ""))
+  
+  if(byQuartiles){
+    viz <- viz +
+      scale_color_identity() +
+      scale_fill_identity()
+  } else {
+    viz <- viz +
+      scale_color_viridis() +
+      scale_fill_viridis()
+  }
+  
+  viz <- viz +
+    facet_wrap(
+      ~ comboTrt
+      , nrow = 1
+      , scales = "free_x"
+      , strip.position = "bottom"
+    ) +
+    scale_y_continuous(
+      trans = neg_log_trans
+      , breaks = logBreaks
+      , labels = logLabels
+    )
+  
+  return(viz)
+}
+```
+
+
+```{r}
+pscProps <- pscProps %>%
+  mutate(
+    absAmp = -relPeak
+  )
+```
+
+# AMPLITUDE
+
+## By cell
+
+Be careful with reversing color, if the percentiles for the model are not reversed
+
+```{r}
+relPeak_byCell <- pscProps %>%
+  # plotPSCProp_negLog(
+  #   yVar = relPeak
+  #   , yLab = "amplitude (pA)"
+  #   , byCell = TRUE
+  #   , reverseColor = FALSE
+  # )
+  plotPSCProp_log(
+    yVar = absAmp
+    , yLab = "amplitude (pA)"
+    , logBreaks = c(5, 10, 20, 40, 80, 160, 320, 480)
+    , logLabels = c("5", "10", "20", "40", "80", "160", "320", "480")
+    , byCell = TRUE
+  )
+
+relPeak_byCell
+```
+
+## By treatment
+
+```{r}
+relPeak_byTrt <- pscProps %>%
+  # plotPSCProp_negLog(
+  #   yVar = relPeak
+  #   , yLab = "amplitude (pA)"
+  #   , byCell = FALSE
+  #   , reverseColor = FALSE
+  # )
+  plotPSCProp_log(
+    yVar = absAmp
+    , yLab = "amplitude (pA)"
+    , logBreaks = c(5, 10, 20, 40, 80, 160, 320, 480)
+    , logLabels = c("5", "10", "20", "40", "80", "160", "320", "480")
+    , byCell = FALSE
+  )
+
+relPeak_byTrt
+```
+
+# RISE TIME
+
+## By Cell
+
+```{r}
+riseTime_byCell <- pscProps %>%
+  plotPSCProp_log(
+    yVar = riseTime
+    , yLab = "rise time (ms)"
+    , logBreaks = c(0.00125, 0.0025, 0.005, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12)
+    , logLabels = c("0.00125", "0.0025", "0.005", "0.01", "0.02", "0.04", "0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12")
+    , byCell = TRUE
+  )
+
+riseTime_byCell
+```
+
+## By treatment
+```{r}
+riseTime_byTrt <- pscProps %>%
+  plotPSCProp_log(
+    yVar = riseTime
+    , yLab = "rise time (ms)"
+    , logBreaks = c(0.00125, 0.0025, 0.005, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12)
+    , logLabels = c("0.00125", "0.0025", "0.005", "0.01", "0.02", "0.04", "0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12")
+    , byCell = FALSE
+  )
+riseTime_byTrt
+```
+
+# DECAY TIME
+
+## By Cell
+
+```{r}
+decayTime_byCell <- pscProps %>%
+  plotPSCProp_log(
+    yVar = decay9010
+    , yLab = "decay time (ms)"
+    , logBreaks = c(0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96, 81.92, 163.84)
+    , logLabels = c("0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96", "81.92", "163.84")
+    , byCell = TRUE
+  )
+decayTime_byCell
+```
+
+## By treatment
+```{r}
+decayTime_byTrt <- pscProps %>%
+  plotPSCProp_log(
+    yVar = decay9010
+    , yLab = "decay time (ms)"
+    , logBreaks = c(0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96, 81.92, 163.84)
+    , logLabels = c("0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96", "81.92", "163.84")
+    , byCell = FALSE
+  )
+decayTime_byTrt
+```
+# FWHM
+
+## By Cell
+
+```{r}
+fwhm_byCell <- pscProps %>%
+  plotPSCProp_log(
+    yVar = fwhm
+    , yLab = "fwhm (ms)"
+    , logBreaks = c(0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96)
+    , logLabels = c("0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96")
+    , byCell = TRUE
+  ) +
+  expand_limits(y = 0.16)
+
+fwhm_byCell
+```
+
+## By treatment
+```{r}
+fwhm_byTrt <- pscProps %>%
+  plotPSCProp_log(
+    yVar = fwhm
+    , yLab = "fwhm (ms)"
+    , logBreaks = c(0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96)
+    , logLabels = c("0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96")
+    , byCell = FALSE
+  ) +
+  expand_limits(y = 0.16)
+
+fwhm_byTrt
+```
+
+```{r}
+pscProps %>%
+  filter(
+    relPeak > -5
+  )
+```
+
+
+# Set-up
+```{r}
+figureNum <- 1
+
+pptBaseName <- makeBaseNameFunc("")
+
+plotFolder <- file.path(plotOutputFolder, "GABA_PSC_props")
+
+imgType <-"png"
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotFolder
+  , compType = currentCompType
+)
+
+exportFullPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+    , width = 11.5
+    , height = 5
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = width
+    , height = height
+  )
+}
+
+exportHalfPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 5.67
+    , height = 5
+  )
+}
+
+exportThirdPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 3.6
+    , height = 5
+  )
+}
+
+exportQuarterPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 3.2
+    , height = 5
+  )
+}
+
+editableImgs <- TRUE
+pptAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddOneTable <- function(
+    table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_oneTable(
+    officer_ppt, 
+    title, 
+    table, 
+    dontFormat = dontFormat
+  )
+  return(officer_ppt)
+}
+
+pptUneditAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = FALSE
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphs <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphsMoreLeft <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraphMoreLeft(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddGraphTable <- function(
+    plot
+    , table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_graphTable(
+    officer_ppt, 
+    title, 
+    plot, 
+    table,
+    makeEditable = editableImgs
+    , dontFormat = dontFormat
+    , textSize = textSize
+  )
+  return(officer_ppt)
+}
+
+pptAddFourGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , plot4
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_fourGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    plot4,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddThreeGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_threeGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddStats <- function(
+    statsText
+    , officer_ppt = ppt
+){
+  officer_ppt <- addStatsToBottom(
+    officer_ppt,
+    statsText
+  )
+}
+
+pptAddTwoStats <- function(
+    statsText1
+    , statsText2
+    , officer_ppt = ppt
+){
+  officer_ppt <- addTwoStatsToGraphs(
+    officer_ppt,
+    statsText1,
+    statsText2
+  )
+}
+
+pptAddSectionHead <- function(
+    title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_sectionHead(
+    officer_ppt
+    , title
+  )
+}
+
+
+
+```
+
+```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("genericPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+# layout_properties(ppt, layout="Title Slide")
+
+subText <- "PSC properties"
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "AGG_LBN_PSC_props"
+  , addDate = TRUE
+)
+```
+
+```{r}
+relPeak_byCell
+fileBaseName <- "relPeak_byCell"
+slideTitle <- "Amplitude"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+```{r}
+relPeak_byTrt
+fileBaseName <- "relPeak_byTrt"
+slideTitle <- "Amplitude"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+```{r}
+riseTime_byCell
+fileBaseName <- "riseTime_byCell"
+slideTitle <- "Rise time"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+```{r}
+riseTime_byTrt
+fileBaseName <- "riseTime_byTrt"
+slideTitle <- "Rise time"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+```{r}
+decayTime_byCell
+fileBaseName <- "decayTime_byCell"
+slideTitle <- "Decay time"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+```{r}
+decayTime_byTrt
+fileBaseName <- "decayTime_byTrt"
+slideTitle <- "Decay time"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+```{r}
+fwhm_byCell
+fileBaseName <- "fwhm_byCell"
+slideTitle <- "FWHM"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+```{r}
+fwhm_byTrt
+fileBaseName <- "fwhm_byTrt"
+slideTitle <- "FWHM"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+logAmplitude_models_sum$tTable[[1]]
+
+rownames(logAmplitude_models_sum$tTable[[1]])
+
+logAmplitude_models_sum$tTable[[1]]
+  
+simplifyQuartileOutput <- function(df # just one quartile
+                                   ){
+  df %>%
+    subEarlyLifeTrtInRowNames_quartile() %>%
+    subAdultTrtInRowNames_quartile() %>%
+    subColonInRowNames() %>%
+    as.data.frame() %>%
+    rownames_to_column(var = "fixed effect") %>%
+    rename(
+      SEM = `Std. Error`
+      , p = `Pr(>|t|)`
+    ) %>%
+    mutate(
+      Value = 10^Value
+      , SEM = 10^SEM
+      , `95% CI` = paste0(
+        "[", format(
+          round(
+            10^`lower bound`
+            , 2
+          )
+          , nsmall = 2, trim = TRUE
+        ), ", ", format(
+          round(
+            10^`upper bound`
+            , 2
+          )
+          , nsmall = 2, trim = TRUE
+        ), "]")
+      , .after = SEM
+    ) %>% 
+    select(
+      -c(`lower bound`, `upper bound`)
+    ) %>%
+    formatPCol()
+}
+
+simplifyAllQuartilesOutput <- function(allDFs){
+  
+  resultDF <- NULL
+  
+  for(name in names(allDFs)){
+    df <- allDFs[[name]]
+    
+    simpDF <- simplifyQuartileOutput(df) %>%
+      mutate(
+        quartile = name
+        , .before = `fixed effect`
+      )
+    
+     resultDF <- bind_rows(resultDF, simpDF)
+  }
+  
+  return(resultDF)
+}
+
+logAmplitude_models_sum$tTable %>%
+  simplifyAllQuartilesOutput()
+
+
+names(logAmplitude_models_sum$tTable)
+
+for(name in names(logAmplitude_models_sum$tTable)){
+  print(name)
+}
+
+logAmplitude_models_sum$tTable[["0.25"]]
+
+logAmplitude_models_sum$tTable[[]] %>%
+  simplifyAllQuartilesOutput()
+  simplifyQuartileOutput()
+
+pscProps$earlyLifeTrt <- factor(pscProps$earlyLifeTrt, levels = c("STD", "LBN"))
+
+bind_rows(
+  list(
+    "0.25" = logAmplitude_models_sum$tTable[[1]] %>% as.tibble()
+    , "0.5" = logAmplitude_models_sum$tTable[[2]] %>% as.tibble()
+    , "0.75" = logAmplitude_models_sum$tTable[[3]] %>% as.tibble()
+  )
+  , .id = "percentile"
+)
+```
+
+
+
+```{r}
+names(logModels_tbl)
+```
+Something odd about the Q3 estimate for FWHM, way too large. Not sure why, but there are also some differences in the Covariance matrix of the random effects
+```{r}
+pscProps_log <- pscProps %>%
+  mutate(
+    logFWHM = log10(fwhm)
+    , logRiseTime = log10(riseTime)
+    , logDecayTime = log10(decay9010)
+    , logAmplitude = log10(amplitude)
+  )
+
+pscProps_log %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(
+    logFWHM
+  )
+pscProps_log %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(
+    logRiseTime
+  )
+pscProps_log %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(
+    logDecayTime
+  )
+pscProps_log %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(
+    logAmplitude
+  )
+
+pscProps_log %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(
+    fwhm
+  )
+pscProps_log %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(
+    riseTime
+  )
+pscProps_log %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(
+    decay9010
+  )
+pscProps_log %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(
+    amplitude
+  )
+
+lqmm(
+  logFWHM ~ earlyLifeTrt * adultTrt
+  , random = ~1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps_log
+  , control = lqmmControl(
+    LP_max_iter = 2500
+  )
+)
+pscProps_log
+```
+
+```{r}
+predict(logFWHM_models) %>%
+  as.data.frame()
 ```
 

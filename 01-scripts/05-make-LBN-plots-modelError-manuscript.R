@@ -871,16 +871,59 @@ plotGABAfreq_noMean <- plotCatVarFunc(
 )
 
 plotGABAamp_noMean <- plotCatVarFunc(
-  expr(relPeak)
+  # expr(relPeak)
+  expr(amplitude)
   , fontSize = textSize
   , dotSize = dotSize
   , twoLineXLabs = TRUE
+  , tiltedXLabs = TRUE
+  , useFacetLabels = FALSE
+  , addMeanSE = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "amplitude (pA)"
+)
+
+plotGABAriseTime_noMean <- plotCatVarFunc(
+  expr(riseTime)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , tiltedXLabs = TRUE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
 
+plotGABAdecayTime_noMean <- plotCatVarFunc(
+  expr(decay9010)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , tiltedXLabs = TRUE
+  , useFacetLabels = FALSE
+  , addMeanSE = FALSE
+  , useSpecYLab = TRUE
+  # , thisYLab = "decay time (ms)\nfrom90% to 10% of peak"
+  , thisYLab = "decay time (ms)"
+)
+
+plotGABAfwhm_noMean <- plotCatVarFunc(
+  expr(fwhm)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , tiltedXLabs = TRUE
+  , useFacetLabels = FALSE
+  , addMeanSE = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "fwhm (ms)"
+)
+
 figGABAa_model <- GABApscs_240FilteredFiring %>%
-  plotCapacitance_noMean() +
+  plotCapacitance_noMean(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 25
+  ) +
   plotError_LMM(
     capacitance_lmm_errors
     , xVar = comboTrt
@@ -891,7 +934,11 @@ figGABAa_model <- GABApscs_240FilteredFiring %>%
   )
 
 figGABAc_model <- GABApscs_240FilteredFiring %>%
-  plotRseries_noMean() +
+  plotRseries_noMean(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 20
+  ) +
   plotError_LMM(
     seriesResistance_lmm_errors
     , xVar = comboTrt
@@ -915,7 +962,11 @@ figGABAb_model <- GABApscs_240FilteredFiring %>%
 
 
 figGABAd_model <- GABApscs_240FilteredFiring %>%
-  plotHoldingCurr_noMean() +
+  plotHoldingCurr_noMean(
+    zoom_y = TRUE
+    , ymin = -100
+    , ymax = 25
+  ) +
   plotError_LMM(
     holdingCurrent_lmm_errors
     , xVar = comboTrt
@@ -923,6 +974,9 @@ figGABAd_model <- GABApscs_240FilteredFiring %>%
     , nudgeMeanLine = 0
     , meanBarWidth = 0.7
     , color = "magenta"
+  ) +
+  scale_y_continuous(
+    breaks = c(-100, -75, -50, -25, 0, 25)
   )
 
 figGABAe_model <- GABApscs_240FilteredFiring %>%
@@ -940,10 +994,49 @@ figGABAe_model <- GABApscs_240FilteredFiring %>%
     , color = "magenta"
   )
 
-figGABAf_model <- GABApscs_240FilteredFiring %>%
+figGABA2a_model <- GABApscs_240FilteredFiring %>%
   plotGABAamp_noMean() +
   plotError_LMM(
     relAmplitude_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+
+figGABA2b_model <- GABApscs_240FilteredFiring %>%
+  plotGABAriseTime_noMean(
+
+  ) +
+  plotError_LMM(
+    riseTime_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+
+figGABA2c_model <- GABApscs_240FilteredFiring %>%
+  plotGABAdecayTime_noMean(
+
+  ) +
+  plotError_LMM(
+    decayTime_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = "magenta"
+  )
+
+figGABA2d_model <- GABApscs_240FilteredFiring %>%
+  plotGABAfwhm_noMean(
+
+  ) +
+  plotError_LMM(
+    fwhm_lmm_errors
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0

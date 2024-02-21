@@ -22,6 +22,16 @@ subAdultTrtInRowNames <- function(tbl) {
   return(tbl)
 }
 
+subEarlyLifeTrtInRowNames_quartile <- function(tbl, sub = "early-life treatment (LBN)") {
+  row.names(tbl) <- gsub("earlyLifeTrt1", sub, row.names(tbl))
+  return(tbl)
+}
+
+subAdultTrtInRowNames_quartile <- function(tbl) {
+  row.names(tbl) <- gsub("adultTrt1", "adult treatment (ALPS)", row.names(tbl))
+  return(tbl)
+}
+
 subSacCycleInRowNames <- function(tbl) {
   row.names(tbl) <- gsub("Sac_cycle", "cycle stage", row.names(tbl))
   return(tbl)
@@ -130,6 +140,62 @@ simplifyEMMPairsOutput <- function(pairsTbl){
     ) %>%
     formatPCol()
   return(tbl)
+}
+
+simplifyQuartileOutput <- function(df # just one quartile
+){
+  df %>%
+    subEarlyLifeTrtInRowNames_quartile() %>%
+    subAdultTrtInRowNames_quartile() %>%
+    subColonInRowNames() %>%
+    as.data.frame() %>%
+    rownames_to_column(var = "fixed effect") %>%
+    rename(
+      SEM = `Std. Error`
+      , p = `Pr(>|t|)`
+    ) %>%
+    mutate(
+      Value = 10^Value
+      , SEM = 10^SEM
+      , `95% CI` = paste0(
+        "[", format(
+          round(
+            10^`lower bound`
+            , 2
+          )
+          , nsmall = 2, trim = TRUE
+        ), ", ", format(
+          round(
+            10^`upper bound`
+            , 2
+          )
+          , nsmall = 2, trim = TRUE
+        ), "]")
+      , .after = SEM
+    ) %>% 
+    select(
+      -c(`lower bound`, `upper bound`)
+    ) %>%
+    formatPCol()
+}
+
+simplifyAllQuartilesOutput <- function(allDFs){
+  
+  resultDF <- NULL
+  
+  for(name in names(allDFs)){
+    df <- allDFs[[name]]
+    
+    simpDF <- simplifyQuartileOutput(df) %>%
+      mutate(
+        quartile = name
+        , .before = `fixed effect`
+      )
+    
+    resultDF <- bind_rows(resultDF, simpDF)
+  }
+  
+  return(resultDF)
 }
 
 addTableAndCaptionToDoc <- function(tbl, tableCaption, tableNum, doc){

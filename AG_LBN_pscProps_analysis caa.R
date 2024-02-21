@@ -1,4 +1,5 @@
-pscProps <- read.csv(file = "./AG_LBN_pscProps.csv", header = TRUE, stringsAsFactors = FALSE)
+# pscProps <- read.csv(file = "./AG_LBN_pscProps.csv", header = TRUE, stringsAsFactors = FALSE)
+pscProps <- read.csv(file = "./AG_LBN_pscPropsOld.csv", header = TRUE, stringsAsFactors = FALSE)
 
 pscProps$cellID <- factor(pscProps$cellID)
 pscProps$mouseID <- factor(pscProps$mouseID)
@@ -181,6 +182,7 @@ summary(decay9010_scaled_models)
 # ultimately need to set a seed before running these, as it changes with each run
 logrelPeak_models <- lqmm(
   -log10(-relPeak) ~ earlyLifeTrt * adultTrt
+  # log10(absAmp) ~ earlyLifeTrt * adultTrt
   , random = ~ 1
   , group = cellID
   , tau = quantiles

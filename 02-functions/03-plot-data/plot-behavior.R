@@ -85,8 +85,8 @@ plotDamBehavior <- function(
   if(colorByDam){
     df <- df %>%
       addOrderedColors(
-        !! enquo(yVar)
-        , damID
+        orderVar = !! enquo(yVar)
+        , subjectVar = damID
         , colorByGroups = FALSE
         , pkg = "rainbow"
         , earlyLifeTrt

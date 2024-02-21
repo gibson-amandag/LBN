@@ -575,7 +575,7 @@ LHPlot_noMean_lineColor <- function(
     theme_pubr() +
     labs(
       y = "LH (ng/mL)",
-      x = "time (hr) relative to lights out"
+      x = "time (h) relative to lights out"
     ) +
     scale_x_continuous(
       breaks = xBreaks,

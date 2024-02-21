@@ -48,6 +48,9 @@ slicingInfo <- loadExcelSheet(dataFolder, LBN_DataName, "Slicing_off")
 GABApscs <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs")
 GABApscs_120 <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs_120")
 GABApscs_240 <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs_240")
+
+pscProps <- loadExcelSheet(dataFolder, LBN_DataName, "pscProps")
+
 cellInfo <- loadExcelSheet(dataFolder, LBN_DataName, "cellInfo")
 cellExclusion <- loadExcelSheet(dataFolder, LBN_DataName, "cellExclusion")
 
@@ -555,6 +558,10 @@ GABApscs_240 <- GABApscs_240 %>%
   ) %>%
   select(
     -time, timeHr
+  ) %>%
+  mutate(
+    amplitude = -relPeak
+    , .after = relPeak
   )
 
 # COMBINE ALL DFS INTO ONE ------------------------------------------------
@@ -698,6 +705,23 @@ maleCortAdmin <- maleCortAdmin %>%
 
 maleCortAdmin_cort <- maleCortAdmin_cort %>%
   addOffspringDemoData(addBy = "mouseID")
+
+pscProps <- pscProps %>%
+  left_join(
+    GABApscs_240 %>%
+      select(
+        cellID
+        , mouseID
+        , damID
+        , earlyLifeTrt
+        , adultTrt
+      )
+    , by = "cellID"
+  ) %>%
+  mutate(
+    amplitude = -relPeak
+    , .after = relPeak
+  )
 
 # UPDATE COMBO FRAMES WITH MATURATION -------------------------------------
 LBN_all <- LBN_all %>%
