@@ -585,7 +585,7 @@ cortAdmin_cort <- maleCortAdmin_cort_filtered %>%
     lineTypeGuide = c("dotted", "solid"),
     positionDodge = 0.2, #this controls the spread of the data visually
     zoom_y = TRUE,
-    ymax = 750,
+    ymax = 1000,
     ymin = 0
     , plotMean = FALSE
     , plotSE = FALSE
@@ -621,7 +621,7 @@ cortAdmin_cort <- maleCortAdmin_cort_filtered %>%
   labs(x = "time (hr)"
        ) +
   scale_y_continuous(
-    breaks = seq(0, 750, 150)
+    breaks = seq(0, 1100, 150)
   ) +
   scale_linetype_manual(
     values = c("0" = "dotted", 
@@ -1003,6 +1003,15 @@ figGABA2a_model <- GABApscs_240FilteredFiring %>%
     , nudgeMeanLine = 0
     , meanBarWidth = 0.7
     , color = "magenta"
+  ) +
+  plotError_LMM(
+    amplitudeMedian_errors %>%
+      combineStress()
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.1
+    , nudgeMeanLine = 0.1
+    , meanBarWidth = 0.7
+    , color = "grey40"
   )
 
 figGABA2b_model <- GABApscs_240FilteredFiring %>%
@@ -1016,6 +1025,15 @@ figGABA2b_model <- GABApscs_240FilteredFiring %>%
     , nudgeMeanLine = 0
     , meanBarWidth = 0.7
     , color = "magenta"
+  ) +
+  plotError_LMM(
+    riseTimeMedian_errors %>%
+      combineStress()
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.1
+    , nudgeMeanLine = 0.1
+    , meanBarWidth = 0.7
+    , color = "grey40"
   )
 
 figGABA2c_model <- GABApscs_240FilteredFiring %>%
@@ -1029,6 +1047,15 @@ figGABA2c_model <- GABApscs_240FilteredFiring %>%
     , nudgeMeanLine = 0
     , meanBarWidth = 0.7
     , color = "magenta"
+  ) +
+  plotError_LMM(
+    decayTimeMedian_errors %>%
+      combineStress()
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.1
+    , nudgeMeanLine = 0.1
+    , meanBarWidth = 0.7
+    , color = "grey40"
   )
 
 figGABA2d_model <- GABApscs_240FilteredFiring %>%
@@ -1042,24 +1069,35 @@ figGABA2d_model <- GABApscs_240FilteredFiring %>%
     , nudgeMeanLine = 0
     , meanBarWidth = 0.7
     , color = "magenta"
+  ) +
+  plotError_LMM(
+    FWHMmedian_errors %>%
+      combineStress()
+    , xVar = comboTrt
+    , nudgeErrorLine = 0.1
+    , nudgeMeanLine = 0.1
+    , meanBarWidth = 0.7
+    , color = "grey40"
   )
 
 ## Distribution plots ----------------
 
 relPeak_byCell <- pscProps %>%
-  plotPSCProp_negLog(
-    yVar = relPeak
+  plotPSCProp_log(
+    yVar = amplitude
     , yLab = "amplitude (pA)"
+    , logBreaks = c(5, 10, 20, 40, 80, 160, 320, 480)
+    , logLabels = c("5", "10", "20", "40", "80", "160", "320", "480")
     , byCell = TRUE
-    , reverseColor = FALSE
   )
 
 relPeak_byTrt <- pscProps %>%
-  plotPSCProp_negLog(
-    yVar = relPeak
+  plotPSCProp_log(
+    yVar = amplitude
     , yLab = "amplitude (pA)"
+    , logBreaks = c(5, 10, 20, 40, 80, 160, 320, 480)
+    , logLabels = c("5", "10", "20", "40", "80", "160", "320", "480")
     , byCell = FALSE
-    , reverseColor = FALSE
   )
 
 riseTime_byCell <- pscProps %>%

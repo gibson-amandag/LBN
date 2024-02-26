@@ -845,30 +845,6 @@ relAmplitude_lmm_errors <- relAmplitude_lmm %>%
   ) %>%
   combineStress()
 
-## Quantiles ------------------------------------
-
-quantiles <- c(
-  0.25
-  , 0.5
-  , 0.75
-)
-
-logAmplitude_models <- lqmm(
-  log10(amplitude) ~ earlyLifeTrt * adultTrt
-  , random = ~ 1
-  , group = cellID
-  , tau = quantiles
-  , data = pscProps
-  , control = lqmmControl(
-    LP_max_iter = 2500
-  )
-)
-
-logAmplitude_models_sum <- summary(
-  logAmplitude_models
-  , seed = 741
-)
-
 # GABA - Rise time ----------------------------------------------------
 
 riseTime_lmm <- mixed(
@@ -887,25 +863,6 @@ riseTime_lmm_errors <- riseTime_lmm %>%
   ) %>%
   combineStress()
 
-## Quantiles ----------------------------
-
-
-logRiseTime_models <- lqmm(
-  log10(riseTime) ~ earlyLifeTrt * adultTrt
-  , random = ~ 1
-  , group = cellID
-  , tau = quantiles
-  , data = pscProps
-  , control = lqmmControl(
-    LP_max_iter = 2500
-  )
-)
-
-logRiseTime_models_sum <- summary(
-  logRiseTime_models
-  , seed = 741
-)
-
 # GABA - Decay time ----------------------------------------------------
 
 decayTime_lmm <- mixed(
@@ -923,24 +880,6 @@ decayTime_lmm_errors <- decayTime_lmm %>%
     , panel = "adultTrt"
   ) %>%
   combineStress()
-
-## Quantiles ------------------------------------
-
-logDecayTime_models <- lqmm(
-  log10(decay9010) ~ earlyLifeTrt * adultTrt
-  , random = ~ 1
-  , group = cellID
-  , tau = quantiles
-  , data = pscProps
-  , control = lqmmControl(
-    LP_max_iter = 2500
-  )
-)
-
-logDecayTime_models_sum <- summary(
-  logDecayTime_models
-  , seed = 741
-)
 
 # GABA - FWHM ----------------------------------------------------
 
@@ -961,27 +900,246 @@ fwhm_lmm_errors <- fwhm_lmm %>%
   combineStress()
 
 
-## Quantiles ------------------------------------
-
-logFWHM_models <- lqmm(
-  log10(fwhm) ~ earlyLifeTrt * adultTrt
-  , random = ~ 1
-  , group = cellID
-  , tau = quantiles
-  , data = pscProps
-  , control = lqmmControl(
-    LP_max_iter = 2500
-  )
-)
-
-logFWHM_models_sum <- summary(
-  logFWHM_models
-  , seed = 741
-)
+# LQMM for GABA PSCs --------------------------------------------------------------
 
 
-# Cort admin --------------------------------------------------------------
 
+## Amplitude ------------------------------------
+
+# set_treatment_contrasts() # this would reset contrasts to R default with dummy treatment coding
+# Keeping at set_sum_contrasts, as this makes the intercept the global mean and the values for the different
+# treatments then represent main effects and interactions compared to the global mean, as opposed to
+# comparing all to the STD-CON group
+
+# quantiles <- c(
+#   0.25
+#   , 0.5
+#   , 0.75
+# )
+#
+# sumQuartiles <- pscProps %>%
+#   mutate(
+#     logAmp = log10(amplitude)
+#     , logRiseTime = log10(riseTime)
+#     , logDecayTime = log10(decay9010)
+#     , logFWHM = log10(fwhm)
+#   ) %>%
+#   group_by(
+#     earlyLifeTrt
+#     , adultTrt
+#   ) %>%
+#   quartilesSummary()
+#
+# getLQMMpredictions <- function(
+#     predRes
+#     , df = pscProps
+#     , responseVals = FALSE # transforms from log10
+# ){
+#   intPredict <- predRes %>%
+#     as.data.frame() %>%
+#     bind_cols(
+#       df %>%
+#         select(
+#           cellID
+#           , mouseID
+#           , earlyLifeTrt
+#           , adultTrt
+#         )
+#     ) %>%
+#     group_by(
+#       earlyLifeTrt
+#       , adultTrt
+#     ) %>%
+#     summarize(
+#       "mean_0.25" = mean(X0.25.yhat, na.rm = TRUE)
+#       , "lower_0.25" = mean(X0.25.lower, na.rm = TRUE)
+#       , "upper_0.25" = mean(X0.25.upper, na.rm = TRUE)
+#       , "SEM_0.25" = mean(X0.25.SE, na.rm = TRUE)
+#       , "mean_0.5" = mean(X0.50.yhat, na.rm = TRUE)
+#       , "lower_0.50" = mean(X0.50.lower, na.rm = TRUE)
+#       , "upper_0.50" = mean(X0.50.upper, na.rm = TRUE)
+#       , "SEM_0.50" = mean(X0.50.SE, na.rm = TRUE)
+#       , "mean_0.75" = mean(X0.75.yhat, na.rm = TRUE)
+#       , "lower_0.75" = mean(X0.75.lower, na.rm = TRUE)
+#       , "upper_0.75" = mean(X0.75.upper, na.rm = TRUE)
+#       , "SEM_0.75" = mean(X0.75.SE, na.rm = TRUE)
+#       , .groups = "drop"
+#     )
+#
+#   if(responseVals){
+#     intPredict <- intPredict %>%
+#       mutate(
+#         mean_0.25 = 10^mean_0.25
+#         , lower_0.25 = 10^lower_0.25
+#         , upper_0.25 = 10^upper_0.25
+#         , SEM_0.25 = 10^SEM_0.25
+#         , mean_0.5 = 10^mean_0.5
+#         , lower_0.50 = 10^lower_0.50
+#         , upper_0.50 = 10^upper_0.50
+#         , SEM_0.50 = 10^SEM_0.50
+#         , mean_0.75 = 10^mean_0.75
+#         , lower_0.75 = 10^lower_0.75
+#         , upper_0.75 = 10^upper_0.75
+#         , SEM_0.75 = 10^SEM_0.75
+#       )
+#   }
+#   return(intPredict)
+# }
+#
+# logAmplitude_models <- lqmm(
+#   log10(amplitude) ~ earlyLifeTrt * adultTrt
+#   , random = ~ 1
+#   , group = cellID
+#   , tau = quantiles
+#   , data = pscProps
+#   , control = lqmmControl(
+#     LP_max_iter = 2500
+#     , LP_tol_ll = 1e-4
+#     , LP_tol_theta = 1e-4
+#     , startQR = TRUE # This seems to make it worse for amplitude
+#   )
+# )
+#
+# logAmplitude_models_sum <- summary(
+#   logAmplitude_models
+#   , seed = 231
+#   , R = 200
+# )
+#
+# logAmplitude_models_pred <- predint(
+#   logAmplitude_models
+#   , seed = 231
+#   , R = 200
+# )
+#
+# logAmplitude_models_predictions <- logAmplitude_models_pred %>%
+#   getLQMMpredictions() %>%
+#   flextable()
+#
+# ## Rise time ----------------------------
+#
+#
+# logRiseTime_models <- lqmm(
+#   log10(riseTime) ~ earlyLifeTrt * adultTrt
+#   , random = ~ 1
+#   , group = cellID
+#   , tau = quantiles
+#   , data = pscProps
+#   , control = lqmmControl(
+#     LP_max_iter = 2500
+#     , LP_tol_ll = 1e-4
+#     , LP_tol_theta = 1e-4
+#     , startQR = TRUE
+#   )
+# )
+#
+# logRiseTime_models_sum <- summary(
+#   logRiseTime_models
+#   , seed = 231
+#   , R = 200
+# )
+#
+# logRiseTime_models_pred <- predint(
+#   logRiseTime_models
+#   , seed = 231
+#   , R = 200
+# )
+#
+# logRiseTime_models_predictions <- logRiseTime_models_pred %>%
+#   getLQMMpredictions() %>%
+#   flextable()
+#
+# ## Decay time ------------------------------------
+#
+# logDecayTime_models <- lqmm(
+#   log10(decay9010) ~ earlyLifeTrt * adultTrt
+#   , random = ~ 1
+#   , group = cellID
+#   , tau = quantiles
+#   , data = pscProps
+#   , control = lqmmControl(
+#     LP_max_iter = 2500
+#     , LP_tol_ll = 1e-4
+#     , LP_tol_theta = 1e-4
+#     , startQR = TRUE
+#   )
+# )
+#
+# logDecayTime_models_sum <- summary(
+#   logDecayTime_models
+#   , seed = 231
+#   , R = 200
+# )
+#
+# logDecayTime_models_pred <- predint(
+#   logDecayTime_models
+#   , seed = 231
+#   , R = 200
+# )
+#
+# logDecayTime_models_predictions <- logDecayTime_models_pred %>%
+#   getLQMMpredictions() %>%
+#   flextable()
+#
+# ## FWHM ------------------------------------
+#
+# logFWHM_models <- lqmm(
+#   log10(fwhm) ~ earlyLifeTrt * adultTrt
+#   , random = ~ 1
+#   , group = cellID
+#   , tau = quantiles
+#   , data = pscProps
+#   , control = lqmmControl(
+#     LP_max_iter = 2500
+#     , LP_tol_ll = 1e-4
+#     , LP_tol_theta = 1e-4
+#     , startQR = TRUE
+#   )
+# )
+#
+# logFWHM_models_sum <- summary(
+#   logFWHM_models
+#   , seed = 231
+#   , R = 200
+# )
+#
+# logFWHM_models_pred <- predint(
+#   logFWHM_models
+#   , seed = 231
+#   , R = 200
+# )
+#
+# logFWHM_models_predictions <- logFWHM_models_pred %>%
+#   getLQMMpredictions() %>%
+#   flextable()
+
+
+# logFWHM_models_pred_tbl <- logFWHM_models_pred %>%
+#   as.data.frame() %>%
+#   bind_cols(
+#     pscProps
+#   ) %>%
+#   group_by(
+#     earlyLifeTrt
+#     , adultTrt
+#   ) %>%
+#   meanSummary(
+#     c(X0.75.yhat)
+#   )
+#
+# pscProps %>%
+#   mutate(
+#     logFWHMW = log10(fwhm)
+#   ) %>%
+#   group_by(
+#     earlyLifeTrt
+#     , adultTrt
+#   ) %>%
+#   quartilesSummary(
+#     c(logFWHMW)
+#   )
+
+# set_sum_contrasts()
 
 
 # OLD -----------------------

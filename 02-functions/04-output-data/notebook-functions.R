@@ -22,13 +22,13 @@ subAdultTrtInRowNames <- function(tbl) {
   return(tbl)
 }
 
-subEarlyLifeTrtInRowNames_quartile <- function(tbl, sub = "early-life treatment (LBN)") {
+subEarlyLifeTrtInRowNames_quartile <- function(tbl, sub = "early-life treatment") {
   row.names(tbl) <- gsub("earlyLifeTrt1", sub, row.names(tbl))
   return(tbl)
 }
 
-subAdultTrtInRowNames_quartile <- function(tbl) {
-  row.names(tbl) <- gsub("adultTrt1", "adult treatment (ALPS)", row.names(tbl))
+subAdultTrtInRowNames_quartile <- function(tbl, sub = "adult treatment") {
+  row.names(tbl) <- gsub("adultTrt1", sub, row.names(tbl))
   return(tbl)
 }
 

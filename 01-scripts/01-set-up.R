@@ -32,6 +32,7 @@ if(!require(rvg))install.packages('rvg')
 if(!require(googledrive))install.packages('googledrive')
 if(!require(googlesheets4))install.packages('googlesheets4')
 if(!require(lme4))install.packages('lme4') 
+if(!require(lqmm))install.packages('lqmm') 
 # 2024-01-11 install.packages("lme4", type = "source")
 # Had problems with compatibility with new Matrix
 # https://stackoverflow.com/questions/77481539/error-in-initializeptr-function-cholmod-factor-ldeta-not-provided-by-pack
@@ -83,6 +84,7 @@ library(emmeans)
 library(ggbeeswarm)
 library(nparLD)
 library(lspline)
+library(lqmm)
 
 drive_auth(email = "*@umich.edu")
 gs4_auth(token = drive_token())

@@ -1451,6 +1451,7 @@ predicted_value
 ```
 
 ```{r}
+set_default_contrasts()
 ## Orthodont data
 data(Orthodont)
 
@@ -1460,6 +1461,79 @@ fitOi.lqmm <- lqmm(distance ~ age, random = ~ 1, group = Subject,
 
 # Predict (y - Xb)	
 predict(fitOi.lqmm, level = 0)
+
+# Predict (y - Xb - Zu)
+predict(fitOi.lqmm, level = 1)
+
+# 95% confidence intervals
+predint(fitOi.lqmm, level = 0, alpha = 0.05)
+
+```
+
+```{r}
+set_default_contrasts()
+## Orthodont data
+data(Orthodont)
+
+df <- Orthodont %>%
+  as.data.frame() %>%
+  ungroup
+
+# Random intercept model
+fitOi.lqmm <- lqmm(distance ~ age, random = ~ 1, group = Subject,
+	tau = c(0.1,0.5,0.9), data = Orthodont)
+fitOi.lqmm.df <- lqmm(distance ~ age, random = ~ 1, group = Subject,
+	tau = c(0.1,0.5,0.9), data = df)
+
+fitOi.lqmm
+fitOi.lqmm.df
+
+# Numeric variable seems to give changing predictions
+fit.test <- lqmm(
+  riseTime ~ cort_hr5
+  , random = ~1 
+  , group = cellID
+  , tau = c(0.25, 0.5, 0.75)
+  , data = pscProps %>%
+    left_join(
+      acuteStressFiltered
+      , by = "mouseID"
+    )
+)
+
+predict(fit.test) %>%
+  as.data.frame()
+
+fit.test <- lqmm(
+  riseTime ~ earlyLifeTrt
+  , random = ~1 
+  , group = cellID
+  , tau = c(0.25, 0.5, 0.75)
+  , data = pscProps %>%
+    mutate(
+      earlyLifeTrtVar = as.numeric(earlyLifeTrt)
+      , .before = "earlyLifeTrt"
+    )
+)
+
+predict(fit.test) %>%
+  as.data.frame()
+
+fitOi.sex.lqmm <- lqmm(distance ~ age * Sex, random = ~ 1, group = Subject,
+	tau = c(0.1,0.5,0.9), data = df)
+
+fitOi.sex.lqmm
+
+predict(fitOi.sex.lqmm, level = 0)
+
+Orthodont
+
+predict(logDecayTime_models, level = 0)
+
+# Predict (y - Xb)	
+predict(fitOi.lqmm, level = 0)
+# Predict (y - Xb)	
+predict(fitOi.lqmm.df, level = 0)
 
 # Predict (y - Xb - Zu)
 predict(fitOi.lqmm, level = 1)
@@ -2934,4 +3008,367 @@ pscProps_log
 predict(logFWHM_models) %>%
   as.data.frame()
 ```
+
+```{r}
+getLQMMpredictions <- function(
+    lqmmMod
+    , df = pscProps
+    , responseVals = TRUE # transforms from log10
+){
+  # meanPredict <- predict(
+  #   lqmmMod
+  #   , level = 0 # the average across the random effects. If level = 1, gives unique value for each subject group
+  # ) %>%
+  #   as.data.frame() %>%
+  #   bind_cols(
+  #     df %>%
+  #       select(
+  #         cellID
+  #         , mouseID
+  #         , earlyLifeTrt
+  #         , adultTrt
+  #       )
+  #   ) %>%
+  #   group_by(
+  #     earlyLifeTrt
+  #     , adultTrt
+  #   ) %>%
+  #   summarize(
+  #     "q0.25" = mean(`0.25`, na.rm = TRUE)
+  #     , "q0.5" = mean(`0.50`, na.rm = TRUE)
+  #     , "q0.75" = mean(`0.75`, na.rm = TRUE)
+  #     , .groups = "drop"
+  #   )
+  
+  intPredict <- predint(
+    lqmmMod
+    , level = 0
+    , seed = 741
+  ) %>%
+    as.data.frame() %>%
+    bind_cols(
+      df %>%
+        select(
+          cellID
+          , mouseID
+          , earlyLifeTrt
+          , adultTrt
+        )
+    ) %>%
+    group_by(
+      earlyLifeTrt
+      , adultTrt
+    ) %>%
+    summarize(
+      "mean_0.25" = mean(X0.25.yhat, na.rm = TRUE)
+      , "lower_0.25" = mean(X0.25.lower, na.rm = TRUE)
+      , "upper_0.25" = mean(X0.25.upper, na.rm = TRUE)
+      , "SEM_0.25" = mean(X0.25.SE, na.rm = TRUE)
+      , "mean_0.5" = mean(X0.50.yhat, na.rm = TRUE)
+      , "lower_0.50" = mean(X0.50.lower, na.rm = TRUE)
+      , "upper_0.50" = mean(X0.50.upper, na.rm = TRUE)
+      , "SEM_0.50" = mean(X0.50.SE, na.rm = TRUE)
+      , "mean_0.75" = mean(X0.75.yhat, na.rm = TRUE)
+      , "lower_0.75" = mean(X0.75.lower, na.rm = TRUE)
+      , "upper_0.75" = mean(X0.75.upper, na.rm = TRUE)
+      , "SEM_0.75" = mean(X0.75.SE, na.rm = TRUE)
+      , .groups = "drop"
+    )
+  
+  if(responseVals){
+    intPredict <- intPredict %>%
+      mutate(
+        mean_0.25 = 10^mean_0.25
+        , lower_0.25 = 10^lower_0.25
+        , upper_0.25 = 10^upper_0.25
+        , SEM_0.25 = 10^SEM_0.25
+        , mean_0.5 = 10^mean_0.5
+        , lower_0.50 = 10^lower_0.50
+        , upper_0.50 = 10^upper_0.50
+        , SEM_0.50 = 10^SEM_0.50
+        , mean_0.75 = 10^mean_0.75
+        , lower_0.75 = 10^lower_0.75
+        , upper_0.75 = 10^upper_0.75
+        , SEM_0.75 = 10^SEM_0.75
+      )
+  }
+  return(intPredict)
+}
+```
+
+
+```{r}
+predict(
+  logFWHM_models
+  , level = 0
+) %>%
+  as.data.frame() %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    "q0.25" = mean(`0.25`, na.rm = TRUE)
+    , "q0.5" = mean(`0.50`, na.rm = TRUE)
+    , "q0.75" = mean(`0.75`, na.rm = TRUE)
+  )
+predict(
+  logFWHM_models
+  , level = 1
+) %>%
+  as.data.frame() %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    "q0.25" = mean(`0.25`, na.rm = TRUE)
+    , "q0.5" = mean(`0.50`, na.rm = TRUE)
+    , "q0.75" = mean(`0.75`, na.rm = TRUE)
+  )
+
+predint(
+  logFWHM_models
+  , level = 0
+  , seed = 741
+) %>%
+  as.data.frame() %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  )
+
+```
+
+```{r}
+logAmplitude_models %>%
+  getLQMMpredictions(responseVals = FALSE)
+```
+
+
+```{r}
+pscProps_log %>%
+  ggplot(aes(x = logPeak, color = comboTrt)) +
+  stat_ecdf() +
+  comboTrtLineColor() +
+  coord_cartesian(
+    xlim = c(-4.2, -3.8)
+    , ylim = c(.2, .3)
+  )
+```
+
+```{r}
+set_sum_contrasts()
+
+amplitude_effectCodedMod<- lqmm(
+  log10(amplitude) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 1000
+    , LP_tol_ll = 5e-5
+    , LP_tol_theta = 5e-5
+  )
+)
+```
+
+```{r}
+amplitude_effectCodedMod_sum <- summary(
+  amplitude_effectCodedMod
+  , seed = 741
+)
+```
+
+```{r}
+amplitude_effectCodedMod_sum
+```
+
+
+
+```{r}
+amplitude_effectCodedMod %>%
+  getLQMMpredictions(
+    responseVals = FALSE
+  )
+
+ampPred <- predict(
+  amplitude_effectCodedMod
+) %>%
+  as.data.frame()
+
+ampPredInt <- predint(
+  amplitude_effectCodedMod
+) %>%
+  as.data.frame()
+
+ampPredInt_741 <- predint(
+  amplitude_effectCodedMod
+  , seed = 741
+) %>%
+  as.data.frame()
+
+ampPredInt_231 <- predint(
+  amplitude_effectCodedMod
+  , seed = 231
+) %>%
+  as.data.frame()
+
+unique(ampPred$`0.25`)
+unique(ampPred$`0.50`)
+unique(ampPred$`0.75`)
+
+unique(ampPredInt$X0.75.yhat)
+
+ampPredInt %>%
+  bind_cols(
+    pscProps
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  meanSummary(
+    X0.75.yhat
+  )
+ampPredInt_741 %>%
+  bind_cols(
+    pscProps
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  meanSummary(
+    X0.75.yhat
+  )
+ampPredInt_231 %>%
+  bind_cols(
+    pscProps
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  meanSummary(
+    X0.75.yhat
+  )
+```
+
+```{r}
+pscProps %>%
+  mutate(
+    logAmp = log10(amplitude)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(c(logAmp))
+```
+
+
+
+```{r}
+
+amplitude_effectCodedMod %>%
+  getLQMMpredictions(
+    responseVals = FALSE
+  )
+
+logAmplitude_models %>%
+  getLQMMpredictions(
+    responseVals = FALSE
+  )
+
+amplitude_effectCodedMod %>%
+  getLQMMpredictions(
+    responseVals = TRUE
+  )
+
+logAmplitude_models %>%
+  getLQMMpredictions(
+    responseVals = TRUE
+  )
+```
+
+```{r}
+amplitude_effectCodedMod$theta_x
+amplitude_effectCodedMod$theta_z
+
+amplitude_effectCodedMod$InitialPar$theta
+
+pscProps %>%
+  mutate(
+    logAmp = log10(amplitude)
+  ) %>%
+  quartilesSummary(logAmp)
+pscProps %>%
+  mutate(
+    logAmp = log10(amplitude)
+  ) %>%
+  meanSummary(logAmp)
+```
+
+```{r}
+logFWHM_models_sum$`0.75`$opt
+```
+
+```{r}
+logAmplitude_models_sum$`0.75`
+
+
+logFWHM_models_startQR <- lqmm(
+  log10(fwhm) ~ earlyLifeTrt * adultTrt
+  , random = ~1
+  , group = cellID
+  , tau = c(0.25, 0.5, 0.75)
+  , data = pscProps
+  , control = lqmmControl(
+    # check_theta = TRUE
+    # , LP_tol_ll = 1e-6
+    # , reset_step = TRUE
+    # , UP_max_iter = 100
+    startQR = TRUE
+  )
+)
+
+logFWHM_models_startQR_sum <- logFWHM_models_startQR %>%
+  summary(
+    seed = 231
+    , R = 100
+  )
+
+logFWHM_models_startQR_sum
+```
+
+
 

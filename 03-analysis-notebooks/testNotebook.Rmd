@@ -16187,3 +16187,35 @@ propSurged.Chi.Sq.descriptives <- chisq_descriptives(propSurged.Chi.Sq.res)
 propSurged.Chi.Sq.descriptives
 ```
 
+
+```{r}
+mixed(
+  relPeak ~ earlyLifeTrt * adultTrt + (1|damID) + (1|mouseID)
+  , GABApscs_240Filtered
+  , method = "KR"
+)
+mixed(
+  riseTime ~ earlyLifeTrt * adultTrt + (1|damID) + (1|mouseID)
+  , GABApscs_240Filtered
+  , method = "KR"
+)
+mixed(
+  fwhm ~ earlyLifeTrt * adultTrt + (1|damID) + (1|mouseID)
+  , GABApscs_240Filtered
+  , method = "KR"
+)
+mixed(
+  decay9010 ~ earlyLifeTrt * adultTrt + (1|damID) + (1|mouseID)
+  , GABApscs_240Filtered
+  , method = "KR"
+)
+```
+
+```{r}
+maleCortAdmin %>%
+  filter(
+    cort_hr5 > 450
+  )
+```
+
+

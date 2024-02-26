@@ -747,105 +747,105 @@ LBN_data <- LBN_data %>%
   )
 
 # something's causing a problem here. Didn't change anything. Don't get it. 2022-03-07
-
-# Filter out extra second litter males -------
-AcuteStress_males_2ndLitter <-  AcuteStress_off %>%
-  # mutate(
-  #   exclude_cort_hr0 = as_logical(exclude_cort_hr0),
-  #   exclude_cort_hr5 = as_logical(exclude_cort_hr5)
-  # )%>%
-  filter(
-    litterNum == 2,
-    sex == "M",
-    !(is.na(cort_hr0) | is.na(cort_hr5)),
-    !(exclude_cort_hr0 | exclude_cort_hr5)
-  ) %>%
-  arrange(
-    num_ID
-  )
-
-#Randomize the LBN-CON mice
-AcuteStress_males_2ndLitter_LBN_CON <- AcuteStress_males_2ndLitter %>%
-  filter(comboTrt == "LBN-CON")
-LBN_CON_rows <- sample(nrow(AcuteStress_males_2ndLitter_LBN_CON))
-#Keep the first 7
-LBN_CON_rows_keep <- LBN_CON_rows[1:7]
-
-#Get the mice that are being kept
-AcuteStress_males_2ndLitter_LBN_CON_keep <- AcuteStress_males_2ndLitter_LBN_CON[LBN_CON_rows_keep, ] %>%
-  select(
-    mouseID
-  )
-
-#Randomize the LBN-ALPS mice
-set.seed(42)
-AcuteStress_males_2ndLitter_LBN_ALPS <- AcuteStress_males_2ndLitter %>%
-  filter(comboTrt == "LBN-ALPS")
-LBN_ALPS_rows <- sample(nrow(AcuteStress_males_2ndLitter_LBN_ALPS))
-#Keep the first 7
-LBN_ALPS_rows_keep <- LBN_ALPS_rows[1:7]
-LBN_ALPS_rows_keep
-
-#Get the mice that are being kept
-AcuteStress_males_2ndLitter_LBN_ALPS_keep <- AcuteStress_males_2ndLitter_LBN_ALPS[LBN_ALPS_rows_keep, ] %>%
-  select(
-    mouseID
-  )
-AcuteStress_males_2ndLitter_LBN_ALPS_keep
-
-#Keep all STD males
-AcuteStress_males_2ndLitter_STD <- AcuteStress_males_2ndLitter %>%
-  filter(earlyLifeTrt == "STD")
-STD_rows <- sample(nrow(AcuteStress_males_2ndLitter_STD))
-AcuteStress_males_2ndLitter_STD_keep <- AcuteStress_males_2ndLitter_STD[STD_rows, ] %>%
-  select(
-    mouseID
-  )
-
-keepMales_mouseID <- bind_rows(
-  AcuteStress_males_2ndLitter_STD_keep,
-  AcuteStress_males_2ndLitter_LBN_CON_keep,
-  AcuteStress_males_2ndLitter_LBN_ALPS_keep
-)
-
-AcuteStress_off <- AcuteStress_off %>%
-  mutate(
-    includeMaleCort = ifelse(
-      sex == "F",
-      NA,
-      ifelse(
-        litterNum == 1,
-        TRUE,
-        ifelse(
-          mouseID %in% keepMales_mouseID$mouseID,
-          TRUE,
-          FALSE
-        )
-      )
-    )
-  )%>%
-  relocate(
-    includeMaleCort,
-    .before = "cort_hr0"
-  )
-
-Cort_off <- Cort_off %>%
-  mutate(
-    includeMaleCort = ifelse(
-      sex == "F", 
-      NA, 
-      ifelse(
-        litterNum == 1,
-        TRUE,
-        ifelse(
-          mouseID %in% keepMales_mouseID$mouseID, 
-          TRUE, 
-          FALSE
-        )
-      )
-    )
-  )%>%
-  relocate(
-    includeMaleCort,
-    .before = "cort"
-  )
+# 
+# # Filter out extra second litter males -------
+# AcuteStress_males_2ndLitter <-  AcuteStress_off %>%
+#   # mutate(
+#   #   exclude_cort_hr0 = as_logical(exclude_cort_hr0),
+#   #   exclude_cort_hr5 = as_logical(exclude_cort_hr5)
+#   # )%>%
+#   filter(
+#     litterNum == 2,
+#     sex == "M",
+#     !(is.na(cort_hr0) | is.na(cort_hr5)),
+#     !(exclude_cort_hr0 | exclude_cort_hr5)
+#   ) %>%
+#   arrange(
+#     num_ID
+#   )
+# 
+# #Randomize the LBN-CON mice
+# AcuteStress_males_2ndLitter_LBN_CON <- AcuteStress_males_2ndLitter %>%
+#   filter(comboTrt == "LBN-CON")
+# LBN_CON_rows <- sample(nrow(AcuteStress_males_2ndLitter_LBN_CON))
+# #Keep the first 7
+# LBN_CON_rows_keep <- LBN_CON_rows[1:7]
+# 
+# #Get the mice that are being kept
+# AcuteStress_males_2ndLitter_LBN_CON_keep <- AcuteStress_males_2ndLitter_LBN_CON[LBN_CON_rows_keep, ] %>%
+#   select(
+#     mouseID
+#   )
+# 
+# #Randomize the LBN-ALPS mice
+# set.seed(42)
+# AcuteStress_males_2ndLitter_LBN_ALPS <- AcuteStress_males_2ndLitter %>%
+#   filter(comboTrt == "LBN-ALPS")
+# LBN_ALPS_rows <- sample(nrow(AcuteStress_males_2ndLitter_LBN_ALPS))
+# #Keep the first 7
+# LBN_ALPS_rows_keep <- LBN_ALPS_rows[1:7]
+# LBN_ALPS_rows_keep
+# 
+# #Get the mice that are being kept
+# AcuteStress_males_2ndLitter_LBN_ALPS_keep <- AcuteStress_males_2ndLitter_LBN_ALPS[LBN_ALPS_rows_keep, ] %>%
+#   select(
+#     mouseID
+#   )
+# AcuteStress_males_2ndLitter_LBN_ALPS_keep
+# 
+# #Keep all STD males
+# AcuteStress_males_2ndLitter_STD <- AcuteStress_males_2ndLitter %>%
+#   filter(earlyLifeTrt == "STD")
+# STD_rows <- sample(nrow(AcuteStress_males_2ndLitter_STD))
+# AcuteStress_males_2ndLitter_STD_keep <- AcuteStress_males_2ndLitter_STD[STD_rows, ] %>%
+#   select(
+#     mouseID
+#   )
+# 
+# keepMales_mouseID <- bind_rows(
+#   AcuteStress_males_2ndLitter_STD_keep,
+#   AcuteStress_males_2ndLitter_LBN_CON_keep,
+#   AcuteStress_males_2ndLitter_LBN_ALPS_keep
+# )
+# 
+# AcuteStress_off <- AcuteStress_off %>%
+#   mutate(
+#     includeMaleCort = ifelse(
+#       sex == "F",
+#       NA,
+#       ifelse(
+#         litterNum == 1,
+#         TRUE,
+#         ifelse(
+#           mouseID %in% keepMales_mouseID$mouseID,
+#           TRUE,
+#           FALSE
+#         )
+#       )
+#     )
+#   )%>%
+#   relocate(
+#     includeMaleCort,
+#     .before = "cort_hr0"
+#   )
+# 
+# Cort_off <- Cort_off %>%
+#   mutate(
+#     includeMaleCort = ifelse(
+#       sex == "F", 
+#       NA, 
+#       ifelse(
+#         litterNum == 1,
+#         TRUE,
+#         ifelse(
+#           mouseID %in% keepMales_mouseID$mouseID, 
+#           TRUE, 
+#           FALSE
+#         )
+#       )
+#     )
+#   )%>%
+#   relocate(
+#     includeMaleCort,
+#     .before = "cort"
+#   )
