@@ -1071,7 +1071,7 @@ figGABA2d_model <- GABApscs_240FilteredFiring %>%
     , color = "magenta"
   ) +
   plotError_LMM(
-    FWHMmedian_errors %>%
+    FWHMMedian_errors %>%
       combineStress()
     , xVar = comboTrt
     , nudgeErrorLine = 0.1
