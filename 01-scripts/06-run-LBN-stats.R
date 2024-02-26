@@ -166,7 +166,13 @@ female_mass_lmm_emm <- emmeans(
   , pbkrtest.limit = 3500
 )
 
-female_mass_lmm_emm.pairs <- test(pairs(female_mass_lmm_emm, simple = "earlyLifeTrt"), by = NULL, adjust = "holm")
+female_mass_lmm_emm.pairs <- contrast(
+  female_mass_lmm_emm
+  , "pairwise"
+  , simple = list("earlyLifeTrt")
+  , combine = TRUE
+  , adjust = "holm"
+)
 
 ### Errors for graph ------------------
 # Generate a data frame with the specific days and all combinations of other variables
@@ -225,7 +231,13 @@ male_mass_lmm_emm <- emmeans(
   , at = list(day = c(11, 21, 35, 70))
 )
 
-male_mass_lmm_emm.pairs <- test(pairs(male_mass_lmm_emm, simple = "earlyLifeTrt"), by = NULL, adjust = "holm")
+male_mass_lmm_emm.pairs <- contrast(
+  male_mass_lmm_emm
+  , "pairwise"
+  , simple = list("earlyLifeTrt")
+  , combine = TRUE
+  , adjust = "holm"
+)
 
 ### Errors for graphs -------------------
 male_mass_lmm_means <- emmeans(male_mass_lmm,  ~ earlyLifeTrt * lspline(day, c(21, 35)), at = list(day = PNDs, earlyLifeTrt = unique(mass_long$earlyLifeTrt)), data = newdata)
@@ -407,7 +419,7 @@ numCycles_lmm_error <- numCycles_lmm %>%
 # Estrous cycles - length -------------------------------------------------
 
 lengthCycles_log_lmm <- mixed(
-  log(cycleLength) ~ earlyLifeTrt + (1|damID)
+  log10(cycleLength) ~ earlyLifeTrt + (1|damID)
   , data = cyclesFiltered
   , method = "KR"
 )
@@ -444,7 +456,7 @@ cycles_ChiSq <- chisq_test(cycles_contTable)
 # Male cort ---------------------------------------------------------------
 
 male_cort_lmm <- mixed(
-  log(cort) ~ earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
+  log10(cort) ~ earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
   , data = cortFilteredMales
   , method = "KR"
 )
@@ -460,11 +472,13 @@ male_cort_lmm_ALPSTime_emm <- emmeans(
   , type = "response"
 )
 
-male_cort_lmm_ALPSTime_emm.pairs <- test(
-  pairs(male_cort_lmm_ALPSTime_emm)
-  , by = NULL
-  , adjust = "holm"
+male_cort_lmm_ALPSTime_emm.pairs <- contrast(
+  male_cort_lmm_ALPSTime_emm
+  , "pairwise"
+  , simple = list("adultTrt")
+  , combine = TRUE
 )
+
 
 ## errors for graph ---------------
 male_cort_lmm_emm <- emmeans(
@@ -488,7 +502,7 @@ male_cort_lmm_error <- male_cort_lmm_emm %>%
 # male cort admin ------------
 
 maleCortAdmin_cort_lmm <- mixed(
-  log(cort) ~ dosage * time + (1|mouseID) + (1|damID)
+  log10(cort) ~ dosage * time + (1|mouseID) + (1|damID)
   , data = maleCortAdmin_cort %>%
     mutate(
       time = as.factor(time) # it's not actually linear
@@ -507,9 +521,11 @@ maleCortAdmin_cort_lmm_emm <- emmeans(
   , type = "response"
 )
 
-maleCortAdmin_cort_lmm_emm.pairs <- test(
-  pairs(maleCortAdmin_cort_lmm_emm)
-  , by = NULL
+maleCortAdmin_cort_lmm_emm.pairs <- contrast(
+  maleCortAdmin_cort_lmm_emm
+  , "pairwise"
+  , simple = list("dosage")
+  , combine = TRUE
   , adjust = "holm"
 )
 
@@ -527,51 +543,29 @@ maleCortAdmin_cort_lmm_error <- maleCortAdmin_cort_lmm_emm %>%
 # Corticosterone - only females ----------------------------------------------------------
 
 female_cort_lmm <- mixed(
-  log(cort) ~ Sac_cycle * earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
+  log10(cort) ~ Sac_cycle * earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
   , data = cortFilteredFemales
   , method = "KR"
 )
 
-# 2023-11-12
-# Interaction between adultTrt and time
-# Interaction between Sac_cycle and time
+# 2024-02-26
+# Interaction between adultTrt, Sac_cycle, and time
 
+## Post-hoc ---------------------------------------------------
 
-## Post-hoc ----------------------------------------------------------------
-
-female_cort_lmm_emm_adultTrtTime <-  emmeans(
+female_cort_lmm_emm_3way <- emmeans(
   female_cort_lmm
-  , "adultTrt"
-  , by = "time"
+  , ~ adultTrt * time * Sac_cycle
   , type = "response"
 )
 
-# ALPS at 5 is more than CON at 5
-# No difference initially
-female_cort_lmm_emm_adultTrtTime.pairs <- test(
-  pairs(female_cort_lmm_emm_adultTrtTime)
-  , by = NULL
+female_cort_lmm_emm_3way.pairs <- contrast(
+  femaleCort_3way_emm
+  , "pairwise"
+  , simple = "each"
+  , combine = TRUE
   , adjust = "holm"
 )
-
-female_cort_lmm_emm_Sac_cycleTime <-  emmeans(
-  female_cort_lmm
-  , "Sac_cycle"
-  , by = "time"
-  , type = "response"
-)
-
-# At time 0 (baseline)
-# Di diff than pro (less)
-
-# At time 5
-# No difference
-female_cort_lmm_emm_Sac_cycleTime.pairs <- test(
-  pairs(female_cort_lmm_emm_Sac_cycleTime)
-  , by = NULL
-  , adjust = "holm"
-)
-
 
 ## Errors for graph --------------------------------------------------------
 

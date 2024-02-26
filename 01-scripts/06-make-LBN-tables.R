@@ -722,176 +722,86 @@ cort_flexTable <- cortLMM_tbl %>%
   )
 
 
-### emmeans - adult trt * time -------------
+### Males emmeans - adult trt * time -------------
 
 maleCortLMM_emm_tbl <- male_cort_lmm_ALPSTime_emm %>%
   as_tibble() %>%
   rename(
     level = adultTrt
   ) %>%
-  simplifyEMMOutput() 
-
-femaleCortLMM_emm_adultTrtTime_tbl <- female_cort_lmm_emm_adultTrtTime %>%
-  as_tibble() %>%
-  rename(
-    level = adultTrt
+  relocate(
+    time
+    , .before = "level"
   ) %>%
   simplifyEMMOutput() 
 
-cortLMM_emm_adultTrtTime_tbl <- bind_rows(
-  list(
-    males = maleCortLMM_emm_tbl
-    ,females = femaleCortLMM_emm_adultTrtTime_tbl
-  ), .id = "sex"
-)
-
-cortLMM_emm_header <- data.frame(
-  col_keys = c("sex", "time", "level" 
-               , "response", "SEM", "df", "95% CI"
-               )
-  , line1 = c("sex", "time", "level",
-              "emmean", "SEM", "df", "95% CI"
-              )
-)
-
-cortLMM_emm_flexTable <- cortLMM_emm_adultTrtTime_tbl %>%
+maleCortLMM_emm_flexTable <- maleCortLMM_emm_tbl %>%
   makeManuscriptFlexTable(
-    headerDF = cortLMM_emm_header
-    , vertMergeCols = c("sex", "time")
-    , horzLines = c(2, 4, 6)
+    vertMergeCols = c("time")
+    , horzLines = c(2)
     , round1Cols = c("df")
     , round2Cols = c("response")
     , round3Cols = c("SEM")
   )
 
-## side by side instead of stacked
-  # cortLMM_emm_adultTrtTime_tbl <- bind_rows(
-  #   list(
-  #     females = femaleCortLMM_emm_adultTrtTime_tbl
-  #     , males = maleCortLMM_emm_tbl
-  #   ), .id = "model"
-  # ) %>%
-  #   pivot_wider(
-  #     id_cols = c("level", "time"), names_from = model, values_from = c("response", "SEM", "df", "95% CI")
-  #   )
-  # 
-  # cortLMM_emm_header <- data.frame(
-  #   col_keys = c("time", "level" 
-  #                , "response_males", "SEM_males", "df_males", "95% CI_males"
-  #                , "response_females", "SEM_females", "df_females", "95% CI_females"
-  #                )
-  #   , line1 = c("", "", rep("males", 4), rep("females", 4))
-  #   , line2 = c("time", "level",
-  #               rep(c(
-  #                 "emmean", "SEM", "df", "95% CI"
-  #               ), 2))
-  # )
-  # 
-  # cortLMM_emm_flexTable <- cortLMM_emm_adultTrtTime_tbl %>%
-  #   makeManuscriptFlexTable(
-  #     headerDF = cortLMM_emm_header
-  #     , vertLines = c(6)
-  #     , vertMergeCols = c("time")
-  #     , horzLines = c(2)
-  #     , round1Cols = c("df_males", "df_females")
-  #     , round2Cols = c("response_males", "response_females")
-  #     , round3Cols = c("SEM_males", "SEM_females")
-  #   )
-##
-
-#### pairs - adult trt * time ------------
+#### Males pairs - adult trt * time ------------
 maleCortLMM_emm.pairs_tbl <- male_cort_lmm_ALPSTime_emm.pairs %>%
   simplifyEMMPairsOutput()
-
-femaleCortLMM_emm_adultTrtTime.pairs_tbl <- female_cort_lmm_emm_adultTrtTime.pairs %>%
-  simplifyEMMPairsOutput()
-
-cortLMM_emm_adultTrtTime.pairs_tbl <- bind_rows(
-  list(
-    males = maleCortLMM_emm.pairs_tbl
-    , females = femaleCortLMM_emm_adultTrtTime.pairs_tbl
-  ), .id = "sex"
-)
-
-cortLMM_emm.pairs_header <- data.frame(
-  col_keys = c("sex", "time", "contrast"
-               , "ratio", "SEM", "df", "null", "t ratio", "p"
-  )
-  , line1 = c("sex", "time", "contrast",
-              "ratio", "SEM", "df", "null", "t ratio", "p"
-              )
-)
-
-cortLMM_emm.pairs_flexTable <- cortLMM_emm_adultTrtTime.pairs_tbl %>%
+  
+maleCortLMM_emm.pairs_flexTable <- maleCortLMM_emm.pairs_tbl %>%
   makeManuscriptFlexTable(
-    headerDF = cortLMM_emm.pairs_header
-    , horzLines = c(2)
-    , vertMergeCols = c("sex")
-    , round1Cols = c("df")
+    round1Cols = c("df")
     , round2Cols = c("ratio", "t ratio")
     , round3Cols = c("SEM")
   )
 
+### Females emmeans - adultTrt * time * cycle stage -------------
 
-## With male and female side by side instead of stacked
-# cortLMM_emm_adultTrtTime.pairs_tbl <- bind_rows(
-#   list(
-#     males = maleCortLMM_emm.pairs_tbl
-#     , females = femaleCortLMM_emm_adultTrtTime.pairs_tbl
-#   ), .id = "model"
-# ) %>%
-#   pivot_wider(
-#     id_cols = c("contrast", "time"), names_from = model, values_from = c("ratio", "SEM", "df", "null", "t ratio", "p")
-#   )
-# 
-# cortLMM_emm.pairs_header <- data.frame(
-#   col_keys = c("time", "contrast" 
-#                , "ratio_males", "SEM_males", "df_males", "null_males", "t ratio_males", "p_males"
-#                , "ratio_females", "SEM_females", "df_females", "null_females", "t ratio_females", "p_females"
-#   )
-#   , line1 = c("", "", rep("males", 6), rep("females", 6))
-#   , line2 = c("time", "contrast",
-#               rep(c(
-#                 "ratio", "SEM", "df", "null", "t ratio", "p"
-#               ), 2))
-# )
-# 
-# cortLMM_emm.pairs_flexTable <- cortLMM_emm_adultTrtTime.pairs_tbl %>%
-#   makeManuscriptFlexTable(
-#     headerDF = cortLMM_emm.pairs_header
-#     , vertLines = c(8)
-#     , vertMergeCols = c("time")
-#     , round1Cols = c("df_males", "df_females")
-#     , round2Cols = c("ratio_males", "ratio_females")
-#     , round3Cols = c("SEM_males", "SEM_females", "t ratio_males", "t ratio_females")
-#   )
-##
-
-### cycle stage * time emmeans -------------
-
-femaleCortLMM_emm_cycleTime_tbl <- female_cort_lmm_emm_Sac_cycleTime %>%
+femaleCortLMM_emm_3way_tbl <- female_cort_lmm_emm_3way %>%
   as_tibble() %>%
-  rename(
-    level = Sac_cycle
+  relocate(
+    Sac_cycle
+    , time
+    , .before = "adultTrt"
   ) %>%
-  simplifyEMMOutput() 
+  rename(
+    `cycle stage` = Sac_cycle
+    , `adult treatment` = adultTrt
+  ) %>%
+  simplifyEMMOutput()
 
-femaleCortLMM_emm_cycleTime_header <- data.frame(
-  col_keys = c("time", "level" 
-               , "response", "SEM", "df", "95% CI"
-  )
-  , line1 = c("time", "level",
-              "emmean", "SEM", "df", "95% CI"
-  )
-)
-
-femaleCortLMM_emm_cycleTime_flexTable <- femaleCortLMM_emm_cycleTime_tbl %>%
+femaleCortLMM_emm_3way_flexTable <- femaleCortLMM_emm_3way_tbl %>%
   makeManuscriptFlexTable(
-    headerDF = femaleCortLMM_emm_cycleTime_header
-    , vertMergeCols = c("time")
-    , horzLines = c(2)
+    vertMergeCols = c("cycle stage", "time")
+    , horzLines = c(2, 4, 6)
+    , vertLines = c(3)
     , round1Cols = c("df")
     , round2Cols = c("response")
+    , round3Cols = c("SEM")
+  )
+
+### Females pairs - adultTrt * time * cycle stage ---------------
+
+femaleCortLMM_emm_3way.pairs_tbl <- female_cort_lmm_emm_3way.pairs %>%
+  simplifyEMMPairsOutput() %>%
+  relocate(
+    Sac_cycle
+    , .before = "time"
+  ) %>%
+  rename(
+    `cycle stage` = Sac_cycle
+    , `adult treatment` = adultTrt
+  )
+
+# This still will need some editing in word to teal with the . for empty cell
+femaleCortLMM_emm_3way.pairs_flexTable <- femaleCortLMM_emm_3way.pairs_tbl %>%
+  makeManuscriptFlexTable(
+    vertMergeCols = c("cycle stage", "time", "adult treatment")
+    , horzLines = c(2, 4, 6, 8, 10)
+    # , horzLines = seq(1:11)
+    , vertLines = c(3, 4)
+    , round1Cols = c("df")
+    , round2Cols = c("ratio", "t ratio")
     , round3Cols = c("SEM")
   )
 
