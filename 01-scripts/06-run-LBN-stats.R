@@ -477,6 +477,7 @@ male_cort_lmm_ALPSTime_emm.pairs <- contrast(
   , "pairwise"
   , simple = list("adultTrt")
   , combine = TRUE
+  , adjust = "holm"
 )
 
 
@@ -624,10 +625,9 @@ LH_proEphys_lmm_emm_earlyLifeTrt <- emmeans(
     , "earlyLifeTrt"
   )
 
-LH_proEphys_lmm_emm_earlyLifeTrt.pairs <- test(
-  pairs(LH_proEphys_lmm_emm_earlyLifeTrt)
-  , by = NULL
-  , adjust = "holm"
+LH_proEphys_lmm_emm_earlyLifeTrt.pairs <- contrast(
+  LH_proEphys_lmm_emm_earlyLifeTrt
+  , "pairwise"
 )
 
 LH_proEphys_lmm_emm_adultTrt <- emmeans(
@@ -635,10 +635,9 @@ LH_proEphys_lmm_emm_adultTrt <- emmeans(
     , "adultTrt"
   )
 
-LH_proEphys_lmm_emm_adultTrt.pairs <- test(
-  pairs(LH_proEphys_lmm_emm_adultTrt)
-  , by = NULL
-  , adjust = "holm"
+LH_proEphys_lmm_emm_adultTrt.pairs <- contrast(
+  LH_proEphys_lmm_emm_adultTrt
+  , "pairwise"
 )
 
 LH_proEphys_lmm_emm <- emmeans(
@@ -647,11 +646,16 @@ LH_proEphys_lmm_emm <- emmeans(
   , by = "adultTrt"
 )
 
-LH_proEphys_lmm_emm.pairs <- test(
-  pairs(LH_proEphys_lmm_emm)
-  , by = NULL
+LH_proEphys_lmm_emm.pairs <- contrast(
+  LH_proEphys_lmm_emm
+  , "pairwise"
+  , simple = list("earlyLifeTrt")
+  # , simple = "each" # if want to compare adult treat at levels of early-life, too
+  , combine = TRUE
   , adjust = "holm"
 )
+
+emmip(LH_proEphys_lmm_emm, adultTrt ~ earlyLifeTrt)
 
 
 ### Errors for graph ------------------------
@@ -678,10 +682,9 @@ LH_proSampling_lmm_emm_adultTrt <- emmeans(
   , "adultTrt"
 )
 
-LH_proSampling_lmm_emm_adultTrt.pairs <- test(
-  pairs(LH_proSampling_lmm_emm_adultTrt)
-  , by = NULL
-  , adjust = "holm"
+LH_proSampling_lmm_emm_adultTrt.pairs <- contrast(
+  LH_proSampling_lmm_emm_adultTrt
+  , "pairwise"
 )
 
 ### Errors for graph ------------------------
@@ -805,6 +808,22 @@ numEvents_nb.GLMM <- glmer.nb(
   , data = GABApscs_240_count
 )
 
+numEvents_nb.GLMM_sum <- summary(numEvents_nb.GLMM)
+
+# this gives the same results as below, so I think this is probably a Type III Wald Chi-Square test, too
+numEvents_nb.GLMM_Anova <- joint_tests(
+  emmeans(
+    numEvents_nb.GLMM, ~earlyLifeTrt * adultTrt
+  )
+)
+
+# Alternative:
+# car::Anova(
+#   # Type III Wald chi-square tests
+#   numEvents_nb.GLMM
+#   , type = "III"
+# )
+
 
 ## Errors for graph --------------------------------------------------------
 
@@ -892,644 +911,3 @@ fwhm_lmm_errors <- fwhm_lmm %>%
     , panel = "adultTrt"
   ) %>%
   combineStress()
-
-
-# LQMM for GABA PSCs --------------------------------------------------------------
-
-
-
-## Amplitude ------------------------------------
-
-# set_treatment_contrasts() # this would reset contrasts to R default with dummy treatment coding
-# Keeping at set_sum_contrasts, as this makes the intercept the global mean and the values for the different
-# treatments then represent main effects and interactions compared to the global mean, as opposed to
-# comparing all to the STD-CON group
-
-# quantiles <- c(
-#   0.25
-#   , 0.5
-#   , 0.75
-# )
-#
-# sumQuartiles <- pscProps %>%
-#   mutate(
-#     logAmp = log10(amplitude)
-#     , logRiseTime = log10(riseTime)
-#     , logDecayTime = log10(decay9010)
-#     , logFWHM = log10(fwhm)
-#   ) %>%
-#   group_by(
-#     earlyLifeTrt
-#     , adultTrt
-#   ) %>%
-#   quartilesSummary()
-#
-# getLQMMpredictions <- function(
-#     predRes
-#     , df = pscProps
-#     , responseVals = FALSE # transforms from log10
-# ){
-#   intPredict <- predRes %>%
-#     as.data.frame() %>%
-#     bind_cols(
-#       df %>%
-#         select(
-#           cellID
-#           , mouseID
-#           , earlyLifeTrt
-#           , adultTrt
-#         )
-#     ) %>%
-#     group_by(
-#       earlyLifeTrt
-#       , adultTrt
-#     ) %>%
-#     summarize(
-#       "mean_0.25" = mean(X0.25.yhat, na.rm = TRUE)
-#       , "lower_0.25" = mean(X0.25.lower, na.rm = TRUE)
-#       , "upper_0.25" = mean(X0.25.upper, na.rm = TRUE)
-#       , "SEM_0.25" = mean(X0.25.SE, na.rm = TRUE)
-#       , "mean_0.5" = mean(X0.50.yhat, na.rm = TRUE)
-#       , "lower_0.50" = mean(X0.50.lower, na.rm = TRUE)
-#       , "upper_0.50" = mean(X0.50.upper, na.rm = TRUE)
-#       , "SEM_0.50" = mean(X0.50.SE, na.rm = TRUE)
-#       , "mean_0.75" = mean(X0.75.yhat, na.rm = TRUE)
-#       , "lower_0.75" = mean(X0.75.lower, na.rm = TRUE)
-#       , "upper_0.75" = mean(X0.75.upper, na.rm = TRUE)
-#       , "SEM_0.75" = mean(X0.75.SE, na.rm = TRUE)
-#       , .groups = "drop"
-#     )
-#
-#   if(responseVals){
-#     intPredict <- intPredict %>%
-#       mutate(
-#         mean_0.25 = 10^mean_0.25
-#         , lower_0.25 = 10^lower_0.25
-#         , upper_0.25 = 10^upper_0.25
-#         , SEM_0.25 = 10^SEM_0.25
-#         , mean_0.5 = 10^mean_0.5
-#         , lower_0.50 = 10^lower_0.50
-#         , upper_0.50 = 10^upper_0.50
-#         , SEM_0.50 = 10^SEM_0.50
-#         , mean_0.75 = 10^mean_0.75
-#         , lower_0.75 = 10^lower_0.75
-#         , upper_0.75 = 10^upper_0.75
-#         , SEM_0.75 = 10^SEM_0.75
-#       )
-#   }
-#   return(intPredict)
-# }
-#
-# logAmplitude_models <- lqmm(
-#   log10(amplitude) ~ earlyLifeTrt * adultTrt
-#   , random = ~ 1
-#   , group = cellID
-#   , tau = quantiles
-#   , data = pscProps
-#   , control = lqmmControl(
-#     LP_max_iter = 2500
-#     , LP_tol_ll = 1e-4
-#     , LP_tol_theta = 1e-4
-#     , startQR = TRUE # This seems to make it worse for amplitude
-#   )
-# )
-#
-# logAmplitude_models_sum <- summary(
-#   logAmplitude_models
-#   , seed = 231
-#   , R = 200
-# )
-#
-# logAmplitude_models_pred <- predint(
-#   logAmplitude_models
-#   , seed = 231
-#   , R = 200
-# )
-#
-# logAmplitude_models_predictions <- logAmplitude_models_pred %>%
-#   getLQMMpredictions() %>%
-#   flextable()
-#
-# ## Rise time ----------------------------
-#
-#
-# logRiseTime_models <- lqmm(
-#   log10(riseTime) ~ earlyLifeTrt * adultTrt
-#   , random = ~ 1
-#   , group = cellID
-#   , tau = quantiles
-#   , data = pscProps
-#   , control = lqmmControl(
-#     LP_max_iter = 2500
-#     , LP_tol_ll = 1e-4
-#     , LP_tol_theta = 1e-4
-#     , startQR = TRUE
-#   )
-# )
-#
-# logRiseTime_models_sum <- summary(
-#   logRiseTime_models
-#   , seed = 231
-#   , R = 200
-# )
-#
-# logRiseTime_models_pred <- predint(
-#   logRiseTime_models
-#   , seed = 231
-#   , R = 200
-# )
-#
-# logRiseTime_models_predictions <- logRiseTime_models_pred %>%
-#   getLQMMpredictions() %>%
-#   flextable()
-#
-# ## Decay time ------------------------------------
-#
-# logDecayTime_models <- lqmm(
-#   log10(decay9010) ~ earlyLifeTrt * adultTrt
-#   , random = ~ 1
-#   , group = cellID
-#   , tau = quantiles
-#   , data = pscProps
-#   , control = lqmmControl(
-#     LP_max_iter = 2500
-#     , LP_tol_ll = 1e-4
-#     , LP_tol_theta = 1e-4
-#     , startQR = TRUE
-#   )
-# )
-#
-# logDecayTime_models_sum <- summary(
-#   logDecayTime_models
-#   , seed = 231
-#   , R = 200
-# )
-#
-# logDecayTime_models_pred <- predint(
-#   logDecayTime_models
-#   , seed = 231
-#   , R = 200
-# )
-#
-# logDecayTime_models_predictions <- logDecayTime_models_pred %>%
-#   getLQMMpredictions() %>%
-#   flextable()
-#
-# ## FWHM ------------------------------------
-#
-# logFWHM_models <- lqmm(
-#   log10(fwhm) ~ earlyLifeTrt * adultTrt
-#   , random = ~ 1
-#   , group = cellID
-#   , tau = quantiles
-#   , data = pscProps
-#   , control = lqmmControl(
-#     LP_max_iter = 2500
-#     , LP_tol_ll = 1e-4
-#     , LP_tol_theta = 1e-4
-#     , startQR = TRUE
-#   )
-# )
-#
-# logFWHM_models_sum <- summary(
-#   logFWHM_models
-#   , seed = 231
-#   , R = 200
-# )
-#
-# logFWHM_models_pred <- predint(
-#   logFWHM_models
-#   , seed = 231
-#   , R = 200
-# )
-#
-# logFWHM_models_predictions <- logFWHM_models_pred %>%
-#   getLQMMpredictions() %>%
-#   flextable()
-
-
-# logFWHM_models_pred_tbl <- logFWHM_models_pred %>%
-#   as.data.frame() %>%
-#   bind_cols(
-#     pscProps
-#   ) %>%
-#   group_by(
-#     earlyLifeTrt
-#     , adultTrt
-#   ) %>%
-#   meanSummary(
-#     c(X0.75.yhat)
-#   )
-#
-# pscProps %>%
-#   mutate(
-#     logFWHMW = log10(fwhm)
-#   ) %>%
-#   group_by(
-#     earlyLifeTrt
-#     , adultTrt
-#   ) %>%
-#   quartilesSummary(
-#     c(logFWHMW)
-#   )
-
-# set_sum_contrasts()
-
-
-# OLD -----------------------
-# # Corticosterone ----------------------------------------------------------
-# 
-# cort_lmm <- mixed(
-#   log(cort) ~ hormoneStatus * earlyLifeTrt * adultTrt * time + (1|mouseID) + (1|damID)
-#   , data = cortFiltered_M_DiPro
-#   , method = "KR"
-# )
-# 
-# # 2023-09-03
-# # Interaction between adultTrt and time
-# # Interaction between hormoneStatus and time
-# 
-# 
-# ## Post-hoc ----------------------------------------------------------------
-# 
-# cort_lmm_emm_adultTrtTime <-  emmeans(
-#   cort_lmm
-#   , "adultTrt"
-#   , by = "time"
-#   , type = "response"
-# )
-# 
-# # ALPS at 5 is more than CON at 5
-# # No difference initially
-# cort_lmm_emm_adultTrtTime.pairs <- test(
-#   pairs(cort_lmm_emm_adultTrtTime)
-#   , by = NULL
-#   , adjust = "holm"
-# )
-# 
-# cort_lmm_emm_hormoneStatusTime <-  emmeans(
-#   cort_lmm
-#   , "hormoneStatus"
-#   , by = "time"
-#   , type = "response"
-# )
-# 
-# # At time 0 (baseline)
-# # Trending (p = 0.052) di diff than male (less)
-# # Di diff than pro (less)
-# # Pro not diff than male
-# 
-# # At time 5
-# # Male diff than pro (less)
-# # (No interaction with adult treatment b/c this is true 
-# # for both the CON and ALPS groups at hour 5)
-# cort_lmm_emm_hormoneStatusTime.pairs <- test(
-#   pairs(cort_lmm_emm_hormoneStatusTime)
-#   , by = NULL
-#   , adjust = "holm"
-# )
-# 
-# 
-# ## Errors for graph --------------------------------------------------------
-# 
-# cort_lmm_emm <- emmeans(
-#   cort_lmm
-#   , "earlyLifeTrt"
-#   , by = c("adultTrt", "hormoneStatus", "time")
-#   , type = "response"
-#   )
-# 
-# cort_lmm_error <- cort_lmm_emm %>%
-#   as_data_frame() %>%
-#   rename(
-#     y = response
-#   ) %>%
-#   mutate(
-#     lower = y - SE
-#     , upper = y + SE
-#   ) %>%
-#   combineStress()
-
-
-# # Body mass - AM ----------------------------------------------------------
-# 
-# bodyMassAM_lmm <- mixed(
-#   Body_mass_AM ~ hormoneStatus * earlyLifeTrt * adultTrt + (1|damID)
-#   , data = acuteStressFiltered_M_DiPro
-#   , method = "KR"
-# )
-# 
-# 
-# ## Post-hoc ----------------------------------------------------------------
-# 
-# # 2023-09-04 
-# # Interaction hormone status and adult treamtment
-# # Interaction hormone status and early-life treatment
-# 
-# 
-# bodyMassAM_lmm_emm_adultTrt <- emmeans(
-#   bodyMassAM_lmm
-#   , "adultTrt"
-#   , by = "hormoneStatus"
-# )
-# 
-# # males that went on to receive ALPS were larger
-# # than those that received CON treatment
-# bodyMassAM_lmm_emm_adultTrt.pairs <- test(
-#   pairs(bodyMassAM_lmm_emm_adultTrt)
-#   , by = NULL
-#   , adjust = "holm"
-# )
-# 
-# bodyMassAM_lmm_emm_earlyLifeTrt <- emmeans(
-#   bodyMassAM_lmm
-#   , "earlyLifeTrt"
-#   , by = "hormoneStatus"
-# )
-# 
-# 
-# # Individual comparisons aren't different, but the only
-# # one that seems to be trending after adjusting for
-# # multiple comparisons is that LBN males were trending toward smaller
-# bodyMassAM_lmm_emm_earlyLifeTrt.pairs <- test(
-#   pairs(bodyMassAM_lmm_emm_earlyLifeTrt)
-#   , by = NULL
-#   , adjust = "holm"
-# )
-# 
-# 
-# ## Errors for graph --------------------------------------------------------
-# 
-# bodyMassAM_lmm_error <- emmeans(
-#   bodyMassAM_lmm
-#   , "earlyLifeTrt"
-#   , by = c("adultTrt", "hormoneStatus")
-# ) %>%
-#   as_data_frame() %>%
-#   rename(
-#     y = emmean
-#   ) %>%
-#   mutate(
-#     lower = y - SE
-#     , upper = y + SE
-#   ) %>%
-#   combineStress()
-# 
-# 
-# # % change body mass ------------------------------------------------------
-# 
-# 
-# percChangeBodyMass_lmm <- mixed(
-#   percChangeBodyMass ~ hormoneStatus * earlyLifeTrt * adultTrt + (1|damID)
-#   , data = acuteStressFiltered_M_DiPro
-#   , method = "KR"
-# )
-# 
-# 
-# ## Post-hoc ----------------------------------------------------------------
-# 
-# # Effect of adultTrt
-# 
-# percChangeBodyMass_lmm_emm_adultTrt <- emmeans(
-#   percChangeBodyMass_lmm
-#   , "adultTrt"
-# )
-# 
-# percChangeBodyMass_lmm_emm_adultTrt.pairs <- test(pairs(percChangeBodyMass_lmm_emm_adultTrt), by = NULL, adjust = "holm")
-# 
-# 
-# ## Errors for graph --------------------------------------------------------
-# 
-# percChangeBodyMass_lmm_error <- emmeans(
-#   percChangeBodyMass_lmm
-#   , "earlyLifeTrt"
-#   , by = c("adultTrt", "hormoneStatus")
-# ) %>%
-#   as_data_frame() %>%
-#   rename(
-#     y = emmean
-#   ) %>%
-#   mutate(
-#     lower = y - SE
-#     , upper = y + SE
-#   ) %>%
-#   combineStress()
-# 
-# 
-# # Adrenal mass ------------------------------------------------------------
-# 
-# adrenalMass_lmm <- mixed(
-#   Adrenal_mass_perBodyAM_g ~ hormoneStatus * earlyLifeTrt * adultTrt + (1|damID)
-#   , data = acuteStressFiltered_M_DiPro
-#   , method = "KR"
-# )
-# 
-# 
-# ## Post-hoc ----------------------------------------------------------------
-# 
-# adrenalMass_lmm_emm_hormoneStatus <- emmeans(
-#   adrenalMass_lmm
-#   , "hormoneStatus"
-# )
-# 
-# # Males are smaller than both female, no difference between di/pro
-# adrenalMass_lmm_emm_hormoneStatus.pairs <- test(
-#   pairs(adrenalMass_lmm_emm_hormoneStatus)
-#   , by = NULL
-#   , adjust = "holm"
-# )
-# 
-# 
-# ## Errors for graph --------------------------------------------------------
-# 
-# adrenalMass_lmm_error <- emmeans(
-#   adrenalMass_lmm
-#   , "earlyLifeTrt"
-#   , by = c("adultTrt", "hormoneStatus")
-# ) %>%
-#   as_data_frame() %>%
-#   rename(
-#     y = emmean
-#   ) %>%
-#   mutate(
-#     lower = y - SE
-#     , upper = y + SE
-#   ) %>%
-#   combineStress()
-# 
-# 
-# # Seminal vesicle mass ----------------------------------------------------
-# 
-# seminalVesicle_lmm <- mixed(
-#   ReproTract_mass_perBodyAM_g ~ earlyLifeTrt * adultTrt + (1|damID)
-#   , data = acuteStressFiltered_M_DiPro %>%
-#     filter(
-#       sex == "M"
-#     )
-#   , method = "KR"
-# )
-# 
-# 
-# ## Post-hoc ----------------------------------------------------------------
-# 
-# seminalVesicle_lmm_emm_earlyLifeTrt <- emmeans(
-#   seminalVesicle_lmm
-#   , "earlyLifeTrt"
-# )
-# 
-# # LBN seminal vesicles adjusted for body mass in the AM are larger
-# # than STD seminal vesicles
-# # Note, that LBN males are also trending towards being smaller overall in AM
-# # No absolute difference in seminal vesicle mass
-# seminalVesicle_lmm_emm_earlyLifeTrt.pairs <- test(
-#   pairs(seminalVesicle_lmm_emm_earlyLifeTrt)
-#   , by = NULL
-#   , adjust = "holm"
-# )
-# 
-# 
-# # Errors for graph --------------------------------------------------------
-# 
-# seminalVesicle_lmm_error <- emmeans(
-#   seminalVesicle_lmm
-#   , "earlyLifeTrt"
-#   , by = c("adultTrt")
-# ) %>%
-#   as_data_frame() %>%
-#   rename(
-#     y = emmean
-#   ) %>%
-#   mutate(
-#     lower = y - SE
-#     , upper = y + SE
-#   ) %>%
-#   combineStress()
-# 
-# 
-# 
-# # Uterine mass ------------------------------------------------------------
-# 
-# uterineMass_lmm <- mixed(
-#   ReproTract_mass_perBodyAM_g ~ earlyLifeTrt * adultTrt * hormoneStatus + (1|damID)
-#   , data = acuteStressFiltered_M_DiPro %>%
-#     filter(
-#       sex == "F"
-#     )
-#   , method = "KR"
-# )
-# 
-# 
-# ## Post-hoc ----------------------------------------------------------------
-# 
-# # Effect of hormone status
-# # Trend (p=0.064) for interaction between adultTrt and hormone status
-# 
-# uterineMass_lmm_emm_stage <- emmeans(
-#   uterineMass_lmm
-#   , "hormoneStatus"
-#   
-# )
-# 
-# # Diestrus is smaller than pro, as it should be
-# uterineMass_lmm_emm_stage.pairs <- test(
-#   pairs(uterineMass_lmm_emm_stage)
-#   , by = NULL
-#   , adjust = "holm"
-# )
-# 
-# 
-# uterineMass_lmm_emm_adultTrtStage <- emmeans(
-#   uterineMass_lmm
-#   , "adultTrt"
-#   , by = "hormoneStatus"
-# )
-# 
-# # For diestrus, no difference
-# # For proestrus, trend that ALPS have a larger uterus relative
-# # relative to AM body mass
-# 
-# # When normalized to PM body mass (where ALPS are smaller),
-# # the interaction is significantly different, which makes sense, and would suggest
-# # that the uterus is not losing mass proportionally to the rest of the body
-# 
-# # I don't have an explaination for why the uterine mass should be relatively
-# # larger compared to the AM body mass, based on the fact that they're losing
-# # body mass, and if the uterus was losing mass, I'd expect this to be in the 
-# # opposite direction
-# 
-# # In absolute mass, similar trend towards larger for pro ALPS, not significant
-# uterineMass_lmm_emm_adultTrtStage.pairs <- test(
-#   pairs(uterineMass_lmm_emm_adultTrtStage)
-#   , by = NULL
-#   , adjust = "holm"
-# )
-# 
-# ## Errors for graph --------------------------------------------------------
-# 
-# 
-# uterineMass_lmm_error <- emmeans(
-#   uterineMass_lmm
-#   , "earlyLifeTrt"
-#   , by = c("adultTrt", "hormoneStatus")
-# ) %>%
-#   as_data_frame() %>%
-#   rename(
-#     y = emmean
-#   ) %>%
-#   mutate(
-#     lower = y - SE
-#     , upper = y + SE
-#   ) %>%
-#   combineStress()
-# 
-# 
-# # Testicular mass ---------------------------------------------------------
-# 
-# testicularMass_lmm <- mixed(
-#   Gonad_mass_perBodyAM_g ~ earlyLifeTrt * adultTrt + (1|damID)
-#   , data = acuteStressFiltered_M_DiPro %>%
-#     filter(
-#       sex == "M"
-#     )
-#   , method = "KR"
-# )
-# 
-# 
-# ## Post-hoc ----------------------------------------------------------------
-# 
-# # Effect of adult treatment
-# 
-# testicularMass_lmm_emm_adultTrt <- emmeans(
-#   testicularMass_lmm
-#   , "adultTrt"
-# )
-# 
-# # ALPS testicular mass is smaller relative to AM body mass
-# 
-# # Holds with relative to PM mass, and absolute (with absolute, also early-life diff)
-# testicularMass_lmm_emm_adultTrt.pairs <- test(
-#   pairs(testicularMass_lmm_emm_adultTrt)
-#   , by = NULL
-#   , adjust = "holm"
-# )
-# 
-# 
-# ## Errors for graph --------------------------------------------------------
-# 
-# testicularMass_lmm_error <- emmeans(
-#   testicularMass_lmm
-#   , "earlyLifeTrt"
-#   , by = c("adultTrt")
-# ) %>%
-#   as_data_frame() %>%
-#   rename(
-#     y = emmean
-#   ) %>%
-#   mutate(
-#     lower = y - SE
-#     , upper = y + SE
-#   ) %>%
-#   combineStress()
-# 
-# 
-

@@ -876,7 +876,7 @@ plotGABAamp_noMean <- plotCatVarFunc(
   , fontSize = textSize
   , dotSize = dotSize
   , twoLineXLabs = TRUE
-  , tiltedXLabs = TRUE
+  , tiltedXLabs = FALSE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
   , useSpecYLab = TRUE
@@ -888,7 +888,7 @@ plotGABAriseTime_noMean <- plotCatVarFunc(
   , fontSize = textSize
   , dotSize = dotSize
   , twoLineXLabs = TRUE
-  , tiltedXLabs = TRUE
+  , tiltedXLabs = FALSE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -898,7 +898,7 @@ plotGABAdecayTime_noMean <- plotCatVarFunc(
   , fontSize = textSize
   , dotSize = dotSize
   , twoLineXLabs = TRUE
-  , tiltedXLabs = TRUE
+  , tiltedXLabs = FALSE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
   , useSpecYLab = TRUE
@@ -911,7 +911,7 @@ plotGABAfwhm_noMean <- plotCatVarFunc(
   , fontSize = textSize
   , dotSize = dotSize
   , twoLineXLabs = TRUE
-  , tiltedXLabs = TRUE
+  , tiltedXLabs = FALSE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
   , useSpecYLab = TRUE
@@ -1080,487 +1080,78 @@ figGABA2d_model <- GABApscs_240FilteredFiring %>%
     , color = "grey40"
   )
 
-## Distribution plots ----------------
-
-relPeak_byCell <- pscProps %>%
-  plotPSCProp_log(
-    yVar = amplitude
-    , yLab = "amplitude (pA)"
-    , logBreaks = c(5, 10, 20, 40, 80, 160, 320, 480)
-    , logLabels = c("5", "10", "20", "40", "80", "160", "320", "480")
-    , byCell = TRUE
-  )
-
-relPeak_byTrt <- pscProps %>%
-  plotPSCProp_log(
-    yVar = amplitude
-    , yLab = "amplitude (pA)"
-    , logBreaks = c(5, 10, 20, 40, 80, 160, 320, 480)
-    , logLabels = c("5", "10", "20", "40", "80", "160", "320", "480")
-    , byCell = FALSE
-  )
-
-riseTime_byCell <- pscProps %>%
-  plotPSCProp_log(
-    yVar = riseTime
-    , yLab = "rise time (ms)"
-    , logBreaks = c(0.00125, 0.0025, 0.005, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12)
-    , logLabels = c("0.00125", "0.0025", "0.005", "0.01", "0.02", "0.04", "0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12")
-    , byCell = TRUE
-  )
-
-riseTime_byTrt <- pscProps %>%
-  plotPSCProp_log(
-    yVar = riseTime
-    , yLab = "rise time (ms)"
-    , logBreaks = c(0.00125, 0.0025, 0.005, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12)
-    , logLabels = c("0.00125", "0.0025", "0.005", "0.01", "0.02", "0.04", "0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12")
-    , byCell = FALSE
-  )
-
-decayTime_byCell <- pscProps %>%
-  plotPSCProp_log(
-    yVar = decay9010
-    , yLab = "decay time from 90% to 10% peak (ms)"
-    , logBreaks = c(0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96, 81.92, 163.84)
-    , logLabels = c("0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96", "81.92", "163.84")
-    , byCell = TRUE
-  )
-
-decayTime_byTrt <- pscProps %>%
-  plotPSCProp_log(
-    yVar = decay9010
-    , yLab = "decay time from 90% to 10% peak (ms)"
-    , logBreaks = c(0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96, 81.92, 163.84)
-    , logLabels = c("0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96", "81.92", "163.84")
-    , byCell = FALSE
-  )
-
-fwhm_byCell <- pscProps %>%
-  plotPSCProp_log(
-    yVar = fwhm
-    , yLab = "full width at half maximum (ms)"
-    , logBreaks = c(0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96)
-    , logLabels = c("0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96")
-    , byCell = TRUE
-  ) +
-  expand_limits(y = 0.16)
-
-fwhm_byTrt <- pscProps %>%
-  plotPSCProp_log(
-    yVar = fwhm
-    , yLab = "full width at half maximum (ms)"
-    , logBreaks = c(0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96)
-    , logLabels = c("0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96")
-    , byCell = FALSE
-  ) +
-  expand_limits(y = 0.16)
-
-
-# # OLD -----------------
+# ## Distribution plots ----------------
 # 
-# ## Masses -----
-# 
-# ### Functions ----
-# 
-# plotBodyMassAM_noMean <- plotCatVarFunc(
-#   expr(Body_mass_AM)
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , twoLineXLabs = TRUE
-#   , useFacetLabels = FALSE
-#   , useSpecYLab = TRUE
-#   , thisYLab = "body mass (g)"
-#   , addLegend = TRUE
-#   , removeXTicks = TRUE
-#   , addMeanSE = FALSE
-# )
-# 
-# plotChangeBodyMass_noMean <- plotCatVarFunc(
-#   expr(bodyMass_diff)
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , twoLineXLabs = TRUE
-#   , useFacetLabels = FALSE
-#   , useSpecYLab = TRUE
-#   , thisYLab = "\u0394 body mass (g)"
-#   , removeXTicks = TRUE
-#   , addMeanSE = FALSE
-# )
-# 
-# plotPercChangeBodyMass_noMean <- plotCatVarFunc(
-#   expr(percChangeBodyMass)
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , twoLineXLabs = TRUE
-#   , useFacetLabels = FALSE
-#   , useSpecYLab = TRUE
-#   , thisYLab = "% change in body mass"
-#   , removeXTicks = TRUE
-#   , addMeanSE = FALSE
-# )
-# 
-# plotRelAdrenalMass_noMean <- plotCatVarFunc(
-#   expr(Adrenal_mass_perBodyAM_g)
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , twoLineXLabs = TRUE
-#   , useFacetLabels = FALSE
-#   , useSpecYLab = TRUE
-#   , thisYLab = "normalized adrenal\nmass (mg/g)"
-#   # , thisYLab = "rel. mass (mg/g)"
-#   , removeXTicks = TRUE
-#   , addMeanSE = FALSE
-# )
-# 
-# plotRelReproTractMass_noMean <- plotCatVarFunc(
-#   expr(ReproTract_mass_perBodyAM_g)
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , twoLineXLabs = TRUE
-#   , useFacetLabels = FALSE
-#   , useSpecYLab = TRUE
-#   , thisYLab = "normalized repro. tract\nmass (mg/g)"
-#   # , thisYLab = "rel. mass (mg/g)"
-#   , removeXTicks = TRUE
-#   , addMeanSE = FALSE
-# )
-# 
-# plotRelSeminalVesicleMass_noMean <- plotCatVarFunc(
-#   expr(ReproTract_mass_perBodyAM_g)
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , twoLineXLabs = TRUE
-#   , useFacetLabels = FALSE
-#   , useSpecYLab = TRUE
-#   , thisYLab = "normalized seminal\nvesicle mass (mg/g)"
-#   # , thisYLab = "rel. mass (mg/g)"
-#   , removeXTicks = TRUE
-#   , addMeanSE = FALSE
-# )
-# 
-# plotRelUterineMass_noMean <- plotCatVarFunc(
-#   expr(ReproTract_mass_perBodyAM_g)
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , twoLineXLabs = TRUE
-#   , useFacetLabels = FALSE
-#   , useSpecYLab = TRUE
-#   , thisYLab = "normalized uterine\nmass (mg/g)"
-#   # , thisYLab = "rel. mass (mg/g)"
-#   , removeXTicks = TRUE
-#   , addMeanSE = FALSE
-# )
-# 
-# plotRelTesticularMass_noMean <- plotCatVarFunc(
-#   expr(Gonad_mass_perBodyAM_g)
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , twoLineXLabs = TRUE
-#   , useFacetLabels = FALSE
-#   , useSpecYLab = TRUE
-#   # , thisYLab = "rel. testicular mass\n(mg/g)"
-#   , thisYLab = "normalized testicular mass (mg/g)"
-#   , removeXTicks = TRUE
-#   , addMeanSE = FALSE
-# )
-# 
-# facetByHormoneStatus <- facet_wrap(
-#   ~ hormoneStatus
-#   , nrow = 1
-# )
-# 
-# ### Graphs ----
-# 
-# #### Males --------
-# 
-# # Body mass AM
-# figMaleMassA
-# 
-# # % change in body mass
-# 
-# # noramlized adrenal mass
-# 
-# # normalized seminal vesicle mass
-# 
-# # normalized testicular mass
-# 
-# # Cort admin
-# 
-# maleCortAdmin_plotByConsumption <- maleCortAdmin_cort %>%
-#   plotCortByNutellaConsumption(
-#     fontSize = 16
+# relPeak_byCell <- pscProps %>%
+#   plotPSCProp_log(
+#     yVar = amplitude
+#     , yLab = "amplitude (pA)"
+#     , logBreaks = c(5, 10, 20, 40, 80, 160, 320, 480)
+#     , logLabels = c("5", "10", "20", "40", "80", "160", "320", "480")
+#     , byCell = TRUE
 #   )
 # 
-# latterCortAdmin_plotByConsumption <- latterCortAdmin_cort %>%
-#   plotCortByNutellaConsumption(
-#     fontSize = 16
+# relPeak_byTrt <- pscProps %>%
+#   plotPSCProp_log(
+#     yVar = amplitude
+#     , yLab = "amplitude (pA)"
+#     , logBreaks = c(5, 10, 20, 40, 80, 160, 320, 480)
+#     , logLabels = c("5", "10", "20", "40", "80", "160", "320", "480")
+#     , byCell = FALSE
 #   )
 # 
-# plotCortAdminAMBodyMass <- plotMaleCortAdminFunc(
-#   expr(Body_mass_AM)
-#   , thisYLab = "body mass (g)"
-# )
-# 
-# plotCortAdminPercChangeBodyMass <- plotMaleCortAdminFunc(
-#   expr(percChangeBodyMass)
-#   , thisYLab = "% change in body mass"
-# )
-# 
-# plotCortAdminTesticularMass <- plotMaleCortAdminFunc(
-#   expr(Gonad_mass_perBodyAM_g)
-#   , thisYLab = "rel. testicular mass (mg/g)"
-# )
-# 
-# plotCortAdminSeminalVesicleMass <- plotMaleCortAdminFunc(
-#   expr(ReproTract_mass_perBodyAM_g)
-#   , thisYLab = "rel. seminal vesicle mass (mg/g)"
-# )
-# 
-# plotCortAdminAdrenalMass <- plotMaleCortAdminFunc(
-#   expr(Adrenal_mass_perBodyAM_g)
-#   , thisYLab = "rel. adrenal vesicle mass (mg/g)"
-# )
-# 
-# 
-# maleCortAdmin_AMBodyMass <- plotCortAdminAMBodyMass(latterCortAdmin)
-# maleCortAdmin_PercChangeBodyMass <- plotCortAdminPercChangeBodyMass(latterCortAdmin)
-# maleCortAdmin_TesticularMass <- plotCortAdminTesticularMass(latterCortAdmin)
-# maleCortAdmin_SeminalVesicleMass <- plotCortAdminSeminalVesicleMass(latterCortAdmin)
-# maleCortAdmin_AdrenalMass <- plotCortAdminAdrenalMass(latterCortAdmin)
-# 
-# 
-# figMassFacetA_model <- acuteStressFiltered_M_DiPro %>%
-#   plotBodyMassAM_noMean() +
-#   facetByHormoneStatus +
-#   plotError_LMM(
-#     bodyMassAM_lmm_error
-#     , xVar = comboTrt
-#     , nudgeErrorLine = 0
-#     , nudgeMeanLine = 0
-#     , meanBarWidth = 0.7
-#     , color = "magenta"
+# riseTime_byCell <- pscProps %>%
+#   plotPSCProp_log(
+#     yVar = riseTime
+#     , yLab = "rise time (ms)"
+#     , logBreaks = c(0.00125, 0.0025, 0.005, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12)
+#     , logLabels = c("0.00125", "0.0025", "0.005", "0.01", "0.02", "0.04", "0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12")
+#     , byCell = TRUE
 #   )
 # 
-# figMassFacetB_perc_model <- acuteStressFiltered_M_DiPro %>%
-#   plotPercChangeBodyMass_noMean() +
-#   facetByHormoneStatus +
-#   plotError_LMM(
-#     percChangeBodyMass_lmm_error
-#     , xVar = comboTrt
-#     , nudgeErrorLine = 0
-#     , nudgeMeanLine = 0
-#     , meanBarWidth = 0.7
-#     , color = "magenta"
+# riseTime_byTrt <- pscProps %>%
+#   plotPSCProp_log(
+#     yVar = riseTime
+#     , yLab = "rise time (ms)"
+#     , logBreaks = c(0.00125, 0.0025, 0.005, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12)
+#     , logLabels = c("0.00125", "0.0025", "0.005", "0.01", "0.02", "0.04", "0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12")
+#     , byCell = FALSE
 #   )
 # 
-# figMassFacetC_model <- acuteStressFiltered_M_DiPro %>%
-#   plotRelAdrenalMass_noMean(
-#     zoom_y = TRUE
-#     , ymin = 0
-#     , ymax = 0.4
+# decayTime_byCell <- pscProps %>%
+#   plotPSCProp_log(
+#     yVar = decay9010
+#     , yLab = "decay time from 90% to 10% peak (ms)"
+#     , logBreaks = c(0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96, 81.92, 163.84)
+#     , logLabels = c("0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96", "81.92", "163.84")
+#     , byCell = TRUE
+#   )
+# 
+# decayTime_byTrt <- pscProps %>%
+#   plotPSCProp_log(
+#     yVar = decay9010
+#     , yLab = "decay time from 90% to 10% peak (ms)"
+#     , logBreaks = c(0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96, 81.92, 163.84)
+#     , logLabels = c("0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96", "81.92", "163.84")
+#     , byCell = FALSE
+#   )
+# 
+# fwhm_byCell <- pscProps %>%
+#   plotPSCProp_log(
+#     yVar = fwhm
+#     , yLab = "full width at half maximum (ms)"
+#     , logBreaks = c(0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96)
+#     , logLabels = c("0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96")
+#     , byCell = TRUE
 #   ) +
-#   facetByHormoneStatus +
-#   plotError_LMM(
-#     adrenalMass_lmm_error
-#     , xVar = comboTrt
-#     , nudgeErrorLine = 0
-#     , nudgeMeanLine = 0
-#     , meanBarWidth = 0.7
-#     , color = "magenta"
-#   )
+#   expand_limits(y = 0.16)
 # 
-# figMassFacetD_male_model <- acuteStressFiltered_M_DiPro %>%
-#   filter(
-#     sex == "M"
-#   ) %>%
-#   plotRelSeminalVesicleMass_noMean(
-#     zoom_y = TRUE
-#     , ymin = 0
-#     , ymax = 10
+# fwhm_byTrt <- pscProps %>%
+#   plotPSCProp_log(
+#     yVar = fwhm
+#     , yLab = "full width at half maximum (ms)"
+#     , logBreaks = c(0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96)
+#     , logLabels = c("0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96")
+#     , byCell = FALSE
 #   ) +
-#   facetByHormoneStatus +
-#   plotError_LMM(
-#     seminalVesicle_lmm_error
-#     , xVar = comboTrt
-#     , nudgeErrorLine = 0
-#     , nudgeMeanLine = 0
-#     , meanBarWidth = 0.7
-#     , color = "magenta"
-#   )
-# 
-# figMassFacetD_female_model <- acuteStressFiltered_M_DiPro %>%
-#   filter(
-#     sex == "F"
-#   ) %>%
-#   plotRelUterineMass_noMean(
-#     zoom_y = TRUE
-#     , ymin = 0
-#     , ymax = 10
-#   ) +
-#   facetByHormoneStatus +
-#   plotError_LMM(
-#     uterineMass_lmm_error
-#     , xVar = comboTrt
-#     , nudgeErrorLine = 0
-#     , nudgeMeanLine = 0
-#     , meanBarWidth = 0.7
-#     , color = "magenta"
-#   )
-# 
-# figMass_testicular_model <- acuteStressFiltered_M_DiPro %>%
-#   filter(
-#     sex == "M"
-#   ) %>%
-#   plotRelTesticularMass_noMean()+
-#   plotError_LMM(
-#     testicularMass_lmm_error
-#     , xVar = comboTrt
-#     , nudgeErrorLine = 0
-#     , nudgeMeanLine = 0
-#     , meanBarWidth = 0.7
-#     , color = "magenta"
-#   )
-
-
-# ## LH ----------------------------------------------------------------------
-# 
-# plotLH_bothL <- plotLHFunc(
-#   c(1, 2)
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , ymax = 40
-# )
-# 
-# LHplot_pro_bothL <- LHFilteredPro %>%
-#   plotLH_bothL()
-# 
-# plotLH_bothL_zoom <- plotLHFunc(
-#   c(1, 2)
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , ymax = 10
-#   , addSurgeLine = TRUE
-#   , surgeMin = surgeMin
-# )
-# 
-# LHplot_pro_bothL_zoom <- LHFilteredPro %>%
-#   plotLH_bothL_zoom()
-# 
-# plotLH_1stL <- plotLHFunc(
-#   c(1)
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , ymax = 40
-# )
-# 
-# LHplot_pro_1stL <- LHFilteredPro %>%
-#   plotLH_1stL()
-# 
-# plotLH_1stL_zoom <- plotLHFunc(
-#   c(1)
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , ymax = 10
-#   , addSurgeLine = TRUE
-#   , surgeMin = surgeMin
-# )
-# 
-# LHplot_pro_1stL_zoom <- LHFilteredPro %>%
-#   plotLH_1stL_zoom()
-# 
-# plotLH_2ndL <- plotLHFunc(
-#   c(2)
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , ymax = 40
-# )
-# 
-# LHplot_pro_2ndL <- LHFilteredPro %>%
-#   plotLH_2ndL()
-# 
-# plotLH_2ndL_zoom <- plotLHFunc(
-#   c(2)
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , ymax = 10
-#   , addSurgeLine = TRUE
-#   , surgeMin = surgeMin
-# )
-# 
-# LHplot_pro_2ndL_zoom <- LHFilteredPro %>%
-#   plotLH_2ndL_zoom()
-
-
-
-# ## Surge amplitude ---------------------------------------------------------
-# 
-# plotSurgeAmp_bothL <- plotSurgeAmpFunc(
-#   c(1, 2)
-#   , surgeMin = surgeMin
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , angleX = FALSE
-#   , addSurgeMinLine = TRUE
-#   , ymax = 40
-# )
-# 
-# plotSurgeAmp_1stL <- plotSurgeAmpFunc(
-#   c(1)
-#   , surgeMin = surgeMin
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , angleX = FALSE
-#   , addSurgeMinLine = TRUE
-#   , ymax = 40
-# )
-# 
-# plotSurgeAmp_2ndL <- plotSurgeAmpFunc(
-#   c(2)
-#   , surgeMin = surgeMin
-#   , fontSize = textSize
-#   , dotSize = dotSize
-#   , angleX = FALSE
-#   , addSurgeMinLine = TRUE
-#   , ymax = 40
-# )
-# 
-# LHamp_bothL_plot <- surgedDF %>%
-#   plotSurgeAmp_bothL()
-# 
-# LHamp_1stL_plot <- surgedDF %>%
-#   plotSurgeAmp_1stL()
-# 
-# LHamp_2ndL_plot <- surgedDF %>%
-#   plotSurgeAmp_2ndL()
-# 
-# 
-# 
-# ## % surged ----------------------------------------------------------------
-# 
-# plotPercSurged_bothL <- plotPercSurgedFunc(
-#   c(1, 2)
-#   , fontSize = textSize
-#   , labelFontSize = 10
-# )
-# 
-# percSurgedPlot_bothL <- surgedDF %>%
-#   plotPercSurged_bothL()
-# 
-# plotPercSurged_1stL <- plotPercSurgedFunc(
-#   c(1)
-#   , fontSize = textSize
-#   , labelFontSize = 10
-# )
-# 
-# percSurgedPlot_1stL <- surgedDF %>%
-#   plotPercSurged_1stL()
-# 
-# plotPercSurged_2ndL <- plotPercSurgedFunc(
-#   c(2)
-#   , fontSize = textSize
-#   , labelFontSize = 10
-# )
-# 
-# percSurgedPlot_2ndL <- surgedDF %>%
-#   plotPercSurged_2ndL()
+#   expand_limits(y = 0.16)

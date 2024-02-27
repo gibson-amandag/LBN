@@ -4,137 +4,18 @@
 
 # Functions ---------------------------
 
-getLQMMpredictions <- function(
-    predRes
-    , df = pscProps
-    , responseVals = TRUE # transforms from log10
-    , forPlot = FALSE
+getLQMM_MedianCI <- function(
+    emm
 ){
-  intPredict <- predRes %>%
+  df <- emm %>%
     as.data.frame() %>%
-    bind_cols(
-      df %>%
-        select(
-          cellID
-          , mouseID
-          , earlyLifeTrt
-          , adultTrt
-        )
-    ) %>%
-    group_by(
-      earlyLifeTrt
-      , adultTrt
-    ) %>%
-    summarize(
-      "estimate_0.5" = mean(yhat, na.rm = TRUE)
-      , "lower_0.5" = mean(lower, na.rm = TRUE)
-      , "upper_0.5" = mean(upper, na.rm = TRUE)
-      , "SEM_0.5" = mean(SE, na.rm = TRUE)
-      , .groups = "drop"
-    )
-  
-  if(responseVals){
-    intPredict <- intPredict %>%
-      mutate(
-        estimate_0.5 = 10^estimate_0.5
-        , lower_0.5 = 10^lower_0.5
-        , upper_0.5 = 10^upper_0.5
-        , SEM_0.5 = 10^SEM_0.5
-      )
-  }
-  
-  if(forPlot){
-    intPredict <- intPredict %>%
-      rename(
-        y = estimate_0.5
-        , SE = SEM_0.5
-        , lower = lower_0.5
-        , upper = upper_0.5
-      )
-  }
-  return(intPredict)
-}
-
-## Flextable printing ------------------
-
-simplifyQuartileOutput <- function(df # just one quartile
-){
-  df %>%
-    subEarlyLifeTrtInRowNames_quartile() %>%
-    subAdultTrtInRowNames_quartile() %>%
-    subColonInRowNames() %>%
-    as.data.frame() %>%
-    rownames_to_column(var = "fixed effect") %>%
     rename(
-      SEM = `Std. Error`
-      , p = `Pr(>|t|)`
+      y = response
+      , lower = lower.CL
+      , upper = upper.CL
     ) %>%
-    mutate(
-      Value = 10^Value
-      , SEM = 10^SEM
-      , `95% CI` = paste0(
-        "[", format(
-          round(
-            10^`lower bound`
-            , 2
-          )
-          , nsmall = 2, trim = TRUE
-        ), ", ", format(
-          round(
-            10^`upper bound`
-            , 2
-          )
-          , nsmall = 2, trim = TRUE
-        ), "]")
-      , .after = SEM
-    ) %>% 
-    select(
-      -c(`lower bound`, `upper bound`)
-    ) %>%
-    formatPCol()
-}
-
-simplifyAllQuartilesOutput <- function(allDFs){
-  
-  resultDF <- NULL
-  
-  for(name in names(allDFs)){
-    df <- allDFs[[name]]
-    
-    simpDF <- simplifyQuartileOutput(df) %>%
-      mutate(
-        quartile = name
-        , .before = `fixed effect`
-      )
-    
-    resultDF <- bind_rows(resultDF, simpDF)
-  }
-  
-  return(resultDF)
-}
-
-simplifyLQMMPredictions <- function(df # just one quartile
-){
-  df %>%
-    mutate(
-      `95% CI_0.5` = paste0(
-        "[", format(
-          round(
-            lower_0.5
-            , 2
-          )
-          , nsmall = 2, trim = TRUE
-        ), ", ", format(
-          round(
-            upper_0.5
-            , 2
-          )
-          , nsmall = 2, trim = TRUE
-        ), "]")
-    ) %>% 
-    select(
-      -c(starts_with("lower_"), starts_with("upper_"))
-    )
+    combineStress()
+  return(df)
 }
 
 # Grouped quartile summary ----------------
@@ -169,31 +50,20 @@ logAmplitude_models <- lqmm(
   , group = cellID
   , tau = quantiles
   , data = pscProps
-  , control = lqmmControl(
-    # LP_max_iter = 2500
-    # , LP_tol_ll = 1e-6
-    # , LP_tol_theta = 1e-6
-    # , startQR = TRUE # This seems to make it worse for amplitude
-  )
 )
 
-logAmplitude_models_sum <- summary(
+logAmplitude_emm <- emmeans(
   logAmplitude_models
-  , seed = 231
-  # , R = 200
+  , ~ earlyLifeTrt * adultTrt
+  , type = "response"
 )
 
-logAmplitude_models_pred <- predint(
-  logAmplitude_models
-  , seed = 231
-  # , R = 200
+logAmplitude_emm_jt <- joint_tests(
+  logAmplitude_emm
 )
 
-logAmplitude_models_predictions <- logAmplitude_models_pred %>%
-  getLQMMpredictions()
-
-amplitudeMedian_errors <- logAmplitude_models_pred %>%
-  getLQMMpredictions(forPlot = TRUE)
+amplitudeMedian_errors <- logAmplitude_emm %>%
+  getLQMM_MedianCI()
 
 # Rise time ----------------------------
 
@@ -204,31 +74,21 @@ logRiseTime_models <- lqmm(
   , group = cellID
   , tau = quantiles
   , data = pscProps
-  , control = lqmmControl(
-    # LP_max_iter = 2500
-    # , LP_tol_ll = 1e-6
-    # , LP_tol_theta = 1e-6
-    # , startQR = TRUE
-  )
 )
 
-logRiseTime_models_sum <- summary(
+
+logRiseTime_emm <- emmeans(
   logRiseTime_models
-  , seed = 231
-  # , R = 200
+  , ~ earlyLifeTrt * adultTrt
+  , type = "response"
 )
 
-logRiseTime_models_pred <- predint(
-  logRiseTime_models
-  , seed = 231
-  # , R = 200
+logRiseTime_emm_jt <- joint_tests(
+  logRiseTime_emm
 )
 
-logRiseTime_models_predictions <- logRiseTime_models_pred %>%
-  getLQMMpredictions()
-
-riseTimeMedian_errors <- logRiseTime_models_pred %>%
-  getLQMMpredictions(forPlot = TRUE)
+riseTimeMedian_errors <- logRiseTime_emm %>%
+  getLQMM_MedianCI()
 
 # Decay time ------------------------------------
 
@@ -238,31 +98,21 @@ logDecayTime_models <- lqmm(
   , group = cellID
   , tau = quantiles
   , data = pscProps
-  , control = lqmmControl(
-    # LP_max_iter = 2500
-    # , LP_tol_ll = 1e-6
-    # , LP_tol_theta = 1e-6
-    # , startQR = TRUE
-  )
 )
 
-logDecayTime_models_sum <- summary(
+
+logDecayTime_emm <- emmeans(
   logDecayTime_models
-  , seed = 231
-  # , R = 200
+  , ~ earlyLifeTrt * adultTrt
+  , type = "response"
 )
 
-logDecayTime_models_pred <- predint(
-  logDecayTime_models
-  , seed = 231
-  # , R = 200
+logDecayTime_emm_jt <- joint_tests(
+  logDecayTime_emm
 )
 
-logDecayTime_models_predictions <- logDecayTime_models_pred %>%
-  getLQMMpredictions()
-
-decayTimeMedian_errors <- logDecayTime_models_pred %>%
-  getLQMMpredictions(forPlot = TRUE)
+decayTimeMedian_errors <- logDecayTime_emm %>%
+  getLQMM_MedianCI()
 
 # FWHM ------------------------------------
 
@@ -272,32 +122,21 @@ logFWHM_models <- lqmm(
   , group = cellID
   , tau = quantiles
   , data = pscProps
-  , control = lqmmControl(
-    # LP_max_iter = 2500
-    # , LP_tol_ll = 1e-6
-    # , LP_tol_theta = 1e-6
-    # , startQR = TRUE
-  )
 )
 
-logFWHM_models_sum <- summary(
+
+logFWHM_emm <- emmeans(
   logFWHM_models
-  , seed = 231
-  # , R = 200
+  , ~ earlyLifeTrt * adultTrt
+  , type = "response"
 )
 
-logFWHM_models_pred <- predint(
-  logFWHM_models
-  , seed = 231
-  # , R = 200
-) 
+logFWHM_emm_jt <- joint_tests(
+  logFWHM_emm
+)
 
-logFWHM_models_predictions <- logFWHM_models_pred %>%
-  getLQMMpredictions()
-
-FWHMMedian_errors <- logFWHM_models_pred %>%
-  getLQMMpredictions(forPlot = TRUE)
-
+FWHMMedian_errors <- logFWHM_emm %>%
+  getLQMM_MedianCI()
 
 # Flextables -------------------------
 
@@ -305,19 +144,19 @@ FWHMMedian_errors <- logFWHM_models_pred %>%
 
 logAmplitude_models_sum_tbl <- logAmplitude_models_sum$tTable %>%
   simplifyQuartileOutput()
-  # simplifyAllQuartilesOutput()
+# simplifyAllQuartilesOutput()
 
 logRiseTime_models_sum_tbl <- logRiseTime_models_sum$tTable %>%
   simplifyQuartileOutput()
-  # simplifyAllQuartilesOutput()
+# simplifyAllQuartilesOutput()
 
 logDecayTime_models_sum_tbl <- logDecayTime_models_sum$tTable %>%
   simplifyQuartileOutput()
-  # simplifyAllQuartilesOutput()
+# simplifyAllQuartilesOutput()
 
 logFWHM_models_sum_tbl <- logFWHM_models_sum$tTable %>%
   simplifyQuartileOutput()
-  # simplifyAllQuartilesOutput()
+# simplifyAllQuartilesOutput()
 
 logModels_tbl <- bind_rows(
   list(
@@ -327,10 +166,10 @@ logModels_tbl <- bind_rows(
     , "FWHM (ms)" = logFWHM_models_sum_tbl
   )
   , .id = "feature"
-# ) %>%
-#   pivot_wider(
-#     id_cols = c(feature, `fixed effect`), names_from = quartile, values_from = c("Value", "SEM", "95% CI", "p")
-  )
+  # ) %>%
+  #   pivot_wider(
+  #     id_cols = c(feature, `fixed effect`), names_from = quartile, values_from = c("Value", "SEM", "95% CI", "p")
+)
 
 logModels_flexTable <- logModels_tbl %>%
   makeManuscriptFlexTable(

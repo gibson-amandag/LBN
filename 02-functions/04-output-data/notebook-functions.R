@@ -142,6 +142,48 @@ simplifyEMMPairsOutput <- function(pairsTbl){
   return(tbl)
 }
 
+simplifyJointTestOutput <- function(jt) {
+  df <- jt %>%
+    as_tibble() %>%
+    rename(
+      variable = `model term`
+    ) %>%
+    mutate(
+      variable = ifelse(
+        variable == "earlyLifeTrt"
+        , "early-life treatment"
+        , ifelse(
+          variable == "adultTrt"
+          , "adult treatment"
+          , ifelse(
+            variable == "earlyLifeTrt:adultTrt"
+            , "early-life treatment * adult treatment"
+            , NA
+          )
+        )
+      )
+      , df = paste0(
+        df1
+        , ", "
+        , df2
+      )
+      , .after = "variable"
+    ) %>%
+    rename(
+      `p` = p.value
+      , `F ratio` = F.ratio
+    ) %>%
+    relocate(
+      `F ratio`
+      , .before = "df"
+    ) %>%
+    formatPCol() %>%
+    select(
+      -c(df1, df2)
+    )
+  return(df)
+}
+
 simplifyQuartileOutput <- function(df # just one quartile
 ){
   df %>%

@@ -727,11 +727,12 @@ cort_flexTable <- cortLMM_tbl %>%
 maleCortLMM_emm_tbl <- male_cort_lmm_ALPSTime_emm %>%
   as_tibble() %>%
   rename(
-    level = adultTrt
+    `adult treatment` = adultTrt
+    , emmean = response
   ) %>%
   relocate(
     time
-    , .before = "level"
+    , .before = "adult treatment"
   ) %>%
   simplifyEMMOutput() 
 
@@ -739,8 +740,9 @@ maleCortLMM_emm_flexTable <- maleCortLMM_emm_tbl %>%
   makeManuscriptFlexTable(
     vertMergeCols = c("time")
     , horzLines = c(2)
+    , vertLines = c(2)
     , round1Cols = c("df")
-    , round2Cols = c("response")
+    , round2Cols = c("emmean")
     , round3Cols = c("SEM")
   )
 
@@ -767,6 +769,7 @@ femaleCortLMM_emm_3way_tbl <- female_cort_lmm_emm_3way %>%
   rename(
     `cycle stage` = Sac_cycle
     , `adult treatment` = adultTrt
+    , emmean = response
   ) %>%
   simplifyEMMOutput()
 
@@ -776,7 +779,7 @@ femaleCortLMM_emm_3way_flexTable <- femaleCortLMM_emm_3way_tbl %>%
     , horzLines = c(2, 4, 6)
     , vertLines = c(3)
     , round1Cols = c("df")
-    , round2Cols = c("response")
+    , round2Cols = c("emmean")
     , round3Cols = c("SEM")
   )
 
@@ -3023,7 +3026,7 @@ femaleALPS_RelPM_EMM_tbl <- bind_rows(
     , c2 = femaleRelAdrenalMassPM_ALPS_LMM_EMM_adultTrt_tbl
     , d = femaleUterineMass_ALPS_LMM_EMM_Sac_cycle_tbl
     , e = femaleUterineMass_ALPS_LMM_EMM_Sac_cycleAdultTrt_tbl
-    # , f = femaleRelUterineMassPM_ALPS_LMM_EMM_Sac_cycle_tbl
+    , f = femaleRelUterineMassPM_ALPS_LMM_EMM_Sac_cycle_tbl
     , g = femaleRelUterineMassPM_ALPS_LMM_EMM_Sac_cycleAdultTrt_tbl
   )
 ) %>%
@@ -3059,7 +3062,7 @@ femaleALPS_RelPM_EMM_flexTable <- femaleALPS_RelPM_EMM_tbl %>%
                         # , "earlyLifeTrt", "adultTrt", "Sac_cycle"
                         )
     , vertLines = c(4)
-    , horzLines = c(2, 4, 6, 8, 10, 12, 14, 16)
+    , horzLines = c(2, 4, 6, 8, 10, 12, 14, 16, 18)
     , round1Cols = c("df")
     , round2Cols = c("emmean")
     , round3Cols = c("SEM")
@@ -3149,7 +3152,7 @@ femaleALPS_RelPM_EMM.pairs_tbl <- bind_rows(
     , c2 = femaleRelAdrenalMassPM_ALPS_LMM_EMM.pairs_adultTrt_tbl
     , d = femaleUterineMass_ALPS_LMM_EMM.pairs_Sac_cycle_tbl
     , e = femaleUterineMass_ALPS_LMM_EMM.pairs_Sac_cycleAdultTrt_tbl
-    # , f = femaleRelUterineMassPM_ALPS_LMM_EMM.pairs_Sac_cycle_tbl
+    , f = femaleRelUterineMassPM_ALPS_LMM_EMM.pairs_Sac_cycle_tbl
     , g = femaleRelUterineMassPM_ALPS_LMM_EMM.pairs_Sac_cycleAdultTrt_tbl
   )
 ) %>%
@@ -3185,7 +3188,7 @@ femaleALPS_RelPM_EMM.pairs_flexTable <- femaleALPS_RelPM_EMM.pairs_tbl %>%
                         # , "Sac_cycle"
                         )
     , vertLines = c(2)
-    , horzLines = c(1, 2, 3, 4, 5, 7)
+    , horzLines = c(1, 2, 3, 4, 5, 7, 8)
     , round1Cols = c("df")
     , round2Cols = c("estimate", "t ratio")
     , round3Cols = c("SEM")
@@ -3436,95 +3439,150 @@ GABApsc_cellCounts_flexTable <- GABApscs_240Filtered %>%
     , fullWidth = FALSE
     , vertMergeCols = "earlyLifeTrt"
   )
-GABApscs_240Filtered %>%
-  filter(
-    !is.na(relPeak)
+
+## LMMs -----------------------
+
+capacitance_lmm_tbl <- capacitance_lmm$anova_table %>%
+  simplifyLMMOutput()
+inputResistance_lmm_tbl <- inputResistance_lmm$anova_table %>%
+  simplifyLMMOutput()
+seriesResistance_lmm_tbl <- seriesResistance_lmm$anova_table %>%
+  simplifyLMMOutput()
+holdingCurrent_lmm_tbl <- holdingCurrent_lmm$anova_table %>%
+  simplifyLMMOutput()
+relAmplitude_lmm_tbl <- relAmplitude_lmm$anova_table %>%
+  simplifyLMMOutput()
+riseTime_lmm_tbl <- riseTime_lmm$anova_table %>%
+  simplifyLMMOutput()
+decayTime_lmm_tbl <- decayTime_lmm$anova_table %>%
+  simplifyLMMOutput()
+fwhm_lmm_tbl <- fwhm_lmm$anova_table %>%
+  simplifyLMMOutput()
+
+pscLMMs_tbl <- bind_rows(
+  list(
+    `capacitance (pF)` = capacitance_lmm_tbl
+    , `input resistance (MOhm)` = inputResistance_lmm_tbl
+    , `series resistance (MOhm)` = seriesResistance_lmm_tbl
+    , `holding current (pA)` = holdingCurrent_lmm_tbl
+    , `amplitude (pA)` = relAmplitude_lmm_tbl
+    , `rise time (ms)` = riseTime_lmm_tbl
+    , `decay time (ms)` = decayTime_lmm_tbl
+    , `fwhm (ms)` = fwhm_lmm_tbl
+  ), .id = "feature"
+) %>%
+  mutate(
+    variable = ifelse(
+      variable == "early-life treatment"
+      , "earlyLife"
+      , ifelse(
+        variable == "adult treatment"
+        , "adult"
+        , "int"
+      )
+    )
   ) %>%
-  group_by(
-    earlyLifeTrt, adultTrt
-  ) %>%
-  summarize(
-    litters = n_distinct(damID)
-    , mice = n_distinct(mouseID)
-    , cells = n()
-    , .groups = "drop"
+  pivot_wider(
+    id_cols = "feature"
+    , names_from = "variable"
+    , values_from = c("F", "df", "p")
+  )
+
+pscLMMs_header <- data.frame(
+  col_keys = c("feature"
+               , "F_earlyLife", "df_earlyLife", "p_earlyLife"
+               , "F_adult", "df_adult", "p_adult"
+               , "F_int", "df_int", "p_int"
+  )
+  , line1 = c(""
+              , rep("early-life treatment", 3)
+              , rep("adult treatment", 3)
+              , rep("early-life treatment * adult treatment", 3)
+  )
+  , line2 = c("feature"
+              , rep(c("F", "df", "p"), 3)
+  )
+)
+
+pscLMMs_flexTable <- pscLMMs_tbl %>%
+  makeManuscriptFlexTable(
+    headerDF = pscLMMs_header
+    , round2Cols = c("F_earlyLife", "F_adult", "F_int")
+    , vertLines = c(1, 4, 7)
+  )
+
+
+## Freq/count of PSCs has to be different format, negative binomial
+
+numEvents_nb.GLMM_Anova_flexTable <- numEvents_nb.GLMM_Anova %>%
+  simplifyJointTestOutput() %>%
+  rename(
+    `Chi-sq` = Chisq
   ) %>%
   makeManuscriptFlexTable(
-    vertLines = c(2)
-    , horzLines = c(1, 2, 3)
-    , fullWidth = FALSE
-    , vertMergeCols = "earlyLifeTrt"
+    round3Cols = c("F ratio", "Chi-sq")
   )
 
 
-pscProps %>%
-  group_by(
-    earlyLifeTrt
-    , adultTrt
+## Median LQMMs -------------
+
+logAmplitude_median_tbl <- logAmplitude_emm_jt %>%
+  simplifyJointTestOutput()
+
+logRiseTime_median_tbl <- logRiseTime_emm_jt %>%
+  simplifyJointTestOutput()
+
+logDecayTime_median_tbl <- logDecayTime_emm_jt %>%
+  simplifyJointTestOutput()
+
+logFWHM_median_tbl <- logFWHM_emm_jt %>%
+  simplifyJointTestOutput()
+
+psc_medianLQMMs_tbl <- bind_rows(
+  list(
+    `amplitude (pA)` = logAmplitude_median_tbl
+    , `rise time (ms)` = logRiseTime_median_tbl
+    , `decay time (ms)` = logDecayTime_median_tbl
+    , `fwhm (ms)` = logFWHM_median_tbl
+  ), .id = "feature"
+) %>%
+  mutate(
+    variable = ifelse(
+      variable == "early-life treatment"
+      , "earlyLife"
+      , ifelse(
+        variable == "adult treatment"
+        , "adult"
+        , "int"
+      )
+    )
   ) %>%
-  summarize(
-    events = n()
-    , .groups = "drop"
+  pivot_wider(
+    id_cols = "feature"
+    , names_from = "variable"
+    , values_from = c("F ratio", "df", "p")
   )
 
+psc_medianLQMMs_header <- data.frame(
+  col_keys = c("feature"
+               , "F ratio_earlyLife", "df_earlyLife", "p_earlyLife"
+               , "F ratio_adult", "df_adult", "p_adult"
+               , "F ratio_int", "df_int", "p_int"
+  )
+  , line1 = c(""
+              , rep("early-life treatment", 3)
+              , rep("adult treatment", 3)
+              , rep("early-life treatment * adult treatment", 3)
+  )
+  , line2 = c("feature"
+              , rep(c("F ratio", "df", "p"), 3)
+  )
+)
 
-
-
-## Quantiles ---------------------
-
-# logAmplitude_models_sum_tbl <- logAmplitude_models_sum$tTable %>%
-#   simplifyAllQuartilesOutput()
-# 
-# logRiseTime_models_sum_tbl <- logRiseTime_models_sum$tTable %>%
-#   simplifyAllQuartilesOutput()
-# 
-# logDecayTime_models_sum_tbl <- logDecayTime_models_sum$tTable %>%
-#   simplifyAllQuartilesOutput()
-# 
-# logFWHM_models_sum_tbl <- logFWHM_models_sum$tTable %>%
-#   simplifyAllQuartilesOutput()
-# 
-# logModels_tbl <- bind_rows(
-#   list(
-#     "amplitude (pA)" = logAmplitude_models_sum_tbl
-#     , "rise time (ms)" = logRiseTime_models_sum_tbl
-#     , "decay time (ms)" = logDecayTime_models_sum_tbl
-#     , "FWHM (ms)" = logFWHM_models_sum_tbl
-#   )
-#   , .id = "feature"
-# ) %>%
-#   pivot_wider(
-#     id_cols = c(feature, `fixed effect`), names_from = quartile, values_from = c("Value", "SEM", "95% CI", "p")
-#   )
-# 
-# logModels_header <- data.frame(
-#   col_keys = c("feature", "fixed effect"
-#                , "Value_0.25", "SEM_0.25", "95% CI_0.25", "p_0.25"
-#                , "Value_0.5", "SEM_0.5", "95% CI_0.5", "p_0.5"
-#                , "Value_0.75", "SEM_0.75", "95% CI_0.75", "p_0.75"
-#   )
-#   , line2 = c("", ""
-#               , rep("25th percentile", 4)
-#               , rep("50th percentile", 4)
-#               , rep("75th percentile", 4)
-#               )
-#   , line3 = c("feature", "fixed effect"
-#               , "Value", "SEM", "95% CI", "p"
-#               , "Value", "SEM", "95% CI", "p"
-#               , "Value", "SEM", "95% CI", "p"
-#               )
-# )
-# 
-# logModels_flexTable <- logModels_tbl %>%
-#   makeManuscriptFlexTable(
-#     headerDF = logModels_header
-#     , vertLines = c(2, 6, 10)
-#     , horzLines = c(4, 8, 12, 16)
-#     , round2Cols = c("Value_0.25", "Value_0.5", "Value_0.75")
-#     , round3Cols = c("SEM_0.25", "SEM_0.5", "SEM_0.75")
-#     , vertMergeCols = c("feature")
-#   )
-# 
-
-
+psc_medianLQMMs_flexTable <- psc_medianLQMMs_tbl %>%
+  makeManuscriptFlexTable(
+    headerDF = psc_medianLQMMs_header
+    , round3Cols = c("F ratio_earlyLife", "F ratio_adult", "F ratio_int")
+    , vertLines = c(1, 4, 7)
+  )
 

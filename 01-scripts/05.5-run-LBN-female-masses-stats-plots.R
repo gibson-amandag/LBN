@@ -203,10 +203,9 @@ femalePercChangeBodyMass_ALPS_lmm_emm_adultTrt <- emmeans(
   , "adultTrt"
 )
 
-femalePercChangeBodyMass_ALPS_lmm_emm_adultTrt.pairs <- test(
-  pairs(femalePercChangeBodyMass_ALPS_lmm_emm_adultTrt)
-  , by = NULL
-  , adjust = "holm"
+femalePercChangeBodyMass_ALPS_lmm_emm_adultTrt.pairs <- contrast(
+  femalePercChangeBodyMass_ALPS_lmm_emm_adultTrt
+  , "pairwise"
 )
 
 femalePercChangeBodyMass_ALPS_lmm_emm_Sac_cycle <- emmeans(
@@ -214,10 +213,9 @@ femalePercChangeBodyMass_ALPS_lmm_emm_Sac_cycle <- emmeans(
   , "Sac_cycle"
 )
 
-femalePercChangeBodyMass_ALPS_lmm_emm_Sac_cycle.pairs <- test(
-  pairs(femalePercChangeBodyMass_ALPS_lmm_emm_Sac_cycle)
-  , by = NULL
-  , adjust = "holm"
+femalePercChangeBodyMass_ALPS_lmm_emm_Sac_cycle.pairs <- contrast(
+  femalePercChangeBodyMass_ALPS_lmm_emm_Sac_cycle
+  , "pairwise"
 )
 
 ## normalized adrenal mass -----------
@@ -242,10 +240,9 @@ femaleRelAdrenalMassPM_ALPS_lmm_emm_adultTrt <- emmeans(
 )
 
 # ALPS males lose more of their body mass during the paradigm
-femaleRelAdrenalMassPM_ALPS_lmm_emm_adultTrt.pairs <- test(
-  pairs(femaleRelAdrenalMassPM_ALPS_lmm_emm_adultTrt)
-  , by = NULL
-  , adjust = "holm"
+femaleRelAdrenalMassPM_ALPS_lmm_emm_adultTrt.pairs <- contrast(
+  femaleRelAdrenalMassPM_ALPS_lmm_emm_adultTrt
+  , "pairwise"
 )
 
 
@@ -256,17 +253,16 @@ femaleAdrenalMass_ALPS <- acuteStressFilteredFemales %>%
 femaleAdrenalMass_ALPS_plot <- femaleAdrenalMass_ALPS$plot
 femaleAdrenalMass_ALPS_lmm <- femaleAdrenalMass_ALPS$lmm
 
-# LBN females trending towards higher adrenal mass
+# LBN females higher adrenal mass
 
 femaleAdrenalMass_ALPS_lmm_emm_earlyLifeTrt <- emmeans(
   femaleAdrenalMass_ALPS_lmm
   , "earlyLifeTrt"
 )
 
-femaleAdrenalMass_ALPS_lmm_emm_earlyLifeTrt.pairs <- test(
-  pairs(femaleAdrenalMass_ALPS_lmm_emm_earlyLifeTrt)
-  , by = NULL
-  , adult = "holm"
+femaleAdrenalMass_ALPS_lmm_emm_earlyLifeTrt.pairs <- contrast(
+  femaleAdrenalMass_ALPS_lmm_emm_earlyLifeTrt
+  , "pairwise"
 )
 
 
@@ -282,13 +278,12 @@ femaleRelUterineMass_ALPS_lmm_emm_Sac_cycle <- emmeans(
   , "Sac_cycle"
 )
 
-femaleRelUterineMass_ALPS_lmm_emm_Sac_cycle.pairs <- test(
-  pairs(femaleRelUterineMass_ALPS_lmm_emm_Sac_cycle)
-  , by = NULL
-  , adjust = "holm"
+femaleRelUterineMass_ALPS_lmm_emm_Sac_cycle.pairs <- contrast(
+  femaleRelUterineMass_ALPS_lmm_emm_Sac_cycle
+  , "pairwise"
 )
 
-# p=0.51 interaction of cycle stage and adult treatment
+# p=0.075 interaction of cycle stage and adult treatment
 
 femaleRelUterineMass_ALPS_lmm_emm_Sac_cycleAdultTrt <- emmeans(
   femaleRelUterineMass_ALPS_lmm
@@ -297,9 +292,12 @@ femaleRelUterineMass_ALPS_lmm_emm_Sac_cycleAdultTrt <- emmeans(
 )
 
 # trend is for proestrous ALPS uteri to be larger
-femaleRelUterineMass_ALPS_lmm_emm_Sac_cycleAdultTrt.pairs <- test(
-  pairs(femaleRelUterineMass_ALPS_lmm_emm_Sac_cycleAdultTrt)
-  , by = NULL
+femaleRelUterineMass_ALPS_lmm_emm_Sac_cycleAdultTrt.pairs <- contrast(
+  femaleRelUterineMass_ALPS_lmm_emm_Sac_cycleAdultTrt
+  , "pairwise"
+  , simple = list("adultTrt")
+  # , simple = "each"
+  , combine = TRUE
   , adjust = "holm"
 )
 
@@ -315,13 +313,13 @@ femaleRelUterineMassPM_ALPS_lmm_emm_Sac_cycle <- emmeans(
   , "Sac_cycle"
 )
 
-femaleRelUterineMassPM_ALPS_lmm_emm_Sac_cycle.pairs <- test(
-  pairs(femaleRelUterineMassPM_ALPS_lmm_emm_Sac_cycle)
-  , by = NULL
-  , adjust = "holm"
+
+femaleRelUterineMassPM_ALPS_lmm_emm_Sac_cycle.pairs <- contrast(
+  femaleRelUterineMassPM_ALPS_lmm_emm_Sac_cycle
+  , "pairwise"
 )
 
-# Currently significant interaction
+# p = 0.058 for interaction
 
 femaleRelUterineMassPM_ALPS_lmm_emm_Sac_cycleAdultTrt <- emmeans(
   femaleRelUterineMassPM_ALPS_lmm
@@ -330,10 +328,13 @@ femaleRelUterineMassPM_ALPS_lmm_emm_Sac_cycleAdultTrt <- emmeans(
 )
 
 # trend is for proestrous ALPS uteri to be larger
-femaleRelUterineMassPM_ALPS_lmm_emm_Sac_cycleAdultTrt.pairs <- test(
-  pairs(femaleRelUterineMassPM_ALPS_lmm_emm_Sac_cycleAdultTrt)
-  , by = NULL
+femaleRelUterineMassPM_ALPS_lmm_emm_Sac_cycleAdultTrt.pairs <- contrast(
+  femaleRelUterineMassPM_ALPS_lmm_emm_Sac_cycleAdultTrt
+  , "pairwise"
+  # , simple = "each"
+  , simple = list("adultTrt")
   , adjust = "holm"
+  , combine = TRUE
 )
 
 ## absolute uterine mass -----------
@@ -349,10 +350,9 @@ femaleUterineMass_ALPS_lmm_emm_Sac_cycle <- emmeans(
   , "Sac_cycle"
 )
 
-femaleUterineMass_ALPS_lmm_emm_Sac_cycle.pairs <- test(
-  pairs(femaleUterineMass_ALPS_lmm_emm_Sac_cycle)
-  , by = NULL
-  , adjust = "holm"
+femaleUterineMass_ALPS_lmm_emm_Sac_cycle.pairs <- contrast(
+  femaleUterineMass_ALPS_lmm_emm_Sac_cycle
+  , "pairwise"
 )
 
 # trend, a bit weaker for interaction
@@ -363,8 +363,11 @@ femaleUterineMass_ALPS_lmm_emm_Sac_cycleAdultTrt <- emmeans(
 )
 
 # post-hoc, neither is trending
-femaleUterineMass_ALPS_lmm_emm_Sac_cycleAdultTrt.pairs <- test(
-  pairs(femaleUterineMass_ALPS_lmm_emm_Sac_cycleAdultTrt)
-  , by = NULL
+femaleUterineMass_ALPS_lmm_emm_Sac_cycleAdultTrt.pairs <- contrast(
+  femaleUterineMass_ALPS_lmm_emm_Sac_cycleAdultTrt
+  , "pairwise"
+  # , simple = "each"
+  , simple = list("adultTrt")
+  , combine = TRUE
   , adjust = "holm"
 )

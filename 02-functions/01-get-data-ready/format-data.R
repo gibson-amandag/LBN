@@ -69,7 +69,10 @@ combineStress <- function(df){
       remove = FALSE
     ) %>%
     mutate(
-      comboTrt = factor(comboTrt, levels = c("STD-CON", "STD-ALPS", "LBN-CON", "LBN-ALPS"))
+      comboTrt = factor(comboTrt, levels = c(
+        # "STD-CON", "STD-ALPS", "LBN-CON", "LBN-ALPS" # changed 2024-02-26
+        "STD-CON", "LBN-CON", "STD-ALPS", "LBN-ALPS"
+      ))
     )
   return(df)
 }

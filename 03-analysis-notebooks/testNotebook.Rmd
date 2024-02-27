@@ -14739,7 +14739,7 @@ count_table <- count_non_missing(damBehavior_byPND, group_vars, count_vars)
 count_table
 ```
 
-# 2024-01-12
+# 2024-01-12 cort assays
 
 Dams that need cort assayed
 
@@ -16217,5 +16217,427 @@ maleCortAdmin %>%
     cort_hr5 > 450
   )
 ```
+# 2024-02-24 - Cort assays
 
+```{r}
+df <- acuteStressFiltered %>%
+  filter(
+    is.na(cort_hr0)
+    , Sac_date >= date_parse("2024-02-18")
+    , !is.na()
+  ) %>%
+  select(
+    mouseID
+  )
+df <- df[sample(nrow(df)),]
+df
+df %>%
+  write.table("clipboard", sep="\t", row.names = FALSE)
+```
+
+
+# Number of events, isolated vs further selection
+
+```{r}
+numEvents_selectiveAvg <- loadExcelSheet(dataFolder, LBN_DataName, "numEvents_selectiveAvg") %>%
+  rename(
+    numEvents_selective = numEvents
+  ) %>%
+  left_join(
+    pscProps %>%
+      group_by(
+        cellID
+        , earlyLifeTrt
+        , adultTrt
+      ) %>%
+      summarize(
+        numEvents_isolated = n()
+        , .groups = "drop"
+      )
+    , by = "cellID"
+  ) %>%
+  relocate(
+    numEvents_isolated
+    , .before = numEvents_isolated
+  ) %>%
+  filter(
+    numEvents_isolated > 0
+  ) %>%
+  mutate(
+    difference = numEvents_isolated - numEvents_selective
+    , percentDeselected = difference / numEvents_isolated * 100
+  )
+
+eventsSum <- numEvents_selectiveAvg %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(
+    
+  ) %>%
+  arrange(
+    variable
+  ) %>%
+  relocate(
+    n
+    , min
+    , q1
+    , median
+    , q3
+    , max
+    , .after = variable
+  ) %>%
+  relocate(
+    variable
+    , .before = earlyLifeTrt
+  ) %>%
+  rename(
+    numCells = n
+    , `25th percentile` = q1
+    , `75th percentile` = q3
+  )
+
+eventsSum
+
+eventsSum %>%
+  write.table("clipboard", sep="\t", row.names = FALSE)
+  
+
+eventsMean <- numEvents_selectiveAvg %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  meanSummary(
+    
+  ) %>%
+  arrange(
+    variable
+  ) %>% 
+  relocate(
+    variable
+    , .before = earlyLifeTrt
+  ) %>%
+  rename(
+    numCells = n
+  )
+
+
+eventsMean
+eventsMean %>%
+  write.table("clipboard", sep="\t", row.names = FALSE)
+```
+
+# Female cort - 3 way interaction, how to assess
+
+This looking at adult treatment by cycle stage and time
+This emphasizes that for both di and pro groups, there is no difference at time 0
+between CON and ALPS groups, but there is a difference at time 5
+```{r}
+female_cort_lmm_emm_adultTrtCycleTime <- emmeans(
+  female_cort_lmm
+  , "adultTrt"
+  , by = c("Sac_cycle", "time")
+  , type = "response"
+)
+
+female_cort_lmm_emm_adultTrtCycleTime.pairs <- test(
+  pairs(female_cort_lmm_emm_adultTrtCycleTime)
+  , by = NULL
+  , adjust = "holm"
+)
+
+female_cort_lmm_emm_adultTrtCycleTime
+female_cort_lmm_emm_adultTrtCycleTime.pairs
+
+```
+
+This is the interaction of adult treatment and time by cycle stage
+
+```{r}
+female_cort_lmm_emm_adultTrtCycleTime <- emmeans(
+  female_cort_lmm
+  , ~ adultTrt * time
+  , by = "Sac_cycle"
+  , type = "response"
+)
+
+female_cort_lmm_emm_adultTrtCycleTime.pairs <- test(
+  pairs(female_cort_lmm_emm_adultTrtCycleTime)
+  , by = NULL
+  , adjust = "holm"
+)
+
+female_cort_lmm_emm_adultTrtCycleTime
+female_cort_lmm_emm_adultTrtCycleTime.pairs
+```
+```{r}
+female_cort_lmm_emm_adultTrtCycleTime <- emmeans(
+  female_cort_lmm
+  , ~ adultTrt * time
+  , by = "Sac_cycle"
+  , type = "response"
+)
+
+contrast(
+  female_cort_lmm_emm_adultTrtCycleTime
+  , "pairwise"
+  , adjust = "holm"
+)
+
+contrast(
+  female_cort_lmm_emm_adultTrtCycleTime
+  , "pairwise"
+  , simple = list("adultTrt", "time")
+  , adjust = "holm"
+)
+
+contrast(
+  female_cort_lmm_emm_adultTrtCycleTime
+  , simple = list("adultTrt", "time")
+  , adjust = "holm"
+)
+```
+
+
+
+```{r}
+female_cort_lmm_emm_adultTrtCycleTime <- emmeans(
+  female_cort_lmm
+  , ~ adultTrt * time * Sac_cycle
+  , type = "response"
+)
+
+test(contrast(female_cort_lmm_emm_adultTrtCycleTime, simple = list("adultTrt", "Sac_cycle")), by = NULL, adjust = "holm")
+
+contrast(
+  female_cort_lmm_emm_adultTrtCycleTime
+  , simple = c("adultTrt", "Sac_cycle", "time")
+  , combine = TRUE
+)
+contrast(
+  female_cort_lmm_emm_adultTrtCycleTime
+  , simple = c("adultTrt", "Sac_cycle", "time")
+  # , combine = TRUE
+)
+```
+This is looking at the effect of cycle stage, grouped by time and adult treatment
+This shows that there's a difference between di and pro groups in the morning (driven by ALPS groups, but trend is the same for CON group). There are no differences in the afternoon between di and pro groups, but the direction of the trend is different between CON and ALPS groups, which is leading to the interaction 
+```{r}
+female_cort_lmm_emm_adultTrtCycleTime <- emmeans(
+  female_cort_lmm
+  , "Sac_cycle"
+  , by = c("adultTrt", "time")
+  , type = "response"
+)
+
+female_cort_lmm_emm_adultTrtCycleTime.pairs <- test(
+  pairs(female_cort_lmm_emm_adultTrtCycleTime)
+  , by = NULL
+  , adjust = "holm"
+)
+
+female_cort_lmm_emm_adultTrtCycleTime
+female_cort_lmm_emm_adultTrtCycleTime.pairs
+
+```
+
+
+```{r}
+female_cort_lmm_emm_adultTrtCycleTime_V2 <- emmeans(
+  female_cort_lmm
+  , "Sac_cycle"
+  , by = c("adultTrt", "time")
+  , type = "response"
+)
+female_cort_lmm_emm_adultTrtCycleTime_V3 <- emmeans(
+  female_cort_lmm
+  , "time"
+  , by = c("adultTrt", "Sac_cycle")
+  , type = "response"
+)
+
+test(
+  pairs(female_cort_lmm_emm_adultTrtCycleTime)
+  , by = NULL
+  , adjust = "holm"
+)
+
+test(
+  pairs(female_cort_lmm_emm_adultTrtCycleTime_V2)
+  , by = NULL
+  , adjust = "holm"
+)
+
+test(
+  pairs(female_cort_lmm_emm_adultTrtCycleTime_V3)
+  , by = NULL
+  , adjust = "holm"
+)
+
+# https://stats.stackexchange.com/questions/355611/pairwise-comparisons-with-emmeans-for-a-mixed-three-way-interaction-in-a-linear
+emms1 <- emmeans(
+  female_cort_lmm
+  , ~ adultTrt * time | Sac_cycle
+  , type = "response"
+)
+
+emms1
+
+test(
+  pairs(emms1)
+  , by = NULL
+  , adjust = "holm"
+)
+
+con1 <- contrast(emms1, interaction = "pairwise")
+con1
+pairs(con1, by = NULL, adjust = "holm")
+
+emms2 <- emmeans(
+  female_cort_lmm
+  , ~ adultTrt * Sac_cycle | time
+  , type = "response"
+)
+
+emms2
+
+test(
+  pairs(emms2)
+  , by = NULL
+  , adjust = "holm"
+)
+
+con2 <- contrast(emms2, interaction = "pairwise")
+con2
+pairs(con2, by = NULL, adjust = "holm")
+```
+
+
+https://cran.r-project.org/web/packages/emmeans/vignettes/interactions.html
+
+```{r}
+emmip(female_cort_lmm, adultTrt ~ time | Sac_cycle, type = "response")
+```
+
+```{r}
+femaleCort_3way_emm <- emmeans(
+  female_cort_lmm
+  , ~ adultTrt * time * Sac_cycle
+  , type = "response"
+)
+
+femaleCort_3way_emm
+```
+
+```{r}
+# contrast(
+#   femaleCort_3way_emm
+#   , "consec"
+#   , simple = "each"
+# )
+
+contrast(
+  femaleCort_3way_emm
+  , "pairwise"
+  , simple = "each"
+)
+```
+# Best pairwise comparison for all combinations of 3-way interaction
+
+```{r}
+contrast(
+  femaleCort_3way_emm
+  , "pairwise"
+  , simple = "each"
+  , combine = TRUE
+  , adjust = "holm"
+)
+```
+
+```{r}
+maleCortAdmin_cort_lmm_emm <- emmeans(
+  maleCortAdmin_cort_lmm
+  , "dosage"
+  , by = "time"
+  , type = "response"
+)
+
+maleCortAdmin_cort_lmm_emm.pairs <- test(
+  pairs(maleCortAdmin_cort_lmm_emm)
+  , by = NULL
+  , adjust = "holm"
+)
+
+maleCortAdmin_cort_lmm_emm %>%
+  as_tibble()
+maleCortAdmin_cort_lmm_emm.pairs
+```
+
+```{r}
+maleCortAdmin_cort_2way_emm <- emmeans(
+  maleCortAdmin_cort_lmm
+  , ~ dosage * time
+  # , ~ time * dosage
+  , type = "response"
+)
+
+# these are the same
+# contrast(
+#   maleCortAdmin_cort_2way_emm
+#   , "pairwise"
+#   , by = "time"
+#   , combine = TRUE
+#   , adjust = "holm"
+# )
+contrast(
+  maleCortAdmin_cort_2way_emm
+  , "pairwise"
+  , simple = list("dosage")
+  , combine = TRUE
+  , adjust = "holm"
+)
+# this is also the same
+# contrast(
+#   maleCortAdmin_cort_lmm_emm
+#   , "pairwise"
+#   , simple = list("dosage")
+#   , combine = TRUE
+#   , adjust = "holm"
+# )
+```
+```{r}
+male_cort_lmm_ALPSTime_emm <- emmeans(
+  male_cort_lmm
+  , "adultTrt"
+  , by = "time"
+  , type = "response"
+)
+
+
+male_cort_lmm_ALPSTime_emm.pairs <- test(
+  pairs(male_cort_lmm_ALPSTime_emm)
+  , by = NULL
+  , adjust = "holm"
+)
+
+male_cort_lmm_ALPSTime_emm
+male_cort_lmm_ALPSTime_emm.pairs
+```
+
+```{r}
+male_cort_lmm_2way_emm <- emmeans(
+  male_cort_lmm
+  , ~ adultTrt * time
+  , type = "response"
+)
+
+contrast(
+  male_cort_lmm_2way_emm
+  , "pairwise"
+  , simple = list("adultTrt")
+  , combine = TRUE
+)
+```
 
