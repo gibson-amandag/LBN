@@ -808,30 +808,6 @@ femaleCortLMM_emm_3way.pairs_flexTable <- femaleCortLMM_emm_3way.pairs_tbl %>%
     , round3Cols = c("SEM")
   )
 
-### cycle stage * time pairs ----------
-
-femaleCortLMM_emm_cycleTime.pairs_tbl <- female_cort_lmm_emm_Sac_cycleTime.pairs %>%
-  simplifyEMMPairsOutput()
-
-femaleCortLMM_emm_cycleTime.pairs_header <- data.frame(
-  col_keys = c("time", "contrast"
-               , "ratio", "SEM", "df", "null", "t ratio", "p"
-  )
-  , line1 = c("time", "contrast",
-              "ratio", "SEM", "df", "null", "t ratio", "p"
-  )
-)
-
-femaleCortLMM_emm_cycleTime.pairs_flexTable <- femaleCortLMM_emm_cycleTime.pairs_tbl %>%
-  makeManuscriptFlexTable(
-    headerDF = femaleCortLMM_emm_cycleTime.pairs_header
-    # , horzLines = c(2)
-    , round1Cols = c("df")
-    , round2Cols = c("ratio", "t ratio")
-    , round3Cols = c("SEM")
-  )
-
-
 # Figure 5 -------------------------------
 
 ## Counts ---------------

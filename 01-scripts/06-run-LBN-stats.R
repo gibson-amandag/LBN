@@ -561,7 +561,7 @@ female_cort_lmm_emm_3way <- emmeans(
 )
 
 female_cort_lmm_emm_3way.pairs <- contrast(
-  femaleCort_3way_emm
+  female_cort_lmm_emm_3way
   , "pairwise"
   , simple = "each"
   , combine = TRUE

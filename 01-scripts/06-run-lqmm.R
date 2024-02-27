@@ -50,6 +50,9 @@ logAmplitude_models <- lqmm(
   , group = cellID
   , tau = quantiles
   , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 1000
+  )
 )
 
 logAmplitude_emm <- emmeans(
@@ -74,6 +77,9 @@ logRiseTime_models <- lqmm(
   , group = cellID
   , tau = quantiles
   , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 1000
+  )
 )
 
 
@@ -98,6 +104,9 @@ logDecayTime_models <- lqmm(
   , group = cellID
   , tau = quantiles
   , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 1000
+  )
 )
 
 
@@ -122,6 +131,9 @@ logFWHM_models <- lqmm(
   , group = cellID
   , tau = quantiles
   , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 1000
+  )
 )
 
 
@@ -137,87 +149,3 @@ logFWHM_emm_jt <- joint_tests(
 
 FWHMMedian_errors <- logFWHM_emm %>%
   getLQMM_MedianCI()
-
-# Flextables -------------------------
-
-## Summary ------------------------
-
-logAmplitude_models_sum_tbl <- logAmplitude_models_sum$tTable %>%
-  simplifyQuartileOutput()
-# simplifyAllQuartilesOutput()
-
-logRiseTime_models_sum_tbl <- logRiseTime_models_sum$tTable %>%
-  simplifyQuartileOutput()
-# simplifyAllQuartilesOutput()
-
-logDecayTime_models_sum_tbl <- logDecayTime_models_sum$tTable %>%
-  simplifyQuartileOutput()
-# simplifyAllQuartilesOutput()
-
-logFWHM_models_sum_tbl <- logFWHM_models_sum$tTable %>%
-  simplifyQuartileOutput()
-# simplifyAllQuartilesOutput()
-
-logModels_tbl <- bind_rows(
-  list(
-    "amplitude (pA)" = logAmplitude_models_sum_tbl
-    , "rise time (ms)" = logRiseTime_models_sum_tbl
-    , "decay time (ms)" = logDecayTime_models_sum_tbl
-    , "FWHM (ms)" = logFWHM_models_sum_tbl
-  )
-  , .id = "feature"
-  # ) %>%
-  #   pivot_wider(
-  #     id_cols = c(feature, `fixed effect`), names_from = quartile, values_from = c("Value", "SEM", "95% CI", "p")
-)
-
-logModels_flexTable <- logModels_tbl %>%
-  makeManuscriptFlexTable(
-    horzLines = c(4, 8, 12, 16)
-    , round2Cols = c("Value")
-    , round3Cols = c("SEM")
-    , vertMergeCols = c("feature")
-  )
-
-print(logModels_flexTable)
-
-## Predictions -------------------
-
-
-logAmplitude_models_predictions_tbl <- logAmplitude_models_predictions %>%
-  simplifyLQMMPredictions()
-logRiseTime_models_predictions_tbl <- logRiseTime_models_predictions %>%
-  simplifyLQMMPredictions()
-logDecayTime_models_predictions_tbl <- logDecayTime_models_predictions %>%
-  simplifyLQMMPredictions()
-logFWHM_models_predictions_tbl <- logFWHM_models_predictions %>%
-  simplifyLQMMPredictions()
-
-logModels_predictions_tbl <- bind_rows(
-  list(
-    "amplitude (pA)" = logAmplitude_models_predictions_tbl
-    , "rise time (ms)" = logRiseTime_models_predictions_tbl
-    , "decay time (ms)" = logDecayTime_models_predictions_tbl
-    , "FWHM (ms)" = logFWHM_models_predictions_tbl
-  )
-  , .id = "feature"
-)
-
-logModels_predictions_header <- data.frame(
-  col_keys = colnames(logModels_predictions_tbl)
-  , line1 = c("feature", "early-life treatment", "adult treatment"
-              , "estimate", "SEM", "95% CI"
-  )
-)
-
-logModels_predictions_flexTable <- logModels_predictions_tbl %>%
-  makeManuscriptFlexTable(
-    headerDF = logModels_predictions_header
-    , vertLines = c(3)
-    , horzLines = c(2, 4, 6, 8, 10, 12, 14, 16)
-    , round2Cols = c("estimate_0.5")
-    , round3Cols = c("SEM_0.5")
-    , vertMergeCols = c("feature", "earlyLifeTrt")
-  )
-
-print(logModels_predictions_flexTable)
