@@ -270,7 +270,7 @@ dosage_scatterAndLMM <- function(
         , dotSize = thisDotSize
         , textSize = thisFontSize
         , fillVar = dosage
-        , fillValues = c("white", "black")
+        , fillValues = alpha(c("white", "black"), alpha)
         , zoom_y = zoom_y
         , ymin = ymin
         , ymax = ymax
@@ -397,9 +397,14 @@ statsAndPlot_RelTestesMassPM_dosage <- dosage_scatterAndLMM(
 ## AM Body mass ----------
 
 maleBodyMassAM_ALPS <- acuteStressFilteredMales %>%
-  statsAndPlot_BodyMassAM_ALPS()
+  statsAndPlot_BodyMassAM_ALPS(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 45
+  )
 
-maleBodyMassAM_ALPS_plot <- maleBodyMassAM_ALPS$plot
+maleBodyMassAM_ALPS_plot <- maleBodyMassAM_ALPS$plot +
+  scale_y_continuous(breaks = c(0, 10, 20, 30, 40))
 maleBodyMassAM_ALPS_lmm <- maleBodyMassAM_ALPS$lmm
 
 # adult trt
@@ -428,7 +433,11 @@ maleBodyMassAM_ALPS_lmm_emm_earlyLifeTrt.pairs <- contrast(
 
 ## % change body mass ----------
 malePercChangeBodyMass_ALPS <- acuteStressFilteredMales %>%
-  statsAndPlot_PercChangeBodyMass_ALPS()
+  statsAndPlot_PercChangeBodyMass_ALPS(
+    zoom_y = TRUE
+    , ymin = -7
+    , ymax = 0.5
+  )
 
 malePercChangeBodyMass_ALPS_plot <- malePercChangeBodyMass_ALPS$plot
 malePercChangeBodyMass_ALPS_lmm <- malePercChangeBodyMass_ALPS$lmm
@@ -581,20 +590,22 @@ maleRelSeminalVesicleMassPM_ALPS <- acuteStressFilteredMales %>%
   statsAndPlot_RelSeminalVesicleMassPM_ALPS(
     zoom_y = TRUE
     , ymin = 0
-    , ymax = 10
-  )
+    , ymax = 11
+  ) 
 
-maleRelSeminalVesicleMassPM_ALPS_plot <- maleRelSeminalVesicleMassPM_ALPS$plot
+maleRelSeminalVesicleMassPM_ALPS_plot <- maleRelSeminalVesicleMassPM_ALPS$plot +
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10))
 maleRelSeminalVesicleMassPM_ALPS_lmm <- maleRelSeminalVesicleMassPM_ALPS$lmm
 
 maleRelSeminalVesicleMass_ALPS <- acuteStressFilteredMales %>%
   statsAndPlot_RelSeminalVesicleMass_ALPS(
     zoom_y = TRUE
     , ymin = 0
-    , ymax = 10
-  )
+    , ymax = 11
+  ) 
 
-maleRelSeminalVesicleMass_ALPS_plot <- maleRelSeminalVesicleMass_ALPS$plot
+maleRelSeminalVesicleMass_ALPS_plot <- maleRelSeminalVesicleMass_ALPS$plot +
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10))
 maleRelSeminalVesicleMass_ALPS_lmm <- maleRelSeminalVesicleMass_ALPS$lmm
 
 ## AM - early-life
@@ -689,20 +700,22 @@ maleRelTestesMassPM_ALPS <- acuteStressFilteredMales %>%
   statsAndPlot_RelTestesMassPM_ALPS(
     zoom_y = TRUE
     , ymin = 0
-    , ymax = 10
-  )
+    , ymax = 11
+  ) 
 
-maleRelTestesMassPM_ALPS_plot <- maleRelTestesMassPM_ALPS$plot
+maleRelTestesMassPM_ALPS_plot <- maleRelTestesMassPM_ALPS$plot + 
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10))
 maleRelTestesMassPM_ALPS_lmm <- maleRelTestesMassPM_ALPS$lmm
 
 maleRelTestesMass_ALPS <- acuteStressFilteredMales %>%
   statsAndPlot_RelTestesMass_ALPS(
     zoom_y = TRUE
     , ymin = 0
-    , ymax = 10
-  )
+    , ymax = 11
+  ) 
 
-maleRelTestesMass_ALPS_plot <- maleRelTestesMass_ALPS$plot
+maleRelTestesMass_ALPS_plot <- maleRelTestesMass_ALPS$plot + 
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10))
 maleRelTestesMass_ALPS_lmm <- maleRelTestesMass_ALPS$lmm
 
 # AM - Early-life trt
@@ -791,9 +804,14 @@ maleTestesMass_ALPS_lmm_emm_earlyLifeTrt.pairs <- contrast(
 ## AM Body mass ----------
 
 maleBodyMassAM_dosage <- maleCortAdmin_filtered %>%
-  statsAndPlot_BodyMassAM_dosage()
+  statsAndPlot_BodyMassAM_dosage(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 45
+  )
 
-maleBodyMassAM_dosage_plot <- maleBodyMassAM_dosage$plot
+maleBodyMassAM_dosage_plot <- maleBodyMassAM_dosage$plot +
+  scale_y_continuous(breaks = c(0, 10, 20, 30, 40))
 maleBodyMassAM_dosage_lmm <- maleBodyMassAM_dosage$lmm
 
 ## Emmeans 
@@ -810,7 +828,11 @@ maleBodyMassAM_dosage_lmm_emm_dosage.pairs <- contrast(
 
 ## % change body mass ----------
 malePercChangeBodyMass_dosage <- maleCortAdmin_filtered %>%
-  statsAndPlot_PercChangeBodyMass_dosage()
+  statsAndPlot_PercChangeBodyMass_dosage(
+    zoom_y = TRUE
+    , ymin = -7
+    , ymax = 0.5
+  )
 
 malePercChangeBodyMass_dosage_plot <- malePercChangeBodyMass_dosage$plot
 malePercChangeBodyMass_dosage_lmm <- malePercChangeBodyMass_dosage$lmm
@@ -908,10 +930,11 @@ maleRelSeminalVesicleMassPM_dosage <- maleCortAdmin_filtered %>%
   statsAndPlot_RelSeminalVesicleMassPM_dosage(
     zoom_y = TRUE
     , ymin = 0
-    , ymax = 10
-  )
+    , ymax = 11
+  ) 
 
-maleRelSeminalVesicleMassPM_dosage_plot <- maleRelSeminalVesicleMassPM_dosage$plot
+maleRelSeminalVesicleMassPM_dosage_plot <- maleRelSeminalVesicleMassPM_dosage$plot + 
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10))
 maleRelSeminalVesicleMassPM_dosage_lmm <- maleRelSeminalVesicleMassPM_dosage$lmm
 
 ## Emmeans 
@@ -930,10 +953,11 @@ maleRelSeminalVesicleMass_dosage <- maleCortAdmin_filtered %>%
   statsAndPlot_RelSeminalVesicleMass_dosage(
     zoom_y = TRUE
     , ymin = 0
-    , ymax = 10
-  )
+    , ymax = 11
+  ) 
 
-maleRelSeminalVesicleMass_dosage_plot <- maleRelSeminalVesicleMass_dosage$plot
+maleRelSeminalVesicleMass_dosage_plot <- maleRelSeminalVesicleMass_dosage$plot + 
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10))
 maleRelSeminalVesicleMass_dosage_lmm <- maleRelSeminalVesicleMass_dosage$lmm
 
 ## Emmeans 
@@ -980,10 +1004,11 @@ maleRelTestesMassPM_dosage <- maleCortAdmin_filtered %>%
   statsAndPlot_RelTestesMassPM_dosage(
     zoom_y = TRUE
     , ymin = 0
-    , ymax = 10
-  )
+    , ymax = 11
+  ) 
 
-maleRelTestesMassPM_dosage_plot <- maleRelTestesMassPM_dosage$plot
+maleRelTestesMassPM_dosage_plot <- maleRelTestesMassPM_dosage$plot + 
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10))
 maleRelTestesMassPM_dosage_lmm <- maleRelTestesMassPM_dosage$lmm
 
 ## Emmeans 
@@ -1002,10 +1027,11 @@ maleRelTestesMass_dosage <- maleCortAdmin_filtered %>%
   statsAndPlot_RelTestesMass_dosage(
     zoom_y = TRUE
     , ymin = 0
-    , ymax = 10
-  )
+    , ymax = 11
+  ) 
 
-maleRelTestesMass_dosage_plot <- maleRelTestesMass_dosage$plot
+maleRelTestesMass_dosage_plot <- maleRelTestesMass_dosage$plot + 
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10))
 maleRelTestesMass_dosage_lmm <- maleRelTestesMass_dosage$lmm
 
 ## Emmeans 

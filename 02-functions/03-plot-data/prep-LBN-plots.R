@@ -706,7 +706,7 @@ manuscriptCortPlotFunc <- function(
     , dotSize = 2
     , yUnitsNewLine = TRUE
     , onlyLBN = FALSE
-    , jitterPosition = 1.5
+    , jitterPosition = 1.8
     , meanWidth = 1.4
     , wrapLegend = TRUE
     , useALPSLineType = FALSE
@@ -714,7 +714,7 @@ manuscriptCortPlotFunc <- function(
     , stripPosition = "bottom"
     , plotMean = TRUE
     , plotSE = TRUE
-    , pointAlpha = 0.7
+    , pointAlpha = .9
     , lineAlpha = 0.4
 ){
   if(useALPSLineType){
@@ -1019,6 +1019,7 @@ plotCatVarFunc <- function(
     , removeXTicks = FALSE
     , alpha = 0.7
     , addMeanSE = TRUE
+    , jitterWidth = 0.35
 ){
   yVar <- as.character(singleVar)
   if(!useSpecYLab){
@@ -1047,6 +1048,7 @@ plotCatVarFunc <- function(
         , ymax = ymax
         , alpha = alpha
         , addMeanSE = addMeanSE
+        , jitterWidth = jitterWidth
       )
     
     if(twoLineXLabs){

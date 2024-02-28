@@ -3371,4 +3371,258 @@ logFWHM_models_startQR_sum
 ```
 
 
+```{r}
+ggplot(pscProps, aes(sample = log10(amplitude))) +
+  stat_qq() +
+  stat_qq_line() +
+  ggtitle("Q-Q Plot of log amplitude") +
+  xlab("Theoretical Quantiles") +
+  ylab("Sample Quantiles") +
+  theme_minimal()
+ggplot(pscProps, aes(sample = log10(riseTime))) +
+  stat_qq() +
+  stat_qq_line() +
+  ggtitle("Q-Q Plot of log rise time") +
+  xlab("Theoretical Quantiles") +
+  ylab("Sample Quantiles") +
+  theme_minimal()
+ggplot(pscProps, aes(sample = log10(decay9010))) +
+  stat_qq() +
+  stat_qq_line() +
+  ggtitle("Q-Q Plot of log decay time") +
+  xlab("Theoretical Quantiles") +
+  ylab("Sample Quantiles") +
+  theme_minimal()
+ggplot(pscProps, aes(sample = log10(fwhm))) +
+  stat_qq() +
+  stat_qq_line() +
+  ggtitle("Q-Q Plot of log fwhm") +
+  xlab("Theoretical Quantiles") +
+  ylab("Sample Quantiles") +
+  theme_minimal()
+
+ggplot(pscProps, aes(sample = amplitude)) +
+  stat_qq() +
+  stat_qq_line() +
+  ggtitle("Q-Q Plot of amplitude") +
+  xlab("Theoretical Quantiles") +
+  ylab("Sample Quantiles") +
+  theme_minimal()
+ggplot(pscProps, aes(sample = riseTime)) +
+  stat_qq() +
+  stat_qq_line() +
+  ggtitle("Q-Q Plot of rise time") +
+  xlab("Theoretical Quantiles") +
+  ylab("Sample Quantiles") +
+  theme_minimal()
+ggplot(pscProps, aes(sample = decay9010)) +
+  stat_qq() +
+  stat_qq_line() +
+  ggtitle("Q-Q Plot of decay time") +
+  xlab("Theoretical Quantiles") +
+  ylab("Sample Quantiles") +
+  theme_minimal()
+ggplot(pscProps, aes(sample = fwhm)) +
+  stat_qq() +
+  stat_qq_line() +
+  ggtitle("Q-Q Plot of fwhm") +
+  xlab("Theoretical Quantiles") +
+  ylab("Sample Quantiles") +
+  theme_minimal()
+```
+
+
+```{r}
+
+scaledAmplitude <- scale(pscProps$amplitude)
+
+attributes(scaledAmplitude)
+pscProps_scaled <- pscProps %>%
+  mutate(
+    scaledAmplitude = scaledAmplitude
+  )
+
+ggplot(pscProps, aes(sample = scale(log10(amplitude)))) +
+  stat_qq() +
+  stat_qq_line() +
+  ggtitle("Q-Q Plot of scaled amplitude") +
+  xlab("Theoretical Quantiles") +
+  ylab("Sample Quantiles") +
+  theme_minimal()
+```
+
+# Number of events
+
+```{r}
+pscProps %>%
+  group_by(
+    cellID
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    numEvents = n()
+    , .groups = "drop"
+  ) %>%
+  combineStress() %>%
+  ggplot(
+    aes(
+      x = numEvents
+      , color = comboTrt
+    )
+  ) + 
+  stat_ecdf() +
+  boxTheme() +
+  textTheme() +
+  comboTrtLineColor() +
+  xlab("# of events per cell") +
+  ylab("proportion of cells")
+
+pscProps %>%
+  group_by(
+    cellID
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    numEvents = n()
+    , .groups = "drop"
+  ) %>%
+  combineStress() %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary()
+```
+
+```{r}
+pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  arrange(
+    amplitude
+  ) %>%
+  mutate(
+    cumProbAmp = ecdf(amplitude)(amplitude)
+    , .after = amplitude
+  ) %>%
+  arrange(
+    cellID
+    , amplitude
+  )
+```
+# Relative frequency histogram
+
+I think that this might be similar to what Caroline did in her paper (fig 1)
+https://www.eneuro.org/content/5/5/ENEURO.0171-18.2018
+
+```{r}
+binWidth <- 5
+
+binData <- pscProps %>%
+  mutate(
+      bin = cut(amplitude, breaks = seq(0, 400, by = binWidth), right = FALSE, labels = seq(0, 395, by = binWidth))
+    , .after = amplitude
+  ) %>%
+  group_by(cellID, bin) %>%
+  summarize(
+    count = n()
+    , .groups = "drop"
+  )
+
+totalCounts <- binData %>%
+  group_by(cellID) %>%
+  summarize(
+    total = sum(count)
+    , .groups = "drop"
+  )
+
+relativePropData <- binData %>%
+  left_join(
+    totalCounts
+    , by = "cellID"
+  ) %>%
+  mutate(
+    relProp = count/total * 100
+  ) %>%
+  select(
+    cellID
+    , bin
+    , relProp
+  ) %>%
+  left_join(
+    GABApscs_240Filtered %>%
+      select(
+        cellID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  )
+
+avgRelPropData <- relativePropData %>%
+  group_by(earlyLifeTrt, adultTrt, bin) %>%
+  summarize(
+    avgRelProp = mean(relProp, na.rm = TRUE)
+    , .groups = "drop"
+  ) %>%
+  combineStress() %>%
+  mutate(
+    bin = as.numeric(as.character(bin))
+  )
+
+avgRelPropData
+
+
+avgRelProp_plot <- avgRelPropData %>%
+  ggplot(
+    aes(
+      x = bin
+      , y = avgRelProp
+      , group = comboTrt
+    )
+  ) +
+  geom_line(
+    aes(
+      color = comboTrt
+    )
+  ) +
+  comboTrtLineColor()+
+  boxTheme() +
+  textTheme() +
+  coord_cartesian(xlim = c(0, 120)) +
+  xlab("amplitude (pA)") +
+  ylab("relative frequency (%)")
+
+avgRelProp_plot
+```
+
+```{r}
+relativePropData %>%
+  combineStress() %>%
+  mutate(
+    bin = as.numeric(as.character(bin))
+  ) %>%
+  ggplot(
+    aes(
+      x = bin
+      , y = relProp
+      , group = cellID
+    )
+  ) +
+  geom_line(
+    aes(
+      color = comboTrt
+    )
+  ) +
+  comboTrtLineColor()+
+  boxTheme() +
+  textTheme() +
+  coord_cartesian(xlim = c(0, 120)) +
+  xlab("amplitude (pA)") +
+  ylab("relative frequency (%)")
+
+```
+
 

@@ -2,6 +2,14 @@
 #' 
 #' Defaults to a circle with fill and outline (shape 21). Provides defaults for
 #' size, alpha (fill density), jitter width, and jitter height
+#' 
+#' https://stackoverflow.com/questions/77055966/shapes-border-color-is-darker-than-the-fill-after-setting-alpha-in-ggplot2
+#' https://github.com/tidyverse/ggplot2/issues/2152
+#' https://stackoverflow.com/questions/39661304/ggplot2-different-alpha-values-for-border-and-filling-of-geom-point
+#' 
+#' Issue in output if using a low alpha where the inner fill and outer stroke overlap for a portion of the stroke
+#' and give a composite color. Switching to define the alpha when defining the color and fill scales
+#' and always using 1 for the color alpha and just changing the inner fill
 #'
 #' @param size a number. Size of the shape. Default is 1.5
 #' @param alpha a number. density of fill. Default is 1
@@ -28,7 +36,7 @@ jitterGeom <- function(
   geom_quasirandom(
     shape = 21
     , size = size
-    , alpha = alpha
+    # , alpha = alpha
     , width = width
   )
   # geom_beeswarm(
@@ -55,7 +63,7 @@ jitterGeom_shapeAes <- function(
   #shows the distribution of the data
   geom_quasirandom(
     size = size
-    , alpha = alpha
+    # , alpha = alpha
     , width = width
   )
   

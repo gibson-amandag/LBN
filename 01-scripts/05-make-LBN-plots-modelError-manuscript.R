@@ -13,14 +13,14 @@ figDams_exits <- damBehavior_byPND %>%
     , fontSize = textSize
     , addTriangleForMean = FALSE
     , colorByDam = TRUE
-    , dotSize = .8
+    , dotSize = 1
     , zoom_y = TRUE
     , ymax = 60
     , ymin = 0
     , showMean = TRUE
     , addVertError = TRUE
     , lineAlpha = 0.2
-    , dotAlpha = 0.4 
+    , dotAlpha = 0.5 
   # ) +
   # plotError_LMM(
   #   numExits_nb.GLMM_errors %>%
@@ -94,14 +94,14 @@ figDams_offNest <- damBehavior_byPND %>%
     , fontSize = textSize
     , addTriangleForMean = FALSE
     , colorByDam = TRUE
-    , dotSize = 0.8
+    , dotSize = 1
     , zoom_y = TRUE
     , ymax = 100
     , ymin = 0
     , showMean = TRUE
     , addVertError = TRUE
     , lineAlpha = 0.2
-    , dotAlpha = 0.4
+    , dotAlpha = 0.5
   # ) +
   # plotError_LMM(
   #   percOffNest_lmm_errors %>%
@@ -374,22 +374,11 @@ figOff_maleAGD <- maturation_byDam_m %>%
 
 ## Representative Plots ----------------------------------------------------
 
-## replaced with getRandomSubjects 2023-11-11
-# stdCycles <- cyclesFiltered %>%
-#   filter(
-#     earlyLifeTrt == "STD"
-#   )
-# lbnCycles <- cyclesFiltered %>%
-#   filter(
-#     earlyLifeTrt == "LBN"
-#   )
-# stdMice <- stdCycles[sample(nrow(stdCycles))[1:4],]$mouseID
-# lbnMice <- lbnCycles[sample(nrow(lbnCycles))[1:4],]$mouseID
-
 figCyclesA <-  cyclesFiltered %>%
-  # filter(
-  #   mouseID %in% stdMice | mouseID %in% lbnMice
-  # ) %>%
+  filter(
+    numCycles < 3.1 & numCycles > 2.9
+    , cycleLength <= 6 & cycleLength >= 5
+  ) %>%
   group_by(earlyLifeTrt) %>%
   getRandomSubjects(mouseID, 4, seed = 42) %>%
   arrange(
@@ -607,7 +596,7 @@ cortAdmin_cort <- maleCortAdmin_cort_filtered %>%
     legend.position = "bottom"
     , legend.margin = margin(-10,0,0,0)
   )  +
-  dosageFillShape()+
+  dosageFillShape(fillAlpha = 0.7)+
   plotError_LMM(
     maleCortAdmin_cort_lmm_error %>%
       mutate(

@@ -1,0 +1,398 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+summarizePTB <- function(
+    ptbData
+    , end_time = 120
+    , duration = 15
+){
+  # Generate a sequence of start times for each second
+  start_times <- seq(0, end_time, by = 1)
+  
+  
+  # Initialize a data frame to store the results
+  results <- data.frame(
+    start_time = double(),
+    freq = double(),
+    mean_relPeak = double()
+  )
+  
+  # Loop through each start time and calculate the mean relPeak for the corresponding 15s window
+  for (start in start_times) {
+    # Define the end of the current bin
+    end_bin <- start + duration
+    if(end_bin<=end_time){
+      # Subset ptbData for events within the current bin
+      bin_data <- ptbData %>% filter(ptb >= start, ptb < end_bin)
+      # num events in bin
+      countEvents <- length(bin_data$ptb)
+      # Calculate the mean of relPeak for the bin
+      mean_relPeak <- mean(bin_data$relPeak, na.rm = TRUE)
+      # Store the results (note that if there are no events in the bin, mean_relPeak will be NA)
+      results <- rbind(results, data.frame(start_time = start, freq = countEvents/duration, mean_relPeak = mean_relPeak))
+      
+    }
+  }
+  
+  # Remove rows with NA in `mean_relPeak`
+  results <- results %>% na.omit()
+  
+  return(results)
+}
+
+selectMatchingBins <- function(
+    sumPTB
+    , desiredFreq
+    , desiredPeak
+    , filterByFreq = TRUE
+    , filterByPeak = TRUE
+    , freqTol = 0.05
+    , peakTol = 2
+){
+  matching <- sumPTB
+  
+  if(filterByFreq){
+    matching <- matching %>%
+      filter(
+        freq >= desiredFreq - freqTol & freq <= desiredFreq + freqTol
+      )
+  }
+  
+  if(filterByPeak){
+    matching <- matching %>%
+      filter(
+        mean_relPeak >= desiredPeak - peakTol & mean_relPeak <= desiredPeak + peakTol
+      )
+  }
+  return(matching)
+}
+
+returnPSCMedian <- function(sumDF, find_earlyLifeTrt, find_adultTrt, find_variable){
+  subDF <- sumDF %>%
+    filter(
+      earlyLifeTrt == find_earlyLifeTrt
+      , adultTrt == find_adultTrt
+      , variable == find_variable
+    )
+  return(subDF$median)
+}
+```
+
+```{r}
+pscSum <- GABApscs_240Filtered %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(c(frequency, relPeak))
+
+pscSum
+
+STD_CON_freq_median <- returnPSCMedian(pscSum, "STD", "CON", "frequency")
+STD_CON_amp_median <- returnPSCMedian(pscSum, "STD", "CON", "relPeak")
+STD_ALPS_freq_median <- returnPSCMedian(pscSum, "STD", "ALPS", "frequency")
+STD_ALPS_amp_median <- returnPSCMedian(pscSum, "STD", "ALPS", "relPeak")
+
+LBN_CON_freq_median <- returnPSCMedian(pscSum, "LBN", "CON", "frequency")
+LBN_CON_amp_median <- returnPSCMedian(pscSum, "LBN", "CON", "relPeak")
+LBN_ALPS_freq_median <- returnPSCMedian(pscSum, "LBN", "ALPS", "frequency")
+LBN_ALPS_amp_median <- returnPSCMedian(pscSum, "LBN", "ALPS", "relPeak")
+```
+
+# STD-CON
+Freq median: 0.429
+Amp median: 34.7
+
+Selecting between 20230210c and 20230210a
+They're on either side of amplitude, too
+
+20230210a series 19, at 22s is good
+Current range: -90, 80
+
+```{r}
+GABApscs_240Filtered %>%
+  filter(
+    earlyLifeTrt == "STD"
+    , adultTrt == "CON"
+  ) %>%
+  arrange(
+    frequency
+  )
+```
+```{r}
+seriesName <- "20230210aS19"
+ptbData <- loadExcelSheet_fromFile(path(dataFolder, "AGG_LBN_GABA_PTBs_forRep.xlsx"), seriesName)
+
+STD_CON_freq_median
+STD_CON_amp_median
+
+ptbData %>%
+  summarizePTB() %>%
+  selectMatchingBins(
+    desiredFreq = STD_CON_freq_median
+    , desiredPeak = STD_CON_amp_median
+    , peakTol = 1
+  )
+```
+```{r}
+seriesName <- "20230210aS21"
+ptbData <- loadExcelSheet_fromFile(path(dataFolder, "AGG_LBN_GABA_PTBs_forRep.xlsx"), seriesName)
+
+
+STD_CON_freq_median
+STD_CON_amp_median
+
+ptbData %>%
+  summarizePTB() %>%
+  selectMatchingBins(
+    desiredFreq = STD_CON_freq_median
+    , desiredPeak = STD_CON_amp_median
+  )
+```
+
+# STD-ALPS
+
+STD-ALPS
+STD-ALPS: 
+Freq median: 0.546
+Amp median: 32.0
+
+20220516a is freq median (high amp)
+20220516d is amp median (high freq)
+20220115e is just below freq median, a little low on amp
+
+20220516d series 12, at 21 sec is a good trace
+20220115e series 20, at 100 sec is a good trace
+
+20220516d series 12, at 21 sec is a good trace
+Current range -85, 70
+
+```{r}
+GABApscs_240Filtered %>%
+  filter(
+    earlyLifeTrt == "STD"
+    , adultTrt == "ALPS"
+  ) %>%
+  arrange(
+    frequency
+  )
+```
+
+```{r}
+seriesName <- "20220516aS17"
+ptbData <- loadExcelSheet_fromFile(path(dataFolder, "AGG_LBN_GABA_PTBs_forRep.xlsx"), seriesName)
+
+
+STD_ALPS_freq_median
+STD_ALPS_amp_median
+
+ptbData %>%
+  summarizePTB() %>%
+  selectMatchingBins(
+    desiredFreq = STD_ALPS_freq_median
+    , desiredPeak = STD_ALPS_amp_median
+    # , filterByPeak = FALSE
+  )
+```
+
+```{r}
+seriesName <- "20220516aS19"
+ptbData <- loadExcelSheet_fromFile(path(dataFolder, "AGG_LBN_GABA_PTBs_forRep.xlsx"), seriesName)
+
+
+STD_ALPS_freq_median
+STD_ALPS_amp_median
+
+ptbData %>%
+  summarizePTB() %>%
+  selectMatchingBins(
+    desiredFreq = STD_ALPS_freq_median
+    , desiredPeak = STD_ALPS_amp_median
+    # , filterByPeak = FALSE
+  )
+```
+
+
+```{r}
+seriesName <- "20220516dS12"
+ptbData <- loadExcelSheet_fromFile(path(dataFolder, "AGG_LBN_GABA_PTBs_forRep.xlsx"), seriesName)
+
+
+STD_ALPS_freq_median
+STD_ALPS_amp_median
+
+ptbData %>%
+  summarizePTB() %>%
+  selectMatchingBins(
+    desiredFreq = STD_ALPS_freq_median
+    , desiredPeak = STD_ALPS_amp_median
+    # , filterByPeak = FALSE
+  )
+```
+
+```{r}
+seriesName <- "20220516dS14"
+ptbData <- loadExcelSheet_fromFile(path(dataFolder, "AGG_LBN_GABA_PTBs_forRep.xlsx"), seriesName)
+
+
+STD_ALPS_freq_median
+STD_ALPS_amp_median
+
+ptbData %>%
+  summarizePTB() %>%
+  selectMatchingBins(
+    desiredFreq = STD_ALPS_freq_median
+    , desiredPeak = STD_ALPS_amp_median
+    # , filterByPeak = FALSE
+  )
+```
+
+```{r}
+seriesName <- "20220115eS20"
+ptbData <- loadExcelSheet_fromFile(path(dataFolder, "AGG_LBN_GABA_PTBs_forRep.xlsx"), seriesName)
+
+
+STD_ALPS_freq_median
+STD_ALPS_amp_median
+
+ptbData %>%
+  summarizePTB() %>%
+  selectMatchingBins(
+    desiredFreq = STD_ALPS_freq_median
+    , desiredPeak = STD_ALPS_amp_median
+    # , filterByPeak = FALSE
+  )
+```
+```{r}
+seriesName <- "20220115eS22"
+ptbData <- loadExcelSheet_fromFile(path(dataFolder, "AGG_LBN_GABA_PTBs_forRep.xlsx"), seriesName)
+
+
+STD_ALPS_freq_median
+STD_ALPS_amp_median
+
+ptbData %>%
+  summarizePTB() %>%
+  selectMatchingBins(
+    desiredFreq = STD_ALPS_freq_median
+    , desiredPeak = STD_ALPS_amp_median
+    # , filterByPeak = FALSE
+  )
+```
+
+# LBN-CON
+
+Freq median: 0.650
+Amp median: 34.7
+
+20220513j is freq median, also close on amp
+20220513j series 12, at 45s is good
+Current range -62, 70
+
+```{r}
+GABApscs_240Filtered %>%
+  filter(
+    earlyLifeTrt == "LBN"
+    , adultTrt == "CON"
+  ) %>%
+  arrange(
+    frequency
+  )
+```
+
+
+```{r}
+seriesName <- "20220513jS12"
+ptbData <- loadExcelSheet_fromFile(path(dataFolder, "AGG_LBN_GABA_PTBs_forRep.xlsx"), seriesName)
+
+
+LBN_CON_freq_median
+LBN_CON_amp_median
+
+ptbData %>%
+  summarizePTB() %>%
+  selectMatchingBins(
+    desiredFreq = LBN_CON_freq_median
+    , desiredPeak = LBN_CON_amp_median
+    # , filterByPeak = FALSE
+  )
+```
+```{r}
+seriesName <- "20220513jS15"
+ptbData <- loadExcelSheet_fromFile(path(dataFolder, "AGG_LBN_GABA_PTBs_forRep.xlsx"), seriesName)
+
+
+LBN_CON_freq_median
+LBN_CON_amp_median
+
+ptbData %>%
+  summarizePTB() %>%
+  selectMatchingBins(
+    desiredFreq = LBN_CON_freq_median
+    , desiredPeak = LBN_CON_amp_median
+    # , filterByPeak = FALSE
+  )
+```
+
+
+
+# LBN-ALPS 
+Freq median: 0.429
+Amp median: 44.17
+
+20220305b and 20221209a are either side of freq median
+20220305b is amp median
+
+20220305b, series 22, at 10.9s is good
+Current range, -50, 70
+
+```{r}
+GABApscs_240Filtered %>%
+  filter(
+    earlyLifeTrt == "LBN"
+    , adultTrt == "ALPS"
+  ) %>%
+  arrange(
+    frequency
+  )
+```
+
+```{r}
+seriesName <- "20220305bS18"
+ptbData <- loadExcelSheet_fromFile(path(dataFolder, "AGG_LBN_GABA_PTBs_forRep.xlsx"), seriesName)
+
+
+LBN_ALPS_freq_median
+LBN_ALPS_amp_median
+
+ptbData %>%
+  summarizePTB() %>%
+  selectMatchingBins(
+    desiredFreq = LBN_ALPS_freq_median
+    , desiredPeak = LBN_ALPS_amp_median
+    # , filterByPeak = FALSE
+    , peakTol = 1
+  )
+```
+
+```{r}
+seriesName <- "20220305bS22"
+ptbData <- loadExcelSheet_fromFile(path(dataFolder, "AGG_LBN_GABA_PTBs_forRep.xlsx"), seriesName)
+
+
+LBN_ALPS_freq_median
+LBN_ALPS_amp_median
+
+ptbData %>%
+  summarizePTB() %>%
+  selectMatchingBins(
+    desiredFreq = LBN_ALPS_freq_median
+    , desiredPeak = LBN_ALPS_amp_median
+    # , filterByPeak = FALSE
+    , peakTol = 1
+  )
+```
+

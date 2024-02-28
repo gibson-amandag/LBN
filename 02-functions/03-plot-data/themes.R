@@ -30,10 +30,11 @@ earlyLifeFill <- function(
   LBN = "LBN",
   STDColor = "white",
   LBNColor = "cyan4"
+  , fillAlpha = 0.7
 ){
   fill <- scale_fill_manual(
     "early life trt", 
-    values = c(STD=STDColor, LBN=LBNColor)
+    values = alpha(c(STD=STDColor, LBN=LBNColor), fillAlpha)
   )
   return(fill)
 }
@@ -43,10 +44,11 @@ earlyLifeColor <- function(
   LBN = "LBN",
   STDColor = "grey30",
   LBNColor = "cyan4"
+  , colorAlpha = 1
 ){
   color <- scale_color_manual(
     "early life trt", 
-    values = c(STD = STDColor, LBN = LBNColor)
+    values = alpha(c(STD = STDColor, LBN = LBNColor), colorAlpha)
   )
   return(color)
 }
@@ -119,20 +121,22 @@ comboTrtFillShape <- function(
   STD_ALPS_fill = "black",
   LBN_CON_fill = "lightblue1",
   LBN_ALPS_fill = "darkcyan"
+  , fillAlpha = 0.7
+  , colorAlpha = 1
 ){
   layers <- list(
     scale_color_manual(
       "treatment", 
-      values = c("STD-CON"=STD_CON_color, 
+      values = alpha(c("STD-CON"=STD_CON_color, 
                  "STD-ALPS"=STD_ALPS_color, 
                  "LBN-CON"=LBN_CON_color, 
-                 "LBN-ALPS"=LBN_ALPS_color)),
+                 "LBN-ALPS"=LBN_ALPS_color), colorAlpha)),
     scale_fill_manual(
       "treatment", 
-      values = c("STD-CON"=STD_CON_fill, 
+      values = alpha(c("STD-CON"=STD_CON_fill, 
                  "STD-ALPS"=STD_ALPS_fill, 
                  "LBN-CON"=LBN_CON_fill, 
-                 "LBN-ALPS"=LBN_ALPS_fill)),
+                 "LBN-ALPS"=LBN_ALPS_fill), fillAlpha)),
     scale_shape_manual(
       "treatment", 
       values = c("STD-CON"=21, 
@@ -146,7 +150,7 @@ comboTrtFillShape <- function(
 comboTrtLineColor <- function(
   STD_CON_color = "grey",
   STD_ALPS_color = "black",
-  LBN_CON_color = "lightblue1",
+  LBN_CON_color = "lightblue",
   LBN_ALPS_color = "darkcyan"
 ){
   layers <- list(
@@ -165,6 +169,7 @@ dosageFillShape <- function(
   color_2 = "black",
   fill_0 = "white",
   fill_2 = "black"
+  , fillAlpha = 0.7
 ){
   layers <- list(
     scale_color_manual(
@@ -176,8 +181,8 @@ dosageFillShape <- function(
     ),
     scale_fill_manual(
       "treatment", 
-      values = c("0"=fill_0, 
-                 "2"=fill_2),
+      values = alpha(c("0"=fill_0, 
+                 "2"=fill_2), fillAlpha),
       labels = c("0" = "0mg/kg",
                  "2" = "2mg/kg")
     ),

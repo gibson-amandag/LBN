@@ -37,7 +37,7 @@ scatterPlot_general <- function(
     ) +
     jitterGeom(
       size = dotSize,
-      alpha = fillAlpha,
+      alpha = fillAlpha, # doesn't do anything. Provide the alpha when giving the fillValues
       width = jitterWidth,
       height = jitterHeight
     ) +
@@ -121,7 +121,7 @@ scatterPlotLBN <- function(
       height = jitterHeight
     )+
     labs(y = yLab, title = title)+
-    earlyLifeFill(STDColor = STDColor, LBNColor = LBNColor) +
+    earlyLifeFill(STDColor = STDColor, LBNColor = LBNColor, fillAlpha = fillAlpha) +
     theme_pubr()+
     expand_limits(y=0)+
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
@@ -283,7 +283,7 @@ scatterPlotComboTrt <- function(
       , alpha = alpha
     ) +
     labs(y = yLab)+
-    comboTrtFillShape() +
+    comboTrtFillShape(fillAlpha = alpha) +
     theme_pubr()+
     expand_limits(y=0)+
     coord_cartesian(if(FALSE){xlim = c(NULL, NULL)}, if(zoom_y){ylim = c(ymin, ymax)}) +

@@ -15572,9 +15572,28 @@ cortAdminMales_toAssay %>%
 ```
 
 ```{r}
+numCycles_lmm_error
+lengthCycles_log_lmm_error
+
 cyclesFiltered %>%
   filter(
     numCycles < 3.1 & numCycles > 2.9
+    , cycleLength <= 6 & cycleLength >= 5
+  ) %>%
+  select(
+    mouseID
+    , earlyLifeTrt
+    , numE
+    , numD
+    , numP
+    , numCycles
+    , cycleLength
+  ) %>%
+  group_by(
+    earlyLifeTrt
+  ) %>%
+  getRandomSubjects(
+    mouseID, 4, seed = 42
   )
 
 
@@ -16639,5 +16658,282 @@ contrast(
   , simple = list("adultTrt")
   , combine = TRUE
 )
+```
+# GABA PSC freq, negative binomial
+
+```{r}
+numEvents_nb.GLMM
+
+class(numEvents_nb.GLMM)
+
+numEvents_nb.GLMM_sum
+```
+
+```{r}
+numEvents_nb.GLMM_sum$methTitle
+numEvents_nb.GLMM_sum$objClass
+```
+
+```{r}
+car::Anova(
+  # Type III Wald chi-square tests
+  numEvents_nb.GLMM
+  , type = "III"
+)
+
+joint_tests(
+  emmeans(
+    numEvents_nb.GLMM, ~earlyLifeTrt * adultTrt
+    , type = "response"
+  )
+)
+```
+
+```{r}
+joint_tests(
+  emmeans(
+    logFWHM_models
+    , ~ earlyLifeTrt * adultTrt
+  )
+)
+
+emmeans(
+  logFWHM_models
+  , ~earlyLifeTrt * adultTrt
+  , type = "response"
+)
+
+logFWHM_models_sum
+
+jt <- joint_tests(
+  logAmplitude_emm
+)
+
+
+jt %>%
+  simplifyJointTestOutput()
+  
+```
+
+```{r}
+logAmplitude_emm %>%
+  as.data.frame() %>%
+  simplifyEMMOutput()
+
+getLQMM_MedianCI <- function(
+    emm
+){
+  df <- emm %>%
+    as.data.frame() %>%
+    rename(
+      y = response
+      , lower = lower.CL
+      , upper = upper.CL
+    ) %>%
+    combineStress()
+  return(df)
+}
+
+logAmplitude_emm %>%
+  getLQMM_MedianCI() 
+```
+
+```{r}
+library(ggplot2)
+
+# Sample data
+df <- data.frame(
+  x = 1:10,
+  y = rnorm(10),
+  group = rep(1:2, each = 5)
+)
+
+ggplot(df, aes(x = x, y = y, fill = factor(group), color = factor(group))) +
+  geom_point(shape = 21, size = 5, stroke = 5, alpha = 0) +   # Plot stroke with no fill
+  # geom_point(shape = 21, size = 5, stroke = 0, alpha = 0.5) + # Plot fill with no stroke
+  # scale_fill_manual(values = c("blue", "red")) + # Customize fill colors
+  scale_color_manual(values = c("black", "black")) # Customize stroke colors
+```
+
+```{r}
+# Base plot
+p <- ggplot(df, aes(x = x, y = y, group = factor(group)))
+
+# Add points for the stroke
+p <- p + geom_point(aes(color = factor(group)),
+                   shape = 21, size = 5, stroke = 2,
+                   fill = NA, alpha = 1)  # Opaque stroke
+
+# Add points for the fill with a different alpha value
+p <- p + geom_point(aes(fill = factor(group)), 
+                   shape = 21, size = 5, stroke = 0
+                   # ,color = NA
+                   , alpha = 0.5)  # Semi-transparent fill
+
+# Set manual scales for fill and color
+p <- p + scale_fill_manual(values = c("blue", "red"))
+p <- p + scale_color_manual(values = c("black", "black"))
+
+# Draw the plot
+p
+```
+
+```{r}
+# Base plot
+p <- ggplot(df, aes(x = x, y = y, group = factor(group)))
+
+# # Add points for the stroke
+# p <- p + geom_point(aes(color = factor(group)), 
+#                    shape = 21, size = 5, stroke = 2, 
+#                    fill = NA, alpha = 0.5)  # Opaque stroke
+# 
+# # Add points for the fill with a different alpha value
+# p <- p + geom_point(aes(fill = factor(group)), 
+#                    shape = 21, size = 5, stroke = 0 
+#                    # , color = NA
+#                    , alpha = 0.5)  # Semi-transparent fill
+# Add points for the fill with a different alpha value
+p <- p + geom_point(aes(fill = factor(group)
+                        , color = factor(group)
+                        ), 
+                   shape = 21, size = 5, stroke = 2
+                   # , color = NA
+                   , alpha = 1
+                   )  # Semi-transparent fill
+
+# Set manual scales for fill and color
+p <- p + scale_fill_manual(values = alpha(c("blue", "red"), 0.1))
+p <- p + scale_color_manual(values = alpha(c("black", "black"), 1))
+
+# Draw the plot
+p
+```
+```{r}
+# Base plot
+p <- ggplot(df, aes(x = x, y = y, group = factor(group)))
+
+# # Add points for the stroke
+# p <- p + geom_point(aes(color = factor(group)), 
+#                    shape = 21, size = 5, stroke = 2, 
+#                    fill = NA, alpha = 0.5)  # Opaque stroke
+# 
+# # Add points for the fill with a different alpha value
+# p <- p + geom_point(aes(fill = factor(group)), 
+#                    shape = 21, size = 5, stroke = 0 
+#                    # , color = NA
+#                    , alpha = 0.5)  # Semi-transparent fill
+# Add points for the fill with a different alpha value
+p <- p + geom_point(aes(fill = factor(group)), 
+                   shape = 21, size = 5, stroke = 2
+                   # , color = NA
+                   # , alpha = 0.5
+                   )  # Semi-transparent fill
+
+# Set manual scales for fill and color
+p <- p + scale_fill_manual(values = alpha(c("blue", "red"), 0.1))
+p <- p + scale_color_manual(values = alpha(c("black", "black"), 1))
+
+# Draw the plot
+p
+```
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Sample data
+df <- data.frame(
+  x = 1:10,
+  y = rnorm(10)
+)
+
+# Create segments for the line that don't go under the points
+# Use a small epsilon to shorten the lines just before and after the points
+epsilon <- .08
+line_data <- df %>% 
+  mutate(xend = lead(x),
+         yend = lead(y),
+         x = if_else(row_number() < n(), x + epsilon, x),
+         xend = if_else(row_number() > 1, xend - epsilon, xend)) %>%
+  filter(!is.na(xend), !is.na(yend))
+
+# Create the base plot
+p <- ggplot(df, aes(x = x, y = y))
+
+# Add the segments instead of a continuous line
+p <- p + geom_segment(data = line_data,
+                      aes(x = x, y = y, xend = xend, yend = yend), 
+                      color = "grey50")
+
+# Add semi-transparent points on top of the segments
+p <- p + geom_point(color = "blue", size = 5, alpha = 0.2)
+
+# Draw the plot
+p
+```
+
+
+```{r}
+flexSave(
+  "test"
+  , plot = p
+  , width = twoCols
+  , height = 28/3*2
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+```{r}
+
+viz <- GABApscs_240FilteredFiring %>%
+    filter(
+      !is.na(amplitude)
+    ) %>%
+    ggplot(
+      aes(
+        x = comboTrt,
+        y = amplitude,
+        fill = comboTrt,
+        shape = comboTrt
+      )
+    ) +
+    geom_quasirandom(
+      size = 1
+      , width = .2
+      # , position = position_nudge(x = 1) # doesn't seem to do anything here, probably since already using position_quasirandom
+    ) + 
+    labs(y = "amplitude") +
+    comboTrtFillShape(fillAlpha = 0.7) +
+    theme_pubr() +
+    expand_limits(y=0) +
+    coord_cartesian(if(FALSE){xlim = c(NULL, NULL)}, if(FALSE){ylim = c(0, 1)}) +
+    # coord_cartesian(if(zoom_y){ylim = c(ymin, ymax)}) +
+    theme(
+      axis.title.x = element_blank(),
+      legend.position = "none"
+    )+
+    textTheme(size = textSize)+
+    boxTheme() +
+  plotError_LMM(
+    relAmplitude_lmm_errors
+    , xVar = comboTrt
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.4
+    , color = "magenta"
+  ) +
+   plotError_LMM(
+    amplitudeMedian_errors %>%
+      combineStress()
+    , xVar = comboTrt
+    , nudgeErrorLine = .4
+    , nudgeMeanLine = .4
+    , meanBarWidth = 0.4
+    , color = "grey40"
+  )
+  
+viz
+  
+
 ```
 

@@ -199,14 +199,23 @@ plotDamBehavior <- function(
         viz <- viz + geom_point(
           shape = 21,
           alpha = dotAlpha, 
-          aes(color = color, fill = color, group=damID), 
+          stroke = 0,
+          aes(
+            color = color
+            , fill = color
+            , group=damID
+          ), 
           position = position_dodge(dodgeVal), 
           size = dotSize
         )
       }
       viz <- viz +
-        scale_color_identity() +
-        scale_fill_identity()
+        scale_color_identity(
+
+        ) +
+        scale_fill_identity(
+
+        )
     } else {
       viz <- viz + geom_line(
         alpha = lineAlpha,

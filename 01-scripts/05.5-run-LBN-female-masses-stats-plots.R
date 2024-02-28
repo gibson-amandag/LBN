@@ -92,12 +92,12 @@ comboTrtCycle_scatterAndLMM <- function(
             , "LBN-ALPS" = "LBN\nALPS"
 
           )
-        ) +
-        theme( # fully vertical
-          axis.text.x = element_text(
-            angle = 90
-            , vjust = 0.5
-            )
+        # ) +
+        # theme( # fully vertical
+        #   axis.text.x = element_text(
+        #     angle = 90
+        #     , vjust = 0.5
+        #     )
         )
       
     }
@@ -177,7 +177,7 @@ statsAndPlot_RelUterineMass_ALPS_f <- comboTrtCycle_scatterAndLMM(
 
 statsAndPlot_RelUterineMassPM_ALPS_f <- comboTrtCycle_scatterAndLMM(
   expr(ReproTract_mass_perBody_g)
-  , thisYLab = "normalized to PM mass\nsuterine mass (mg/g)"
+  , thisYLab = "normalized to PM mass\nuterine mass (mg/g)"
 )
 # ALPS effects ------------------
 
@@ -195,7 +195,11 @@ femaleBodyMassAM_ALPS_lmm <- femaleBodyMassAM_ALPS$lmm
 femalePercChangeBodyMass_ALPS <- acuteStressFilteredFemales %>%
   statsAndPlot_PercChangeBodyMass_ALPS_f()
 
-femalePercChangeBodyMass_ALPS_plot <- femalePercChangeBodyMass_ALPS$plot
+femalePercChangeBodyMass_ALPS_plot <- femalePercChangeBodyMass_ALPS$plot +
+  scale_y_continuous(
+    breaks = c(0, -2.5, -5, -7.5, -10)
+    , labels = c("0", "-2.5", "-5.0", "-7.5", "-10")
+  )
 femalePercChangeBodyMass_ALPS_lmm <- femalePercChangeBodyMass_ALPS$lmm
 
 femalePercChangeBodyMass_ALPS_lmm_emm_adultTrt <- emmeans(
@@ -222,7 +226,11 @@ femalePercChangeBodyMass_ALPS_lmm_emm_Sac_cycle.pairs <- contrast(
 femaleRelAdrenalMass_ALPS <- acuteStressFilteredFemales %>%
   statsAndPlot_RelAdrenalMass_ALPS_f()
 
-femaleRelAdrenalMass_ALPS_plot <- femaleRelAdrenalMass_ALPS$plot
+femaleRelAdrenalMass_ALPS_plot <- femaleRelAdrenalMass_ALPS$plot +
+  scale_y_continuous(
+    breaks = c(0, 0.1, 0.2, 0.3, 0.4)
+    , labels = c("0", "0.1", "0.2", "0.3", "0.4")
+  )
 femaleRelAdrenalMass_ALPS_lmm <- femaleRelAdrenalMass_ALPS$lmm
 # no change in relative adrenal mass
 
@@ -230,7 +238,11 @@ femaleRelAdrenalMass_ALPS_lmm <- femaleRelAdrenalMass_ALPS$lmm
 femaleRelAdrenalMassPM_ALPS <- acuteStressFilteredFemales %>%
   statsAndPlot_RelAdrenalMassPM_ALPS_f()
 
-femaleRelAdrenalMassPM_ALPS_plot <- femaleRelAdrenalMassPM_ALPS$plot
+femaleRelAdrenalMassPM_ALPS_plot <- femaleRelAdrenalMassPM_ALPS$plot +
+  scale_y_continuous(
+    breaks = c(0, 0.1, 0.2, 0.3, 0.4)
+    , labels = c("0", "0.1", "0.2", "0.3", "0.4")
+  )
 femaleRelAdrenalMassPM_ALPS_lmm <- femaleRelAdrenalMassPM_ALPS$lmm
 
 #### Trend adult treatment
@@ -270,7 +282,12 @@ femaleAdrenalMass_ALPS_lmm_emm_earlyLifeTrt.pairs <- contrast(
 femaleRelUterineMass_ALPS <- acuteStressFilteredFemales %>%
   statsAndPlot_RelUterineMass_ALPS_f()
 
-femaleRelUterineMass_ALPS_plot <- femaleRelUterineMass_ALPS$plot
+femaleRelUterineMass_ALPS_plot <- femaleRelUterineMass_ALPS$plot +
+  scale_y_continuous(
+    breaks = c(0, 2.5, 5, 7.5, 10)
+    , labels = c("0", "2.5", "5.0", "7.5", "10")
+  )
+  
 femaleRelUterineMass_ALPS_lmm <- femaleRelUterineMass_ALPS$lmm
 
 femaleRelUterineMass_ALPS_lmm_emm_Sac_cycle <- emmeans(
@@ -305,7 +322,11 @@ femaleRelUterineMass_ALPS_lmm_emm_Sac_cycleAdultTrt.pairs <- contrast(
 femaleRelUterineMassPM_ALPS <- acuteStressFilteredFemales %>%
   statsAndPlot_RelUterineMassPM_ALPS_f()
 
-femaleRelUterineMassPM_ALPS_plot <- femaleRelUterineMassPM_ALPS$plot
+femaleRelUterineMassPM_ALPS_plot <- femaleRelUterineMassPM_ALPS$plot +
+  scale_y_continuous(
+    breaks = c(0, 2.5, 5, 7.5, 10)
+    , labels = c("0", "2.5", "5.0", "7.5", "10")
+  )
 femaleRelUterineMassPM_ALPS_lmm <- femaleRelUterineMassPM_ALPS$lmm
 
 femaleRelUterineMassPM_ALPS_lmm_emm_Sac_cycle <- emmeans(

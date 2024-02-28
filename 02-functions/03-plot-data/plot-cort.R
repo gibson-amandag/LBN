@@ -57,11 +57,13 @@ cortPlot <- function(
   
     geom_point(
       # shape = 21,
-      alpha = pointAlpha,
-      aes(fill= {{ groupVar }}
+      # alpha = pointAlpha,
+      color = "black"
+      , aes(fill= {{ groupVar }}
           ,group=mouseID
           , shape= {{ groupVar }}
-          , color= {{ groupVar }}),
+          # , color= {{ groupVar }}
+      ),
       position = position_dodge(positionDodge),
       size = pointSize
     ) +
@@ -112,7 +114,7 @@ cortPlot <- function(
   
   if(deparse(substitute(groupVar)) == "comboTrt"){
     viz <- viz + 
-    comboTrtFillShape()
+    comboTrtFillShape(fillAlpha = pointAlpha)
   } else {
     viz <- viz + labs(color = "treatment", shape = "treatment", fill = "treatment")
   }
@@ -542,7 +544,7 @@ LHPlot_noMean_lineColor <- function(
     )
   ) +
     geom_line(
-      # alpha = 0.4,
+      alpha = 0.8,
       aes(group = mouseID, color = color),
       position = position_dodge(0.15)
     )
@@ -565,6 +567,7 @@ LHPlot_noMean_lineColor <- function(
         
         , position = position_dodge(0.15) 
         , size = dotSize
+        , stroke = 0
       # ) +
       # comboTrtFillShape(
 
@@ -1315,13 +1318,40 @@ scatterPlotComboTrt_surgeAmp <- function(
     ymax = NULL
     , jitterWidth = 0.35
     , surgedAlpha = .8
-    , notSurgedAlpha = 0.4
+    , notSurgedAlpha = 0.2
     , addSurgeMinLine = TRUE
     , surgeMin = 3
     , surgeLineColor = "magenta"
     , twoLineXLabs = FALSE
     , tiltedXLabs = FALSE
 ){
+  STD_CON_fill  <- "white"
+  STD_ALPS_fill  <- "black"
+  LBN_CON_fill  <- "lightblue1"
+  LBN_ALPS_fill  <- "darkcyan"
+  
+  trtFillScale <- list(
+    scale_fill_manual(
+      "treatment", 
+      values = c(
+        "STD-CON.surged" = alpha(STD_CON_fill, surgedAlpha)
+        , "STD-CON.no surge" = alpha(STD_CON_fill, notSurgedAlpha)
+        , "STD-ALPS.surged" = alpha(STD_ALPS_fill, surgedAlpha)
+        , "STD-ALPS.no surge" = alpha(STD_ALPS_fill, notSurgedAlpha)
+        , "LBN-CON.surged" = alpha(LBN_CON_fill, surgedAlpha)
+        , "LBN-CON.no surge" = alpha(LBN_CON_fill, notSurgedAlpha)
+        , "LBN-ALPS.surged" = alpha(LBN_ALPS_fill, surgedAlpha)
+        , "LBN-ALPS.no surge" = alpha(LBN_ALPS_fill, notSurgedAlpha)
+      )
+    ),
+    scale_shape_manual(
+      "treatment", 
+      values = c("STD-CON"=21, 
+                 "STD-ALPS"=23,
+                 "LBN-CON"=21, 
+                 "LBN-ALPS"=23))
+  )
+  
   viz <- df %>%
     filter(
       !is.na({{ yVar }})
@@ -1337,7 +1367,7 @@ scatterPlotComboTrt_surgeAmp <- function(
       aes(
         x = comboTrt,
         y = {{ yVar }},
-        fill = comboTrt,
+        fill = interaction(comboTrt, surged),
         shape = comboTrt
         # , color = surged
       )
@@ -1345,12 +1375,9 @@ scatterPlotComboTrt_surgeAmp <- function(
     geom_quasirandom(
       size = dotSize
       , width = jitterWidth
-      , aes(
-        alpha = surged
-      )
     )+ 
     labs(y = yLab)+
-    comboTrtFillShape() +
+    trtFillScale +
     theme_pubr()+
     expand_limits(y=0)+
     coord_cartesian(if(FALSE){xlim = c(NULL, NULL)}, if(zoom_y){ylim = c(ymin, ymax)}) +
@@ -1359,9 +1386,7 @@ scatterPlotComboTrt_surgeAmp <- function(
       legend.position = "none"
     )+
     textTheme(size = fontSize)+
-    boxTheme() +
-    # scale_color_manual(values = c("surged" = "magenta", "no surge" = "black")) +
-    scale_alpha_manual(values = c("surged" = surgedAlpha, "no surge" = notSurgedAlpha))
+    boxTheme()
   
   if(addMeanSE){
     viz <- viz +
@@ -1394,6 +1419,7 @@ scatterPlotComboTrt_surgeAmp <- function(
         )
     }
   }
+  
   
   
   return(viz)
