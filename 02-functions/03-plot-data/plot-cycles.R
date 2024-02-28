@@ -194,7 +194,7 @@ plotCyclesPercent <- function(
   medianAlpha = 0.7,
   strip.position = "bottom",
   fontSize = 11,
-  fillScale = earlyLifeFill()
+  fillScale = earlyLifeFill(fillAlpha = 0.7)
   , meanColor = "black"
   , barColor = "black"
 ){

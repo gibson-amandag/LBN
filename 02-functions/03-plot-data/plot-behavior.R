@@ -131,7 +131,7 @@ plotDamBehavior <- function(
         ),
         date_labels = "%d\n%H"
       ) +
-      xlab("PND\nZT")
+      xlab("postnatal day\nzeitgeber time")
   } else if(includesPND) {
     viz <- df %>%
       ggplot(
@@ -140,7 +140,7 @@ plotDamBehavior <- function(
           , y = {{ yVar }}
         )
       ) +
-      xlab("PND") +
+      xlab("postnatal day") +
       scale_x_continuous(breaks = c(4:11))
   } else if(includesZT){
     viz <- df %>%
@@ -149,7 +149,7 @@ plotDamBehavior <- function(
           x = ZT
           , y = {{ yVar }}
         )
-      ) + xlab("ZT")
+      ) + xlab("zeitgeber time")
   } else {
     if(colorByDam){
       viz <- df %>%
@@ -301,18 +301,21 @@ plotDamBehavior <- function(
         facet_wrap(
           vars(litterNum, earlyLifeTrt)
           , labeller = litterNum_label
+          # , strip.position = "bottom"
         )
     } else if(facetByTrt){
       viz <- viz + 
         facet_wrap(
           vars(earlyLifeTrt)
           , ncol = 2
+          # , strip.position = "bottom"
         )
     } else if(facetByLitter){
       viz <- viz +
         facet_wrap(
           vars(litterNum)
           , labeller = litterNum_label
+          # , strip.position = "bottom"
         ) 
       colorMean <- TRUE
     }
@@ -322,6 +325,7 @@ plotDamBehavior <- function(
         facet_wrap(
           vars(litterNum)
           , labeller = litterNum_label
+          # , strip.position = "bottom"
         )
     }
   }

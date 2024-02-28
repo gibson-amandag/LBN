@@ -1,10 +1,16 @@
-textTheme <- function(size = 11){
+textTheme <- function(size = 11, boldXText = FALSE){
   theme = theme(
     text = element_text(size = size, family = "Arial", color = "black"),
     axis.text = element_text(size = size, family = "Arial", color = "black"), # for some reason, not acquiring consistently
     strip.text = element_text(face = "bold", size = size),
     axis.title = element_text(face = "bold")
   )
+  
+  if(boldXText){
+    theme <- theme + theme(
+      axis.text.x = element_text(face = "bold")
+    )
+  }
   return(theme)  
 }
 
@@ -22,6 +28,7 @@ boxTheme <- function(axisSize = 0.5){
     # legend.background = element_rect(color = "black", fill = NA, inherit.blank = TRUE),
     legend.background = element_blank(),
     legend.box.background = element_blank()
+    , plot.margin = unit(c(0,0,0,0), "cm")
   )
 }
 

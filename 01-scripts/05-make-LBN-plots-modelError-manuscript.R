@@ -20,70 +20,29 @@ figDams_exits <- damBehavior_byPND %>%
     , showMean = TRUE
     , addVertError = TRUE
     , lineAlpha = 0.2
-    , dotAlpha = 0.5 
-  # ) +
-  # plotError_LMM(
-  #   numExits_nb.GLMM_errors %>%
-  #     mutate(
-  #       PND = as.numeric(as.character(PND))
-  #     )
-  #   , xVar = PND
-  #   , meanBarWidth = 0.7
-  #   , color = "black"
-  #   , nudgeErrorLine = 0
+    , dotAlpha = 0.5
   )
 
 figDams_meanExits <- damBehavior_byDam %>%
-  # unite(
-  #   fullRec,
-  #   earlyLifeTrt,
-  #   cohort,
-  #   sep = "-",
-  #   remove = FALSE
-  # ) %>%
-  # scatterPlot_general(
-  #   xVar = earlyLifeTrt
-  #   , xLab = NULL
-  #   , yVar = Num_exits
-  #   , yLab = "mean # exits"
-  #   , fillVar = fullRec
-  #   , fillLimits = c("STD-7", "STD-9", "LBN-7", "LBN-9")
-  #   , fillValues = c("grey", "white", "darkcyan", "lightblue1")
-  #   , textSize = textSize
-  #   , dotSize = dotSize
-  #   , addMean = TRUE
-  #   , addSE = TRUE
-  #   , zoom_y = TRUE
-  #   , ymax = 50
-  #   , ymin = 0
-  # ) +
   scatterPlotLBN(
     yVar = Num_exits
     , yLab = "mean # of exits / hr"
-    , addMean = TRUE
-    , addSEM = TRUE
+    , addMean = FALSE
+    , addSEM = FALSE
     , zoom_y = TRUE
     , ymax = 60
     , ymin = 0
     , dotSize = dotSize
     , textSize = textSize
+  ) +
+  addMeanHorizontalBar(
+    width = 0.8
+    , size = 0.6
     , meanColor = "magenta"
+  ) +
+  addMeanSE_vertBar(
+    size = 0.6
     , barColor = "magenta"
-  ) +
-  # plotError_LMM(
-  #   numExits_nb.GLMM_errors.earlyLifeEMM
-  #   , xVar = earlyLifeTrt
-  #   , meanBarWidth = 0.7
-  #   , color = "black"
-  #   , nudgeErrorLine = 0
-  # ) +
-  facet_wrap(
-    ~earlyLifeTrt
-    , scales = "free_x"
-  ) +
-  theme(
-    axis.text.x = element_blank()
-    , axis.ticks.x = element_blank()
   )
 
 
@@ -102,46 +61,28 @@ figDams_offNest <- damBehavior_byPND %>%
     , addVertError = TRUE
     , lineAlpha = 0.2
     , dotAlpha = 0.5
-  # ) +
-  # plotError_LMM(
-  #   percOffNest_lmm_errors %>%
-  #     mutate(
-  #       PND = as.numeric(as.character(PND))
-  #     )
-  #   , xVar = PND
-  #   , nudgeErrorLine = 0
-  #   , nudgeMeanLine = 0
-  #   , color = "black"
   )
 
 figDams_meanOffNest <- damBehavior_byDam %>%
   scatterPlotLBN(
     yVar = Perc_off_nest
     , yLab = "mean % off nest"
-    , addMean = TRUE
-    , addSEM = TRUE
+    , addMean = FALSE
+    , addSEM = FALSE
     , zoom_y = TRUE
     , ymax = 100
     , ymin = 0
     , dotSize = dotSize
     , textSize = textSize
+  ) +
+  addMeanHorizontalBar(
+    width = 0.8
+    , size = 0.6
     , meanColor = "magenta"
+  ) +
+  addMeanSE_vertBar(
+    size = 0.6
     , barColor = "magenta"
-  ) +
-  # plotError_LMM(
-  #   percOffNest_lmm_errors.earlyLifeEMM
-  #   , xVar = earlyLifeTrt
-  #   , meanBarWidth = 0.7
-  #   , color = "black"
-  #   , nudgeErrorLine = 0
-  # ) +
-  facet_wrap(
-    ~earlyLifeTrt
-    , scales = "free_x"
-  ) +
-  theme(
-    axis.text.x = element_blank()
-    , axis.ticks.x = element_blank()
   )
 
 
@@ -153,13 +94,20 @@ figDamsD <- damFiltered %>%
   ) %>%
   scatterPlotLBN(
     yVar = Cort_dam_P11,
-    yLab = "dam corticosterone\n(ng/mL)",
+    yLab = "dam corticosterone\nAM (ng/mL)",
     textSize = textSize,
     dotSize = dotSize,
     zoom_y = FALSE
-    # ymin = 0,
-    # ymax = 120
+    , addMean = FALSE
+    , addSEM = FALSE
+  ) +
+  addMeanHorizontalBar(
+    width = 0.8
+    , size = 0.6
     , meanColor = "magenta"
+  ) +
+  addMeanSE_vertBar(
+    size = 0.6
     , barColor = "magenta"
   )
 
@@ -171,7 +119,7 @@ figDams_mass <- damFiltered %>%
     useLineType = FALSE, # TRUE/FALSE
     lineTypeVar = earlyLifeTrt,
     lineGroupVar = damID,
-    xtitle = "PND", #x axis label
+    xtitle = "postnatal day", #x axis label
     ytitle = "dam mass (g)", #y axis label
     title = NULL, # plot title
     individualLines = TRUE, # plot individual lines
@@ -182,8 +130,8 @@ figDams_mass <- damFiltered %>%
     zoom_y = TRUE,
     ymax = 40,
     ymin = 0,
-    indivLineAlpha = .2,
-    indivLineSize = 0.5,
+    indivLineAlpha = .15,
+    indivLineSize = 0.3,
     errorBarWidth = 0,
     meanLineSize = 1,
     meanAlpha = 1,
@@ -195,7 +143,8 @@ figDams_mass <- damFiltered %>%
     # legendPosition = c(0.75, 0.2),
     legendPosition = c(0.5, 0.2),
     STDColor = "#4D4D4D",
-    LBNColor = "#008B8B"
+    # LBNColor = "#008B8B"
+    LBNColor = "#04b5b5"
   ) +
   theme(
     legend.key = element_rect(fill = NA)
@@ -210,6 +159,7 @@ figDams_mass <- damFiltered %>%
       )
     , xVar = PND
     , color = earlyLifeTrt
+    , barSize = 0.8
   )
 
 # Offspring mass ----------------------------------------------------------
@@ -870,6 +820,7 @@ plotGABAamp_noMean <- plotCatVarFunc(
   , addMeanSE = FALSE
   , useSpecYLab = TRUE
   , thisYLab = "amplitude (pA)"
+  , jitterWidth = 0.2
 )
 
 plotGABAriseTime_noMean <- plotCatVarFunc(
@@ -880,6 +831,7 @@ plotGABAriseTime_noMean <- plotCatVarFunc(
   , tiltedXLabs = FALSE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
+  , jitterWidth = 0.2
 )
 
 plotGABAdecayTime_noMean <- plotCatVarFunc(
@@ -893,6 +845,7 @@ plotGABAdecayTime_noMean <- plotCatVarFunc(
   , useSpecYLab = TRUE
   # , thisYLab = "decay time (ms)\nfrom90% to 10% of peak"
   , thisYLab = "decay time (ms)"
+  , jitterWidth = 0.2
 )
 
 plotGABAfwhm_noMean <- plotCatVarFunc(
@@ -905,6 +858,7 @@ plotGABAfwhm_noMean <- plotCatVarFunc(
   , addMeanSE = FALSE
   , useSpecYLab = TRUE
   , thisYLab = "fwhm (ms)"
+  , jitterWidth = 0.2
 )
 
 figGABAa_model <- GABApscs_240FilteredFiring %>%
@@ -990,16 +944,16 @@ figGABA2a_model <- GABApscs_240FilteredFiring %>%
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
+    , meanBarWidth = .4
     , color = "magenta"
   ) +
   plotError_LMM(
     amplitudeMedian_errors %>%
       combineStress()
     , xVar = comboTrt
-    , nudgeErrorLine = 0.1
-    , nudgeMeanLine = 0.1
-    , meanBarWidth = 0.7
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = .4
     , color = "grey40"
   )
 
@@ -1012,16 +966,16 @@ figGABA2b_model <- GABApscs_240FilteredFiring %>%
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
+    , meanBarWidth = .4
     , color = "magenta"
   ) +
   plotError_LMM(
     riseTimeMedian_errors %>%
       combineStress()
     , xVar = comboTrt
-    , nudgeErrorLine = 0.1
-    , nudgeMeanLine = 0.1
-    , meanBarWidth = 0.7
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = .4
     , color = "grey40"
   )
 
@@ -1034,16 +988,16 @@ figGABA2c_model <- GABApscs_240FilteredFiring %>%
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
+    , meanBarWidth = .4
     , color = "magenta"
   ) +
   plotError_LMM(
     decayTimeMedian_errors %>%
       combineStress()
     , xVar = comboTrt
-    , nudgeErrorLine = 0.1
-    , nudgeMeanLine = 0.1
-    , meanBarWidth = 0.7
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = .4
     , color = "grey40"
   )
 
@@ -1056,16 +1010,16 @@ figGABA2d_model <- GABApscs_240FilteredFiring %>%
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
+    , meanBarWidth = .4
     , color = "magenta"
   ) +
   plotError_LMM(
     FWHMMedian_errors %>%
       combineStress()
     , xVar = comboTrt
-    , nudgeErrorLine = 0.1
-    , nudgeMeanLine = 0.1
-    , meanBarWidth = 0.7
+    , nudgeErrorLine = 0.3
+    , nudgeMeanLine = 0.3
+    , meanBarWidth = .4
     , color = "grey40"
   )
 

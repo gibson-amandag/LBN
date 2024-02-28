@@ -76,68 +76,63 @@ set_null_device("png")
 figDamsPlots <- cowplot::align_plots(
   figDams_exits
   , figDams_offNest
-  # , figDams_mass
   , align = "v"
   , axis = "l"
 )
 
 figDamsBehaviorPlots <- cowplot::align_plots(figDamsPlots[[1]], figDams_meanExits, figDamsPlots[[2]], figDams_meanOffNest, align = "h", axis = "bt")
 
-figDamsBehaviorRightPlots <- cowplot::align_plots(
+figDamsRightPlots <- cowplot::align_plots(
   figDamsBehaviorPlots[[2]]
   , figDamsBehaviorPlots[[4]]
+  , figDamsD
   , align = "v"
-  , axis = "l"
+  , axis = "lr"
 )
 
-figDams <- plot_grid(
+figDams_row1 <- align_plots(
+  figDamsRightPlots[[3]]
+  , figDams_mass
+  , align = "h"
+  , axis = "tb"
+)
+
+figDams_left <- plot_grid(
   plot_grid(
     NULL
-    , figDams_mass
-    , figDamsD
+    , figDams_row1[[2]]
     , nrow = 1
-    , rel_widths = c(1.5, 1, 1)
     , align = "h"
     , axis = "bt"
-    , labels = c("A", "B", "C")
+    , labels = c("A", "B")
     , label_fontfamily = "Arial"
     , label_size = textSize
   )
-  # NULL
-  , plot_grid(
-      figDamsBehaviorPlots[[1]]
-      , figDamsBehaviorRightPlots[[1]]
-      , ncol = 2
-      , labels = c("D", "E")
-      , label_fontfamily = "Arial"
-      , label_size = textSize
-      , rel_widths = c(3, 1)
-  )
-  , plot_grid(
-      figDamsBehaviorPlots[[3]]
-      , figDamsBehaviorRightPlots[[2]]
-      , ncol = 2
-      , labels = c("F", "G")
-      , label_fontfamily = "Arial"
-      , label_size = textSize
-      , rel_widths = c(3, 1)
-  )
-  # , plot_grid(
-  #   figDams_mass
-  #   , figDamsD
-  #   , nrow = 1
-  #   , align = "h"
-  #   , axis = "bt"
-  #   , labels = c("F", "G", "H")
-  #   , label_fontfamily = "Arial"
-  #   , label_size = textSize
-  # )
+  , figDamsBehaviorPlots[[1]]
+  , figDamsBehaviorPlots[[3]]
   , nrow = 3
-  # , rel_heights = c(0.5, 1, 1, 1)
-  # , labels = c("A", NULL, NULL, NULL)
+  , labels = c("", "D", "F")
   , label_fontfamily = "Arial"
   , label_size = textSize
 )
+
+figDams_right <- plot_grid(
+  figDams_row1[[1]]
+  , figDamsRightPlots[[1]]
+  , figDamsRightPlots[[2]]
+  , labels = c("C", "E", "G")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , nrow = 3
+)
+
+figDams <- plot_grid(
+  figDams_left
+  , figDams_right
+  , ncol = 2
+  , rel_widths = c(3, 1)
+)
+  
 figDams
 ```
 
@@ -147,7 +142,7 @@ flexSave(
   "figDams"
   , plot = figDams
   , width = twoCols
-  , height = 28/3*2
+  , height = 16.7
   , units = "cm"
   , filePath = manuscriptFolder
 )

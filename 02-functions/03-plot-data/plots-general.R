@@ -105,6 +105,7 @@ scatterPlotLBN <- function(
   , addSEM = TRUE
   , meanColor = "black"
   , barColor = "black"
+  , boldX = TRUE
 ){
   viz <- df %>%
     ggplot(
@@ -122,6 +123,7 @@ scatterPlotLBN <- function(
     )+
     labs(y = yLab, title = title)+
     earlyLifeFill(STDColor = STDColor, LBNColor = LBNColor, fillAlpha = fillAlpha) +
+    # theme_pubr(margin = FALSE)+
     theme_pubr()+
     expand_limits(y=0)+
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
@@ -129,7 +131,7 @@ scatterPlotLBN <- function(
       axis.title.x = element_blank(),
       legend.position = "none"
     )+
-    textTheme(size = textSize)+
+    textTheme(size = textSize, boldXText = boldX)+
     boxTheme()
   
   if(addMean){
