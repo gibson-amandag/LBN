@@ -312,7 +312,11 @@ dosage_scatterAndLMM <- function(
     lmm_error <- getErrorDF_LMM_dosage(lmm)
     
     plot <- plot +
-      plotError_LMM_dosage(lmm_error)
+      plotError_LMM_dosage(lmm_error) +
+      theme(
+        axis.title.x = element_text(margin = margin(t = -1))
+        , plot.margin = unit(c(0.2,0.1,0,0.1), "cm")
+      )
     return(
       output = list(
         plot = plot

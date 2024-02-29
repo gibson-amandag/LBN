@@ -1239,7 +1239,7 @@ figMaleCortAdmin <- plot_grid(
   , figMaleCortAdmin_row2
   , figMaleCortAdmin_row3
   , nrow = 3
-  , rel_heights = c(0.9, 1, 1)
+  , rel_heights = c(1, 1, 1)
 )
 
 figMaleCortAdmin
@@ -1251,7 +1251,7 @@ flexSave(
   "figMaleCortAdmin"
   , plot = figMaleCortAdmin
   , width = twoCols
-  , height = 28 * 2/3
+  , height = fullLength
   , units = "cm"
   , filePath = manuscriptFolder
 )

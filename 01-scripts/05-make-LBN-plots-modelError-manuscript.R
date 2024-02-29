@@ -544,8 +544,10 @@ cortAdmin_cort <- maleCortAdmin_cort_filtered %>%
   #   x = "time since 1st administration (h)" # add a title to the x axis
   # ) +
   theme(
-    legend.position = "bottom"
-    , legend.margin = margin(-10,0,0,0)
+    legend.position = c(0.15, .95)
+    , legend.text = element_text(size = textSize)
+    , legend.title = element_blank()
+    , axis.title.x = element_text(margin = margin(t = -1))
   )  +
   dosageFillShape(fillAlpha = 0.7)+
   plotError_LMM(
