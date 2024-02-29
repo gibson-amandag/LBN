@@ -21,6 +21,9 @@ figDams_exits <- damBehavior_byPND %>%
     , addVertError = TRUE
     , lineAlpha = 0.2
     , dotAlpha = 0.5
+  ) + 
+  theme(
+    strip.text.x.top = element_text(margin = margin(b=-10))
   )
 
 figDams_meanExits <- damBehavior_byDam %>%
@@ -36,7 +39,7 @@ figDams_meanExits <- damBehavior_byDam %>%
     , textSize = textSize
   ) +
   addMeanHorizontalBar(
-    width = 0.8
+    width = .95
     , size = 0.6
     , meanColor = "magenta"
   ) +
@@ -61,6 +64,9 @@ figDams_offNest <- damBehavior_byPND %>%
     , addVertError = TRUE
     , lineAlpha = 0.2
     , dotAlpha = 0.5
+  ) +
+  theme(
+    strip.text.x.top = element_text(margin = margin(b=-10))
   )
 
 figDams_meanOffNest <- damBehavior_byDam %>%
@@ -76,7 +82,7 @@ figDams_meanOffNest <- damBehavior_byDam %>%
     , textSize = textSize
   ) +
   addMeanHorizontalBar(
-    width = 0.8
+    width = .95
     , size = 0.6
     , meanColor = "magenta"
   ) +
@@ -102,7 +108,7 @@ figDamsD <- damFiltered %>%
     , addSEM = FALSE
   ) +
   addMeanHorizontalBar(
-    width = 0.8
+    width = .95
     , size = 0.6
     , meanColor = "magenta"
   ) +
@@ -182,7 +188,7 @@ figOffA <- massFiltered %>%
     zoom_y = FALSE, # Zoom to part of y axis
     ymin = 0,
     ymax = 35,
-    indivLineAlpha = .2,
+    indivLineAlpha = .3,
     indivLineSize = 0.3,
     errorBarWidth = 0,
     meanLineSize = 0.5,
@@ -199,6 +205,7 @@ figOffA <- massFiltered %>%
   ) +
   theme(
     legend.key = element_rect(fill = NA)
+    , strip.text.x.top = element_text(margin = margin(b = -10))
   ) + 
   plotError_LMM_meanLine_mass(
     mass_lmm_errors
@@ -209,7 +216,7 @@ figOffA <- massFiltered %>%
   ) +
   scale_fill_manual(
     values = c("STD" = "grey30", "LBN" = "#04b5b5")
-  )
+  ) 
 
 # Maturation --------------------------------------------------------------
 
@@ -432,7 +439,7 @@ plotCort_long <- manuscriptCortPlotFunc(
   # , zoom_y = FALSE
   , zoom_y = TRUE
   , ymin = 0
-  , ymax = 750
+  , ymax = 450
   , plotMean = FALSE
   , plotSE = FALSE
 )
@@ -457,8 +464,8 @@ figCortA <- cortFilteredMales %>%
       mutate(
         time = ifelse(
           time == 0
-          , time - 1.5
-          , time + 1.5
+          , time - 2
+          , time + 2
         )
       )
     , xVar = time
@@ -479,8 +486,8 @@ figCortB <- cortFilteredDi %>%
       mutate(
         time = ifelse(
           time == 0
-          , time - 1.5
-          , time + 1.5
+          , time - 2
+          , time + 2
         )
       )
     , xVar = time
@@ -501,8 +508,8 @@ figCortC <- cortFilteredPro %>%
       mutate(
         time = ifelse(
           time == 0
-          , time - 1.5
-          , time + 1.5
+          , time - 2
+          , time + 2
         )
       )
     , xVar = time

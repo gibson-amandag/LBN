@@ -98,7 +98,7 @@ scatterPlotLBN <- function(
   ymax = NULL,
   dotSize = 1.5,
   fillAlpha = 0.7, # changed 2023-06-18 from 1
-  jitterWidth = 0.35,
+  jitterWidth = 0.42,
   jitterHeight = 0,
   title = NULL,
   addMean = TRUE
@@ -126,13 +126,14 @@ scatterPlotLBN <- function(
     # theme_pubr(margin = FALSE)+
     theme_pubr()+
     expand_limits(y=0)+
+    scale_x_discrete(expand = expansion(add = 0.52))+
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
+    textTheme(size = textSize, boldXText = boldX)+
+    boxTheme() +
     theme(
       axis.title.x = element_blank(),
       legend.position = "none"
-    )+
-    textTheme(size = textSize, boldXText = boldX)+
-    boxTheme()
+    )
   
   if(addMean){
     viz <- viz + 

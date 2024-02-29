@@ -50,6 +50,13 @@ twoCols <- 17.6
 oneAndHalfCols <- 11.6
 oneCol <- 8.5
 
+quarterLength <- 16.7/4
+thirdLength <- 16.7/3
+halfLength <- 16.7/2
+twoThirdsLength <- 16.7*2/3
+threeQuarterLength <- 16.7*3/4
+fullLength <- 16.7
+
 manuscriptFolder <- file.path(plotOutputFolder, "manuscript")
 ```
 
@@ -142,7 +149,7 @@ flexSave(
   "figDams"
   , plot = figDams
   , width = twoCols
-  , height = 16.7
+  , height = fullLength - 0.1
   , units = "cm"
   , filePath = manuscriptFolder
 )
@@ -651,7 +658,10 @@ doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 
 ```{r}
 figCort <- plot_grid(
-  figCortA
+  figCortA + 
+    theme(
+      strip.text = element_text(margin = margin(t = -1))
+    )
   , figCortB
   , figCortC
   , nrow = 3
