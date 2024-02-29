@@ -5,6 +5,7 @@ textTheme <- function(size = 11, boldXText = FALSE){
     strip.text = element_text(face = "bold", size = size),
     axis.title = element_text(face = "bold")
     , axis.title.x = element_text(margin = margin(t = -2))
+    , plot.title = element_text(hjust = 0.5, size = size, family = "Arial", color = "black", face = "bold", margin = margin(b = -3))
   )
   
   if(boldXText){
@@ -121,9 +122,9 @@ earlyLifeLineType <- function(
 }
 
 comboTrtFillShape <- function(
-  STD_CON_color = "black",
+  STD_CON_color = "grey",
   STD_ALPS_color = "black",
-  LBN_CON_color = "darkcyan",
+  LBN_CON_color = "lightblue",
   LBN_ALPS_color = "darkcyan",
   STD_CON_fill = "white",
   STD_ALPS_fill = "black",

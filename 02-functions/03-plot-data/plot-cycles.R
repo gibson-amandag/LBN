@@ -210,14 +210,15 @@ plotCyclesPercent <- function(
     fillScale +
     # scale_fill_manual(values = c("white", "black"))+
     jitterGeom(size = dotSize, alpha = alpha)+
-    addMeanHorizontalBar(width = 0.85, size = 0.4, meanColor = meanColor) +
-    addMeanSE_vertBar(size = 0.4, barColor = barColor)+
+    addMeanHorizontalBar(width = 0.9, size = 0.6, meanColor = meanColor) +
+    addMeanSE_vertBar(size = 0.6, barColor = barColor)+
     expand_limits(y = 0) +
+    scale_x_discrete(expand = expansion(add = 0.52)) +
     theme_pubr()+
     rremove(
       "legend"
     ) +
-    textTheme(size = fontSize)+
+    textTheme(size = fontSize, boldXText = TRUE)+
     boxTheme()+
     rremove("xlab")
   

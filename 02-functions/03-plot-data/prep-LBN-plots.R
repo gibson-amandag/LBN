@@ -716,6 +716,7 @@ manuscriptCortPlotFunc <- function(
     , plotSE = TRUE
     , pointAlpha = .9
     , lineAlpha = 0.4
+    , clipVal = "off"
 ){
   if(useALPSLineType){
     lineGuide <-  c("STD-CON"="dotted", "STD-ALPS"="solid", "LBN-CON"="dotted", "LBN-ALPS"="solid")
@@ -754,6 +755,7 @@ manuscriptCortPlotFunc <- function(
         , plotSE = plotSE
         , pointAlpha = pointAlpha
         , lineAlpha = lineAlpha
+        , clipVal = clipVal
       )
     
     if(onlyLBN){
@@ -781,7 +783,8 @@ manuscriptCortPlotFunc <- function(
       plot <- plot +
         rremove("legend") +
         theme(
-          strip.text = element_text(margin = margin(t = -1))
+          strip.text = element_text(margin = margin(t = -3))
+          , plot.margin = unit(c(0.2, 0, 0, 0), "cm")
         )
     }
     return(plot)

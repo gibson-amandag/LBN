@@ -464,7 +464,8 @@ figCortA <- cortFilteredMales %>%
     , nudgeMeanLine = 0
     , meanBarWidth = 1
     , color = comboTrt
-  )
+  ) +
+  labs(title = "males")
 
 figCortB <- cortFilteredDi %>%
   plotCort_long() +
@@ -486,7 +487,8 @@ figCortB <- cortFilteredDi %>%
     , nudgeMeanLine = 0
     , meanBarWidth = 1
     , color = comboTrt
-  )
+  ) +
+  labs(title = "diestrous females")
 
 figCortC <- cortFilteredPro %>%
   plotCort_long() +
@@ -508,7 +510,8 @@ figCortC <- cortFilteredPro %>%
     , nudgeMeanLine = 0
     , meanBarWidth = 1
     , color = comboTrt
-  )
+  ) +
+  labs(title = "proestrous females")
 
 ## cort administration cort ------
 cortAdmin_cort <- maleCortAdmin_cort_filtered %>%

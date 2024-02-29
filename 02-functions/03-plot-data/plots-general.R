@@ -19,7 +19,7 @@ scatterPlot_general <- function(
   ymax = NULL,
   dotSize = 1.5,
   fillAlpha = 1,
-  jitterWidth = 0.35,
+  jitterWidth = 0.42,
   jitterHeight = 0,
   title = NULL,
   addMean = TRUE,
@@ -258,7 +258,7 @@ scatterPlotComboTrt <- function(
   zoom_y = FALSE, # Zoom to part of y axis
   ymin = NULL,
   ymax = NULL
-  , jitterWidth = 0.35
+  , jitterWidth = 0.42
   , alpha = 0.7 # changed 2023-06-18 from 1
 ){
   viz <- df %>%
@@ -273,13 +273,6 @@ scatterPlotComboTrt <- function(
         shape = comboTrt
       )
     ) +
-    # geom_jitter(
-    #   alpha = 1,
-    #   width = jitterWidth,
-    #   height = 0
-    #   , size = dotSize
-    # ) + 
-    # jitterGeom(size = dotSize) + # this defaults to shape 21
     jitterGeom_shapeAes(
       size = dotSize
       , width = jitterWidth
@@ -290,13 +283,13 @@ scatterPlotComboTrt <- function(
     theme_pubr()+
     expand_limits(y=0)+
     coord_cartesian(if(FALSE){xlim = c(NULL, NULL)}, if(zoom_y){ylim = c(ymin, ymax)}) +
-    # coord_cartesian(if(zoom_y){ylim = c(ymin, ymax)}) +
+    scale_x_discrete(expand = expansion(add = 0.52)) +
+    textTheme(size = fontSize, boldXText = TRUE)+
+    boxTheme() +
     theme(
       axis.title.x = element_blank(),
       legend.position = "none"
-    )+
-    textTheme(size = fontSize)+
-    boxTheme()
+    )
   
   if(addMeanSE){
     viz <- viz +

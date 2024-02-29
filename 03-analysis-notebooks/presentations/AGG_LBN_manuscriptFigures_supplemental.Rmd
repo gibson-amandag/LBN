@@ -659,10 +659,7 @@ doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 
 ```{r}
 figCort <- plot_grid(
-  figCortA + 
-    theme(
-      strip.text = element_text(margin = margin(t = -1))
-    )
+  figCortA
   , figCortB
   , figCortC
   , nrow = 3
@@ -681,7 +678,7 @@ flexSave(
   "figCort"
   , plot = figCort
   , width = twoCols
-  , height = 28/3 * 2
+  , height = fullLength
   , units = "cm"
   , filePath = manuscriptFolder
 )
@@ -933,26 +930,32 @@ figMaleMassALPS
 4-by-2 layout, PM
 ```{r}
 figMaleMassALPS <- plot_grid(
-  get_legend(maleBodyMassAM_ALPS_plot)
-  , plot_grid(
-    maleBodyMassAM_ALPS_plot + rremove("legend")
-    , malePercChangeBodyMass_ALPS_plot
+  plot_grid(
+    maleBodyMassAM_ALPS_plot
     , maleAdrenalMass_ALPS_plot
-    , maleRelAdrenalMassPM_ALPS_plot
     , maleSeminalVesicleMass_ALPS_plot
-    , maleRelSeminalVesicleMassPM_ALPS_plot
     , maleTestesMass_ALPS_plot
+    , ncol = 1
+    , align = "v"
+    , axis = "lr"
+    , labels = c("A", "C", "E", "G")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+  ), 
+  plot_grid(
+    malePercChangeBodyMass_ALPS_plot
+    , maleRelAdrenalMassPM_ALPS_plot
+    , maleRelSeminalVesicleMassPM_ALPS_plot
     , maleRelTestesMassPM_ALPS_plot
-    # , nrow = 3
-    , ncol = 2
-    , align = "hv"
-    , axis = "tlbr"
-    , labels = c("A", "B", "C", "D", "E", "F", "G", "H")
+    , ncol = 1
+    , align = "v"
+    , axis = "lr"
+    , labels = c("B", "D", "F", "H")
     , label_fontfamily = "Arial"
     , label_size = textSize
   )
-  , nrow = 2
-  ,rel_heights = c(0.1, 3)
+  , ncol = 2
+  , rel_widths = c(1, 1)
 )
 figMaleMassALPS
 ```
@@ -963,7 +966,7 @@ flexSave(
   "figMaleMassALPS"
   , plot = figMaleMassALPS
   , width = twoCols
-  , height = 28 * 3/4
+  , height = 18
   , units = "cm"
   , filePath = manuscriptFolder
 )

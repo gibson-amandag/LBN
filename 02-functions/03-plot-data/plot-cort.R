@@ -20,6 +20,7 @@ cortPlot <- function(
   , yUnitsNewLine = FALSE
   , pointAlpha = 1
   , lineAlpha =0.4
+  , clipVal = "on"
 ){
   if(yUnitsNewLine){
     yLab <- "corticosterone\n(ng/mL)"
@@ -69,7 +70,7 @@ cortPlot <- function(
     ) +
     theme_pubr() +
     expand_limits(y = 0) +
-    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}, clip = clipVal) +
     # rremove("xlab") + ## seems like can't add back after if do this
     labs(
       y = yLab,

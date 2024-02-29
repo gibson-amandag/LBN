@@ -29,11 +29,6 @@ plotError_LMM_comboTrt <- function(lmm_error){
   plotError_LMM(
     lmm_error
     , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.8
-    , barSize = 0.5
-    , color = "magenta"
   )
 }
 
@@ -112,7 +107,7 @@ comboTrt_scatterAndLMM <- function(
     if(addLegend){
       plot <- plot +
         theme(
-          legend.position = "top"
+          legend.position = c(0.2, 0.4)
         )
     }
     
@@ -164,17 +159,17 @@ statsAndPlot_AdrenalMass_ALPS <- comboTrt_scatterAndLMM(
 
 statsAndPlot_RelAdrenalMass_ALPS <- comboTrt_scatterAndLMM(
   expr(Adrenal_mass_perBodyAM_g)
-  , thisYLab = " \nadrenal mass (mg/g)\nnormalized to AM mass"
+  , thisYLab = "adrenal mass (mg/g)\nnormalized to AM mass"
 )
 
 statsAndPlot_RelAdrenalMassPM_ALPS <- comboTrt_scatterAndLMM(
   expr(Adrenal_mass_perBody_g)
-  , thisYLab = " \nadrenal mass (mg/g)\nnormalized to PM mass"
+  , thisYLab = "adrenal mass\nnormalized (mg/g)"
 )
 
 statsAndPlot_SeminalVesicleMass_ALPS <- comboTrt_scatterAndLMM(
   expr(ReproTract_mass)
-  , thisYLab = "seminal vesicle mass (mg)"
+  , thisYLab = "seminal vesicle\nmass (mg)"
 )
 
 statsAndPlot_RelSeminalVesicleMass_ALPS <- comboTrt_scatterAndLMM(
@@ -184,7 +179,7 @@ statsAndPlot_RelSeminalVesicleMass_ALPS <- comboTrt_scatterAndLMM(
 
 statsAndPlot_RelSeminalVesicleMassPM_ALPS <- comboTrt_scatterAndLMM(
   expr(ReproTract_mass_perBody_g)
-  , thisYLab = "seminal vesicle mass (mg/g)\nnormalized to PM mass"
+  , thisYLab = "seminal vesicle mass\nnormalized (mg/g)"
 )
 
 statsAndPlot_TestesMass_ALPS <- comboTrt_scatterAndLMM(
@@ -199,7 +194,7 @@ statsAndPlot_RelTestesMass_ALPS <- comboTrt_scatterAndLMM(
 
 statsAndPlot_RelTestesMassPM_ALPS <- comboTrt_scatterAndLMM(
   expr(Gonad_mass_perBody_g)
-  , thisYLab = "testicular mass (mg/g)\nnormalized to PM mass"
+  , thisYLab = "testicular mass\nnormalized (mg/g)"
 )
 
 
@@ -226,10 +221,6 @@ plotError_LMM_dosage <- function(lmm_error){
   plotError_LMM(
     lmm_error
     , xVar = dosage
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
-    , color = "magenta"
   )
 }
 
@@ -360,7 +351,7 @@ statsAndPlot_RelAdrenalMass_dosage <- dosage_scatterAndLMM(
 
 statsAndPlot_RelAdrenalMassPM_dosage <- dosage_scatterAndLMM(
   expr(Adrenal_mass_perBody_g)
-  , thisYLab = "adrenal mass (mg/g)\nnormalized to PM mass"
+  , thisYLab = "adrenal mass\nnormalized (mg/g)"
 )
 
 statsAndPlot_SeminalVesicleMass_dosage <- dosage_scatterAndLMM(
@@ -375,7 +366,7 @@ statsAndPlot_RelSeminalVesicleMass_dosage <- dosage_scatterAndLMM(
 
 statsAndPlot_RelSeminalVesicleMassPM_dosage <- dosage_scatterAndLMM(
   expr(ReproTract_mass_perBody_g)
-  , thisYLab = "seminal vesicle mass (mg/g)\nnormalized to PM mass"
+  , thisYLab = "seminal vesicle mass\nnormalized (mg/g)"
 )
 
 statsAndPlot_TestesMass_dosage <- dosage_scatterAndLMM(
@@ -390,7 +381,7 @@ statsAndPlot_RelTestesMass_dosage <- dosage_scatterAndLMM(
 
 statsAndPlot_RelTestesMassPM_dosage <- dosage_scatterAndLMM(
   expr(Gonad_mass_perBody_g)
-  , thisYLab = "testicular mass (mg/g)\nnormalized to PM mass"
+  , thisYLab = "testicular mass\nnormalized (mg/g)"
 )
 
 # ALPS effects ------------------
