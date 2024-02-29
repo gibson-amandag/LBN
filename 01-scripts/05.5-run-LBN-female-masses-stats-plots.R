@@ -76,6 +76,10 @@ comboTrtCycle_scatterAndLMM <- function(
       facet_wrap(
         ~ Sac_cycle
         , nrow = 1
+      ) +
+      theme(
+        panel.spacing = unit(0.1, "cm")
+        , strip.text.x.top = element_text(margin = margin(t = -5))
       )
     
     if(twoLineXLabs){

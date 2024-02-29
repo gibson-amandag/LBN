@@ -1527,8 +1527,8 @@ figFemalesMasses_plots_right <- align_plots(
 )
 
 figFemalesMasses <- plot_grid(
-  get_legend(femaleBodyMassAM_ALPS_plot)
-  , plot_grid(
+  # get_legend(femaleBodyMassAM_ALPS_plot)
+  plot_grid(
     figFemalesMasses_plots_left[[1]]
     , figFemalesMasses_plots_right[[1]]
     , ncol = 2
@@ -1555,8 +1555,10 @@ figFemalesMasses <- plot_grid(
     , label_size = textSize
     , rel_widths = c(0.95, 1)
   )
-  , nrow = 4
-  , rel_heights = c(0.1, 1, 1, 1)
+  , nrow = 3
+  , rel_heights = c(1, 1, 1)
+  # , nrow = 4
+  # , rel_heights = c(0.1, 1, 1, 1)
 )
 figFemalesMasses
 ```
@@ -1566,7 +1568,7 @@ flexSave(
   "figFemalesMasses"
   , plot = figFemalesMasses
   , width = twoCols
-  , height = 28/3*2
+  , height = fullLength
   , units = "cm"
   , filePath = manuscriptFolder
 )
