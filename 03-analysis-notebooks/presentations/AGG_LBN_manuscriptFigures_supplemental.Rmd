@@ -346,7 +346,7 @@ flexSave(
   "figOff"
   , plot = figOff
   , width = twoCols
-  , height = 16.7
+  , height = fullLength
   , units = "cm"
   , filePath = manuscriptFolder
 )

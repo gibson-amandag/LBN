@@ -21,10 +21,10 @@ getErrorDF_LMM <- function(
 plotError_LMM <- function(
     lmmData
     , xVar
-    , meanBarWidth = 0.8 # make smaller in the end, but for now to compare
-    , barSize = 0.4
-    , color = "red" # change in the end, but for now to compare
-    , nudgeErrorLine = 0.1 # to offset from current error bar. Remove
+    , meanBarWidth = 0.9
+    , barSize = 0.6
+    , color = "magenta" 
+    , nudgeErrorLine = 0
     , nudgeMeanLine = 0
 ) {
   geoms <- list(
@@ -151,11 +151,12 @@ plotError_LMM_meanLine_mass <- function(
         x = {{ xVar }}
         , y = y
         , color = earlyLifeTrt
-        , ...
+        # , ...
       )
       , data = lmmData
       # , size = barSize
-      , linewidth = barSize
+      # , linewidth = barSize
+      , linewidth = .2
       , inherit.aes = FALSE # 2023-07-30
     ),
     geom_ribbon(
@@ -163,13 +164,12 @@ plotError_LMM_meanLine_mass <- function(
         x = {{xVar}}
         , ymin = lower
         , ymax = upper
-        , fill = earlyLifeTrt
         , ... 
       )
       , data = lmmData
       , inherit.aes = FALSE
       # , size = barSize
-      , linewidth = barSize
+      # , linewidth = barSize
       , position = position_nudge(x = nudgeErrorLine)
       , show.legend = FALSE
       , alpha = ribbonAlpha

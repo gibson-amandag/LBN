@@ -57,6 +57,8 @@ plot_mass_lines <- function(
   legendPosition = "top",
   STDColor = "grey30",
   LBNColor = "cyan4"
+  , clipVal = "on"
+  , moveDownFacets = FALSE
 ){
   if(groupByDam == TRUE){
     df <- df %>%
@@ -103,6 +105,7 @@ plot_mass_lines <- function(
       errorBarAlpha = errorBarAlpha,
       textSize = textSize,
       axisSize = axisSize
+      , clipVal = clipVal
     )+
     earlyLifeColor(
       STDColor = STDColor,
@@ -116,6 +119,12 @@ plot_mass_lines <- function(
   if(facetBySex){
     plot <- plot +
       facet_wrap(vars(sex), labeller = labeller(sex = c("F"="female", "M"="male")))
+  }
+  
+  if(moveDownFacets){
+    plot <- plot + theme(
+      strip.text.x.top = element_text(margin = margin(t = -10)) # this still seems to be clipped even when it shouldn't be
+    )
   }
   return(plot)
 }

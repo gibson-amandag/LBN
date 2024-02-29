@@ -704,9 +704,9 @@ manuscriptCortPlotFunc <- function(
     , xmax = 7
     , fontSize = 11
     , dotSize = 2
-    , yUnitsNewLine = TRUE
+    , yUnitsNewLine = FALSE
     , onlyLBN = FALSE
-    , jitterPosition = 1.8
+    , jitterPosition = 2
     , meanWidth = 1.4
     , wrapLegend = TRUE
     , useALPSLineType = FALSE
@@ -779,7 +779,10 @@ manuscriptCortPlotFunc <- function(
         , strip.position = stripPosition
       )
       plot <- plot +
-        rremove("legend")
+        rremove("legend") +
+        theme(
+          strip.text = element_text(margin = margin(t = -1))
+        )
     }
     return(plot)
   }

@@ -4,6 +4,7 @@ textTheme <- function(size = 11, boldXText = FALSE){
     axis.text = element_text(size = size, family = "Arial", color = "black"), # for some reason, not acquiring consistently
     strip.text = element_text(face = "bold", size = size),
     axis.title = element_text(face = "bold")
+    , axis.title.x = element_text(margin = margin(t = -2))
   )
   
   if(boldXText){
@@ -28,7 +29,7 @@ boxTheme <- function(axisSize = 0.5){
     # legend.background = element_rect(color = "black", fill = NA, inherit.blank = TRUE),
     legend.background = element_blank(),
     legend.box.background = element_blank()
-    , plot.margin = unit(c(0,0.1,0,0.1), "cm")
+    , plot.margin = unit(c(0.1,0.1,0,0.1), "cm")
   )
 }
 

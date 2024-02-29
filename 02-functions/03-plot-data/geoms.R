@@ -247,6 +247,7 @@ plot_line_geom_layers <- function(
   errorBarAlpha = 0.6,
   textSize = 11,
   axisSize = 0.5
+  , clipVal = "on"
 ){
   list(
     labs(
@@ -275,7 +276,7 @@ plot_line_geom_layers <- function(
         errorBarAlpha = errorBarAlpha
       ),
     expand_limits(y = 0),
-    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}),
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}, clip = clipVal),
     textTheme(size = textSize),
     boxTheme(axisSize = axisSize)
   )

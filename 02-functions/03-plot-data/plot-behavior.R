@@ -362,7 +362,7 @@ plotDamBehavior <- function(
     )+
     expand_limits(y = 0)+
     boxTheme()+
-    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}, clip = "off")
   
   if(includesZT & !includesPND){
     # This seems to have to be after addition of all geoms maybe? 

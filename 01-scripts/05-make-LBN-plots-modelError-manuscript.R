@@ -149,8 +149,8 @@ figDams_mass <- damFiltered %>%
     # legendPosition = c(0.75, 0.2),
     legendPosition = c(0.5, 0.2),
     STDColor = "#4D4D4D",
-    # LBNColor = "#008B8B"
-    LBNColor = "#04b5b5"
+    LBNColor = "#008B8B"
+    # LBNColor = "#04b5b5"
   ) +
   theme(
     legend.key = element_rect(fill = NA)
@@ -188,8 +188,8 @@ figOffA <- massFiltered %>%
     zoom_y = FALSE, # Zoom to part of y axis
     ymin = 0,
     ymax = 35,
-    indivLineAlpha = .3,
-    indivLineSize = 0.3,
+    indivLineAlpha = .2,
+    indivLineSize = 0.2,
     errorBarWidth = 0,
     meanLineSize = 0.5,
     meanAlpha = 1,
@@ -201,22 +201,22 @@ figOffA <- massFiltered %>%
     # legendPosition = "bottom",
     legendPosition = c(0.85, 0.2),
     STDColor = "#4D4D4D",
-    LBNColor = "#04b5b5"
+    LBNColor = "#008B8B"
   ) +
   theme(
     legend.key = element_rect(fill = NA)
-    , strip.text.x.top = element_text(margin = margin(b = -10))
   ) + 
   plotError_LMM_meanLine_mass(
     mass_lmm_errors
     , xVar = day
     , fill = earlyLifeTrt
     , barSize = .4
-    , ribbonAlpha = .5
+    , ribbonAlpha = 0.7
   ) +
   scale_fill_manual(
-    values = c("STD" = "grey30", "LBN" = "#04b5b5")
-  ) 
+    values = c("STD" = "grey30", "LBN" = "#008B8B")
+    , "early-life trt"
+  )
 
 # Maturation --------------------------------------------------------------
 
@@ -235,9 +235,6 @@ figOffAge_model <- maturationByDamLong %>%
   plotError_LMM(
     age_lmm_errors
     , xVar = earlyLifeTrt
-    , color = "magenta"
-    , nudgeErrorLine = 0
-    , barSize = 0.6
   )
 
 figOffMass_model <- maturationByDamLong %>%
@@ -255,9 +252,6 @@ figOffMass_model <- maturationByDamLong %>%
   plotError_LMM(
     matMass_lmm_errors
     , xVar = earlyLifeTrt
-    , color = "magenta"
-    , nudgeErrorLine = 0
-    , barSize = 0.6
   )
 
 matVals <- getMaxMatVals(maturation_byDam_f, maturation_byDam_m)
@@ -290,10 +284,6 @@ figOff_femaleAGD <- maturation_byDam_f %>%
       sex == "F"
     )
     , xVar = earlyLifeTrt
-    , color = "magenta"
-    , barSize = 0.5
-    , meanBarWidth = 0.8
-    , nudgeErrorLine = 0
   )
 
 figOff_maleAGD <- maturation_byDam_m %>%
@@ -320,10 +310,6 @@ figOff_maleAGD <- maturation_byDam_m %>%
       sex == "M"
     )
     , xVar = earlyLifeTrt
-    , color = "magenta"
-    , barSize = 0.5
-    , meanBarWidth = 0.8
-    , nudgeErrorLine = 0
   )
 
 # Cycles ------------------------------------------------------------------
