@@ -300,45 +300,26 @@ figOffRightPlots <- cowplot::align_plots(
   , align = "vh", axis = "ltrb"
 )
 
-figOffLab1 <- plot_grid(
-  NULL
-  , NULL
-  , NULL
-  , NULL
-  , ncol = 4
-  , labels = c("       B", "    C", " D", "H")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-)
-
-figOffLab2 <- plot_grid(
-  NULL
-  , NULL
-  , NULL
-  , NULL
-  , ncol = 4
-  , labels = c("       E", "    F", " G", "I")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-)
-
 figOffMat <- plot_grid(
-  figOffLab1
-  , plot_grid(
+  plot_grid(
       figOffLeftPlots[[2]]
       , figOffRightPlots[[1]]
       , ncol = 2
       , rel_widths = c(3, 1)
+      , labels = c("B", "D")
+      , label_fontfamily = "Arial"
+      , label_size = textSize
   )
-  , figOffLab2
   , plot_grid(
       figOffLeftPlots[[3]]
       , figOffRightPlots[[2]]
       , ncol = 2
       , rel_widths = c(3, 1)
+      , labels = c("C", "")
+      , label_fontfamily = "Arial"
+      , label_size = textSize
   )
-  , nrow = 4
-  , rel_heights = c(0.01, 1, 0.01, 1)
+  , nrow = 2
 )
 
 figOff <- plot_grid(
@@ -358,7 +339,7 @@ flexSave(
   "figOff"
   , plot = figOff
   , width = twoCols
-  , height = 28/3*2
+  , height = 16.7
   , units = "cm"
   , filePath = manuscriptFolder
 )

@@ -28,7 +28,7 @@ boxTheme <- function(axisSize = 0.5){
     # legend.background = element_rect(color = "black", fill = NA, inherit.blank = TRUE),
     legend.background = element_blank(),
     legend.box.background = element_blank()
-    , plot.margin = unit(c(0,0,0,0), "cm")
+    , plot.margin = unit(c(0,0.1,0,0.1), "cm")
   )
 }
 

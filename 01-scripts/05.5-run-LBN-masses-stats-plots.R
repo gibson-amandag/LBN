@@ -31,7 +31,8 @@ plotError_LMM_comboTrt <- function(lmm_error){
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
+    , meanBarWidth = 0.8
+    , barSize = 0.5
     , color = "magenta"
   )
 }

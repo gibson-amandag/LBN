@@ -3625,4 +3625,16 @@ relativePropData %>%
 
 ```
 
+```{r}
+mixed(
+  amplitude ~ earlyLifeTrt * adultTrt + (1|damID) + (1|mouseID) + (1|cellID)
+  , pscProps
+  , method = "KR"
+)
+```
+
+```{r}
+
+```
+
 

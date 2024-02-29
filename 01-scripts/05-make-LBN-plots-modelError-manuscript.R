@@ -182,7 +182,7 @@ figOffA <- massFiltered %>%
     zoom_y = FALSE, # Zoom to part of y axis
     ymin = 0,
     ymax = 35,
-    indivLineAlpha = .15,
+    indivLineAlpha = .2,
     indivLineSize = 0.3,
     errorBarWidth = 0,
     meanLineSize = 0.5,
@@ -195,7 +195,7 @@ figOffA <- massFiltered %>%
     # legendPosition = "bottom",
     legendPosition = c(0.85, 0.2),
     STDColor = "#4D4D4D",
-    LBNColor = "#008B8B"
+    LBNColor = "#04b5b5"
   ) +
   theme(
     legend.key = element_rect(fill = NA)
@@ -204,11 +204,11 @@ figOffA <- massFiltered %>%
     mass_lmm_errors
     , xVar = day
     , fill = earlyLifeTrt
-    , barSize = .6
-    , ribbonAlpha = .4
+    , barSize = .4
+    , ribbonAlpha = .5
   ) +
   scale_fill_manual(
-    values = c("STD" = "grey30", "LBN" = "cyan4")
+    values = c("STD" = "grey30", "LBN" = "#04b5b5")
   )
 
 # Maturation --------------------------------------------------------------
@@ -285,7 +285,7 @@ figOff_femaleAGD <- maturation_byDam_f %>%
     , xVar = earlyLifeTrt
     , color = "magenta"
     , barSize = 0.5
-    , meanBarWidth = 0.7
+    , meanBarWidth = 0.8
     , nudgeErrorLine = 0
   )
 
@@ -315,7 +315,7 @@ figOff_maleAGD <- maturation_byDam_m %>%
     , xVar = earlyLifeTrt
     , color = "magenta"
     , barSize = 0.5
-    , meanBarWidth = 0.7
+    , meanBarWidth = 0.8
     , nudgeErrorLine = 0
   )
 
@@ -369,7 +369,7 @@ figCycles_numCycles_model <- cyclesFiltered %>%
   plotError_LMM(
     numCycles_lmm_error
     , xVar = earlyLifeTrt
-    , meanBarWidth = 0.7
+    , meanBarWidth = 0.8
     , barSize = 0.4
     , color = "magenta"
     , nudgeErrorLine = 0
@@ -396,7 +396,7 @@ figCycles_lengthLog_model <- cyclesFiltered %>%
   plotError_LMM(
     lengthCycles_log_lmm_error
     , xVar = earlyLifeTrt
-    , meanBarWidth = 0.7
+    , meanBarWidth = 0.8
     , color = "magenta"
     , nudgeErrorLine = 0
   )
@@ -553,7 +553,7 @@ cortAdmin_cort <- maleCortAdmin_cort_filtered %>%
         time = as.numeric(as.character(time))
       )
     , xVar = time
-    , meanBarWidth = 0.7
+    , meanBarWidth = 0.8
     , color = "magenta"
     , nudgeErrorLine = 0
   ) +
@@ -593,7 +593,7 @@ figLH_diAfternoon <- acuteStressFilteredDi %>%
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
+    , meanBarWidth = 0.8
     , color = "magenta"
   )
 
@@ -615,7 +615,7 @@ figLH_ephysMax <- acuteStressFilteredPro_ephys %>%
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
+    , meanBarWidth = 0.8
     , color = "magenta"
   )
 
@@ -741,7 +741,7 @@ figLH_samplingMax <- acuteStressFilteredPro_sampling %>%
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
+    , meanBarWidth = 0.8
     , color = "magenta"
   )
 
@@ -872,7 +872,7 @@ figGABAa_model <- GABApscs_240FilteredFiring %>%
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
+    , meanBarWidth = 0.8
     , color = "magenta"
   )
 
@@ -887,7 +887,7 @@ figGABAc_model <- GABApscs_240FilteredFiring %>%
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
+    , meanBarWidth = 0.8
     , color = "magenta"
   )
 
@@ -899,7 +899,7 @@ figGABAb_model <- GABApscs_240FilteredFiring %>%
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
+    , meanBarWidth = 0.8
     , color = "magenta"
   )
 
@@ -915,7 +915,7 @@ figGABAd_model <- GABApscs_240FilteredFiring %>%
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
+    , meanBarWidth = 0.8
     , color = "magenta"
   ) +
   scale_y_continuous(
@@ -933,7 +933,7 @@ figGABAe_model <- GABApscs_240FilteredFiring %>%
     , xVar = comboTrt
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 0.7
+    , meanBarWidth = 0.8
     , color = "magenta"
   )
 
