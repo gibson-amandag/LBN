@@ -345,7 +345,9 @@ figCyclesA <-  cyclesFiltered %>%
     , facetDir = "v"
   ) + theme(
     panel.border = element_rect(color = "lightgrey", fill = NA)
-  )
+    # , axis.title.x = element_text(margin = margin(t = -2))
+  ) +
+  xlab("postnatal day")
 
 ## cycle features -------------------------------------------------------------
 
@@ -410,7 +412,10 @@ figCyclesD <- cyclesPercLong %>%
     , barColor = "magenta"
     ,
   ) +
-  coord_cartesian(ylim = c(0, 80))
+  coord_cartesian(ylim = c(0, 80), clip = "off") +
+  theme(
+    strip.text.x.top = element_text(margin = margin(b = -5))
+  )
 
 # ALPS --------------------------------------------------------------------
 

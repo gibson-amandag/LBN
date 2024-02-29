@@ -23,7 +23,7 @@
 jitterGeom <- function(
   size = 1.5,
   alpha = 1,
-  width = 0.35,
+  width = 0.42,
   height = 0
 ){
   # geom_jitter(
@@ -50,7 +50,7 @@ jitterGeom <- function(
 jitterGeom_shapeAes <- function(
   size = 1.5,
   alpha = 1,
-  width = 0.35,
+  width = 0.42,
   height = 0
 ){
   # geom_jitter(

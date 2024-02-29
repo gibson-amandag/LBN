@@ -580,11 +580,12 @@ figCycles2ndRow <- plot_grid(
 )
 
 figCycles <- plot_grid(
-  figCyclesLeftPlots[[1]]
+  NULL
+  , figCyclesLeftPlots[[1]]
   , figCycles2ndRow
-  , nrow = 2
-  , rel_heights = c(2.2, 3)
-  , labels = c("A", NULL)
+  , nrow = 3
+  , rel_heights = c(0.3, 2.2, 3)
+  , labels = c("A", NULL, NULL)
   , label_fontfamily = "Arial"
   , label_size = textSize
 )
@@ -596,7 +597,7 @@ flexSave(
   "figCycles"
   , plot = figCycles
   , width = twoCols
-  , height = 28/3
+  , height = 9.5
   , units = "cm"
   , filePath = manuscriptFolder
 )
