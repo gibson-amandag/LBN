@@ -316,19 +316,33 @@ getNiceName <- function(
   return(label)
 }
 
-addOrderedColors <- function(df, orderVar, subjectVar, colorByGroups = FALSE, pkg = "rainbow", ...) {
+addOrderedColors <- function(df, orderVar, subjectVar, colorByGroups = FALSE, pkg = "rainbow", byMax = FALSE, revOrder = TRUE, ...) {
   # calculate the mean for each subject within each group
   mean_df <- df %>%
     group_by(
       {{ subjectVar }}
       , ...
-    ) %>%
-    summarize(mean_orderVar = mean(
-      {{ orderVar }}
-      , na.rm = TRUE
-    )
-    , .groups = "drop"
-    )
+    ) 
+  
+  if(byMax){
+    mean_df <- mean_df %>%
+      summarize(
+        mean_orderVar = max(
+          {{ orderVar }}
+          , na.rm = TRUE
+        )
+        , .groups = "drop"
+      )
+  } else{
+    mean_df <- mean_df %>%
+      summarize(mean_orderVar = mean(
+        {{ orderVar }}
+        , na.rm = TRUE
+      )
+      , .groups = "drop"
+      )
+      
+  }
   
   if(colorByGroups){
     mean_df <- mean_df %>%
@@ -337,56 +351,47 @@ addOrderedColors <- function(df, orderVar, subjectVar, colorByGroups = FALSE, pk
       )
   }
   
-  
-  if(pkg == "rainbow"){
-    mean_df <- mean_df %>%  
+  if(revOrder){
+    ranked_df <- mean_df %>%
       mutate(
-        rank = rank (
+        rank = rank(
           -mean_orderVar
           , ties.method = "first"
-        ),
+        )
+      )
+  } else {
+    ranked_df <- mean_df %>%
+      mutate(
+        rank = rank(
+          mean_orderVar
+          , ties.method = "first"
+        )
+      )
+  }
+  
+  if(pkg == "rainbow"){
+    ranked_df <- ranked_df %>%  
+      mutate(
         color = rainbow(max(rank))[rank]
       ) %>%
       ungroup()
   }else{
     if(pkg == "viridis"){
       if(!require(viridis))install.packages('viridis')
-      mean_df <- mean_df %>%  
+      ranked_df <- ranked_df %>%  
         mutate(
-          rank = rank (
-            -mean_orderVar
-            , ties.method = "first"
-          ),
           # these are different color options
           color = viridis::viridis(max(rank))[rank]
         ) %>%
         ungroup()
     } else { # default rainbow
-      mean_df <- mean_df %>%  
+      ranked_df <- ranked_df %>%  
         mutate(
-          rank = rank (
-            -mean_orderVar
-            , ties.method = "first"
-          ),
           color = rainbow(max(rank))[rank]
         ) %>%
         ungroup()
     }
   }
-  
-  # mean_df <- mean_df %>%  
-  #   mutate(
-  #     rank = rank (
-  #       -mean_orderVar
-  #       , ties.method = "first"
-  #     ),
-  #     # these are different color options
-  #     # color = rainbow(max(rank))[rank]
-  #     color = viridis::viridis(max(rank))[rank]
-  #     # color = sequential_hcl(max(rank))[rank]
-  #     # color = topo.colors(max(rank))[rank]
-  #   ) %>%
-  #   ungroup()
   
   subjectVarStr <- deparse(substitute(subjectVar))
   ellipsisVars <- substitute(alist(...))
@@ -394,7 +399,7 @@ addOrderedColors <- function(df, orderVar, subjectVar, colorByGroups = FALSE, pk
   # add the calculated colors back to the original data
   df <- df %>%
     left_join(
-      mean_df
+      ranked_df
       , by = c( subjectVarStr, ellipsisStrs)
     )
   

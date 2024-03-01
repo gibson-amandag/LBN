@@ -89,6 +89,8 @@ plotDamBehavior <- function(
         , subjectVar = damID
         , colorByGroups = FALSE
         , pkg = "rainbow"
+        , byMax = FALSE
+        , revOrder = TRUE
         , earlyLifeTrt
       )
   }

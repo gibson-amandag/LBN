@@ -535,6 +535,7 @@ LHPlot_noMean_lineColor <- function(
   , addPoint = TRUE
   , xBreaks = c(5, 5.5, 6.5, 7.5, 8.5, 9.5)
   , xLabels = c("", -2, -1, 0, 1, 2)
+  , clipVar = "on"
 ){
   plot <- ggplot(
     df_long,
@@ -588,7 +589,7 @@ LHPlot_noMean_lineColor <- function(
     scale_color_identity()+
     textTheme(size = fontSize)+
     boxTheme()+
-    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) + #this just zooms in on the graph, versus scale_[]_continuous actually eliminates data not in the range
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}, clip = clipVar) + 
     guides(linetype = "none")
   return(plot)
 }
@@ -613,6 +614,8 @@ LHPlot_adultTrt_color <- function(
   #     , mouseID
   #     , colorByGroups = FALSE
   #     , pkg = "rainbow"
+  #     , byMax = FALSE
+  #     , revOrder = TRUE
   #     , adultTrt
   #   )
   
@@ -845,7 +848,7 @@ propSurgedPlotCombo_forSBN <- function(
         aes(label = ..count..),
         stat = "count",
         vjust = 1.3,
-        colour = "grey80",
+        colour = "grey70",
         position = "fill",
         size = labelSize
       )+
@@ -891,7 +894,7 @@ propSurgedPlotCombo_forSBN <- function(
         "LBN-ALPS.TRUE"="solid"
       )) +
       theme_pubr() +
-      textTheme(size = fontSize)+
+      textTheme(size = fontSize, boldXText = TRUE)+
       boxTheme()+
       rremove("legend") +
       rremove("xlab") +
@@ -1319,7 +1322,7 @@ scatterPlotComboTrt_surgeAmp <- function(
     ymax = NULL
     , jitterWidth = 0.35
     , surgedAlpha = .8
-    , notSurgedAlpha = 0.2
+    , notSurgedAlpha = 0.8
     , addSurgeMinLine = TRUE
     , surgeMin = 3
     , surgeLineColor = "magenta"
@@ -1382,12 +1385,12 @@ scatterPlotComboTrt_surgeAmp <- function(
     theme_pubr()+
     expand_limits(y=0)+
     coord_cartesian(if(FALSE){xlim = c(NULL, NULL)}, if(zoom_y){ylim = c(ymin, ymax)}) +
+    textTheme(size = fontSize, boldXText = TRUE)+
+    boxTheme()+
     theme(
       axis.title.x = element_blank(),
       legend.position = "none"
-    )+
-    textTheme(size = fontSize)+
-    boxTheme()
+    )
   
   if(addMeanSE){
     viz <- viz +

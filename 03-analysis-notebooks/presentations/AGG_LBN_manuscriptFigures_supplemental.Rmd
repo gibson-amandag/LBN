@@ -1889,8 +1889,7 @@ flexSave(
   "figLH"
   , plot = figLH
   , width = twoCols
-  # , height = 28/2
-  , height = 28 * 3/4
+  , height = fullLength
   , units = "cm"
   , filePath = manuscriptFolder
 )

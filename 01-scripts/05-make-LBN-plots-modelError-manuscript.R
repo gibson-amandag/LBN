@@ -364,10 +364,6 @@ figCycles_numCycles_model <- cyclesFiltered %>%
   plotError_LMM(
     numCycles_lmm_error
     , xVar = earlyLifeTrt
-    , meanBarWidth = 0.8
-    , barSize = 0.4
-    , color = "magenta"
-    , nudgeErrorLine = 0
   )
 
 figCycles_lengthLog_model <- cyclesFiltered %>%
@@ -391,9 +387,6 @@ figCycles_lengthLog_model <- cyclesFiltered %>%
   plotError_LMM(
     lengthCycles_log_lmm_error
     , xVar = earlyLifeTrt
-    , meanBarWidth = 0.8
-    , color = "magenta"
-    , nudgeErrorLine = 0
   )
 
 
@@ -556,9 +549,6 @@ cortAdmin_cort <- maleCortAdmin_cort_filtered %>%
         time = as.numeric(as.character(time))
       )
     , xVar = time
-    , meanBarWidth = 0.8
-    , color = "magenta"
-    , nudgeErrorLine = 0
   ) +
   labs(x = "time (hr)"
        ) +
@@ -594,10 +584,6 @@ figLH_diAfternoon <- acuteStressFilteredDi %>%
   plotError_LMM(
     LH_diAfternoon_lmm_errors
     , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.8
-    , color = "magenta"
   )
 
 ### Pro - ephys -----------
@@ -616,10 +602,6 @@ figLH_ephysMax <- acuteStressFilteredPro_ephys %>%
   plotError_LMM(
     LH_proEphys_lmm_errors
     , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.8
-    , color = "magenta"
   )
 
 ### Pro - ephys - surged ---------------
@@ -633,48 +615,31 @@ figLH_ephysSurged <- acuteStressFilteredPro_ephys %>%
 
 ### Pro - sampling - over time -----------
 
-figLH_samplingTime <- LHFilteredPro_sampling %>%
-  filter(
-    time > 0
-  ) %>%
-  addOrderedColors(
-    maxLH
-    , mouseID
-    , colorByGroups = FALSE
-    , pkg = "viridis"
-    , comboTrt
-  ) %>%
-  mutate(
-    color = ifelse(
-      maxLH < surgeMin
-      , "#C0C0C0"
-      , color
-    )
-  ) %>%
-  LHPlot_noMean_lineColor(
-    fontSize = textSize
-    , dotSize = .75
-    , zoom_y = TRUE
-    , ymin = 0
-    , ymax = 40
-    , addPoint = TRUE
-  ) + theme(
-    legend.position = "none"
-  ) + facet_wrap(
-    ~comboTrt,
-    scale = "free"
-  )
-
 LHSamplingDF_color <- LHFilteredPro_sampling %>%
   filter(
     time > 0
+    , maxLH >= surgeMin
   ) %>%
   addOrderedColors(
     maxLH
     , mouseID
-    , colorByGroups = FALSE
+    , colorByGroups = TRUE
     , pkg = "viridis"
+    , byMax = FALSE
+    , revOrder = TRUE
     , comboTrt
+  ) %>%
+  select(
+    mouseID
+    , time
+    , color
+  ) %>%
+  full_join(
+    LHFilteredPro_sampling %>%
+      filter(
+        time > 0
+      )
+    , by = c("mouseID", "time")
   ) %>%
   mutate(
     color = ifelse(
@@ -698,6 +663,9 @@ plotLH_overTime_color <-  function(df){
     ) + facet_wrap(
       ~comboTrt,
       scale = "free"
+    ) +
+    theme(
+      strip.text.x.top = element_text(margin = margin(b = -2))
     )
 }
 
@@ -742,17 +710,17 @@ figLH_samplingMax <- acuteStressFilteredPro_sampling %>%
   plotError_LMM(
     LH_proSampling_lmm_errors
     , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.8
-    , color = "magenta"
   )
 
 
 ### Pro - sampling - surged ---------------
 
 
+
 figLH_samplingSurged <- acuteStressFilteredPro_sampling %>%
+  filter(
+    !is.na(LH_hr5)
+  ) %>%
   propSurgedPlotCombo_forSBN(
     fontSize = textSize
     , labelSize = 5
@@ -873,10 +841,6 @@ figGABAa_model <- GABApscs_240FilteredFiring %>%
   plotError_LMM(
     capacitance_lmm_errors
     , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.8
-    , color = "magenta"
   )
 
 figGABAc_model <- GABApscs_240FilteredFiring %>%
@@ -888,10 +852,6 @@ figGABAc_model <- GABApscs_240FilteredFiring %>%
   plotError_LMM(
     seriesResistance_lmm_errors
     , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.8
-    , color = "magenta"
   )
 
 
@@ -900,10 +860,6 @@ figGABAb_model <- GABApscs_240FilteredFiring %>%
   plotError_LMM(
     inputResistance_lmm_errors
     , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.8
-    , color = "magenta"
   )
 
 
@@ -916,10 +872,6 @@ figGABAd_model <- GABApscs_240FilteredFiring %>%
   plotError_LMM(
     holdingCurrent_lmm_errors
     , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.8
-    , color = "magenta"
   ) +
   scale_y_continuous(
     breaks = c(-100, -75, -50, -25, 0, 25)
@@ -934,10 +886,6 @@ figGABAe_model <- GABApscs_240FilteredFiring %>%
   plotError_LMM(
     numEvents_nb.GLMM_errors
     , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = 0.8
-    , color = "magenta"
   )
 
 figGABA2a_model <- GABApscs_240FilteredFiring %>%
