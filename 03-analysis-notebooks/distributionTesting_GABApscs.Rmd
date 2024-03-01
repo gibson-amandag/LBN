@@ -3624,7 +3624,272 @@ relativePropData %>%
   ylab("relative frequency (%)")
 
 ```
+This shows that the relative probabilities above, when averaged, are actually adding up to more than 100%
+I wonder if this is because there are bins that aren't used, and so they're NAs for some cells, instead of zeros.
+Maybe I need to have it explicitly include those zeros?
+```{r}
+# Continue from your previous code and calculate cumulative probabilities
+cumulativePropData <- avgRelPropData %>%
+  arrange(earlyLifeTrt, adultTrt, bin) %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  mutate(cumProp = cumsum(avgRelProp))
 
+# If you want the cumulative proportion to be a value between 0 and 1, you should adjust by dividing by 100
+cumulativePropData <- cumulativePropData %>%
+  mutate(cumPropScaled = cumProp / 100)
+
+# Now prepare the dataset for plotting
+plotData <- cumulativePropData %>%
+  select(earlyLifeTrt, adultTrt, bin, cumPropScaled)
+
+# Plot the cumulative distribution
+ggplot(plotData, aes(x = bin, y = cumPropScaled, color = interaction(earlyLifeTrt, adultTrt), group = interaction(earlyLifeTrt, adultTrt))) +
+  geom_step() + # geom_step for stepwise cumulative plot
+  labs(x = "Event Size", y = "Cumulative Probability", title = "Cumulative Distribution Plot") +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent) # If you want the y-axis to show percentages
+
+# Separate plots for each earlyLifeTrt and adultTrt combination, if needed
+ggplot(plotData, aes(x = bin, y = cumPropScaled)) +
+  geom_step() +
+  facet_wrap(~interaction(earlyLifeTrt, adultTrt), scales = "free_y") + # Use facet_wrap to create a separate plot for each treatment combination
+  labs(x = "Event Size", y = "Cumulative Probability", title = "Cumulative Distribution Plot by Treatment") +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent)
+```
+This still has the same problem.
+```{r}
+# Continuing from your initial binData construction...
+weightedRelPropData <- binData %>%
+  left_join(totalCounts, by = "cellID") %>%
+  mutate(
+    weightedCount = count/total
+  ) %>%
+  select(cellID, bin, weightedCount) %>%
+  left_join(GABApscs_240Filtered %>%
+    select(cellID, earlyLifeTrt, adultTrt), by="cellID")
+
+# Calculate a weighted average relative probability
+avgWeightedRelPropData <- weightedRelPropData %>%
+  group_by(earlyLifeTrt, adultTrt, bin) %>%
+  summarize(
+    avgWeightedRelProp = sum(weightedCount) / n(), # n() is the number of cells in the group
+    .groups = "drop"
+  ) %>%
+  mutate(
+    bin = as.numeric(as.character(bin))
+  )
+
+# You can now verify that the sum of avgWeightedRelProp within each group totals to 100%
+testSum <- avgWeightedRelPropData %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    total = sum(avgWeightedRelProp),
+    .groups = "drop"
+  )
+
+# If necessary, print out the total to check
+testSum
+
+# Create a dataset for a cumulative distribution plot
+cumulativePlotData <- avgWeightedRelPropData %>%
+  ungroup() %>%
+  arrange(earlyLifeTrt, adultTrt, bin) %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  mutate(cumRelProp = cumsum(avgWeightedRelProp))
+
+# Plot the cumulative distribution
+ggplot(cumulativePlotData, aes(x = bin, y = cumRelProp, group = interaction(earlyLifeTrt, adultTrt), color=interaction(earlyLifeTrt, adultTrt))) + 
+  geom_step() + 
+  labs(x = "Event Size", y = "Cumulative Relative Probability (%)", title = "Cumulative Distribution Plot") +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent)
+```
+
+## Corrected to include empty bins
+```{r}
+binWidth <- 1
+maxVal <- 400
+
+binData <- pscProps %>%
+  mutate(
+      bin = cut(amplitude, breaks = seq(0, maxVal, by = binWidth), right = FALSE, labels = seq(0, maxVal - binWidth, by = binWidth))
+    , .after = amplitude
+  ) %>%
+  group_by(cellID, bin) %>%
+  summarize(
+    count = n()
+    , .groups = "drop"
+  ) %>%
+  mutate(
+    bin = as.numeric(as.character(bin))
+  )
+
+allBins <- seq(0, maxVal - binWidth, by = binWidth)
+
+# need to be sure to include empty bins for all cells
+binData <- binData %>%
+  complete(
+    cellID
+    , bin = allBins
+    , fill = list(count = 0)
+  ) %>%
+  arrange(
+    cellID
+    , bin
+  )
+
+totalCounts <- binData %>%
+  group_by(cellID) %>%
+  summarize(
+    total = sum(count)
+    , .groups = "drop"
+  )
+
+relativePropData <- binData %>%
+  left_join(
+    totalCounts
+    , by = "cellID"
+  ) %>%
+  mutate(
+    relProp = count/total * 100
+  ) %>%
+  select(
+    cellID
+    , bin
+    , relProp
+  ) %>%
+  left_join(
+    GABApscs_240Filtered %>%
+      select(
+        cellID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  )
+
+avgRelPropData <- relativePropData %>%
+  group_by(earlyLifeTrt, adultTrt, bin) %>%
+  summarize(
+    avgRelProp = mean(relProp, na.rm = TRUE)
+    , .groups = "drop"
+  ) %>%
+  combineStress()
+
+avgRelPropData
+```
+
+### Test summation to show adds to 100
+```{r}
+testSum <- avgRelPropData %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    total = sum(avgRelProp),
+    .groups = "drop"
+  )
+
+testSum
+```
+
+### Plot of relative proportion
+This plot looks better with larger bins (~5pA)
+```{r}
+
+avgRelProp_plot <- avgRelPropData %>%
+  ggplot(
+    aes(
+      x = bin
+      , y = avgRelProp
+      , group = comboTrt
+    )
+  ) +
+  geom_line(
+    aes(
+      color = comboTrt
+    )
+  ) +
+  comboTrtLineColor()+
+  boxTheme() +
+  textTheme() +
+  coord_cartesian(xlim = c(0, 120)) +
+  xlab("amplitude (pA)") +
+  ylab("relative frequency (%)")
+
+avgRelProp_plot
+```
+### Cumulative distribution
+
+This looks better with smaller bins, and with line instead of step
+```{r}
+# Continue from your previous code and calculate cumulative probabilities
+cumulativePropData <- avgRelPropData %>%
+  arrange(earlyLifeTrt, adultTrt, bin) %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  mutate(cumProp = cumsum(avgRelProp)) %>%
+  combineStress()
+
+# # If you want the cumulative proportion to be a value between 0 and 1, you should adjust by dividing by 100
+# cumulativePropData <- cumulativePropData %>%
+#   mutate(cumPropScaled = cumProp / 100)
+
+# Plot the cumulative distribution
+cumulativePropData %>%
+  ggplot(
+    aes(
+      x = bin
+      , y = cumProp
+      , color = comboTrt
+      , group = comboTrt
+    )
+  ) +
+  # geom_step() +
+  geom_line() +
+  labs(
+    x = "amplitude (pA)"
+    , y = "cumulative probability"
+  ) +
+  coord_cartesian(xlim = c(0, 125)) +
+  boxTheme()+
+  textTheme() +
+  comboTrtLineColor(STD_CON_color = "grey50", LBN_CON_color = "#6dcae8") +
+  theme(
+    legend.position = c(0.6, 0.4)
+    , legend.key = element_blank()
+  )
+```
+
+# Compare to all events
+
+```{r}
+pscProps %>%
+  combineStress() %>%
+  ggplot(
+    aes(
+      x = amplitude
+      , color = comboTrt
+      , group = comboTrt
+    )
+  )+
+  stat_ecdf(geom = "line") +
+  labs(
+    x = "amplitude (pA)"
+    , y = "cumulative probability"
+  ) +
+  coord_cartesian(xlim = c(0, 125)) +
+  boxTheme()+
+  textTheme() +
+  comboTrtLineColor(STD_CON_color = "grey50", LBN_CON_color = "#6dcae8") +
+  theme(
+    legend.position = c(0.6, 0.4)
+    , legend.key = element_blank()
+  )
+
+# rgb_values <- col2rgb("lightblue")
+# hex_color <- rgb(rgb_values[1], rgb_values[2], rgb_values[3], maxColorValue=255)
+```
+
+
+#MISC
 ```{r}
 mixed(
   amplitude ~ earlyLifeTrt * adultTrt + (1|damID) + (1|mouseID) + (1|cellID)

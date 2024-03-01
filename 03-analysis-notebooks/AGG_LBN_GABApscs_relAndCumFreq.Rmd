@@ -1,0 +1,694 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+# Functions 
+
+```{r}
+getHighestBinVal <- function(df, varToSum, bin){
+  maxDF <- df %>%
+    summarize(
+      max = max({{ varToSum }}, na.rm = TRUE)
+    )
+  
+  maxVal <- maxDF$max[1]
+  maxVal <- ceiling(maxVal / bin) * bin
+  return(maxVal)
+}
+
+calcBinnedData <- function(
+    df
+    , varToSum
+    , bin
+    , groupBy = cellID
+){
+  
+  maxVal <- getHighestBinVal(df, {{ varToSum }}, bin)
+  
+  binData <- df %>%
+    mutate(
+        bin = cut({{ varToSum }}, breaks = seq(0, maxVal, by = bin), right = FALSE, labels = seq(0, maxVal - bin, by = bin))
+      , .after = {{ varToSum }}
+    ) %>%
+    group_by({{ groupBy }}, bin) %>%
+    summarize(
+      count = n()
+      , .groups = "drop"
+    )
+
+allBins <- seq(0, maxVal - bin, by = bin)
+
+# need to be sure to include empty bins for all cells
+binData <- binData %>%
+  complete(
+    {{ groupBy }}
+    , bin = factor(allBins)
+    , fill = list(count = 0)
+  ) %>%
+  mutate(
+    bin = as.numeric(as.character(bin))
+  ) %>%
+  arrange(
+    {{ groupBy }}
+    , bin
+  )
+  return(binData)
+}
+
+
+calcTotalEvents <- function(binData, groupBy){
+  totalCounts <- binData %>%
+    group_by({{ groupBy }}) %>%
+    summarize(
+      total = sum(count)
+      , .groups = "drop"
+    )
+  return(totalCounts)
+}
+
+calcRelFreqByCell <- function(
+    df
+    , varToSum
+    , bin
+    , groupBy = cellID
+    , contextDF = GABApscs_240Filtered %>%
+      select(
+        cellID
+        , earlyLifeTrt
+        , adultTrt
+        , comboTrt
+      )
+){
+  binData <- calcBinnedData(df, {{ varToSum }}, bin, groupBy = {{ groupBy }})
+  totalCounts <- calcTotalEvents(binData, groupBy = {{ groupBy }})
+  
+  groupBy_str <- deparse(substitute(groupBy))
+  
+  relativePropData <- binData %>%
+    left_join(
+      totalCounts
+      , by =  groupBy_str
+    ) %>%
+    mutate(
+      relProp = count/total * 100
+    ) %>%
+    select(
+      cellID
+      , bin
+      , relProp
+    ) %>%
+    left_join(
+      contextDF
+      , by = groupBy_str
+    )
+  
+  return(relativePropData)
+}
+
+calcAvgRelFreqAndCumFreq <- function(
+    df
+    , varToSum
+    , bin
+    , contextDF = GABApscs_240Filtered %>%
+      select(
+        cellID
+        , earlyLifeTrt
+        , adultTrt
+      )
+){
+  relativePropData <- calcRelFreqByCell(df, {{ varToSum }}, bin, groupBy = cellID, contextDF = contextDF)
+  
+  avgRelPropData <- relativePropData %>%
+    group_by(earlyLifeTrt, adultTrt, bin) %>%
+    summarize(
+      avgRelProp = mean(relProp, na.rm = TRUE)
+      , .groups = "drop"
+    ) %>%
+    combineStress()
+  
+  cumulativePropData <- avgRelPropData %>%
+    arrange(
+      earlyLifeTrt
+      , adultTrt
+      , bin
+    ) %>%
+    group_by(
+      earlyLifeTrt
+      , adultTrt
+    ) %>%
+    mutate(
+      cumProp = cumsum(avgRelProp)
+    ) %>%
+    combineStress()
+  
+  return(cumulativePropData)
+}
+```
+
+## Plotting
+
+```{r}
+plotRelDist <- function(
+    df
+    , xLab
+    , yLab = "relative frequency (%)"
+    , zoom_x = FALSE
+    , xmin = NA
+    , xmax = NA
+    , zoom_y = FALSE
+    , ymin = 0
+    , ymax = 100
+    , textSize = 16
+    , legendPosition = c(0.6, 0.3)
+){
+  plot <- df %>%
+    ggplot(
+      aes(
+        x = bin
+        , y = avgRelProp
+        , group = comboTrt
+      )
+    ) +
+    geom_line(
+      aes(
+        color = comboTrt
+      )
+    ) +
+    boxTheme() +
+    textTheme(size = textSize) +
+    expand_limits(y=0)+
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
+    xlab(xLab) +
+    ylab(yLab) +
+    comboTrtLineColor(STD_CON_color = "grey50", LBN_CON_color = "#6dcae8") +
+    theme(
+      legend.position = legendPosition 
+      , legend.key = element_blank()
+    )
+  return(plot)
+}
+
+plotCumFreqDist <- function(
+    df
+    , xLab
+    , yLab = "cumulative frequency (%)"
+    , zoom_x = FALSE
+    , xmin = NA
+    , xmax = NA
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 100
+    , textSize = 16
+    , legendPosition = c(0.6, 0.3) 
+){
+  plot <- df %>%
+    ggplot(
+      aes(
+        x = bin
+        , y = cumProp
+        , group = comboTrt
+      )
+    ) +
+    geom_line(
+      aes(
+        color = comboTrt
+      )
+    ) +
+    boxTheme() +
+    textTheme(size = textSize) +
+    expand_limits(y=0)+
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
+    xlab(xLab) +
+    ylab(yLab) +
+    comboTrtLineColor(STD_CON_color = "grey50", LBN_CON_color = "#6dcae8") +
+    theme(
+      legend.position = legendPosition 
+      , legend.key = element_blank()
+    )
+  return(plot)
+}
+```
+
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+# Set-up
+```{r}
+figureNum <- 1
+
+pptBaseName <- makeBaseNameFunc("")
+
+plotFolder <- file.path(plotOutputFolder, "distributionPlots")
+
+imgType <-"png"
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotFolder
+  , compType = currentCompType
+)
+
+exportFullPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+    , width = 11.5
+    , height = 5
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = width
+    , height = height
+  )
+}
+
+exportHalfPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 5.67
+    , height = 5
+  )
+}
+
+exportThirdPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 3.6
+    , height = 5
+  )
+}
+
+exportQuarterPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 3.2
+    , height = 5
+  )
+}
+
+editableImgs <- TRUE
+pptAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddOneTable <- function(
+    table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_oneTable(
+    officer_ppt, 
+    title, 
+    table, 
+    dontFormat = dontFormat
+  )
+  return(officer_ppt)
+}
+
+pptUneditAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = FALSE
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphs <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphsMoreLeft <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraphMoreLeft(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddGraphTable <- function(
+    plot
+    , table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_graphTable(
+    officer_ppt, 
+    title, 
+    plot, 
+    table,
+    makeEditable = editableImgs
+    , dontFormat = dontFormat
+    , textSize = textSize
+  )
+  return(officer_ppt)
+}
+
+pptAddFourGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , plot4
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_fourGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    plot4,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddThreeGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_threeGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddStats <- function(
+    statsText
+    , officer_ppt = ppt
+){
+  officer_ppt <- addStatsToBottom(
+    officer_ppt,
+    statsText
+  )
+}
+
+pptAddTwoStats <- function(
+    statsText1
+    , statsText2
+    , officer_ppt = ppt
+){
+  officer_ppt <- addTwoStatsToGraphs(
+    officer_ppt,
+    statsText1,
+    statsText2
+  )
+}
+
+pptAddSectionHead <- function(
+    title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_sectionHead(
+    officer_ppt
+    , title
+  )
+}
+
+
+
+```
+
+## Fresh doc
+
+```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("genericPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+# layout_properties(ppt, layout="Title Slide")
+
+subText <- "Amanda Gibson\nPSC distribution plots, averaged by cell"
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "AGG_PSC_distributions"
+  , addDate = TRUE
+)
+```
+
+# Results
+
+## Attempt 1
+
+### Amp
+
+```{r}
+amplitude_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, amplitude, 5)
+
+amplitude_relDist_plot <- plotRelDist(amplitude_avgDistByCell, "amplitude (pA)")
+amplitude_cumFreq_plot <- plotCumFreqDist(amplitude_avgDistByCell, "amplitude (pA)")
+
+amplitude_relDist_plot
+amplitude_cumFreq_plot
+```
+### Rise time
+
+```{r}
+riseTime_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, riseTime, 0.05)
+
+riseTime_relDist_plot <- plotRelDist(riseTime_avgDistByCell, "rise time (ms)")
+riseTime_cumFreq_plot <- plotCumFreqDist(riseTime_avgDistByCell, "rise time (ms)")
+
+riseTime_relDist_plot
+riseTime_cumFreq_plot
+```
+### Decay time
+
+```{r}
+decayTime_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, decay9010, 1.5)
+
+decayTime_relDist_plot <- plotRelDist(decayTime_avgDistByCell, "decay time (ms)")
+decayTime_cumFreq_plot <- plotCumFreqDist(decayTime_avgDistByCell, "decay time (ms)")
+
+decayTime_relDist_plot
+decayTime_cumFreq_plot
+```
+### Full width half max
+
+```{r}
+fwhm_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, fwhm, 0.5)
+
+fwhm_relDist_plot <- plotRelDist(fwhm_avgDistByCell, "fwhm (ms)")
+fwhm_cumFreq_plot <- plotCumFreqDist(fwhm_avgDistByCell, "fwhm (ms)")
+
+fwhm_relDist_plot
+fwhm_cumFreq_plot
+```
+
+## Bigger bins
+
+```{r}
+amplitude_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, amplitude, 10)
+
+amplitude_relDist_plot <- plotRelDist(amplitude_avgDistByCell, "amplitude (pA)")
+amplitude_cumFreq_plot <- plotCumFreqDist(amplitude_avgDistByCell, "amplitude (pA)")
+
+amplitude_relDist_plot
+amplitude_cumFreq_plot
+```
+
+```{r}
+riseTime_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, riseTime, 0.1)
+
+riseTime_relDist_plot <- plotRelDist(riseTime_avgDistByCell, "rise time (ms)")
+riseTime_cumFreq_plot <- plotCumFreqDist(riseTime_avgDistByCell, "rise time (ms)")
+
+riseTime_relDist_plot
+riseTime_cumFreq_plot
+```
+
+```{r}
+decayTime_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, decay9010, 3)
+
+decayTime_relDist_plot <- plotRelDist(decayTime_avgDistByCell, "decay time (ms)")
+decayTime_cumFreq_plot <- plotCumFreqDist(decayTime_avgDistByCell, "decay time (ms)")
+
+decayTime_relDist_plot
+decayTime_cumFreq_plot
+```
+
+```{r}
+fwhm_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, fwhm, 1)
+
+fwhm_relDist_plot <- plotRelDist(fwhm_avgDistByCell, "fwhm (ms)")
+fwhm_cumFreq_plot <- plotCumFreqDist(fwhm_avgDistByCell, "fwhm (ms)")
+
+fwhm_relDist_plot
+fwhm_cumFreq_plot
+```
+
+## Restricted X
+
+### Amp
+
+```{r}
+amplitude_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, amplitude, 5)
+
+amplitude_relDist_plot <- plotRelDist(amplitude_avgDistByCell, "amplitude (pA)", zoom_x = TRUE, xmax = 125, legendPosition = c(0.6, 0.5))
+amplitude_cumFreq_plot <- plotCumFreqDist(amplitude_avgDistByCell, "amplitude (pA)", zoom_x = TRUE, xmax = 125)
+
+amplitude_relDist_plot
+fileBaseName <- "amplitude_relDist_bin5"
+slideTitle <- "Amplitude - 5pA bin - relative distribution"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+
+amplitude_cumFreq_plot
+
+fileBaseName <- "amplitude_cumFreqDist_bin5"
+slideTitle <- "Amplitude - 5pA bin - cumulative frequency distribution"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+### Rise time
+
+```{r}
+riseTime_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, riseTime, 0.05)
+
+riseTime_relDist_plot <- plotRelDist(riseTime_avgDistByCell, "rise time (ms)", zoom_x = TRUE, xmax = 2.3, legendPosition = c(0.6, 0.6))
+riseTime_cumFreq_plot <- plotCumFreqDist(riseTime_avgDistByCell, "rise time (ms)", zoom_x = TRUE, xmax = 2.3)
+
+riseTime_relDist_plot
+fileBaseName <- "riseTime_relDist_bin5"
+slideTitle <- "Rise time - 0.05ms bin - relative distribution"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+
+riseTime_cumFreq_plot
+
+fileBaseName <- "riseTime_cumFreqDist_bin5"
+slideTitle <- "Rise time - 0.05ms bin - cumulative frequency distribution"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+### Decay time
+
+```{r}
+decayTime_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, decay9010, 1.5)
+
+decayTime_relDist_plot <- plotRelDist(decayTime_avgDistByCell, "decay time (ms)", zoom_x = TRUE, xmax = 100, legendPosition = c(0.6, 0.7))
+decayTime_cumFreq_plot <- plotCumFreqDist(decayTime_avgDistByCell, "decay time (ms)", zoom_x = TRUE, xmax = 100)
+
+decayTime_relDist_plot
+fileBaseName <- "decayTime_relDist_bin5"
+slideTitle <- "Decay time - 1.5ms bin - relative distribution"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+
+decayTime_cumFreq_plot
+
+fileBaseName <- "decayTime_cumFreqDist_bin5"
+slideTitle <- "Decay time - 1.5ms bin - cumulative frequency distribution"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+### FWHM
+
+```{r}
+fwhm_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, fwhm, 0.5)
+
+fwhm_relDist_plot <- plotRelDist(fwhm_avgDistByCell, "fwhm (ms)", zoom_x = TRUE, xmax = 22, legendPosition = c(0.7, 0.6))
+fwhm_cumFreq_plot <- plotCumFreqDist(fwhm_avgDistByCell, "fwhm (ms)", zoom_x = TRUE, xmax = 22)
+
+fwhm_relDist_plot
+fileBaseName <- "fwhm_relDist_bin5"
+slideTitle <- "FWHM - 0.5ms bin - relative distribution"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+
+fwhm_cumFreq_plot
+
+fileBaseName <- "fwhm_cumFreqDist_bin5"
+slideTitle <- "FWHM - 0.5ms bin - cumulative frequency distribution"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+
