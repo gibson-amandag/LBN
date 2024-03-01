@@ -2029,6 +2029,26 @@ tableNum <- propSurged_num
 # doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
+## Peak Time
+
+```{r}
+tbl <- LH_pro_peakTime_flexTable
+tbl
+```
+
+
+```{r}
+tableCaption <- "Statistics from linear mixed models of the time (h) of maximum evening LH on day of adult treatment in proestrous females with repeated hourly LH sampling around the time of lights out. Data were fit with the formula `time at max LH ~ early-life treatment * adult treatment + (1 | dam)`."
+```
+
+```{r}
+LH_pro_peakTime_lmm_num <- LH_pro_lmm_num + 1
+tableNum <- LH_pro_peakTime_lmm_num
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
 
 
 # Figure 9 - GABA PSCs - passives and frequency

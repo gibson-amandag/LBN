@@ -16937,3 +16937,112 @@ viz
 
 ```
 
+```{r}
+acuteStressFilteredPro_sampling %>%
+  scatterPlotComboTrt(
+    yVar = timeAtMax
+    , yLab = "time (h) at max LH relative to lights out"
+    , zoom_y = TRUE
+    , ymin = 4.5
+    , ymax = 10
+    , dotSize = 1.5
+  ) +
+  scale_y_continuous(
+    breaks = c(5, 5.5, 6.5, 7.5, 8.5, 9.5)
+    , labels = c("-2.5", "-2", "-1", "0", "1", "2")
+  )
+
+mixed(
+  timeAtMax ~ earlyLifeTrt * adultTrt + (1|damID)
+  , acuteStressFilteredPro_sampling
+  , method = "KR"
+)
+```
+
+```{r}
+mydata <- acuteStressFilteredPro_sampling
+
+# Replace 'lh_concentration' with your actual variable name
+# Rank-transform the LH concentrations within each litter ('damID')
+mydata$ranked_lh <- ave(mydata$maxLH, mydata$damID, FUN = rank)
+
+mydata %>%
+  select(
+    mouseID
+    , damID
+    , ranked_lh
+    , maxLH
+  ) %>%
+  arrange(
+    ranked_lh
+  )
+
+# Run the mixed-effects model on the ranked data
+model <- lmer(ranked_lh ~ early_life_treatment * adult_treatment + (1|damID), data = mydata)
+
+# Check the summary of the model
+summary(model)
+```
+
+```{r}
+rankedLHSampling <- acuteStressFilteredPro_sampling %>%
+  filter(
+    !is.na(maxLH)
+  ) %>%
+  mutate(
+    rankedLH = rank(maxLH)
+  )
+
+mixed(
+  rankedLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = rankedLHSampling
+  , method = "KR"
+)
+```
+
+```{r}
+rankedEphysSampling <- acuteStressFilteredPro_ephys %>%
+  filter(
+    !is.na(maxLH)
+  ) %>%
+  mutate(
+    rankedLH = rank(maxLH)
+  )
+
+mixed(
+  rankedLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = rankedEphysSampling
+  , method = "KR"
+)
+```
+
+```{r}
+rankedLH_ephys %>%
+  scatterPlotComboTrt(
+    yVar = rankedLH
+    , yLab = "ranked max LH"
+    , dotSize = dotSize
+    , addMeanSE = FALSE
+  )
+rankedLH_sampling %>%
+  scatterPlotComboTrt(
+    yVar = rankedLH
+    , yLab = "ranked max LH"
+    , dotSize = dotSize
+    , addMeanSE = FALSE
+  )
+```
+```{r}
+mixed(
+  surged ~ earlyLifeTrt * adultTrt + (1|damID)
+  , acuteStressFilteredPro_sampling %>%
+    mutate(
+      surged = ifelse(
+        maxLH >= surgeMin, 1, 0
+      )
+    )
+  , family = binomial(link = "logit")
+  , method = "LRT"
+)
+```
+

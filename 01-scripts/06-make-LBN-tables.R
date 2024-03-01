@@ -3283,6 +3283,12 @@ LH_pro_flexTable <- LH_pro_tbl %>%
     , vertLines = c(1, 4)
   )
 
+LH_pro_peakTime_flexTable <- LH_proSampling_peakTime_lmm$anova_table %>%
+  simplifyLMMOutput() %>%
+  makeManuscriptFlexTable(
+    vertLines = c(1)
+  )
+
 ### EMMs -----------------
 LH_proEphysLMM_emm_earlyLifeTrt_tbl <-  LH_proEphys_lmm_emm_earlyLifeTrt %>%
   as_tibble() %>%

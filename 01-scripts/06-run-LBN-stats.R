@@ -697,6 +697,49 @@ LH_proSampling_lmm_errors <- LH_proSampling_lmm %>%
   combineStress()
 
 
+## Rank-based transformation of max LH --------------------
+
+### Ephys limited sampling ----------------
+
+rankedLH_ephys <- acuteStressFilteredPro_ephys %>%
+  filter(
+    !is.na(maxLH)
+  ) %>%
+  mutate(
+    rankedLH = rank(maxLH)
+  )
+
+rankedLH_ephys_lmm <- mixed(
+  rankedLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = rankedLH_ephys
+  , method = "KR"
+)
+
+### Full sampling --------------------
+
+rankedLH_sampling <- acuteStressFilteredPro_sampling %>%
+  filter(
+    !is.na(maxLH)
+  ) %>%
+  mutate(
+    rankedLH = rank(maxLH)
+  )
+
+rankedLH_sampling_lmm <- mixed(
+  rankedLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = rankedLH_sampling
+  , method = "KR"
+)
+
+
+## LH peak time in full sampling ----------------
+
+LH_proSampling_peakTime_lmm <- mixed(
+  timeAtMax ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFilteredPro_sampling
+  , method = "KR"
+)
+
 ## Chi-squared pro ---------
 
 pro_ALPS_only <- acuteStressFilteredPro_sampling %>%
