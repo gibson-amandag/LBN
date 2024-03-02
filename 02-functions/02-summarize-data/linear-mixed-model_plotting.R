@@ -100,6 +100,47 @@ plotError_LMM_aes <- function(
   return(geoms)
 }
 
+plotError_LMM_aes_xAxis <- function(
+    lmmData
+    , yVal = 50
+    , meanBarWidth = 0.8 # make smaller in the end, but for now to compare
+    , barSize = 0.4
+    , nudgeLine = 0
+    , dodgeWidth = 4
+    , ...
+) {
+  geoms <- list(
+    geom_errorbar(
+      aes(
+        y = yVal
+        , xmin = y
+        , xmax = y
+        , color = comboTrt
+      )
+      , data = lmmData
+      , inherit.aes = FALSE
+      , width = meanBarWidth
+      , linewidth = barSize
+      # , position = position_nudge(y = nudgeLine)
+      , position = position_dodge(width = dodgeWidth)
+    ), 
+    geom_linerange(
+      aes(
+        y = yVal
+        , xmin = lower
+        , xmax = upper
+        , color = comboTrt
+      )
+      , data = lmmData
+      , inherit.aes = FALSE
+      , linewidth = barSize
+      # , position = position_nudge(y = nudgeLine)
+      , position = position_dodge(width = dodgeWidth)
+    )
+  )
+  return(geoms)
+}
+
 plotError_LMM_meanLine <- function(
     lmmData
     , xVar

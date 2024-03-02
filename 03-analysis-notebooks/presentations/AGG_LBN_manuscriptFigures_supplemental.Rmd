@@ -828,105 +828,6 @@ doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 
 # Figure 5 - Male masses - ALPS
 
-```{r eval=FALSE, include=FALSE}
-figMaleMassALPS_left <- align_plots(
-  maleBodyMassAM_ALPS_plot+rremove("legend")
-  , maleAdrenalMass_ALPS_plot
-  , maleRelAdrenalMass_ALPS_plot
-  , align = "v"
-  , axis = "l"
-)
-
-figMaleMassALPS_middle <- align_plots(
-  maleSeminalVesicleMass_ALPS_plot
-  , maleRelSeminalVesicleMass_ALPS_plot
-  , align = "v"
-  , axis = "lr"
-)
-figMaleMassALPS_right <- align_plots(
-  maleTestesMass_ALPS_plot
-  , maleRelTestesMass_ALPS_plot
-  , align = "v"
-  , axis = "lr"
-)
-
-figMaleMassALPS <- plot_grid(
-  get_legend(maleBodyMassAM_ALPS_plot)
-  , plot_grid(
-    figMaleMassALPS_left[[1]]
-    , malePercChangeBodyMass_ALPS_plot
-    , nrow = 1
-  ),
-  plot_grid(
-    figMaleMassALPS_left[[2]]
-    , figMaleMassALPS_middle[[1]]
-    , figMaleMassALPS_right[[1]]
-    , nrow = 1
-  ),
-  plot_grid(
-    figMaleMassALPS_left[[3]]
-    , figMaleMassALPS_middle[[2]]
-    , figMaleMassALPS_right[[2]]
-    , nrow = 1
-  )
-  , nrow = 4
-  , rel_heights = c(0.1, 1, 1, 1)
-)
-figMaleMassALPS
-```
-
-3-by-3 layout
-```{r eval=FALSE, include=FALSE}
-figMaleMassALPS <- plot_grid(
-  get_legend(maleBodyMassAM_ALPS_plot)
-  , plot_grid(
-    maleBodyMassAM_ALPS_plot + rremove("legend")
-    , malePercChangeBodyMass_ALPS_plot
-    , NULL
-    , maleAdrenalMass_ALPS_plot
-    , maleSeminalVesicleMass_ALPS_plot
-    , maleTestesMass_ALPS_plot
-    , maleRelAdrenalMass_ALPS_plot
-    , maleRelSeminalVesicleMass_ALPS_plot
-    , maleRelTestesMass_ALPS_plot
-    , nrow = 3
-    , ncol = 3
-    , align = "hv"
-    , axis = "tlbr"
-    , labels = c("A", "B", "", "C", "E", "G", "D", "F", "H")
-  )
-  , nrow = 2
-  ,rel_heights = c(0.1, 3)
-)
-figMaleMassALPS
-```
-
-
-4-by-2 layout, AM
-```{r eval=FALSE, include=FALSE}
-figMaleMassALPS <- plot_grid(
-  get_legend(maleBodyMassAM_ALPS_plot)
-  , plot_grid(
-    maleBodyMassAM_ALPS_plot + rremove("legend")
-    , malePercChangeBodyMass_ALPS_plot
-    , maleAdrenalMass_ALPS_plot
-    , maleRelAdrenalMass_ALPS_plot
-    , maleSeminalVesicleMass_ALPS_plot
-    , maleRelSeminalVesicleMass_ALPS_plot
-    , maleTestesMass_ALPS_plot
-    , maleRelTestesMass_ALPS_plot
-    # , nrow = 3
-    , ncol = 2
-    , align = "hv"
-    , axis = "tlbr"
-    , labels = c("A", "B", "C", "D", "E", "F", "G", "H")
-  )
-  , nrow = 2
-  ,rel_heights = c(0.1, 3)
-)
-figMaleMassALPS
-```
-
 4-by-2 layout, PM
 ```{r}
 figMaleMassALPS <- plot_grid(
@@ -1000,8 +901,6 @@ supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ## lmm
 
 ```{r}
-tbl <- maleALPS_RelAM_flexTable
-tbl
 tbl <- maleALPS_RelPM_flexTable
 tbl
 ```
@@ -1012,13 +911,14 @@ tableCaption <- "Statistics from linear mixed models of male masses on day of ad
 ```
 
 ```{r}
-# maleMass_ALPS_lmm_num <- maleMass_ALPS_countsNum + 1
-maleMass_ALPS_lmm_num <- femaleCortLMM_emm_num.pairs + 1
+maleMass_ALPS_lmm_num <- maleMass_ALPS_countsNum + 1
+# maleMass_ALPS_lmm_num <- femaleCortLMM_emm_num.pairs + 1
 tableNum <- maleMass_ALPS_lmm_num
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
 ### EMM
@@ -1035,8 +935,8 @@ tableCaption <- "Estimated marginal means (emmean) from linear mixed models of m
 ```
 
 ```{r}
-# maleMass_ALPS_lmm_emm_num <- maleMass_ALPS_lmm_num + 1
-maleMass_ALPS_lmm_emm_num <- maleMass_ALPS_countsNum + 1
+maleMass_ALPS_lmm_emm_num <- maleMass_ALPS_lmm_num + 1
+# maleMass_ALPS_lmm_emm_num <- maleMass_ALPS_countsNum + 1
 tableNum <- maleMass_ALPS_lmm_emm_num
 ```
 
@@ -1059,125 +959,18 @@ tableCaption <- "Pairwise comparison of estimated marginal means from linear mix
 ```
 
 ```{r}
-# maleMass_ALPS_lmm_emm.pairs_num <- maleMass_ALPS_lmm_emm_num + 1
-maleMass_ALPS_lmm_emm.pairs_num <- maleMass_ALPS_lmm_num + 1
+maleMass_ALPS_lmm_emm.pairs_num <- maleMass_ALPS_lmm_emm_num + 1
+# maleMass_ALPS_lmm_emm.pairs_num <- maleMass_ALPS_lmm_num + 1
 tableNum <- maleMass_ALPS_lmm_emm.pairs_num
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
 
 # Figure 6 - Male cort administration
-
-```{r eval=FALSE, include=FALSE}
-figMaleCortAdmin_aligned <- align_plots(
-  maleBodyMassAM_dosage_plot
-  , maleAdrenalMass_dosage_plot
-  , maleSeminalVesicleMass_dosage_plot
-  , maleTestesMass_dosage_plot
-  , malePercChangeBodyMass_dosage_plot
-  , maleRelAdrenalMass_dosage_plot
-  , maleRelSeminalVesicleMass_dosage_plot
-  , maleRelTestesMass_dosage_plot
-  , cortAdmin_cort
-  , align = "v"
-  , axis = "l"
-)
-
-figMaleMass_dosage <- plot_grid(
-  figMaleCortAdmin_aligned[[1]]
-  , figMaleCortAdmin_aligned[[2]]
-  , figMaleCortAdmin_aligned[[3]]
-  , figMaleCortAdmin_aligned[[4]]
-  , figMaleCortAdmin_aligned[[5]]
-  , figMaleCortAdmin_aligned[[6]]
-  , figMaleCortAdmin_aligned[[7]]
-  , figMaleCortAdmin_aligned[[8]]
-  , nrow = 3
-  , ncol = 3
-  , align = "h"
-  , axis = "tb"
-  , labels = c("B", "D", "F", "H", "C", "E", "G", "I")
-)
-
-figMaleCortAdmin <- plot_grid(
-  figMaleCortAdmin_aligned[[9]]
-  , figMaleMass_dosage
-  , nrow = 2
-  , rel_heights = c(1.5, 3.3)
-  , labels = c("A", "")
-)
-figMaleCortAdmin
-```
-
-```{r eval=FALSE, include=FALSE}
-figMaleCortAdmin_left <- align_plots(
-  cortAdmin_cort
-  , maleAdrenalMass_dosage_plot
-  , maleRelAdrenalMass_dosage_plot
-  , align = "v"
-  , axis = "l"
-)
-figMaleCortAdmin_middle <- align_plots(
-  maleSeminalVesicleMass_dosage_plot
-  , maleRelSeminalVesicleMass_dosage_plot
-  , align = "v"
-  , axis = "l"
-)
-figMaleCortAdmin_right <- align_plots(
-  maleTestesMass_dosage_plot
-  , maleRelTestesMass_dosage_plot
-  , align = "v"
-  , axis = "l"
-)
-figMaleCortAdmin_top <- align_plots(
-  maleBodyMassAM_dosage_plot
-  , malePercChangeBodyMass_dosage_plo
-  , align = "vh"
-  , axis = "tblr"
-)
-
-figMaleCortAdmin_row1 <- plot_grid(
-  figMaleCortAdmin_left[[1]]
-  , figMaleCortAdmin_top[[1]]
-  , figMaleCortAdmin_top[[2]]
-  , nrow = 1
-  , align = "h"
-  , axis = "tb"
-  , labels = c("A", "B", "C")
-  , rel_widths = c(2, 1, 1)
-)
-figMaleCortAdmin_row2 <- plot_grid(
-  figMaleCortAdmin_left[[2]]
-  , figMaleCortAdmin_middle[[1]]
-  , figMaleCortAdmin_right[[1]]
-  , nrow = 1
-  , align = "h"
-  , axis = "tb"
-  , labels = c("D", "F", "H")
-)
-figMaleCortAdmin_row3 <- plot_grid(
-  figMaleCortAdmin_left[[3]]
-  , figMaleCortAdmin_middle[[2]]
-  , figMaleCortAdmin_right[[2]]
-  , nrow = 1
-  , align = "h"
-  , axis = "tb"
-  , labels = c("E", "G", "I")
-)
-
-figMaleCortAdmin <- plot_grid(
-  figMaleCortAdmin_row1
-  , figMaleCortAdmin_row2
-  , figMaleCortAdmin_row3
-  , nrow = 3
-  , rel_heights = c(0.9, 1, 1)
-)
-
-figMaleCortAdmin
-```
 
 ```{r}
 figMaleCortAdmin_left <- align_plots(
@@ -1271,7 +1064,8 @@ tableCaption <- "Number of litters and mice with serum corticosterone measuremen
 ```{r}
 # malesCortAdmin_cortCount_num <- maleMass_ALPS_lmm_emm.pairs_num + 1
 # malesCortAdmin_cortCount_num <- maleMass_ALPS_lmm_emm_num + 1
-malesCortAdmin_cortCount_num <- maleMass_ALPS_lmm_emm_num
+# malesCortAdmin_cortCount_num <- maleMass_ALPS_lmm_emm_num
+malesCortAdmin_cortCount_num <- maleMass_ALPS_lmm_emm.pairs_num
 tableNum <- malesCortAdmin_cortCount_num
 ```
 
@@ -1293,13 +1087,14 @@ maleCortAdmin_cort_formula <-  getLMMFormula(maleCortAdmin_cort_lmm)
 tableCaption <- paste0("Statistics for serum corticosterone in males with vehicle or corticosterone administration. Data were fit with the linear mixed model equation `", maleCortAdmin_cort_formula, "`.")
 ```
 ```{r}
-# malesCortAdmin_cortLMM_num <- malesCortAdmin_cortCount_num + 1
-malesCortAdmin_cortLMM_num <- maleMass_ALPS_lmm_emm.pairs_num + 1
+malesCortAdmin_cortLMM_num <- malesCortAdmin_cortCount_num + 1
+# malesCortAdmin_cortLMM_num <- maleMass_ALPS_lmm_emm.pairs_num + 1
 tableNum <- malesCortAdmin_cortLMM_num
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
 ### EMM
@@ -1314,8 +1109,8 @@ tableCaption <- "Estimated marginal means (emmean) from linear mixed model of se
 ```
 
 ```{r}
-# malesCortAdmin_cortLMM_EMM_num <- malesCortAdmin_cortLMM_num + 1
-malesCortAdmin_cortLMM_EMM_num <- malesCortAdmin_cortCount_num + 1
+malesCortAdmin_cortLMM_EMM_num <- malesCortAdmin_cortLMM_num + 1
+# malesCortAdmin_cortLMM_EMM_num <- malesCortAdmin_cortCount_num + 1
 tableNum <- malesCortAdmin_cortLMM_EMM_num
 ```
 
@@ -1336,13 +1131,14 @@ tableCaption <- "Pairwise comparison of estimated marginal means from linear mix
 ```
 
 ```{r}
-# malesCortAdmin_cortLMM_EMM.pairs_num <- malesCortAdmin_cortLMM_EMM_num + 1
-malesCortAdmin_cortLMM_EMM.pairs_num <- malesCortAdmin_cortLMM_num + 1
+malesCortAdmin_cortLMM_EMM.pairs_num <- malesCortAdmin_cortLMM_EMM_num + 1
+# malesCortAdmin_cortLMM_EMM.pairs_num <- malesCortAdmin_cortLMM_num + 1
 tableNum <- malesCortAdmin_cortLMM_EMM.pairs_num
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
 ## Mass count 
@@ -1362,7 +1158,8 @@ tableCaption <- "Number of litters and male mice with mass measurements on the d
 ```{r}
 # maleCortAdmin_massCount_num <- malesCortAdmin_cortLMM_EMM.pairs_num + 1
 # maleCortAdmin_massCount_num <- malesCortAdmin_cortLMM_EMM_num + 1
-maleCortAdmin_massCount_num <- malesCortAdmin_cortLMM_EMM_num
+# maleCortAdmin_massCount_num <- malesCortAdmin_cortLMM_EMM_num
+maleCortAdmin_massCount_num <- malesCortAdmin_cortLMM_EMM.pairs_num
 tableNum <- maleCortAdmin_massCount_num
 ```
 
@@ -1374,9 +1171,6 @@ tableNum <- maleCortAdmin_massCount_num
 ## mass LMM
 
 ```{r}
-tbl <- male_dosage_RelAM_flexTable
-tbl
-
 tbl <- male_dosage_RelPM_flexTable
 tbl
 ```
@@ -1386,21 +1180,19 @@ tableCaption <- "Statistics from linear mixed models of male masses on day of ve
 ```
 
 ```{r}
-# maleCortAdmin_mass_lmm_num <- maleCortAdmin_massCount_num + 1
-maleCortAdmin_mass_lmm_num <- malesCortAdmin_cortLMM_EMM.pairs_num + 1
+maleCortAdmin_mass_lmm_num <- maleCortAdmin_massCount_num + 1
+# maleCortAdmin_mass_lmm_num <- malesCortAdmin_cortLMM_EMM.pairs_num + 1
 tableNum <- maleCortAdmin_mass_lmm_num
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
 ### EMM
 
 ```{r}
-tbl <- male_dosage_RelAM_EMM_flexTable
-tbl
-
 tbl <- male_dosage_RelPM_EMM_flexTable
 tbl
 ```
@@ -1410,8 +1202,8 @@ tableCaption <- "Estimated marginal means (emmean) from linear mixed models of m
 ```
 
 ```{r}
-# maleCortAdmin_mass_lmm_emm_num <- maleCortAdmin_mass_lmm_num + 1
-maleCortAdmin_mass_lmm_emm_num <- maleCortAdmin_massCount_num + 1
+maleCortAdmin_mass_lmm_emm_num <- maleCortAdmin_mass_lmm_num + 1
+# maleCortAdmin_mass_lmm_emm_num <- maleCortAdmin_massCount_num + 1
 tableNum <- maleCortAdmin_mass_lmm_emm_num
 ```
 
@@ -1423,9 +1215,6 @@ supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ### Pairs
 
 ```{r}
-tbl <- male_dosage_RelAM_EMM.pairs_flexTable
-tbl
-
 tbl <- male_dosage_RelPM_EMM.pairs_flexTable
 tbl
 ```
@@ -1435,69 +1224,18 @@ tableCaption <- "Pairwise comparison of estimated marginal means from linear mix
 ```
 
 ```{r}
-# maleCortAdmin_mass_lmm_emm.pairs_num <- maleCortAdmin_mass_lmm_emm_num + 1
-maleCortAdmin_mass_lmm_emm.pairs_num <- maleCortAdmin_mass_lmm_num + 1
+maleCortAdmin_mass_lmm_emm.pairs_num <- maleCortAdmin_mass_lmm_emm_num + 1
+# maleCortAdmin_mass_lmm_emm.pairs_num <- maleCortAdmin_mass_lmm_num + 1
 tableNum <- maleCortAdmin_mass_lmm_emm.pairs_num
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-```
-
-
-```{r eval=FALSE, include=FALSE}
-maleBodyMassAM_dosage_lmm
-malePercChangeBodyMass_dosage_lmm
-maleAdrenalMass_dosage_lmm
-maleRelAdrenalMass_dosage_lmm
-maleRelAdrenalMassPM_dosage_lmm
-maleSeminalVesicleMass_dosage_lmm
-maleRelSeminalVesicleMass_dosage_lmm
-maleRelSeminalVesicleMassPM_dosage_lmm
-maleTestesMass_dosage_lmm
-maleRelTestesMass_dosage_lmm
-maleRelTestesMassPM_dosage_lmm
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
 # Figure 7 - Female masses
 
-```{r eval=FALSE, include=FALSE}
-figFemalesMasses_plots <- align_plots(
-    femaleBodyMassAM_ALPS_plot + rremove("legend") 
-    , femalePercChangeBodyMass_ALPS_plot
-    , femaleAdrenalMass_ALPS_plot
-    , femaleUterineMass_ALPS_plot
-    , femaleRelAdrenalMass_ALPS_plot
-    , femaleRelUterineMass_ALPS_plot
-    , align = "hv"
-    , axis = "lrtb"
-)
-
-figFemalesMasses <- plot_grid(
-  get_legend(femaleBodyMassAM_ALPS_plot)
-  , plot_grid(
-    figFemalesMasses_plots[[1]]
-    , figFemalesMasses_plots[[2]]
-    , ncol = 2
-    , labels = c("A", "B")
-  )
-  , plot_grid(
-    figFemalesMasses_plots[[3]]
-    , figFemalesMasses_plots[[5]]
-    , ncol = 2
-    , labels = c("C", "D")
-  )
-  , plot_grid(
-    figFemalesMasses_plots[[4]]
-    , figFemalesMasses_plots[[6]]
-    , ncol = 2
-    , labels = c("E", "F")
-  )
-  , nrow = 4
-  , rel_heights = c(0.1, 1, 1, 1)
-)
-figFemalesMasses
-```
 ```{r}
 figFemalesMasses_plots <- align_plots(
     femaleBodyMassAM_ALPS_plot + rremove("legend") 
@@ -1577,9 +1315,6 @@ flexSave(
 ## Count
 
 ```{r}
-tbl <- femaleMass_ALPSAM_counts_flexTable
-tbl
-
 tbl <- femaleMass_ALPSPM_counts_flexTable
 tbl
 ```
@@ -1590,8 +1325,8 @@ tableCaption <- "Number of litters and female mice with mass measurements on the
 ```
 
 ```{r}
-# femaleMass_ALPS_countsNum <- maleCortAdmin_mass_lmm_emm.pairs_num + 1
-femaleMass_ALPS_countsNum <- maleCortAdmin_mass_lmm_emm_num + 1
+femaleMass_ALPS_countsNum <- maleCortAdmin_mass_lmm_emm.pairs_num + 1
+# femaleMass_ALPS_countsNum <- maleCortAdmin_mass_lmm_emm_num + 1
 tableNum <- femaleMass_ALPS_countsNum
 ```
 
@@ -1603,9 +1338,6 @@ supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ## LMM
 
 ```{r}
-tbl <- femaleALPS_RelAM_flexTable
-tbl
-
 tbl <- femaleALPS_RelPM_flexTable
 tbl
 ```
@@ -1615,21 +1347,19 @@ tableCaption <- "Statistics from linear mixed models of female masses on day of 
 ```
 
 ```{r}
-# femaleMass_ALPS_lmm_num <- femaleMass_ALPS_countsNum + 1
-femaleMass_ALPS_lmm_num <- maleCortAdmin_mass_lmm_emm.pairs_num + 1
+femaleMass_ALPS_lmm_num <- femaleMass_ALPS_countsNum + 1
+# femaleMass_ALPS_lmm_num <- maleCortAdmin_mass_lmm_emm.pairs_num + 1
 tableNum <- femaleMass_ALPS_lmm_num
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
 ### EMM
 
 ```{r}
-tbl <- femaleALPS_RelAM_EMM_flexTable
-tbl
-
 tbl <- femaleALPS_RelPM_EMM_flexTable
 tbl
 ```
@@ -1640,8 +1370,8 @@ tableCaption <- "Estimated marginal means (emmean) from linear mixed models of f
 
 
 ```{r}
-# femaleMass_ALPS_lmm_emm_num <- femaleMass_ALPS_lmm_num + 1
-femaleMass_ALPS_lmm_emm_num <- femaleMass_ALPS_countsNum + 1
+femaleMass_ALPS_lmm_emm_num <- femaleMass_ALPS_lmm_num + 1
+# femaleMass_ALPS_lmm_emm_num <- femaleMass_ALPS_countsNum + 1
 tableNum <- femaleMass_ALPS_lmm_emm_num
 ```
 
@@ -1653,9 +1383,6 @@ supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ### Pairs
 
 ```{r}
-tbl <- femaleALPS_RelAM_EMM.pairs_flexTable
-tbl 
-
 tbl <- femaleALPS_RelPM_EMM.pairs_flexTable
 tbl
 ```
@@ -1665,200 +1392,17 @@ tableCaption <- "Pairwise comparison of estimated marginal means from linear mix
 ```
 
 ```{r}
-# femaleMass_ALPS_lmm_emm.pairs_num <- femaleMass_ALPS_lmm_emm_num + 1
-femaleMass_ALPS_lmm_emm.pairs_num <- femaleMass_ALPS_lmm_num + 1
+femaleMass_ALPS_lmm_emm.pairs_num <- femaleMass_ALPS_lmm_emm_num + 1
+# femaleMass_ALPS_lmm_emm.pairs_num <- femaleMass_ALPS_lmm_num + 1
 tableNum <- femaleMass_ALPS_lmm_emm.pairs_num
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
-
-```{r eval=FALSE, include=FALSE}
-femaleBodyMassAM_ALPS_lmm 
-femalePercChangeBodyMass_ALPS_lmm
-femalePercChangeBodyMass_ALPS_lmm_emm_adultTrt.pairs
-femaleAdrenalMass_ALPS_lmm
-femaleAdrenalMass_ALPS_lmm_emm_earlyLifeTrt.pairs
-femaleRelAdrenalMass_ALPS_lmm
-femaleUterineMass_ALPS_lmm
-femaleUterineMass_ALPS_lmm_emm_sacCycle.pairs
-# weak trend for interaction
-femaleUterineMass_ALPS_lmm_emm_sacCycleAdultTrt.pairs
-femaleRelUterineMass_ALPS_lmm
-femaleRelUterineMass_ALPS_lmm_emm_sacCycle.pairs
-#weak trend for interaction
-femaleRelUterineMass_ALPS_lmm_emm_sacCycleAdultTrt.pairs
-```
-
 
 # Figure 8 - LH
-
-```{r eval=FALSE, include=FALSE}
-# figLH_diAfternoon
-# 
-# figLH_ephysMax
-# 
-# figLH_ephysSurged
-# 
-# figLH_samplingTime
-# 
-# figLH_samplingMax
-# 
-# figLH_samplingSurged
-
-row1 <- plot_grid(
-  figLH_diAfternoon
-  , figLH_ephysMax
-  , figLH_ephysSurged
-  , align = "hv"
-  , axis = "tblr"
-  , nrow = 1
-  , labels = c("A", "B", "C")
-)
-
-row3 <- plot_grid(
-  figLH_samplingMax
-  , figLH_samplingSurged
-  , NULL
-  , nrow = 1
-  , labels = c("E", "F", "")
-)
-
-
-
-figLH <- plot_grid(
-  row1
-  , figLH_samplingTime
-  , row3
-  , nrow = 3
-  , rel_heights = c(1, 2, 1)
-  , labels = c("", "D", "")
-)
-
-figLH
-
-```
-
-```{r eval=FALSE, include=FALSE}
-plot_grid(
-  plot_grid(
-    figLH_diAfternoon
-    , figLH_samplingTime
-    , align = "hv"
-    , axis = "tblr"
-    , nrow = 1
-    , labels = c("A", "D")
-    , rel_widths = c(1, 2)
-  )
-  , plot_grid(
-    figLH_ephysMax
-    , figLH_samplingMax
-    , align = "hv"
-    , axis = "tblr"
-    , nrow = 1
-    , labels = c("B", "E")
-  )
-  , plot_grid(
-    figLH_ephysSurged
-    , figLH_samplingSurged
-    , align = "hr"
-    , axis = "tblr"
-    , labels = c("C", "F")
-  )
-  , nrow = 3
-)
-```
-
-```{r eval=FALSE, include=FALSE}
-
-row1 <- plot_grid(
-  figLH_diAfternoon
-  , figLH_ephysMax
-  , figLH_ephysSurged
-  , align = "hv"
-  , axis = "tblr"
-  , nrow = 1
-  , labels = c("A", "B", "C")
-)
-
-col3 <- plot_grid(
-  figLH_samplingMax
-  , figLH_samplingSurged
-  , ncol = 1
-  , labels = c("E", "F")
-  , align = "hv"
-  , axis = "tblr"
-)
-
-
-
-figLH <- plot_grid(
-  row1
-  , plot_grid(
-    figLH_samplingTime
-    , col3
-    , ncol = 2
-    , rel_widths = c(2, 1)
-    , labels = c("D", "")
-  )
-  , nrow = 2
-  , rel_heights = c(1, 2)
-)
-
-figLH
-
-```
-
-```{r eval=FALSE, include=FALSE}
-
-LH_aligned <- align_plots(
-  figLH_diAfternoon
-  , figLH_ephysMax
-  , figLH_ephysSurged
-  , figLH_samplingTime
-  , figLH_samplingMax
-  , figLH_samplingSurged
-  , align = "hv"
-  , axis = "tblr"
-)
-
-row1 <- plot_grid(
-  LH_aligned[[1]]
-  , LH_aligned[[2]]
-  , LH_aligned[[3]]
-  , nrow = 1
-  , labels = c("A", "B", "C")
-)
-
-col3 <- plot_grid(
-  LH_aligned[[5]]
-  , LH_aligned[[6]]
-  , ncol = 1
-  , labels = c("E", "F")
-  , align = "hv"
-  , axis = "tblr"
-)
-
-
-
-figLH <- plot_grid(
-  row1
-  , plot_grid(
-    LH_aligned[[4]]
-    , col3
-    , ncol = 2
-    , rel_widths = c(2, 1)
-    , labels = c("D", "")
-  )
-  , nrow = 2
-  , rel_heights = c(1, 2)
-)
-
-figLH
-
-```
-
 ```{r}
 figLH <- plot_grid(
   figLH_diAfternoon
@@ -1910,7 +1454,8 @@ tableCaption <- "Number of litters and mice with LH measurements following adult
 ```{r}
 # LHCount_num <- femaleMass_ALPS_lmm_emm.pairs_num + 1
 # LHCount_num <- femaleMass_ALPS_lmm_emm_num + 1
-LHCount_num <- femaleMass_ALPS_lmm_emm_num
+# LHCount_num <- femaleMass_ALPS_lmm_emm_num
+LHCount_num <- femaleMass_ALPS_lmm_emm.pairs_num
 tableNum <- LHCount_num
 ```
 
@@ -1932,7 +1477,8 @@ tableCaption <- "Statistics from linear mixed models of average afternoon (2.5h 
 
 ```{r}
 # LH_di_lmm_num <- LHCount_num + 1
-LH_di_lmm_num <- femaleMass_ALPS_lmm_emm.pairs_num + 1
+# LH_di_lmm_num <- femaleMass_ALPS_lmm_emm.pairs_num + 1
+LH_di_lmm_num <- femaleCortLMM_emm_num.pairs + 1
 tableNum <- LH_di_lmm_num
 ```
 
@@ -2042,7 +1588,7 @@ tableCaption <- "Statistics from linear mixed models of the time (h) of maximum 
 ```
 
 ```{r}
-LH_pro_peakTime_lmm_num <- LH_pro_lmm_num + 1
+LH_pro_peakTime_lmm_num <- propSurged_num + 1
 tableNum <- LH_pro_peakTime_lmm_num
 ```
 
@@ -2067,39 +1613,7 @@ figGABA1stRow <- plot_grid(
   , axis = "lrtb"
 )
 
-figGABA2ndRow <- plot_grid(
-  figGABAe_model
-  , NULL
-  , ncol = 2
-  , labels = c("E", "F")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-  , rel_widths = c(1, 2)
-)
-
-# figGABA3rdRow <- plot_grid(
-#   figGABA2a_model
-#   , figGABA2b_model
-#   , figGABA2c_model
-#   , figGABA2d_model
-#   , ncol = 4
-#   , labels = c("G", "H", "I", "J")
-#   , label_fontfamily = "Arial"
-#   , label_size = textSize
-#   , align = "vh"
-#   , axis = "lrtb"
-# )
-
-figGABA <- plot_grid(
-  get_legend(femaleBodyMassAM_ALPS_plot)
-  , figGABA1stRow
-  # , figGABA2ndRow
-  # , figGABA3rdRow
-  , nrow = 2
-  , rel_heights = c(0.1, 1)
-  # , rel_heights = c(0.1, 1, 1.2)
-  # , rel_heights = c(.8, 1, .8)
-)
+figGABA <- figGABA1stRow
 
 figGABA
 ```
@@ -2110,7 +1624,7 @@ flexSave(
   , plot = figGABA
   , width = twoCols
   # , height = 28/2
-  , height = 7
+  , height = halfLength
   , units = "cm"
   , filePath = manuscriptFolder
 )
@@ -2208,7 +1722,7 @@ figGABA2 <- plot_grid(
     , axis = "lrtb"
   )
   , nrow = 2
-  , rel_heights = c(1, 2)
+  , rel_heights = c(1.1, 2)
   , labels = c("A", "")
   , label_fontfamily = "Arial"
   , label_size = textSize
@@ -2217,52 +1731,12 @@ figGABA2 <- plot_grid(
 figGABA2
 ```
 
-
-```{r eval=FALSE, include=FALSE}
-figGABA2_left <- plot_grid(
-  relPeak_byCell
-  , riseTime_byCell
-  , decayTime_byCell
-  , fwhm_byCell
-  , nrow = 4
-  , labels = c("A", "C", "E", "G")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-  , align = "vh"
-  , axis = "lrtb"
-)
-
-figGABA2_right <- plot_grid(
-  relPeak_byTrt
-  , riseTime_byTrt
-  , decayTime_byTrt
-  , fwhm_byTrt
-  , nrow = 4
-  , labels = c("B", "D", "F", "H")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-  , align = "vh"
-  , axis = "lrtb"
-)
-
-figGABA2 <- plot_grid(
-  figGABA2_left
-  , figGABA2_right
-  , ncol = 2
-  # , rel_widths = c(2, 1)
-)
-
-figGABA2
-
-```
-
 ```{r}
 flexSave(
   "figPSC_props"
   , plot = figGABA2
   , width = twoCols
-  # , height = 28/2
-  , height = 28*2/3
+  , height = fullLength
   , units = "cm"
   , filePath = manuscriptFolder
 )

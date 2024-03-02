@@ -229,6 +229,43 @@ plotCumFreqDist <- function(
     )
   return(plot)
 }
+
+plotCumFreqDist_allEvents <- function(
+    df
+    , xVar
+    , xLab
+    , yLab = "cumulative frequency (%)"
+    , zoom_x = FALSE
+    , xmin = NA
+    , xmax = NA
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 1
+    , textSize = 16
+    , legendPosition = c(0.6, 0.3) 
+){
+  plot <- df %>%
+    ggplot(
+      aes(
+        x = {{ xVar }}
+        , group = comboTrt
+        , color = comboTrt
+      )
+    ) +
+    stat_ecdf(geom = "line") +
+    boxTheme() +
+    textTheme(size = textSize) +
+    expand_limits(y=0)+
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})+
+    xlab(xLab) +
+    ylab(yLab) +
+    comboTrtLineColor(STD_CON_color = "grey50", LBN_CON_color = "#6dcae8") +
+    theme(
+      legend.position = legendPosition 
+      , legend.key = element_blank()
+    )
+  return(plot)
+}
 ```
 
 
@@ -689,6 +726,211 @@ fileBaseName <- "fwhm_cumFreqDist_bin5"
 slideTitle <- "FWHM - 0.5ms bin - cumulative frequency distribution"
 exportFullPPTSlide()
 ppt <- pptAddOneGraph()
+```
+
+## Restricted X + median model
+
+### Amp
+
+```{r}
+amplitude_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, amplitude, 5)
+
+amplitude_relDist_plot <- plotRelDist(amplitude_avgDistByCell, "amplitude (pA)", zoom_x = TRUE, xmax = 125, legendPosition = c(0.6, 0.5))
+amplitude_cumFreq_plot <- plotCumFreqDist(amplitude_avgDistByCell, "amplitude (pA)", zoom_x = TRUE, xmax = 125)
+
+amplitude_cumFreq_plot +
+  plotError_LMM_aes_xAxis(
+    amplitudeMedian_errors
+    , meanBarWidth = 10
+  )
+
+amplitude_cumFreq_plot +
+  plotError_LMM_aes_xAxis(
+    amplitude_median_errors # cell medians
+    , meanBarWidth = 10
+  )
+
+pscProps %>%
+  combineStress() %>%
+  plotCumFreqDist_allEvents(
+    xVar = amplitude
+    , xLab = "amplitude (pA)"
+    , zoom_x = TRUE
+    , xmax = 125
+  ) +
+  # plotError_LMM_aes_xAxis(
+  #   amplitudeMedian_errors
+  #   , meanBarWidth = .1
+  #   , nudgeLine = 0
+  #   , yVal = 0.5
+  # )
+  geom_errorbar(
+      aes(
+        y = 0.5
+        , xmin = y
+        , xmax = y
+        , color = comboTrt
+      )
+      , data = amplitudeMedian_errors
+      , inherit.aes = FALSE
+      , width = .1
+      , linewidth = .6
+  ) + 
+  geom_linerange(
+    aes(
+      y = 0.5
+      , xmin = lower
+      , xmax = upper
+      , color = comboTrt
+    )
+    , data = amplitudeMedian_errors
+    , inherit.aes = FALSE
+    , linewidth = .6
+  )
+```
+# Anderson-Darling test
+
+
+```{r}
+library(kSamples)
+```
+## Amplitude 
+
+```{r}
+group_STD_CON <- amplitude_avgDistByCell$cumProp[amplitude_avgDistByCell$earlyLifeTrt == "STD" & amplitude_avgDistByCell$adultTrt == "CON"]
+group_STD_ALPS <- amplitude_avgDistByCell$cumProp[amplitude_avgDistByCell$earlyLifeTrt == "STD" & amplitude_avgDistByCell$adultTrt == "ALPS"]
+group_LBN_CON <- amplitude_avgDistByCell$cumProp[amplitude_avgDistByCell$earlyLifeTrt == "LBN" & amplitude_avgDistByCell$adultTrt == "CON"]
+group_LBN_ALPS <- amplitude_avgDistByCell$cumProp[amplitude_avgDistByCell$earlyLifeTrt == "LBN" & amplitude_avgDistByCell$adultTrt == "ALPS"]
+
+# Perform the Anderson-Darling test to compare the four distributions
+ad_test_result <- ad.test(group_STD_CON, group_STD_ALPS, group_LBN_CON, group_LBN_ALPS)
+
+# Output the results
+print(ad_test_result)
+```
+```{r}
+groups_list <- list(
+  "STD-CON" = group_STD_CON
+  , "LBN-CON" = group_LBN_CON
+  , "STD-ALPS" = group_STD_ALPS
+  , "LBN-ALPS" = group_LBN_ALPS
+)
+# Pairwise Anderson-Darling tests
+pairs <- combn(length(groups_list), 2, simplify = FALSE)
+pairwise_results <- lapply(pairs, function(p) {
+  list(groups = p, 
+       test_result = ad.test(groups_list[[p[1]]], groups_list[[p[2]]]))
+})
+
+# Print the pairwise test results
+for (result in pairwise_results) {
+  cat("Comparing Group", result$groups[1], "and Group", result$groups[2], ":\n")
+  print(result$test_result)
+  cat("\n")
+}
+```
+
+
+```{r}
+getAD_Pval <- function(result, version = 1, fromPaired = FALSE){
+  if(fromPaired){
+    result <- result$test_result
+  }
+  tbl <- result$ad
+  tbl_tibble <- tbl %>% as.tibble()
+  p_val <- tbl_tibble$` asympt. P-value`[[version]]
+  return(p_val)
+}
+```
+
+Group 1 = STD-CON, Group 2 = LBN-CON, Group 3 = STD-ALPS, Group 4 = LBN-ALPS
+```{r}
+# Assuming 'pairwise_results' contains the results of your pairwise Anderson-Darling tests
+# Extracting p-values from the test results
+p_values <- sapply(pairwise_results, function(result){
+  p_val <- getAD_Pval(result, fromPaired = TRUE)
+  return(p_val)
+})
+
+# Apply the Holm correction to the p-values
+p_adjusted <- p.adjust(p_values, method = "holm")
+
+# Pairwise comparison labels
+pair_labels <- sapply(pairs, function(p) paste("Group", p[1], "vs Group", p[2]))
+
+# Combine the labels and adjusted p-values into a data frame for a clearer presentation
+comparison_results <- data.frame(
+  Pair = pair_labels,
+  P_Value = p_values,
+  P_Adjusted = p_adjusted
+)
+
+# Print the results with Holm correction
+print(comparison_results)
+```
+
+## Rise Time 
+
+```{r}
+group_STD_CON <- riseTime_avgDistByCell$cumProp[riseTime_avgDistByCell$earlyLifeTrt == "STD" & riseTime_avgDistByCell$adultTrt == "CON"]
+group_STD_ALPS <- riseTime_avgDistByCell$cumProp[riseTime_avgDistByCell$earlyLifeTrt == "STD" & riseTime_avgDistByCell$adultTrt == "ALPS"]
+group_LBN_CON <- riseTime_avgDistByCell$cumProp[riseTime_avgDistByCell$earlyLifeTrt == "LBN" & riseTime_avgDistByCell$adultTrt == "CON"]
+group_LBN_ALPS <- riseTime_avgDistByCell$cumProp[riseTime_avgDistByCell$earlyLifeTrt == "LBN" & riseTime_avgDistByCell$adultTrt == "ALPS"]
+
+# Perform the Anderson-Darling test to compare the four distributions
+ad_test_result <- ad.test(group_STD_CON, group_STD_ALPS, group_LBN_CON, group_LBN_ALPS)
+
+# Output the results
+print(ad_test_result)
+```
+```{r}
+groups_list <- list(
+  "STD-CON" = group_STD_CON
+  , "LBN-CON" = group_LBN_CON
+  , "STD-ALPS" = group_STD_ALPS
+  , "LBN-ALPS" = group_LBN_ALPS
+)
+# Pairwise Anderson-Darling tests
+pairs <- combn(length(groups_list), 2, simplify = FALSE)
+pairwise_results <- lapply(pairs, function(p) {
+  list(groups = p, 
+       test_result = ad.test(groups_list[[p[1]]], groups_list[[p[2]]]))
+})
+
+# Print the pairwise test results
+for (result in pairwise_results) {
+  cat("Comparing Group", result$groups[1], "and Group", result$groups[2], ":\n")
+  print(result$test_result)
+  cat("\n")
+}
+```
+
+Group 1 = STD-CON, Group 2 = LBN-CON, Group 3 = STD-ALPS, Group 4 = LBN-ALPS
+
+I'm not following this based on what the plot looks like. It should be LBN-CON that's different
+```{r}
+# Assuming 'pairwise_results' contains the results of your pairwise Anderson-Darling tests
+# Extracting p-values from the test results
+p_values <- sapply(pairwise_results, function(result){
+  p_val <- getAD_Pval(result, fromPaired = TRUE)
+  return(p_val)
+})
+
+# Apply the Holm correction to the p-values
+p_adjusted <- p.adjust(p_values, method = "holm")
+
+# Pairwise comparison labels
+pair_labels <- sapply(pairs, function(p) paste("Group", p[1], "vs Group", p[2]))
+
+# Combine the labels and adjusted p-values into a data frame for a clearer presentation
+comparison_results <- data.frame(
+  Pair = pair_labels,
+  P_Value = p_values,
+  P_Adjusted = p_adjusted
+)
+
+# Print the results with Holm correction
+print(comparison_results)
 ```
 
 

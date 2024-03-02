@@ -44,6 +44,10 @@ quantiles <- c(
   0.5
 )
 
+# The covariance matrix of the random effects is showing an intercept at 1, which is suspect. 
+# There are random effects estimates for each cell, though, and they should as a group, so it's possible they're being included
+# but the model is settling right on the median for the full dataset, which seems somewhat suspect
+
 logAmplitude_models <- lqmm(
   log10(amplitude) ~ earlyLifeTrt * adultTrt
   , random = ~ 1

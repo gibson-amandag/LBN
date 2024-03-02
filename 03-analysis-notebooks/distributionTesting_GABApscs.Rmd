@@ -3888,6 +3888,56 @@ pscProps %>%
 # hex_color <- rgb(rgb_values[1], rgb_values[2], rgb_values[3], maxColorValue=255)
 ```
 
+# Back to median by cell
+
+```{r}
+byCellMedians <- pscProps %>%
+  group_by(
+    cellID
+    , mouseID
+    , damID
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    amplitude = median(amplitude, na.rm = TRUE)
+    , riseTime = median(riseTime, na.rm = TRUE)
+    , decay9010 = median(decay9010, na.rm = TRUE)
+    , fwhm = median(fwhm, na.rm = TRUE)
+  )
+  
+amplitude_median_lmm <- mixed(
+  amplitude ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = byCellMedians
+  , method = "KR"
+)
+riseTime_median_lmm <- mixed(
+  riseTime ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = byCellMedians
+    , method = "KR"
+  
+)
+decay9010_median_lmm <- mixed(
+  decay9010 ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = byCellMedians
+    , method = "KR"
+)
+fwhm_median_lmm <- mixed(
+  fwhm ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  , data = byCellMedians
+    , method = "KR"
+)
+
+amplitude_median_lmm
+riseTime_median_lmm
+decay9010_median_lmm
+fwhm_median_lmm
+
+
+amplitude_median_errors <- amplitude_median_lmm %>%
+  getErrorDF_LMM_comboTrt()
+```
+
 
 #MISC
 ```{r}

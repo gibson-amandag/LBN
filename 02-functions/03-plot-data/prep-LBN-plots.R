@@ -1025,7 +1025,7 @@ plotCatVarFunc <- function(
     , removeXTicks = FALSE
     , alpha = 0.7
     , addMeanSE = TRUE
-    , jitterWidth = 0.35
+    , jitterWidth = 0.42
 ){
   yVar <- as.character(singleVar)
   if(!useSpecYLab){

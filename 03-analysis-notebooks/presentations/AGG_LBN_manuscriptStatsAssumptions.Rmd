@@ -22,6 +22,9 @@ source("./01-scripts/05-make-LBN-plots-modelError-manuscript.R")
 source("./01-scripts/06-make-LBN-tables.R")
 ```
 
+https://sscc.wisc.edu/sscc/pubs/RegDiag-R/normality.html#qqplots
+
+
 ```{r}
 library(performance)
 ```
@@ -31,7 +34,9 @@ checkLMMassumptions <- function(afexModel){
   modCheck <- check_model(afexModel$full_model, panel = FALSE)
   return(list(
     plot(modCheck)
-    , qqnorm(residuals(afexModel$full_model))
+    , ggplot()+
+        geom_qq(aes(sample = residuals(afexModel$full_model))) +
+        geom_abline(color = "red")
   ))
 }
 ```
@@ -398,102 +403,75 @@ propSurgedChiSq_flexTable
 ## Peak Time
 
 ```{r}
-tbl <- LH_pro_peakTime_flexTable
-tbl
+LH_pro_peakTime_flexTable
 ```
 
 
 ```{r}
-tableCaption <- "Statistics from linear mixed models of the time (h) of maximum evening LH on day of adult treatment in proestrous females with repeated hourly LH sampling around the time of lights out. Data were fit with the formula `time at max LH ~ early-life treatment * adult treatment + (1 | dam)`."
-```
-
-```{r}
-LH_pro_peakTime_lmm_num <- LH_pro_lmm_num + 1
-tableNum <- LH_pro_peakTime_lmm_num
-```
-
-```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+LH_proSampling_peakTime_lmm %>%
+  checkLMMassumptions()
 ```
 
 
 # Figure 9 - GABA PSCs - passives and frequency
 
 ```{r}
-figGABA1stRow <- plot_grid(
-  figGABAa_model
-  , figGABAb_model
-  , figGABAc_model
-  , figGABAd_model
-  , ncol = 4
-  , labels = c("A", "B", "C", "D")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-  , align = "vh"
-  , axis = "lrtb"
-)
-
-figGABA2ndRow <- plot_grid(
-  figGABAe_model
-  , NULL
-  , ncol = 2
-  , labels = c("E", "F")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-  , rel_widths = c(1, 2)
-)
-
-# figGABA3rdRow <- plot_grid(
-#   figGABA2a_model
-#   , figGABA2b_model
-#   , figGABA2c_model
-#   , figGABA2d_model
-#   , ncol = 4
-#   , labels = c("G", "H", "I", "J")
-#   , label_fontfamily = "Arial"
-#   , label_size = textSize
-#   , align = "vh"
-#   , axis = "lrtb"
-# )
-
-figGABA <- plot_grid(
-  get_legend(femaleBodyMassAM_ALPS_plot)
-  , figGABA1stRow
-  # , figGABA2ndRow
-  # , figGABA3rdRow
-  , nrow = 2
-  , rel_heights = c(0.1, 1)
-  # , rel_heights = c(0.1, 1, 1.2)
-  # , rel_heights = c(.8, 1, .8)
-)
-
 figGABA
-```
-
-```{r}
-flexSave(
-  "figGABA"
-  , plot = figGABA
-  , width = twoCols
-  # , height = 28/2
-  , height = 7
-  , units = "cm"
-  , filePath = manuscriptFolder
-)
-```
-
-## Count 
-Not making table for paper
-
-```{r}
-tbl <- GABApsc_cellCounts_flexTable
-tbl
 ```
 
 ## LMMs
 ```{r}
-tbl <- pscLMMs_flexTable
-tbl
+pscLMMs_flexTable
+```
+
+```{r}
+capacitance_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+inputResistance_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+seriesResistance_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+holdingCurrent_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+relAmplitude_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+riseTime_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+decayTime_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+fwhm_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+mixed(log10(decay9010) ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID),
+      data = GABApscs_240Filtered) %>%
+  checkLMMassumptions()
+
+ggplot()+
+  geom_qq(aes(sample = residuals(relAmplitude_lmm$full_model))) +
+  geom_abline(color = "red")
 ```
 
 

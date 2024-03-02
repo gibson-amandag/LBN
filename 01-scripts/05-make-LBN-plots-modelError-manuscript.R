@@ -791,7 +791,7 @@ plotGABAamp_noMean <- plotCatVarFunc(
   , addMeanSE = FALSE
   , useSpecYLab = TRUE
   , thisYLab = "amplitude (pA)"
-  , jitterWidth = 0.2
+  # , jitterWidth = 0.2
 )
 
 plotGABAriseTime_noMean <- plotCatVarFunc(
@@ -802,7 +802,7 @@ plotGABAriseTime_noMean <- plotCatVarFunc(
   , tiltedXLabs = FALSE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
-  , jitterWidth = 0.2
+  # , jitterWidth = 0.2
 )
 
 plotGABAdecayTime_noMean <- plotCatVarFunc(
@@ -816,7 +816,7 @@ plotGABAdecayTime_noMean <- plotCatVarFunc(
   , useSpecYLab = TRUE
   # , thisYLab = "decay time (ms)\nfrom90% to 10% of peak"
   , thisYLab = "decay time (ms)"
-  , jitterWidth = 0.2
+  # , jitterWidth = 0.2
 )
 
 plotGABAfwhm_noMean <- plotCatVarFunc(
@@ -829,7 +829,7 @@ plotGABAfwhm_noMean <- plotCatVarFunc(
   , addMeanSE = FALSE
   , useSpecYLab = TRUE
   , thisYLab = "fwhm (ms)"
-  , jitterWidth = 0.2
+  # , jitterWidth = 0.2
 )
 
 figGABAa_model <- GABApscs_240FilteredFiring %>%
@@ -893,19 +893,19 @@ figGABA2a_model <- GABApscs_240FilteredFiring %>%
   plotError_LMM(
     relAmplitude_lmm_errors
     , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = .4
-    , color = "magenta"
-  ) +
-  plotError_LMM(
-    amplitudeMedian_errors %>%
-      combineStress()
-    , xVar = comboTrt
-    , nudgeErrorLine = 0.3
-    , nudgeMeanLine = 0.3
-    , meanBarWidth = .4
-    , color = "grey40"
+  #   , nudgeErrorLine = 0
+  #   , nudgeMeanLine = 0
+  #   , meanBarWidth = .4
+  #   , color = "magenta"
+  # ) +
+  # plotError_LMM(
+  #   amplitudeMedian_errors %>%
+  #     combineStress()
+  #   , xVar = comboTrt
+  #   , nudgeErrorLine = 0.3
+  #   , nudgeMeanLine = 0.3
+  #   , meanBarWidth = .4
+  #   , color = "grey40"
   )
 
 figGABA2b_model <- GABApscs_240FilteredFiring %>%
@@ -915,19 +915,19 @@ figGABA2b_model <- GABApscs_240FilteredFiring %>%
   plotError_LMM(
     riseTime_lmm_errors
     , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = .4
-    , color = "magenta"
-  ) +
-  plotError_LMM(
-    riseTimeMedian_errors %>%
-      combineStress()
-    , xVar = comboTrt
-    , nudgeErrorLine = 0.3
-    , nudgeMeanLine = 0.3
-    , meanBarWidth = .4
-    , color = "grey40"
+  #   , nudgeErrorLine = 0
+  #   , nudgeMeanLine = 0
+  #   , meanBarWidth = .4
+  #   , color = "magenta"
+  # ) +
+  # plotError_LMM(
+  #   riseTimeMedian_errors %>%
+  #     combineStress()
+  #   , xVar = comboTrt
+  #   , nudgeErrorLine = 0.3
+  #   , nudgeMeanLine = 0.3
+  #   , meanBarWidth = .4
+  #   , color = "grey40"
   )
 
 figGABA2c_model <- GABApscs_240FilteredFiring %>%
@@ -937,19 +937,19 @@ figGABA2c_model <- GABApscs_240FilteredFiring %>%
   plotError_LMM(
     decayTime_lmm_errors
     , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = .4
-    , color = "magenta"
-  ) +
-  plotError_LMM(
-    decayTimeMedian_errors %>%
-      combineStress()
-    , xVar = comboTrt
-    , nudgeErrorLine = 0.3
-    , nudgeMeanLine = 0.3
-    , meanBarWidth = .4
-    , color = "grey40"
+  #   , nudgeErrorLine = 0
+  #   , nudgeMeanLine = 0
+  #   , meanBarWidth = .4
+  #   , color = "magenta"
+  # ) +
+  # plotError_LMM(
+  #   decayTimeMedian_errors %>%
+  #     combineStress()
+  #   , xVar = comboTrt
+  #   , nudgeErrorLine = 0.3
+  #   , nudgeMeanLine = 0.3
+  #   , meanBarWidth = .4
+  #   , color = "grey40"
   )
 
 figGABA2d_model <- GABApscs_240FilteredFiring %>%
@@ -959,19 +959,19 @@ figGABA2d_model <- GABApscs_240FilteredFiring %>%
   plotError_LMM(
     fwhm_lmm_errors
     , xVar = comboTrt
-    , nudgeErrorLine = 0
-    , nudgeMeanLine = 0
-    , meanBarWidth = .4
-    , color = "magenta"
-  ) +
-  plotError_LMM(
-    FWHMMedian_errors %>%
-      combineStress()
-    , xVar = comboTrt
-    , nudgeErrorLine = 0.3
-    , nudgeMeanLine = 0.3
-    , meanBarWidth = .4
-    , color = "grey40"
+  #   , nudgeErrorLine = 0
+  #   , nudgeMeanLine = 0
+  #   , meanBarWidth = .4
+  #   , color = "magenta"
+  # ) +
+  # plotError_LMM(
+  #   FWHMMedian_errors %>%
+  #     combineStress()
+  #   , xVar = comboTrt
+  #   , nudgeErrorLine = 0.3
+  #   , nudgeMeanLine = 0.3
+  #   , meanBarWidth = .4
+  #   , color = "grey40"
   )
 
 # ## Distribution plots ----------------
