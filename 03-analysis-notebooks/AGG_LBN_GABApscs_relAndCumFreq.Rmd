@@ -29,7 +29,7 @@ calcBinnedData <- function(
   
   binData <- df %>%
     mutate(
-        bin = cut({{ varToSum }}, breaks = seq(0, maxVal, by = bin), right = FALSE, labels = seq(0, maxVal - bin, by = bin))
+        bin = cut({{ varToSum }}, breaks = seq(0, maxVal, by = bin), right = FALSE, labels = seq(bin, maxVal, by = bin)) # label by right side
       , .after = {{ varToSum }}
     ) %>%
     group_by({{ groupBy }}, bin) %>%
@@ -38,7 +38,7 @@ calcBinnedData <- function(
       , .groups = "drop"
     )
 
-allBins <- seq(0, maxVal - bin, by = bin)
+allBins <- seq(bin, maxVal, by = bin)
 
 # need to be sure to include empty bins for all cells
 binData <- binData %>%
@@ -230,6 +230,19 @@ plotCumFreqDist <- function(
   return(plot)
 }
 
+calcCumFreq <- function(
+    df
+    , varToSum
+){
+  df %>%
+    arrange(
+      {{ varToSum }}
+    ) %>%
+    mutate(
+      cumFreq = ecdf({{ varToSum }})({{ varToSum }}) * 100
+    )
+}
+
 plotCumFreqDist_allEvents <- function(
     df
     , xVar
@@ -240,19 +253,24 @@ plotCumFreqDist_allEvents <- function(
     , xmax = NA
     , zoom_y = TRUE
     , ymin = 0
-    , ymax = 1
+    , ymax = 100
     , textSize = 16
     , legendPosition = c(0.6, 0.3) 
 ){
   plot <- df %>%
+    combineStress() %>%
+    group_by(earlyLifeTrt, adultTrt) %>%
+    calcCumFreq({{ xVar }}) %>%
     ggplot(
       aes(
         x = {{ xVar }}
+        , y = cumFreq
         , group = comboTrt
         , color = comboTrt
       )
     ) +
-    stat_ecdf(geom = "line") +
+    geom_line() +
+    # stat_ecdf(geom = "line") +
     boxTheme() +
     textTheme(size = textSize) +
     expand_limits(y=0)+
@@ -933,4 +951,798 @@ comparison_results <- data.frame(
 print(comparison_results)
 ```
 
+```{r}
+calc_ecdf <- function(data){
+  data <- data %>%
+    arrange(Value) %>%
+    mutate(CumProb = ecdf(-Value)(-Value)
+    #        ) %>%
+    # mutate(Value = -Value # Flip the values for reverse plotting
+           )  
+  return(data)
+}
 
+
+```
+
+# NOT GOOD
+This is using the cumulative frequency numbers from the averaged by cell data to compare the distribution, but that's not actually what we want. I'm not sure there's a simple way to go backwards and recreate a raw-like distribution for it to test
+
+```{r}
+group_STD_CON <- amplitude_avgDistByCell$cumProp[amplitude_avgDistByCell$earlyLifeTrt == "STD" & amplitude_avgDistByCell$adultTrt == "CON"]
+group_STD_ALPS <- amplitude_avgDistByCell$cumProp[amplitude_avgDistByCell$earlyLifeTrt == "STD" & amplitude_avgDistByCell$adultTrt == "ALPS"]
+group_LBN_CON <- amplitude_avgDistByCell$cumProp[amplitude_avgDistByCell$earlyLifeTrt == "LBN" & amplitude_avgDistByCell$adultTrt == "CON"]
+group_LBN_ALPS <- amplitude_avgDistByCell$cumProp[amplitude_avgDistByCell$earlyLifeTrt == "LBN" & amplitude_avgDistByCell$adultTrt == "ALPS"]
+
+ks.test(group_STD_CON, group_STD_ALPS)
+ks.test(group_STD_CON, group_LBN_CON)
+ks.test(group_STD_CON, group_LBN_ALPS)
+ks.test(group_LBN_CON, group_STD_ALPS)
+ks.test(group_LBN_CON, group_LBN_ALPS)
+ks.test(group_LBN_ALPS, group_STD_ALPS)
+
+adjust_pvalue(data.frame("comp" = c("STD-CON vs STD-ALPS", "STD-CON vs LBN-CON", "STD-CON vs LBN-ALPS", "LBN-CON vs STD-ALPS", "LBN-CON vs LBN-ALPS", "LBN-ALPS vs STD-ALPS"), "p" = c(0.1329, 1.25e-09, 0.0004692, 5.234e-07, 0.06463, 0.02585)), p.col = "p", method = "holm") %>%
+  formatPCol() %>%
+  rename(
+    orgP = p
+    , p = p.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p = orgP
+    , `holm adjusted p` = p
+  )
+```
+
+```{r}
+SCvSA <- ad.test(group_STD_CON, group_STD_ALPS)
+SCvLC <- ad.test(group_STD_CON, group_LBN_CON)
+SCvLA <- ad.test(group_STD_CON, group_LBN_ALPS)
+LCvSA <- ad.test(group_LBN_CON, group_STD_ALPS)
+LCvLA <- ad.test(group_LBN_CON, group_LBN_ALPS)
+LAvSA <- ad.test(group_LBN_ALPS, group_STD_ALPS)
+
+adjust_pvalue(data.frame("comp" = c("STD-CON vs STD-ALPS", "STD-CON vs LBN-CON", "STD-CON vs LBN-ALPS", "LBN-CON vs STD-ALPS", "LBN-CON vs LBN-ALPS", "LBN-ALPS vs STD-ALPS"), "p" = c(getAD_Pval(SCvSA), getAD_Pval(SCvLC), getAD_Pval(SCvLA), getAD_Pval(LCvSA), getAD_Pval(LCvLA), getAD_Pval(LAvSA))), p.col = "p", method = "holm") %>%
+  formatPCol() %>%
+  rename(
+    orgP = p
+    , p = p.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p = orgP
+    , `holm adjusted p` = p
+  )
+```
+
+# Amplitude pairwise, all events
+```{r}
+group_STD_CON <- pscProps$amplitude[pscProps$earlyLifeTrt == "STD" & pscProps$adultTrt == "CON"]
+group_STD_ALPS <- pscProps$amplitude[pscProps$earlyLifeTrt == "STD" & pscProps$adultTrt == "ALPS"]
+group_LBN_CON <- pscProps$amplitude[pscProps$earlyLifeTrt == "LBN" & pscProps$adultTrt == "CON"]
+group_LBN_ALPS <- pscProps$amplitude[pscProps$earlyLifeTrt == "LBN" & pscProps$adultTrt == "ALPS"]
+
+SCvSA <- ks.test(group_STD_CON, group_STD_ALPS)
+SCvLC <- ks.test(group_STD_CON, group_LBN_CON)
+SCvLA <- ks.test(group_STD_CON, group_LBN_ALPS)
+LCvSA <- ks.test(group_LBN_CON, group_STD_ALPS)
+LCvLA <- ks.test(group_LBN_CON, group_LBN_ALPS)
+LAvSA <- ks.test(group_LBN_ALPS, group_STD_ALPS)
+
+adjust_pvalue(data.frame("comp" = c("STD-CON vs STD-ALPS", "STD-CON vs LBN-CON", "STD-CON vs LBN-ALPS", "LBN-CON vs STD-ALPS", "LBN-CON vs LBN-ALPS", "LBN-ALPS vs STD-ALPS"), "p" = c(SCvSA$p.value, SCvLC$p.value, SCvLA$p.value, LCvSA$p.value, LCvLA$p.value, LAvSA$p.value)), p.col = "p", method = "holm") %>%
+  formatPCol() %>%
+  rename(
+    orgP = p
+    , p = p.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p = orgP
+    , `holm adjusted p` = p
+  )
+```
+
+```{r}
+SCvSA <- ad.test(group_STD_CON, group_STD_ALPS)
+SCvLC <- ad.test(group_STD_CON, group_LBN_CON)
+SCvLA <- ad.test(group_STD_CON, group_LBN_ALPS)
+LCvSA <- ad.test(group_LBN_CON, group_STD_ALPS)
+LCvLA <- ad.test(group_LBN_CON, group_LBN_ALPS)
+LAvSA <- ad.test(group_LBN_ALPS, group_STD_ALPS)
+
+adjust_pvalue(data.frame("comp" = c("STD-CON vs STD-ALPS", "STD-CON vs LBN-CON", "STD-CON vs LBN-ALPS", "LBN-CON vs STD-ALPS", "LBN-CON vs LBN-ALPS", "LBN-ALPS vs STD-ALPS"), "p" = c(getAD_Pval(SCvSA), getAD_Pval(SCvLC), getAD_Pval(SCvLA), getAD_Pval(LCvSA), getAD_Pval(LCvLA), getAD_Pval(LAvSA))), p.col = "p", method = "holm") %>%
+  formatPCol() %>%
+  rename(
+    orgP = p
+    , p = p.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p = orgP
+    , `holm adjusted p` = p
+  )
+```
+
+# Amplitude pairwise, all events decimated
+```{r}
+decimatedAll <- pscProps %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  arrange(
+    amplitude
+  ) %>%
+  slice(seq(1, n(), by = 10))
+  
+
+group_STD_CON <- decimatedAll$amplitude[decimatedAll$earlyLifeTrt == "STD" & decimatedAll$adultTrt == "CON"]
+group_STD_ALPS <- decimatedAll$amplitude[decimatedAll$earlyLifeTrt == "STD" & decimatedAll$adultTrt == "ALPS"]
+group_LBN_CON <- decimatedAll$amplitude[decimatedAll$earlyLifeTrt == "LBN" & decimatedAll$adultTrt == "CON"]
+group_LBN_ALPS <- decimatedAll$amplitude[decimatedAll$earlyLifeTrt == "LBN" & decimatedAll$adultTrt == "ALPS"]
+
+SCvSA <- ks.test(group_STD_CON, group_STD_ALPS)
+SCvLC <- ks.test(group_STD_CON, group_LBN_CON)
+SCvLA <- ks.test(group_STD_CON, group_LBN_ALPS)
+LCvSA <- ks.test(group_LBN_CON, group_STD_ALPS)
+LCvLA <- ks.test(group_LBN_CON, group_LBN_ALPS)
+LAvSA <- ks.test(group_LBN_ALPS, group_STD_ALPS)
+
+adjust_pvalue(data.frame("comp" = c("STD-CON vs STD-ALPS", "STD-CON vs LBN-CON", "STD-CON vs LBN-ALPS", "LBN-CON vs STD-ALPS", "LBN-CON vs LBN-ALPS", "LBN-ALPS vs STD-ALPS"), "p" = c(SCvSA$p.value, SCvLC$p.value, SCvLA$p.value, LCvSA$p.value, LCvLA$p.value, LAvSA$p.value)), p.col = "p", method = "holm") %>%
+  formatPCol() %>%
+  rename(
+    orgP = p
+    , p = p.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p = orgP
+    , `holm adjusted p` = p
+  )
+```
+
+```{r}
+SCvSA <- ad.test(group_STD_CON, group_STD_ALPS)
+SCvLC <- ad.test(group_STD_CON, group_LBN_CON)
+SCvLA <- ad.test(group_STD_CON, group_LBN_ALPS)
+LCvSA <- ad.test(group_LBN_CON, group_STD_ALPS)
+LCvLA <- ad.test(group_LBN_CON, group_LBN_ALPS)
+LAvSA <- ad.test(group_LBN_ALPS, group_STD_ALPS)
+
+adjust_pvalue(data.frame("comp" = c("STD-CON vs STD-ALPS", "STD-CON vs LBN-CON", "STD-CON vs LBN-ALPS", "LBN-CON vs STD-ALPS", "LBN-CON vs LBN-ALPS", "LBN-ALPS vs STD-ALPS"), "p" = c(getAD_Pval(SCvSA), getAD_Pval(SCvLC), getAD_Pval(SCvLA), getAD_Pval(LCvSA), getAD_Pval(LCvLA), getAD_Pval(LAvSA))), p.col = "p", method = "holm") %>%
+  formatPCol() %>%
+  rename(
+    orgP = p
+    , p = p.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p = orgP
+    , `holm adjusted p` = p
+  )
+```
+
+# Amplitude pairwise, max 100
+```{r}
+set.seed(123)
+reducedDist <- pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  mutate(
+    eventID = row_number()
+    , .after = cellID
+  ) %>%
+  slice_sample(
+    n = 100
+  )
+
+
+group_STD_CON <- reducedDist$amplitude[reducedDist$earlyLifeTrt == "STD" & reducedDist$adultTrt == "CON"]
+group_STD_ALPS <- reducedDist$amplitude[reducedDist$earlyLifeTrt == "STD" & reducedDist$adultTrt == "ALPS"]
+group_LBN_CON <- reducedDist$amplitude[reducedDist$earlyLifeTrt == "LBN" & reducedDist$adultTrt == "CON"]
+group_LBN_ALPS <- reducedDist$amplitude[reducedDist$earlyLifeTrt == "LBN" & reducedDist$adultTrt == "ALPS"]
+
+SCvSA <- ks.test(group_STD_CON, group_STD_ALPS)
+SCvLC <- ks.test(group_STD_CON, group_LBN_CON)
+SCvLA <- ks.test(group_STD_CON, group_LBN_ALPS)
+LCvSA <- ks.test(group_LBN_CON, group_STD_ALPS)
+LCvLA <- ks.test(group_LBN_CON, group_LBN_ALPS)
+LAvSA <- ks.test(group_LBN_ALPS, group_STD_ALPS)
+
+adjust_pvalue(data.frame("comp" = c("STD-CON vs STD-ALPS", "STD-CON vs LBN-CON", "STD-CON vs LBN-ALPS", "LBN-CON vs STD-ALPS", "LBN-CON vs LBN-ALPS", "LBN-ALPS vs STD-ALPS"), "p" = c(SCvSA$p.value, SCvLC$p.value, SCvLA$p.value, LCvSA$p.value, LCvLA$p.value, LAvSA$p.value)), p.col = "p", method = "holm") %>%
+  formatPCol() %>%
+  rename(
+    orgP = p
+    , p = p.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p = orgP
+    , `holm adjusted p` = p
+  )
+```
+
+```{r}
+SCvSA <- ad.test(group_STD_CON, group_STD_ALPS)
+SCvLC <- ad.test(group_STD_CON, group_LBN_CON)
+SCvLA <- ad.test(group_STD_CON, group_LBN_ALPS)
+LCvSA <- ad.test(group_LBN_CON, group_STD_ALPS)
+LCvLA <- ad.test(group_LBN_CON, group_LBN_ALPS)
+LAvSA <- ad.test(group_LBN_ALPS, group_STD_ALPS)
+
+adjust_pvalue(data.frame("comp" = c("STD-CON vs STD-ALPS", "STD-CON vs LBN-CON", "STD-CON vs LBN-ALPS", "LBN-CON vs STD-ALPS", "LBN-CON vs LBN-ALPS", "LBN-ALPS vs STD-ALPS"), "p" = c(getAD_Pval(SCvSA), getAD_Pval(SCvLC), getAD_Pval(SCvLA), getAD_Pval(LCvSA), getAD_Pval(LCvLA), getAD_Pval(LAvSA))), p.col = "p", method = "holm") %>%
+  formatPCol() %>%
+  rename(
+    orgP = p
+    , p = p.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p = orgP
+    , `holm adjusted p` = p
+  )
+```
+
+# Amplitude pairwise, max 100 decimated
+```{r}
+decimated100 <- reducedDist %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  arrange(
+    amplitude
+  ) %>%
+  slice(seq(1, n(), by = 10))
+  
+
+group_STD_CON <- decimated100$amplitude[decimated100$earlyLifeTrt == "STD" & decimated100$adultTrt == "CON"]
+group_STD_ALPS <- decimated100$amplitude[decimated100$earlyLifeTrt == "STD" & decimated100$adultTrt == "ALPS"]
+group_LBN_CON <- decimated100$amplitude[decimated100$earlyLifeTrt == "LBN" & decimated100$adultTrt == "CON"]
+group_LBN_ALPS <- decimated100$amplitude[decimated100$earlyLifeTrt == "LBN" & decimated100$adultTrt == "ALPS"]
+
+SCvSA <- ks.test(group_STD_CON, group_STD_ALPS)
+SCvLC <- ks.test(group_STD_CON, group_LBN_CON)
+SCvLA <- ks.test(group_STD_CON, group_LBN_ALPS)
+LCvSA <- ks.test(group_LBN_CON, group_STD_ALPS)
+LCvLA <- ks.test(group_LBN_CON, group_LBN_ALPS)
+LAvSA <- ks.test(group_LBN_ALPS, group_STD_ALPS)
+
+adjust_pvalue(data.frame("comp" = c("STD-CON vs STD-ALPS", "STD-CON vs LBN-CON", "STD-CON vs LBN-ALPS", "LBN-CON vs STD-ALPS", "LBN-CON vs LBN-ALPS", "LBN-ALPS vs STD-ALPS"), "p" = c(SCvSA$p.value, SCvLC$p.value, SCvLA$p.value, LCvSA$p.value, LCvLA$p.value, LAvSA$p.value)), p.col = "p", method = "holm") %>%
+  formatPCol() %>%
+  rename(
+    orgP = p
+    , p = p.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p = orgP
+    , `holm adjusted p` = p
+  )
+```
+
+```{r}
+SCvSA <- ad.test(group_STD_CON, group_STD_ALPS)
+SCvLC <- ad.test(group_STD_CON, group_LBN_CON)
+SCvLA <- ad.test(group_STD_CON, group_LBN_ALPS)
+LCvSA <- ad.test(group_LBN_CON, group_STD_ALPS)
+LCvLA <- ad.test(group_LBN_CON, group_LBN_ALPS)
+LAvSA <- ad.test(group_LBN_ALPS, group_STD_ALPS)
+
+adjust_pvalue(data.frame("comp" = c("STD-CON vs STD-ALPS", "STD-CON vs LBN-CON", "STD-CON vs LBN-ALPS", "LBN-CON vs STD-ALPS", "LBN-CON vs LBN-ALPS", "LBN-ALPS vs STD-ALPS"), "p" = c(getAD_Pval(SCvSA), getAD_Pval(SCvLC), getAD_Pval(SCvLA), getAD_Pval(LCvSA), getAD_Pval(LCvLA), getAD_Pval(LAvSA))), p.col = "p", method = "holm") %>%
+  formatPCol() %>%
+  rename(
+    orgP = p
+    , p = p.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p = orgP
+    , `holm adjusted p` = p
+  )
+```
+
+
+# Comparing approaches
+
+```{r}
+amplitude_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, amplitude, 1)
+amplitude_cumFreq_plot <- plotCumFreqDist(amplitude_avgDistByCell, "amplitude (pA)", zoom_x = TRUE, xmax = 125)
+
+allEventsCumFreq <- pscProps %>%
+      combineStress() %>%
+      group_by(
+        earlyLifeTrt, adultTrt
+      ) %>%
+      calcCumFreq(amplitude)
+
+amplitude_cumFreq_plot +
+  geom_line(
+    aes(
+      x = amplitude
+      , y = cumFreq
+      , color = comboTrt
+    )
+    , linetype = "dashed"
+    , inherit.aes = FALSE
+    , data = allEventsCumFreq
+  )
+
+
+set.seed(123)
+reducedDist <- pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  mutate(
+    eventID = row_number()
+    , .after = cellID
+  ) %>%
+  slice_sample(
+    n = 10
+  ) %>%
+  combineStress() %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  calcCumFreq(amplitude)
+
+amplitude_cumFreq_plot +
+  # geom_line(
+  #   aes(
+  #     x = amplitude
+  #     , y = cumFreq
+  #     , color = comboTrt
+  #   )
+  #   , linetype = "dashed"
+  #   , inherit.aes = FALSE
+  #   , data = pscProps %>%
+  #     combineStress() %>%
+  #     group_by(
+  #       earlyLifeTrt, adultTrt
+  #     ) %>%
+  #     calcCumFreq(amplitude)
+  # ) +
+  geom_line(
+    aes(
+      x = amplitude
+      , y = cumFreq
+      , color = comboTrt
+    )
+    , linetype = "dotted"
+    , inherit.aes = FALSE
+    , data = reducedDist
+  )
+
+
+
+binData <- calcBinnedData(reducedDist
+               , amplitude
+               , 1
+               , comboTrt) %>%
+  ungroup()
+totalCounts <- calcTotalEvents(binData, groupBy = comboTrt)
+  
+relativePropData <- binData %>%
+  left_join(
+    totalCounts
+    , by =  "comboTrt"
+  ) %>%
+  mutate(
+    relProp = count/total * 100
+  ) 
+
+cumulativePropData <- relativePropData %>%
+  group_by(comboTrt) %>%
+  mutate(
+     cumProp = cumsum(relProp)
+  )
+
+reducedDist %>%
+  relocate(
+    cumFreq
+    , .after = amplitude
+  ) %>%
+  select(
+    earlyLifeTrt
+    , adultTrt
+    , amplitude
+    , cumFreq
+  ) %>%
+  arrange(earlyLifeTrt
+          , adultTrt
+          , cumFreq) %>%
+  filter(cumFreq < 20 & cumFreq > 10)
+# 
+# allEventsCumFreq %>%
+#   relocate(
+#     cumFreq
+#     , .after = amplitude
+#   ) %>% select(
+#     earlyLifeTrt
+#     , adultTrt
+#     , amplitude
+#     , cumFreq
+#   ) %>%
+#   arrange(earlyLifeTrt
+#           , adultTrt
+#           , cumFreq) %>%
+#   filter(cumFreq < 20 & cumFreq > 10)
+
+cumulativePropData %>%
+  select(
+    comboTrt
+    , bin
+    , cumProp
+  ) %>%
+  filter(
+    cumProp < 20 & cumProp > 10
+  )
+```
+## functions
+```{r}
+compareDists <- function(df, varToPlot, label, bin, xMax, maxPerCell){
+  avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, {{ varToPlot }}, bin)
+  avgDistByCell_cumFreqPlot <- plotCumFreqDist(avgDistByCell, label, zoom_x = TRUE, xmax = xMax, textSize = 11)
+  
+  allEventsCumFreq <- df %>%
+    combineStress() %>%
+    group_by(
+      earlyLifeTrt, adultTrt
+    ) %>%
+    calcCumFreq({{ varToPlot }})
+  
+  plusAllEventsDist <- avgDistByCell_cumFreqPlot +
+    geom_line(
+      aes(
+        x = {{ varToPlot }}
+        , y = cumFreq
+        , color = comboTrt
+      )
+      , linetype = "dashed"
+      , inherit.aes = FALSE
+      , data = allEventsCumFreq
+    )
+  
+  set.seed(123)
+  reducedDist <- df %>%
+    group_by(
+      cellID
+    ) %>%
+    slice_sample(
+      n = maxPerCell
+    ) %>%
+    combineStress() %>%
+    group_by(
+      earlyLifeTrt, adultTrt
+    ) %>%
+    calcCumFreq({{ varToPlot }})
+  
+  plusLimitedDist <- avgDistByCell_cumFreqPlot +
+    geom_line(
+      aes(
+        x = {{ varToPlot }}
+        , y = cumFreq
+        , color = comboTrt
+      )
+      , linetype = "dotted"
+      , inherit.aes = FALSE
+      , data = reducedDist
+    )
+  
+  return(list(
+    "plusAll" = plusAllEventsDist
+    , "plusLimited" = plusLimitedDist
+  ))
+}
+
+compareDists_maxPerCell <- function(df, varToPlot, xLab, bin, xmax, legendPosition = c(0.8, 0.2)){
+  allEventsCumFreq <- df %>%
+    combineStress() %>%
+    group_by(
+      earlyLifeTrt, adultTrt
+    ) %>%
+    calcCumFreq({{ varToPlot }})
+  
+  set.seed(123)
+  reducedDist_10 <- df %>%
+    group_by(
+      cellID
+    ) %>%
+    slice_sample(
+      n = 10
+    ) %>%
+    combineStress() %>%
+    group_by(
+      earlyLifeTrt, adultTrt
+    ) %>%
+    calcCumFreq({{ varToPlot }})
+  
+  set.seed(123)
+  reducedDist_25 <- df %>%
+    group_by(
+      cellID
+    ) %>%
+    slice_sample(
+      n = 25
+    ) %>%
+    combineStress() %>%
+    group_by(
+      earlyLifeTrt, adultTrt
+    ) %>%
+    calcCumFreq({{ varToPlot }})
+  
+  set.seed(123)
+  reducedDist_50 <- df %>%
+    group_by(
+      cellID
+    ) %>%
+    slice_sample(
+      n = 50
+    ) %>%
+    combineStress() %>%
+    group_by(
+      earlyLifeTrt, adultTrt
+    ) %>%
+    calcCumFreq({{ varToPlot }})
+  
+  set.seed(123)
+  reducedDist_100 <- df %>%
+    group_by(
+      cellID
+    ) %>%
+    slice_sample(
+      n = 100
+    ) %>%
+    combineStress() %>%
+    group_by(
+      earlyLifeTrt, adultTrt
+    ) %>%
+    calcCumFreq({{ varToPlot }})
+  
+  set.seed(123)
+  reducedDist_150 <- df %>%
+    group_by(
+      cellID
+    ) %>%
+    slice_sample(
+      n = 150
+    ) %>%
+    combineStress() %>%
+    group_by(
+      earlyLifeTrt, adultTrt
+    ) %>%
+    calcCumFreq({{ varToPlot }})
+  
+  set.seed(123)
+  reducedDist_200 <- df %>%
+    group_by(
+      cellID
+    ) %>%
+    slice_sample(
+      n = 200
+    ) %>%
+    combineStress() %>%
+    group_by(
+      earlyLifeTrt, adultTrt
+    ) %>%
+    calcCumFreq({{ varToPlot }})
+  
+  
+  dummy_data <- data.frame(
+    xVar = c(numeric(7)),  # Replace with actual unique values if necessary
+    cumFreq = c(numeric(7)),
+    # xVar = c(rep(NA, 7)),  # Replace with actual unique values if necessary
+    # cumFreq = c(rep(NA, 7)),
+    numEvents = factor(c("10", "25", "50", "100", "150", "200", "All Events"))
+  )
+  
+  dummy_data %>%
+    mutate(
+      xVar = NA
+      , cumFreq = NA
+    )
+
+  
+  ggplot(
+    df,
+    aes(
+      x = {{ varToPlot }}
+      , y = cumFreq
+      , group = comboTrt
+    )
+  ) +
+    geom_line(
+      data = reducedDist_10
+      , color = "#7fc97f"
+    ) +
+    geom_line(
+      data = reducedDist_25
+      , color = "#beaed4"
+    ) +
+    geom_line(
+      data = reducedDist_50
+      , color = "#fdc086"
+    ) +
+    geom_line(
+      data = reducedDist_100
+      , color = "#386cb0"
+    ) +
+    geom_line(
+      data = reducedDist_150
+      , color = "#f0027f"
+    ) +
+    geom_line(
+      data = reducedDist_200
+      , color = "#bf5b17"
+    ) +
+    geom_line(
+      data = allEventsCumFreq
+      , color = "#252525"
+    ) +
+    boxTheme() +
+    textTheme(size = textSize) +
+    coord_cartesian(xlim = c(0, xmax), ylim = c(0, 100))+
+    xlab(xLab) +
+    ylab("cumulative frequency (%)") +
+    geom_line(data = dummy_data, aes(x = xVar, y = cumFreq, color = numEvents), inherit.aes = FALSE, show.legend = TRUE) +
+    scale_color_manual(
+    values = c(
+      "10" = "#7fc97f",
+      "25" = "#beaed4",
+      "50" = "#fdc086",
+      "100" = "#386cb0",
+      "150" = "#f0027f",
+      "200" = "#bf5b17",
+      "All Events" = "#252525"
+    ),
+    name = "# events/cell"  # The name of the legend.
+  ) +
+    guides(color = guide_legend(ncol = 2)) +
+    theme(
+      legend.position = legendPosition 
+      , legend.key = element_blank()
+    ) +
+    facet_wrap(
+      ~ comboTrt
+    )
+}
+```
+
+### comp # cells
+```{r}
+amplitudeCompNumEvents <- compareDists_maxPerCell(pscProps, amplitude, "amplitude (pA)", 1, 125, legendPosition = c(0.85, 0.15))
+
+amplitudeCompNumEvents
+
+flexSave(
+  "amplitude_comparingNumEvents"
+  , filePath = plotFolder
+  , width = twoCols
+  , height = fullLength
+  , units = "cm"
+)
+```
+
+```{r}
+riseTimeCompNumEvents <- compareDists_maxPerCell(pscProps, riseTime, "rise time (ms)", 1, 2, legendPosition = c(0.85, 0.15))
+
+riseTimeCompNumEvents
+
+flexSave(
+  "riseTime_comparingNumEvents"
+  , filePath = plotFolder
+  , width = twoCols
+  , height = fullLength
+  , units = "cm"
+)
+```
+
+```{r}
+decay9010CompNumEvents <- compareDists_maxPerCell(pscProps, decay9010, "decay time (ms)", 1, 80, legendPosition = c(0.85, 0.15))
+
+decay9010CompNumEvents
+
+flexSave(
+  "decay9010_comparingNumEvents"
+  , filePath = plotFolder
+  , width = twoCols
+  , height = fullLength
+  , units = "cm"
+)
+```
+
+```{r}
+fwhmCompNumEvents <- compareDists_maxPerCell(pscProps, fwhm, "full width half max (ms)", 1, 20, legendPosition = c(0.85, 0.15))
+
+fwhmCompNumEvents
+
+flexSave(
+  "fwhm_comparingNumEvents"
+  , filePath = plotFolder
+  , width = twoCols
+  , height = fullLength
+  , units = "cm"
+)
+```
+
+### comp by cell avg
+
+```{r}
+amplitudeComp <- compareDists(pscProps, amplitude, "amplitude (pA)", 1, 125, 100)
+riseTimeComp <- compareDists(pscProps, riseTime, "rise time (ms)", 0.01, 2, 100)
+decayTimeComp <- compareDists(pscProps, decay9010, "decay time (ms)", 1, 80, 100)
+fwhmComp <- compareDists(pscProps, fwhm, "decay time (ms)", 1, 20, 100)
+```
+
+```{r}
+byCellAvg_compAllEvents <- plot_grid(
+  amplitudeComp$plusAll
+  , riseTimeComp$plusAll
+  , decayTimeComp$plusAll
+  , fwhmComp$plusAll
+  , align = "hv"
+  , axis = "ltbr"
+  , ncol = 2
+)
+byCellAvg_compAllEvents
+
+flexSave(
+  "byCellAvg_compAllEvents"
+  , filePath = plotFolder
+  , width = twoCols
+  , height = fullLength
+  , units = "cm"
+)
+```
+
+```{r}
+byCellAvg_comp100events <- plot_grid(
+  amplitudeComp$plusLimited
+  , riseTimeComp$plusLimited
+  , decayTimeComp$plusLimited
+  , fwhmComp$plusLimited
+  , align = "hv"
+  , axis = "ltbr"
+  , ncol = 2
+)
+byCellAvg_comp100events
+
+flexSave(
+  "byCellAvg_comp100events"
+  , filePath = plotFolder
+  , width = twoCols
+  , height = fullLength
+  , units = "cm"
+)
+```
+
+
+```{r}
+amplitudeComp <- compareDists(pscProps, amplitude, "amplitude (pA)", 1, 125, 25)
+riseTimeComp <- compareDists(pscProps, riseTime, "rise time (ms)", 0.01, 2, 25)
+decayTimeComp <- compareDists(pscProps, decay9010, "decay time (ms)", 1, 80, 25)
+fwhmComp <- compareDists(pscProps, fwhm, "decay time (ms)", 1, 20, 25)
+```
+
+
+
+```{r}
+byCellAvg_comp25events <- plot_grid(
+  amplitudeComp$plusLimited
+  , riseTimeComp$plusLimited
+  , decayTimeComp$plusLimited
+  , fwhmComp$plusLimited
+  , align = "hv"
+  , axis = "ltbr"
+  , ncol = 2
+)
+byCellAvg_comp25events
+
+flexSave(
+  "byCellAvg_comp25events"
+  , filePath = plotFolder
+  , width = twoCols
+  , height = fullLength
+  , units = "cm"
+)
+```
