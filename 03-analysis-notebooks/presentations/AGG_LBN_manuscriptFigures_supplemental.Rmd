@@ -201,22 +201,23 @@ doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ### emmeans
 
 ```{r}
-tableCaption <- "Estimated marginal means (emmean) from linear mixed model of dam mass for early-life treatment and PND factors. CI = confidence interval; PND = postnatal day"
-
-tbl <- damMass_lmm_emm_flexTable
-
-tbl
+# tableCaption <- "Estimated marginal means (emmean) from linear mixed model of dam mass for early-life treatment and PND factors. CI = confidence interval; PND = postnatal day"
+# 
+# tbl <- damMass_lmm_emm_flexTable
+# 
+# tbl
 ```
 
 ```{r}
 # damMassEmmTblNum <- damMassTblNum + 1
-damMassEmmTblNum <- damCountTblNum + 1
+# damMassEmmTblNum <- damCountTblNum + 1
+damMassEmmTblNum <- damCountTblNum
 tableNum <- damMassEmmTblNum
 ```
 
 ```{r}
 # doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+# supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
 ### pairs

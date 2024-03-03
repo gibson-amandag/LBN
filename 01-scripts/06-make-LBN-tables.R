@@ -86,8 +86,7 @@ damMass_flexTable <- damMass_table %>%
     , fullWidth = FALSE
   )
 
-
-### emmeans -----------------------------------------------------------
+### emmeans dam mass -----------------------------------------------------------
 
 damMass_lmm_emmTbl.earlyLifeTrt <- damMass_lmm_EMM.earlyLifeTrt %>%
   as_tibble() %>%
@@ -138,13 +137,51 @@ damMass_emmPairsTbl <- bind_rows(
   , .id = "variable"
 )
 
+rep1Row <- damMass_emmPairsTbl %>%
+  slice(1)
+
+damMass_emmPairsTbl <- damMass_emmPairsTbl %>%
+  bind_rows(
+    rep1Row
+  ) %>%
+  arrange(
+    desc(variable)
+  )
+
+damMass_emmPairsTbl <- bind_cols(
+  damMass_lmm_emmTbl
+  , damMass_emmPairsTbl %>%
+    select(
+      -variable
+    ) %>%
+    rename(
+      df_con = df
+      , `95% CI_con`= `95% CI`
+      , `t ratio_con` = `t ratio`
+      , p_con = p
+    )
+)
+
+damMass_header <- data.frame(
+  col_keys = c("variable"
+               , "level", "emmean", "df", "95% CI"
+               , "contrast", "estimate", "df_con", "95% CI_con", "t ratio_con", "p_con"
+  ),
+  line2 = c("", rep("emmeans", 4), rep("pairwise comparison", 6)),
+  line3 = c("variable"
+            , "level", "emmean", "df", "95% CI"
+            , "contrast", "estimate", "df", "95% CI", "t ratio", "p"),
+  stringsAsFactors = FALSE
+)
+
 damMass_emmPairs_flexTable <- damMass_emmPairsTbl %>%
   makeManuscriptFlexTable(
-    horzLines = c(1)
+    headerDF = damMass_header
+    , vertLines = c(1, 5)
+    , horzLines = c(2)
     , vertMergeCols = c("variable")
-    , round1Cols = c("df")
-    , round2Cols = c("estimate", "t ratio")
-    , round3Cols = c("SEM")
+    , round1Cols = c("df", "df_con")
+    , round2Cols = c("t ratio_con")
   )
 
 ## Dam cort -----------------------------------------------------------
