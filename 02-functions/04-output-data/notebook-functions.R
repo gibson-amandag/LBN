@@ -105,6 +105,10 @@ simplifyLMMOutput <- function(anovaTable){
   return(tbl)
 }
 
+roundDecimals <- function(val, digits){
+  format(round(val, digits), nsmall = digits, trim = TRUE)
+}
+
 simplifyEMMOutput <- function(emmTbl){
   levelExists <- "level" %in% colnames(emmTbl)
   
