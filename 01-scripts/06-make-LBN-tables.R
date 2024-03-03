@@ -112,12 +112,19 @@ damMass_lmm_emmTbl <- bind_rows(
   , .id = "variable"
 )
 
+emmeansColLabels <- c("level", "emmean\u00B1SEM", "df", "95% CI")
+
+damMass_lmm_emm_header <- data.frame(
+  col_keys = colnames(damMass_lmm_emmTbl)
+  , line1 = c("variable", emmeansColLabels)
+  , stringsAsFactors = FALSE
+)
+
 damMass_lmm_emm_flexTable <- damMass_lmm_emmTbl %>%
   makeManuscriptFlexTable(
-    horzLines = c(2)
+    headerDF = damMass_lmm_emm_header
+    , horzLines = c(2)
     , round1Cols = c("df")
-    , round2Cols = c("emmean")
-    , round3Cols = c("SEM")
     , vertMergeCols = c("variable")
   )
 
@@ -144,7 +151,7 @@ damMass_emmPairs_flexTable <- damMass_emmPairsTbl %>%
     , vertMergeCols = c("variable")
     , round1Cols = c("df")
     , round2Cols = c("estimate", "t ratio")
-    , round3Cols = c("SEM")
+    # , round3Cols = c("SEM")
   )
 
 ## Dam cort -----------------------------------------------------------

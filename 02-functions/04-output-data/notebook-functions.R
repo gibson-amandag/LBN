@@ -113,12 +113,13 @@ simplifyEMMOutput <- function(emmTbl){
   levelExists <- "level" %in% colnames(emmTbl)
   
   tbl <- emmTbl %>%
-    rename(
-      SEM = SE
-    ) %>%
     mutate(
-      `95% CI` = paste0("[", format(round(lower.CL, 2), nsmall = 2, trim = TRUE), ", ", format(round(upper.CL, 2), nsmall = 2, trim = TRUE), "]")
-    ) 
+      emmean = paste0(roundDecimals(emmean, 2), "\u00B1", roundDecimals(SE, 3)), 
+      , `95% CI` = paste0("[", format(round(lower.CL, 2), nsmall = 2, trim = TRUE), ", ", format(round(upper.CL, 2), nsmall = 2, trim = TRUE), "]")
+    ) %>%
+    select(
+      -SE
+    )
   
   if(levelExists){
     tbl <- tbl %>%
@@ -137,9 +138,24 @@ simplifyEMMOutput <- function(emmTbl){
 simplifyEMMPairsOutput <- function(pairsTbl){
   tbl <- pairsTbl %>%
     as_tibble() %>%
+  ifRatio <- "ratio" %in% colnames(tbl)
+  
+  if(ifRatio){
+    tbl <- tbl %>%
+      mutate(
+        ratio = paste0(roundDecimals(ratio, 2), "\u00B1", roundDecimals(SE, 3))
+      ) %>%
+      select(
+        -null
+      )
+  } else {
+    tbl <- tbl %>%
+      mutate(
+        estimate = paste0(roundDecimals(estimate, 2), "\u00B1", roundDecimals(SE, 3))
+      )
+  }
     rename(
-      SEM = SE
-      , `t ratio` = t.ratio
+      `t ratio` = t.ratio
       , p = p.value
     ) %>%
     formatPCol()
