@@ -136,7 +136,20 @@ simplifyEMMOutput <- function(emmTbl){
 
 simplifyEMMPairsOutput <- function(pairsTbl){
   tbl <- pairsTbl %>%
-    as_tibble() %>%
+    summary(
+      infer = c(TRUE, TRUE)
+      , adjust = "holm"
+    ) %>%
+    as_tibble()
+  
+  tbl <- tbl %>%
+    mutate(
+      `95% CI` = paste0("[", roundDecimals(lower.CL, 2), ", ", roundDecimals(upper.CL, 2), "]")
+      , .after = df
+    ) %>%
+    select(
+      -c(lower.CL, upper.CL)
+    ) %>%
     rename(
       SEM = SE
       , `t ratio` = t.ratio
