@@ -1,3 +1,4 @@
+set_flextable_defaults(padding.left = 1, padding.right = 1)
 
 # Figure 1 - Dams ---------------------------------------------------------
 
@@ -73,17 +74,65 @@ dam_count_flexTable <- dam_count %>%
 damMass_table <- damMass_lmm$anova_table %>%
   simplifyLMMOutput()
 
-damMass_header <- data.frame(
-  col_keys = c("variable", "F", "df", "p"),
-  line1 = c("", rep("dam mass", 3)),
-  line2 = c("variable", "F", "df", "p"),
+
+## Dam behavior -----------------------------------------------------------
+
+numExits_table <- numExits_nparLD$ANOVA.test %>% 
+  subTrtInRowNames() %>%
+  subnParColNames() %>%
+  subColonInRowNames() %>%
+  as.data.frame() %>%
+  rownames_to_column("variable") %>%
+  mutate(
+    `F` = roundDecimals(`F`, 2)
+    , df = roundDecimals(df, 1)
+  ) %>%
+  formatPCol()
+
+percOffNest_table <- percOffNest_nparLD$ANOVA.test %>% 
+  subTrtInRowNames() %>%
+  subnParColNames() %>%
+  subColonInRowNames() %>%
+  as.data.frame() %>%
+  rownames_to_column("variable") %>%
+  mutate(
+    `F` = roundDecimals(`F`, 2)
+    , df = roundDecimals(df, 1)
+  ) %>%
+  formatPCol()
+
+damTable_earlyLifePND <- bind_rows(
+  list(
+    "dam mass" = damMass_table
+    , "# of exits" = numExits_table
+    , "% off nest" = percOffNest_table
+  )
+  , .id = "feature" 
+  )%>%
+  mutate(
+    variable = ifelse(variable == "early-life treatment", "earlyLife"
+                      , ifelse(variable == "PND", "PND", "int"))
+  ) %>%
+  pivot_wider(
+    id_cols = feature, names_from = variable, values_from = c("F", "df", "p")
+  )
+
+damTable_earlyLifePND_header <- data.frame(
+  col_keys = c("feature"
+               , "F_earlyLife", "df_earlyLife", "p_earlyLife"
+               , "F_PND", "df_PND", "p_PND"
+               , "F_int", "df_int", "p_int"
+  ),
+  line2 = c("", rep("early-life treatment", 3), rep("PND", 3), rep("early-life treatment * PND", 3)),
+  line3 = c("feature", rep(c("F", "df", "p"), 3)),
   stringsAsFactors = FALSE
 )
 
-damMass_flexTable <- damMass_table %>%
+damTable_earlyLifePND_flexTable <- damTable_earlyLifePND %>%
   makeManuscriptFlexTable(
-    damMass_header
-    , fullWidth = FALSE
+    headerDF = damTable_earlyLifePND_header
+    , vertLines = c(1, 4, 7)
+    , vertMergeCols = c("feature")
   )
 
 
@@ -211,45 +260,6 @@ damCort_flexTable <- damCort_tbl %>%
 
 
 
-## Dam behavior -----------------------------------------------------------
-
-numExits_table <- numExits_nparLD$ANOVA.test %>% 
-  subTrtInRowNames() %>%
-  subnParColNames() %>%
-  as.data.frame() %>%
-  rownames_to_column("variable")
-
-percOffNest_table <- percOffNest_nparLD$ANOVA.test %>% 
-  subTrtInRowNames() %>%
-  subnParColNames() %>%
-  as.data.frame() %>%
-  rownames_to_column("variable")
-
-damBehavior_header <- data.frame(
-  col_keys = c("variable", "F_model_1", "df_model_1", "p_model_1",
-               "F_model_2", "df_model_2", "p_model_2"
-  ),
-  # line1 = paste0("Table ", tableNum),
-  line2 = c("", rep("# of exits", 3), rep("% off nest", 3)),
-  line3 = c("variable", "F", "df", "p", "F", "df", "p"),
-  stringsAsFactors = FALSE
-)
-
-damBehaviorTable <- bind_rows(
-  list(model_1 = numExits_table, model_2 = percOffNest_table), .id = "model"
-) %>%
-  formatPCol() %>%
-  pivot_wider(
-    id_cols = variable, names_from = model, values_from = c("F", "df", "p")
-  )
-
-damBehavior_flexTable <- damBehaviorTable %>%
-  makeManuscriptFlexTable(
-    headerDF = damBehavior_header
-    , round1Cols = c("df_model_1", "df_model_2")
-    , round2Cols = c("F_model_1", "F_model_2")
-    , vertLines = c(1, 4)
-  )
 
 
 # Figure 2 - Maturation ---------------------------------------------------
@@ -569,11 +579,10 @@ AGD_lmm_emm_sex_flexTable <- AGD_lmm_emm_sex_tbl %>%
 
 ### pairs -----------
 AGD_lmm_emm_sex.pairs_flexTable <- AGD_lmm_emm_sex.pairs %>%
-  as_tibble () %>%
+  simplifyEMMPairsOutput() %>%
   mutate(
     contrast = ifelse(contrast == "F - M", "female - male", contrast)
   ) %>%
-  simplifyEMMPairsOutput() %>%
   makeManuscriptFlexTable(
     round1Cols = c("df")
     , round2Cols = c("estimate", "t ratio")
@@ -3283,46 +3292,95 @@ LH_pro_flexTable <- LH_pro_tbl %>%
     , vertLines = c(1, 4)
   )
 
-LH_pro_peakTime_flexTable <- LH_proSampling_peakTime_lmm$anova_table %>%
-  simplifyLMMOutput() %>%
+LH_proSampling_peakTime_lmm_tbl <- LH_proSampling_peakTime_lmm$anova_table %>%
+  simplifyLMMOutput()
+
+LH_pro_peakTime_flexTable <- LH_proSampling_peakTime_lmm_tbl %>%
   makeManuscriptFlexTable(
     vertLines = c(1)
   )
+
+## Combined LH di/pro/time ------------------
+
+combinedLH_tbl <- bind_rows(list(
+  "proestrus max LH\nextended sampling" = LH_proSamplingLMM_tbl
+  , "proestrus max LH\nlimited sampling" = LH_proEphysLMM_tbl
+  , "proestrus time of max LH\nextended sampling" = LH_proSampling_peakTime_lmm_tbl
+  , "diestrus avg LH" = LH_diAfternoonLMM_tbl
+), .id = "feature"
+) %>%
+  mutate(
+    variable = ifelse(
+      variable == "early-life treatment"
+      , "earlyLife"
+      , ifelse(
+        variable == "adult treatment"
+        , "adult"
+        , "int"
+      )
+    )
+  ) %>%
+  pivot_wider(
+    id_cols = "feature"
+    , names_from = "variable"
+    , values_from = c("F", "df", "p")
+  )
+
+combinedLH_header <- data.frame(
+  col_keys = c("feature"
+               , "F_earlyLife", "df_earlyLife", "p_earlyLife"
+               , "F_adult", "df_adult", "p_adult"
+               , "F_int", "df_int", "p_int"
+  )
+  , line1 = c(""
+              , rep("early-life treatment", 3)
+              , rep("adult treatment", 3)
+              , rep("early-life treatment * adult treatment", 3)
+  )
+  , line2 = c("feature"
+              , rep(c("F", "df", "p"), 3)
+  )
+)
+
+combinedLH_flexTable <- combinedLH_tbl %>%
+  makeManuscriptFlexTable(
+    headerDF = combinedLH_header
+    , round2Cols = c("F_earlyLife", "F_adult", "F_int")
+    , vertLines = c(1, 4, 7)
+  )
+
 
 ### EMMs -----------------
 LH_proEphysLMM_emm_earlyLifeTrt_tbl <-  LH_proEphys_lmm_emm_earlyLifeTrt %>%
   as_tibble() %>%
   simplifyEMMOutput() %>%
   mutate(
-    usage = "electrophysiology"
+    usage = "limited sampling"
   )
 
 LH_proEphysLMM_emm_adultTrt_tbl <-  LH_proEphys_lmm_emm_adultTrt %>%
   as_tibble() %>%
   simplifyEMMOutput() %>%
   mutate(
-    usage = "electrophysiology"
+    usage = "limited sampling"
   )
 
 LH_proSamplingLMM_emm_adultTrt_tbl <-  LH_proSampling_lmm_emm_adultTrt %>%
   as_tibble() %>%
   simplifyEMMOutput() %>%
   mutate(
-    usage = "sampling"
+    usage = "extended sampling"
   )
 
 LH_proLMM_EMM <- bind_rows(
-  LH_proEphysLMM_emm_earlyLifeTrt_tbl
+  LH_proSamplingLMM_emm_adultTrt_tbl
+  , LH_proEphysLMM_emm_earlyLifeTrt_tbl
   , LH_proEphysLMM_emm_adultTrt_tbl
-  , LH_proSamplingLMM_emm_adultTrt_tbl
 ) %>%
   relocate(
-    adultTrt
-    , .after = earlyLifeTrt
-  ) %>%
-  relocate(
     usage
-    , .before = earlyLifeTrt
+    , earlyLifeTrt
+    , .before = adultTrt
   )
 
 LH_proLMM_EMM_flexTable <- LH_proLMM_EMM %>%
@@ -3340,19 +3398,19 @@ LH_proLMM_EMM_flexTable <- LH_proLMM_EMM %>%
 LH_proEphysLMM_emm_earlyLifeTrt.pairs_tbl <-  LH_proEphys_lmm_emm_earlyLifeTrt.pairs %>%
   simplifyEMMPairsOutput() %>%
   mutate(
-    usage = "electrophysiology"
+    usage = "limited sampling"
   )
 
 LH_proEphysLMM_emm_adultTrt.pairs_tbl <-  LH_proEphys_lmm_emm_adultTrt.pairs %>%
   simplifyEMMPairsOutput() %>%
   mutate(
-    usage = "electrophysiology"
+    usage = "limited sampling"
   )
 
 LH_proSamplingLMM_emm_adultTrt.pairs_tbl <-  LH_proSampling_lmm_emm_adultTrt.pairs %>%
   simplifyEMMPairsOutput() %>%
   mutate(
-    usage = "sampling"
+    usage = "extended sampling"
   )
 
 LH_proLMM_EMM.pairs <- bind_rows(

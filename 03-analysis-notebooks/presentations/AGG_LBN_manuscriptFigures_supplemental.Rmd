@@ -181,9 +181,11 @@ supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```{r}
 testFormula <- getLMMFormula(damMass_lmm)
 testFormula <- gsub("PND", "PND@", testFormula)
-tableCaption <- paste0("Linear mixed model of the dam mass on PND4, 11, and 21 fit with the equation ", testFormula, ". PND was treated as a factor variable. PND = postnatal day")
+# tableCaption <- paste0("Linear mixed model of the dam mass on PND4, 11, and 21 fit with the equation ", testFormula, ". PND was treated as a factor variable. PND = postnatal day")
 
-tbl <- damMass_flexTable
+tableCaption <- "dam mass and dam behavior"
+
+tbl <- damTable_earlyLifePND_flexTable
 
 tbl
 ```
@@ -241,7 +243,8 @@ doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ## Table - dam cort
 
 ```{r}
-damCortTblNum <- damMassEmmPairsTblNum + 1
+# damCortTblNum <- damMassEmmPairsTblNum + 1
+damCortTblNum <- damMassEmmPairsTblNum # incorporate into text
 tableNum <- damCortTblNum
 ```
 
@@ -253,25 +256,26 @@ tbl
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 ## Table - Dam behavior
 
 ```{r}
-damBehaviorTblNum <- damCortTblNum + 1
+# damBehaviorTblNum <- damCortTblNum + 1
+damBehaviorTblNum <- damCortTblNum # incorporated in with dam mass table
 tableNum <- damBehaviorTblNum
 ```
 
 ```{r}
 tableCaption <- paste0("Dam behavior parameters analyzed with nonparametric longitudinal model using the nparLD package in R, with the ", numExits_nparLD$model.name, ". The subject variable was each dam, early-life treatment (standard or limited bedding and nesting cage) was the between-subject factor ('whole-plot' factor), and PND was the within-subject factor ('sub-plot' repeated factor). PND=postnatal day")
 
-tbl <- damBehavior_flexTable
+tbl <- damBehavior_flexTable 
 tbl
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 
@@ -549,12 +553,13 @@ tableCaption <- "Pairwise comparisons of contrasts from estimated marginal means
 
 ```{r}
 # AGDTblNum_emm_pairs <- AGDTblNum_emm + 1
-AGDTblNum_emm_pairs <- AGDTblNum + 1
+# AGDTblNum_emm_pairs <- AGDTblNum + 1
+AGDTblNum_emm_pairs <- AGDTblNum # incorporated into text
 tableNum <- AGDTblNum_emm_pairs
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 # Figure 3 - Cycles
@@ -795,7 +800,8 @@ tableCaption <- "Estimated marginal means (emmean) in female mice from linear mi
 
 ```{r}
 # femaleCortLMM_emm_num <- maleCortLMMNum_emm.pairs + 1
-femaleCortLMM_emm_num <- maleCortLMMNum_emm + 1
+# femaleCortLMM_emm_num <- maleCortLMMNum_emm + 1
+femaleCortLMM_emm_num <- maleCortLMMNum_emm # not yet, put this after the tissue masses stuff
 tableNum <- femaleCortLMM_emm_num
 ```
 
@@ -1402,6 +1408,27 @@ tableNum <- femaleMass_ALPS_lmm_emm.pairs_num
 supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
+# Figure 4 - cort female emms
+
+```{r}
+tbl <- femaleCortLMM_emm_3way_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Estimated marginal means (emmean) in female mice from linear mixed model of serum corticosterone for adult treatment, time (hr), and estrous cycle stage. Results are averaged over the levels of early-life treatment. The emmeans and confidence intervals (CI) are back-transformed from the log scale to the response scale (ng/mL)."
+```
+
+```{r}
+femaleCortLMM_emm_num <- femaleMass_ALPS_lmm_emm.pairs_num + 1
+tableNum <- femaleCortLMM_emm_num
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
 # Figure 8 - LH
 ```{r}
 figLH <- plot_grid(
@@ -1464,6 +1491,27 @@ tableNum <- LHCount_num
 # supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
+## Combined LH LMM
+
+```{r}
+tbl <- combinedLH_flexTable
+tbl
+```
+
+
+```{r}
+tableCaption <- "combined LH table"
+```
+
+```{r}
+combinedLH_num <- femaleCortLMM_emm_num.pairs + 1
+tableNum <- combinedLH_num
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
 ## Di LMM
 ```{r}
 tbl <- LH_diAfternoon_flexTable
@@ -1478,12 +1526,13 @@ tableCaption <- "Statistics from linear mixed models of average afternoon (2.5h 
 ```{r}
 # LH_di_lmm_num <- LHCount_num + 1
 # LH_di_lmm_num <- femaleMass_ALPS_lmm_emm.pairs_num + 1
-LH_di_lmm_num <- femaleCortLMM_emm_num.pairs + 1
+# LH_di_lmm_num <- femaleCortLMM_emm_num.pairs + 1
+LH_di_lmm_num <- combinedLH_num
 tableNum <- LH_di_lmm_num
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 ## Pro LMM
@@ -1499,12 +1548,13 @@ tableCaption <- "Statistics from linear mixed models of maximum evening LH on da
 ```
 
 ```{r}
-LH_pro_lmm_num <- LH_di_lmm_num + 1
+# LH_pro_lmm_num <- LH_di_lmm_num + 1
+LH_pro_lmm_num <- LH_di_lmm_num
 tableNum <- LH_pro_lmm_num
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 
@@ -1588,12 +1638,13 @@ tableCaption <- "Statistics from linear mixed models of the time (h) of maximum 
 ```
 
 ```{r}
-LH_pro_peakTime_lmm_num <- propSurged_num + 1
+# LH_pro_peakTime_lmm_num <- propSurged_num + 1
+LH_pro_peakTime_lmm_num <- propSurged_num
 tableNum <- LH_pro_peakTime_lmm_num
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 
