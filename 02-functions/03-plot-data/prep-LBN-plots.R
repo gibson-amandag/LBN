@@ -717,6 +717,7 @@ manuscriptCortPlotFunc <- function(
     , pointAlpha = .9
     , lineAlpha = 0.4
     , clipVal = "off"
+    , facetByAdultOnly = FALSE
 ){
   if(useALPSLineType){
     lineGuide <-  c("STD-CON"="dotted", "STD-ALPS"="solid", "LBN-CON"="dotted", "LBN-ALPS"="solid")
@@ -774,12 +775,20 @@ manuscriptCortPlotFunc <- function(
           )
       }
     } else {
-      plot <- plot + facet_wrap(
-        # ~ earlyLifeTrt + adultTrt
-        ~ comboTrt
-        , nrow = 1
-        , strip.position = stripPosition
-      )
+      if(facetByAdultOnly){
+        plot <- plot + facet_wrap(
+          ~ adultTrt
+          , nrow = 1
+          , strip.position = stripPosition
+        )
+      } else{
+        plot <- plot + facet_wrap(
+          # ~ earlyLifeTrt + adultTrt
+          ~ comboTrt
+          , nrow = 1
+          , strip.position = stripPosition
+        )
+      }
       plot <- plot +
         rremove("legend") +
         theme(

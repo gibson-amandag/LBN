@@ -764,6 +764,7 @@ maleCortLMM_emm.pairs_flexTable <- maleCortLMM_emm.pairs_tbl %>%
     round1Cols = c("df")
     , round2Cols = c("ratio", "t ratio")
     , round3Cols = c("SEM")
+    , horzLines = c(2)
   )
 
 ### Females emmeans - adultTrt * time * cycle stage -------------

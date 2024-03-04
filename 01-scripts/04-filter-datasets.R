@@ -464,14 +464,22 @@ cyclesPercLong <- cyclesFiltered %>%
 
 
 acuteStressFiltered <- AcuteStress_off %>%
-  filterLBNCohorts()
+  filterLBNCohorts() %>%
+  mutate(
+    Sac_cycle = factor(Sac_cycle, levels = c("proestrus", "diestrus"))
+  )
 
 cortFiltered <- Cort_off %>%
-  filterLBNCohorts() 
+  filterLBNCohorts() %>%
+  mutate(
+    Sac_cycle = factor(Sac_cycle, levels =c("proestrus", "diestrus"))
+  )
 
 LHFiltered <- LH_off %>%
-  filterLBNCohorts()
-
+  filterLBNCohorts() %>%
+  mutate(
+    Sac_cycle = factor(Sac_cycle, levels = c("proestrus", "diestrus"))
+  )
 
 # Filter acute stress -----------------------------------------------------
 # proUterineMin = 125
@@ -561,7 +569,7 @@ acuteStressFiltered_M_DiPro <- acuteStressFiltered %>%
       , Sac_cycle
     )
   ) %>% mutate(
-    hormoneStatus = factor(hormoneStatus, c("male", "diestrus", "proestrus"))
+    hormoneStatus = factor(hormoneStatus, c("male","proestrus", "diestrus"))
   )
 
 acuteStressFilteredMales <- acuteStressFiltered %>%
@@ -583,7 +591,7 @@ acuteStressFilteredDi <- acuteStressFiltered %>%
 ## Filter Cort -------------------------------------------------------------
 adjMaxMin = TRUE
 cortMax = 1000 # changed when corrected the standards for cohort 7+8 and BD plates
-cortMin = 1.95
+cortMin = 3.9 # changed 2024-03-03
 
 filterCortAll <- filterCortFunc(
   c("M", "F")
@@ -592,7 +600,7 @@ filterCortAll <- filterCortFunc(
   , exclude723 = exclude723
   , filterUterineMass = FALSE
   , cortMax = cortMax # make everything higher than this 1000ng/mL
-  , cortMin = cortMin # make everything lower than this 1.95 ng/mL
+  , cortMin = cortMin # make everything lower than this 3.9 ng/mL
 )
 
 filterCort_M_DiPro <- filterCortFunc(
@@ -604,14 +612,14 @@ filterCort_M_DiPro <- filterCortFunc(
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
   , cortMax = cortMax # make everything higher than this 1000ng/mL
-  , cortMin = cortMin # make everything lower than this 1.95 ng/mL
+  , cortMin = cortMin # make everything lower than this 3.9 ng/mL
 )
 
 filterCortMales <- filterCortFunc(
   "M"
   , "" #cycle stages
   , cortMax = cortMax # make everything higher than this 1000ng/mL
-  , cortMin = cortMin # make everything lower than this 1.95 ng/mL
+  , cortMin = cortMin # make everything lower than this 3.9 ng/mL
 )
 
 filterCortFemales_all <- filterCortFunc(
@@ -621,7 +629,7 @@ filterCortFemales_all <- filterCortFunc(
   , exclude653 = exclude653
   , exclude723 = exclude723
   , cortMax = cortMax # make everything higher than this 1000ng/mL
-  , cortMin = cortMin # make everything lower than this 1.95 ng/mL
+  , cortMin = cortMin # make everything lower than this 3.9 ng/mL
 )
 
 filterUterineMass <- TRUE
@@ -635,7 +643,7 @@ filterCortFemales <- filterCortFunc(
   , exclude653 = exclude653
   , exclude723 = exclude723
   , cortMax = cortMax # make everything higher than this 1000ng/mL
-  , cortMin = cortMin # make everything lower than this 1.95 ng/mL
+  , cortMin = cortMin # make everything lower than this 3.9 ng/mL
 )
 
 
@@ -648,7 +656,7 @@ filterCortPro <- filterCortFunc(
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
   , cortMax = cortMax # make everything higher than this 1000ng/mL
-  , cortMin = cortMin # make everything lower than this 1.95 ng/mL
+  , cortMin = cortMin # make everything lower than this 3.9 ng/mL
 )
 
 filterCortDi <- filterCortFunc(
@@ -660,7 +668,7 @@ filterCortDi <- filterCortFunc(
   , proUterineMin = proUterineMin
   , diUterineMax = diUterineMax
   , cortMax = cortMax # make everything higher than this 1000ng/mL
-  , cortMin = cortMin # make everything lower than this 1.95 ng/mL
+  , cortMin = cortMin # make everything lower than this 3.9 ng/mL
 )
 
 cortFilteredAll <- cortFiltered %>%
@@ -676,7 +684,7 @@ cortFiltered_M_DiPro <- cortFiltered %>%
     )
   ) %>%
   mutate(
-    hormoneStatus = factor(hormoneStatus, c("male", "diestrus", "proestrus"))
+    hormoneStatus = factor(hormoneStatus, c("male","proestrus", "diestrus"))
   )
 
 cortFilteredMales <- cortFiltered %>%

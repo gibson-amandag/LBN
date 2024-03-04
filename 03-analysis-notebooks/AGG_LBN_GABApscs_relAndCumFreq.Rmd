@@ -254,9 +254,22 @@ plotCumFreqDist_allEvents <- function(
     , zoom_y = TRUE
     , ymin = 0
     , ymax = 100
-    , textSize = 16
-    , legendPosition = c(0.6, 0.3) 
+    , textSize = 11
+    , legendPosition = c(0.6, 0.3)
+    , limitByCell = FALSE
+    , maxPerCell = 100
+    , seedVal = 123
 ){
+  if(limitByCell){
+    set.seed(seedVal)
+    df <- df %>%
+      group_by(
+        cellID
+      ) %>%
+      slice_sample(
+        n = maxPerCell
+      )
+  }
   plot <- df %>%
     combineStress() %>%
     group_by(earlyLifeTrt, adultTrt) %>%
@@ -283,6 +296,59 @@ plotCumFreqDist_allEvents <- function(
       , legend.key = element_blank()
     )
   return(plot)
+}
+
+plotMedianErrors <- function(
+  df
+  , xLab
+  , zoom_x = FALSE
+  , xmin = NA
+  , xmax = NA
+  , textSize = 11
+) {
+  df %>%
+    ggplot(
+      aes(
+        y = comboTrt
+        , x = y
+        , color = comboTrt
+      )
+    ) +
+    geom_point() +
+    geom_linerange(
+      aes(
+        y = comboTrt
+        , xmin = lower
+        , xmax = upper
+      )
+    ) +
+    comboTrtLineColor() +
+    expand_limits(x = 0) +
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}) +
+    labs(x = xLab) +
+    scale_y_discrete(
+      limits = rev
+      , labels = c(
+        "STD-CON" = "SC"
+        , "LBN-CON" = "LC"
+        , "STD-ALPS" = "SA"
+        , "LBN-ALPS" = "LA"
+        # "STD-CON" = "STD\nCON"
+        # , "LBN-CON" = "LBN\nCON"
+        # , "STD-ALPS" = "STD\nALPS"
+        # , "LBN-ALPS" = "LBN\nALPS"
+      )
+      # , position = "right"
+    )+
+    theme_pubr()+
+    boxTheme() +
+    textTheme(size = textSize) +
+    theme(
+      axis.title.y = element_blank()
+      , axis.text.y = element_text(face = "bold")
+      , legend.position = "none"
+      , axis.title.x = element_blank()
+    )
 }
 ```
 
@@ -1746,3 +1812,202 @@ flexSave(
   , units = "cm"
 )
 ```
+
+# Limited by cell and median plots
+
+```{r}
+amplitude_distPlot <- pscProps %>%
+  plotCumFreqDist_allEvents(
+    amplitude
+    , "amplitude (pA)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 125
+    , limitByCell = TRUE
+  )
+
+amplitude_errorPlot <- amplitudeMedian_errors %>%
+  plotMedianErrors(
+    "amplitude (pA)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 125
+  )
+
+riseTime_distPlot <- pscProps %>%
+  plotCumFreqDist_allEvents(
+    riseTime
+    , "rise time (ms)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 2.2
+    , limitByCell = TRUE
+  )
+
+riseTime_errorPlot <- riseTimeMedian_errors %>%
+  plotMedianErrors(
+    "rise time (ms)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 2.2
+  )
+
+decayTime_distPlot <- pscProps %>%
+  plotCumFreqDist_allEvents(
+    decay9010
+    , "decay time (ms)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 80
+    , limitByCell = TRUE
+  )
+
+decayTime_errorPlot <- decayTimeMedian_errors %>%
+  plotMedianErrors(
+    "decay time (ms)"
+    , zoom_x = TRUE
+    , xmax = 80
+  )
+
+FWHM_distPlot <- pscProps %>%
+  plotCumFreqDist_allEvents(
+    fwhm
+    , "full width half max (ms)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+    , limitByCell = TRUE
+  )
+
+FWHM_errorPlot <- FWHMMedian_errors %>%
+  plotMedianErrors(
+    "full width half max (ms)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+  )
+```
+
+```{r}
+freqPlots_aligned <- align_plots(
+  amplitude_distPlot
+  , riseTime_distPlot
+  , decayTime_distPlot
+  , FWHM_distPlot
+  , align = "h"
+  , axis = "tb"
+)
+
+distPlots <- plot_grid(
+  amplitude_errorPlot
+  , riseTime_errorPlot
+  , freqPlots_aligned[[1]]
+  , freqPlots_aligned[[2]]
+  , decayTime_errorPlot
+  , FWHM_errorPlot
+  , freqPlots_aligned[[3]]
+  , freqPlots_aligned[[4]]
+  , ncol = 2
+  , rel_heights = c(rep(c(0.4, 1), 4))
+  , align = "v"
+  , axis = "lr"
+  , labels = c("A", "B", "", "", "C", "D", "", "")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+```
+
+```{r}
+flexSave(
+  "figDistPlots"
+  , plot = distPlots
+  , filePath = manuscriptFolder
+  , width = twoCols
+  , height = fullLength
+  , units = "cm"
+)
+```
+
+```{r}
+amplitude_distPlot +
+  plotError_LMM_aes_xAxis(
+    amplitudeMedian_errors
+  )
+```
+
+
+```{r}
+amplitude_distPlot_fullX <- pscProps %>%
+  plotCumFreqDist_allEvents(
+    amplitude
+    , "amplitude (pA)"
+    , limitByCell = TRUE
+    , legendPosition = "none"
+  )
+
+riseTime_distPlot_fullX <- pscProps %>%
+  plotCumFreqDist_allEvents(
+    riseTime
+    , "rise time (ms)"
+    , limitByCell = TRUE
+    , legendPosition = "none"
+  )
+
+decayTime_distPlot_fullX <- pscProps %>%
+  plotCumFreqDist_allEvents(
+    decay9010
+    , "decay time (ms)"
+    , limitByCell = TRUE
+    , legendPosition = "none"
+  )
+
+FWHM_distPlot_fullX <- pscProps %>%
+  plotCumFreqDist_allEvents(
+    fwhm
+    , "full width half max (ms)"
+    , limitByCell = TRUE
+    , legendPosition = "none"
+  )
+```
+
+```{r}
+dist_fullX <- plot_grid(
+  amplitude_distPlot_fullX +
+    theme(
+      axis.title.y = element_blank()
+      , axis.title.x = element_blank()
+    )
+  , riseTime_distPlot_fullX +
+    theme(
+      axis.title.y = element_blank()
+      , axis.title.x = element_blank()
+    )
+  , decayTime_distPlot_fullX +
+    theme(
+      axis.title.y = element_blank()
+      , axis.title.x = element_blank()
+    )
+  , FWHM_distPlot_fullX +
+    theme(
+      axis.title.y = element_blank()
+      , axis.title.x = element_blank()
+    )
+  , align = "hv"
+  , axis = "tlbr"
+  , ncol = 2
+)
+```
+
+```{r}
+flexSave(
+  "figDist_inset"
+  , plot = dist_fullX
+  , filePath = manuscriptFolder
+  , width = twoCols/2
+  , height = fullLength/3.1
+  , units = "cm"
+)
+```
+
+
+

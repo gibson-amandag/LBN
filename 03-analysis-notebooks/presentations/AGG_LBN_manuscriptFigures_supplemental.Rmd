@@ -677,11 +677,42 @@ figCort <- plot_grid(
 figCort
 
 ```
-
 ```{r}
 flexSave(
   "figCort"
   , plot = figCort
+  , width = twoCols
+  , height = fullLength
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+
+```{r}
+figCort_byAdult <- plot_grid(
+  figCortA_adult +
+    theme(
+      plot.margin = unit(c(0.3,0.1,0,0.1), "cm")
+    )
+  , NULL
+  , figCortC_adult
+  , figCortB_adult
+  , nrow = 2
+  , align = "vh", axis = "ltrb"
+  , labels = c("A", "", "B", "C")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figCort_byAdult
+
+```
+
+```{r}
+flexSave(
+  "figCort_v2"
+  , plot = figCort_byAdult
   , width = twoCols
   , height = fullLength
   , units = "cm"
@@ -772,7 +803,7 @@ tbl <- maleCortLMM_emm.pairs_flexTable
 tbl
 ```
 
-Holm p-value adjustment for 2 tests and Kenward-Roger for DF
+Holm p-value adjustment for 4 tests and Kenward-Roger for DF
 ```{r}
 tableCaption <- "Pairwise comparison of estimated marginal means in male mice from linear mixed model of serum corticosterone for adult treatment (CON: control; ALPS: adult stress) and time (hr). Results are averaged over the levels of early-life treatment. Tests were performed on the log scale."
 ```

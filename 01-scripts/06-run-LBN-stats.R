@@ -475,7 +475,8 @@ male_cort_lmm_ALPSTime_emm <- emmeans(
 male_cort_lmm_ALPSTime_emm.pairs <- contrast(
   male_cort_lmm_ALPSTime_emm
   , "pairwise"
-  , simple = list("adultTrt")
+  # , simple = list("adultTrt")
+  , simple = "each"
   , combine = TRUE
   , adjust = "holm"
 )

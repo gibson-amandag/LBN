@@ -428,6 +428,18 @@ plotCort_long <- manuscriptCortPlotFunc(
   , plotSE = FALSE
 )
 
+plotCort_adultSep <- manuscriptCortPlotFunc(
+  fontSize = textSize
+  , dotSize = dotSize
+  # , zoom_y = FALSE
+  , zoom_y = TRUE
+  , ymin = 0
+  , ymax = 450
+  , plotMean = FALSE
+  , plotSE = FALSE
+  , facetByAdultOnly = TRUE
+)
+
 # cortScale <- scale_y_continuous(
 #   trans = "log"
 #   , limits = c(1, 700)
@@ -485,6 +497,72 @@ figCortB <- cortFilteredDi %>%
 
 figCortC <- cortFilteredPro %>%
   plotCort_long() +
+  cortScale + 
+  plotError_LMM_aes(
+    female_cort_lmm_error %>%
+      filter(
+        Sac_cycle == "proestrus"
+      ) %>%
+      mutate(
+        time = ifelse(
+          time == 0
+          , time - 2
+          , time + 2
+        )
+      )
+    , xVar = time
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 1
+    , color = comboTrt
+  ) +
+  labs(title = "proestrous females")
+
+figCortA_adult <- cortFilteredMales %>%
+  plotCort_adultSep() +
+  cortScale +
+  plotError_LMM_aes(
+    male_cort_lmm_error %>%
+      mutate(
+        time = ifelse(
+          time == 0
+          , time - 2
+          , time + 2
+        )
+      )
+    , xVar = time
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 1
+    , color = comboTrt
+  ) +
+  labs(title = "males")
+
+figCortB_adult <- cortFilteredDi %>%
+  plotCort_adultSep() +
+  cortScale +
+  plotError_LMM_aes(
+    female_cort_lmm_error %>%
+      filter(
+        Sac_cycle == "diestrus"
+      ) %>%
+      mutate(
+        time = ifelse(
+          time == 0
+          , time - 2
+          , time + 2
+        )
+      )
+    , xVar = time
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 1
+    , color = comboTrt
+  ) +
+  labs(title = "diestrous females")
+
+figCortC_adult <- cortFilteredPro %>%
+  plotCort_adultSep() +
   cortScale + 
   plotError_LMM_aes(
     female_cort_lmm_error %>%

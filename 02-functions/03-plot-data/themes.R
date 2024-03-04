@@ -123,12 +123,12 @@ earlyLifeLineType <- function(
 
 comboTrtFillShape <- function(
   STD_CON_color = "grey",
-  STD_ALPS_color = "black",
+  STD_ALPS_color = "#66CCFF",
   LBN_CON_color = "lightblue",
   LBN_ALPS_color = "darkcyan",
   STD_CON_fill = "white",
   STD_ALPS_fill = "black",
-  LBN_CON_fill = "lightblue1",
+  LBN_CON_fill = "#66CCFF",
   LBN_ALPS_fill = "darkcyan"
   , fillAlpha = 0.7
   , colorAlpha = 1
@@ -159,7 +159,7 @@ comboTrtFillShape <- function(
 comboTrtLineColor <- function(
   STD_CON_color = "grey",
   STD_ALPS_color = "black",
-  LBN_CON_color = "lightblue",
+  LBN_CON_color = "#66CCFF",
   LBN_ALPS_color = "darkcyan"
 ){
   layers <- list(

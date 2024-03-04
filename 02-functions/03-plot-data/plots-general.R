@@ -428,4 +428,7 @@ getRandomSubjects <- function(df, subjectVar, n, seed=123) {
     ungroup()
   
   return(df_filtered)
+  
+  # This is a more streamlined approach to consider:
+  # slice_sample() which can handle groups that are smaller than n
 }
