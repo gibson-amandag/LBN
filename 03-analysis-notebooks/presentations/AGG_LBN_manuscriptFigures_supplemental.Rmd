@@ -60,6 +60,48 @@ fullLength <- 16.7
 manuscriptFolder <- file.path(plotOutputFolder, "manuscript")
 ```
 
+# Comparison of cort from control and nutella mice
+```{r}
+source(file.path(scriptsFolder, "cortAdmin-get-datasets.R"))
+cortAdminCortDF <- BD_cort %>%
+  filter(
+    time %in% c(0, 5)
+    , is.na(exclude) | exclude == FALSE
+    , trust == TRUE
+  )
+
+cortPro_Nutella <- cortFilteredPro %>%
+  filter(
+    adultTrt == "CON"
+    , earlyLifeTrt == "STD"
+    , time == 5
+  ) %>%
+  mutate(
+    trt = "CON"
+  ) %>%
+  bind_rows(
+    cortAdminCortDF %>%
+      filter(
+        dosage == 0
+        , time == 5
+      ) %>%
+      mutate(
+        trt = "Nutella"
+      )
+  )
+
+cortPro_Nutella %>%
+  group_by(
+    trt
+  ) %>%
+  meanSummary(cort)
+
+cortPro_Nutella %>%
+  t_test(
+    cort ~ trt
+  )
+```
+
 # Figure 1 - Dams figDams
 
 ```{r}
@@ -146,7 +188,7 @@ figDams
 
 ```{r}
 flexSave(
-  "figDams"
+  "figDams_allRainbow"
   , plot = figDams
   , width = twoCols
   , height = fullLength - 0.1
@@ -267,7 +309,7 @@ damBehaviorTblNum <- damCortTblNum # incorporated in with dam mass table
 tableNum <- damBehaviorTblNum
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 tableCaption <- paste0("Dam behavior parameters analyzed with nonparametric longitudinal model using the nparLD package in R, with the ", numExits_nparLD$model.name, ". The subject variable was each dam, early-life treatment (standard or limited bedding and nesting cage) was the between-subject factor ('whole-plot' factor), and PND was the within-subject factor ('sub-plot' repeated factor). PND=postnatal day")
 
 tbl <- damBehavior_flexTable 
@@ -1463,19 +1505,19 @@ supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 # Figure 8 - LH
 ```{r}
 figLH <- plot_grid(
-  figLH_diAfternoon
-  , figLH_ephysMax
-  , figLH_ephysSurged
-  , figLH_samplingTime_STDCON
+  figLH_samplingTime_STDCON
   , figLH_samplingTime_STDALPS
   , figLH_samplingMax
   , figLH_samplingTime_LBNCON
   , figLH_samplingTime_LBNALPS
   , figLH_samplingSurged
+  , figLH_ephysMax
+  , figLH_ephysSurged
+  , figLH_diAfternoon
   , nrow = 3
   , align = "hv"
   , axis = "tblr"
-  , labels = c("A", "B", "C", "D", "", "E", "", "", "F")
+  , labels = c("A", "", "B", "", "","C", "E", "F")
   , label_fontfamily = "Arial"
   , label_size = textSize
 )

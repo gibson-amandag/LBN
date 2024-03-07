@@ -26,28 +26,47 @@ figDams_exits <- damBehavior_byPND %>%
     strip.text.x.top = element_text(margin = margin(b=-10))
   )
 
+# figDams_meanExits <- damBehavior_byDam %>%
+#   scatterPlotLBN(
+#     yVar = Num_exits
+#     , yLab = "mean # of exits / hr"
+#     , addMean = FALSE
+#     , addSEM = FALSE
+#     , zoom_y = TRUE
+#     , ymax = 60
+#     , ymin = 0
+#     , dotSize = dotSize
+#     , textSize = textSize
+#   ) +
+#   addMeanHorizontalBar(
+#     width = .95
+#     , size = 0.6
+#     , meanColor = "#FF0099"
+#   ) +
+#   addMeanSE_vertBar(
+#     size = 0.6
+#     , barColor = "#FF0099"
+#   )
+
+
 figDams_meanExits <- damBehavior_byDam %>%
-  scatterPlotLBN(
+  plotDamBehavior(
     yVar = Num_exits
-    , yLab = "mean # of exits / hr"
-    , addMean = FALSE
-    , addSEM = FALSE
+    , yLab = "mean # of exits"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = dotSize
     , zoom_y = TRUE
     , ymax = 60
     , ymin = 0
-    , dotSize = dotSize
-    , textSize = textSize
+    , showMean = TRUE
+    , addVertError = TRUE
   ) +
-  addMeanHorizontalBar(
-    width = .95
-    , size = 0.6
-    , meanColor = "magenta"
-  ) +
-  addMeanSE_vertBar(
-    size = 0.6
-    , barColor = "magenta"
+  theme(
+    axis.text.x = element_text()
+    , axis.title.x = element_blank()
   )
-
 
 figDams_offNest <- damBehavior_byPND %>%
   plotDamBehavior(
@@ -69,26 +88,45 @@ figDams_offNest <- damBehavior_byPND %>%
     strip.text.x.top = element_text(margin = margin(b=-10))
   )
 
+# figDams_meanOffNest <- damBehavior_byDam %>%
+#   scatterPlotLBN(
+#     yVar = Perc_off_nest
+#     , yLab = "mean % off nest"
+#     , addMean = FALSE
+#     , addSEM = FALSE
+#     , zoom_y = TRUE
+#     , ymax = 100
+#     , ymin = 0
+#     , dotSize = dotSize
+#     , textSize = textSize
+#   ) +
+#   addMeanHorizontalBar(
+#     width = .95
+#     , size = 0.6
+#     , meanColor = "#FF0099"
+#   ) +
+#   addMeanSE_vertBar(
+#     size = 0.6
+#     , barColor = "#FF0099"
+#   )
+
 figDams_meanOffNest <- damBehavior_byDam %>%
-  scatterPlotLBN(
+  plotDamBehavior(
     yVar = Perc_off_nest
-    , yLab = "mean % off nest"
-    , addMean = FALSE
-    , addSEM = FALSE
+    , yLab = "mean % off exits"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = dotSize
     , zoom_y = TRUE
     , ymax = 100
     , ymin = 0
-    , dotSize = dotSize
-    , textSize = textSize
+    , showMean = TRUE
+    , addVertError = TRUE
   ) +
-  addMeanHorizontalBar(
-    width = .95
-    , size = 0.6
-    , meanColor = "magenta"
-  ) +
-  addMeanSE_vertBar(
-    size = 0.6
-    , barColor = "magenta"
+  theme(
+    axis.text.x = element_text()
+    , axis.title.x = element_blank()
   )
 
 
@@ -110,11 +148,11 @@ figDamsD <- damFiltered %>%
   addMeanHorizontalBar(
     width = .95
     , size = 0.6
-    , meanColor = "magenta"
+    , meanColor = "#FF0099"
   ) +
   addMeanSE_vertBar(
     size = 0.6
-    , barColor = "magenta"
+    , barColor = "#FF0099"
   )
 
 # Dam Mass ------------------------------------------------------
@@ -401,8 +439,8 @@ figCyclesD <- cyclesPercLong %>%
     , dotSize = dotSize
     , strip.position = "top"
     , ylabel = "mean % days in stage"
-    , meanColor = "magenta"
-    , barColor = "magenta"
+    , meanColor = "#FF0099"
+    , barColor = "#FF0099"
     ,
   ) +
   coord_cartesian(ylim = c(0, 80), clip = "off") +
@@ -693,23 +731,22 @@ figLH_ephysSurged <- acuteStressFilteredPro_ephys %>%
 
 ### Pro - sampling - over time -----------
 
-LHSamplingDF_color <- LHFilteredPro_sampling %>%
+LHSamplingDF_color <- acuteStressFilteredPro_sampling %>%
   filter(
-    time > 0
-    , maxLH >= surgeMin
+    maxLH >= surgeMin
   ) %>%
-  addOrderedColors(
-    maxLH
-    , mouseID
-    , colorByGroups = TRUE
-    , pkg = "viridis"
-    , byMax = FALSE
-    , revOrder = TRUE
-    , comboTrt
+  group_by(earlyLifeTrt, adultTrt) %>%
+  mutate(
+    # rowNum = row_number()
+    rank = rank(
+      row_number()
+      , ties.method = "first"
+    )
+    , color = viridis::viridis(max(rank))[rank]
   ) %>%
+  ungroup() %>%
   select(
     mouseID
-    , time
     , color
   ) %>%
   full_join(
@@ -717,7 +754,7 @@ LHSamplingDF_color <- LHFilteredPro_sampling %>%
       filter(
         time > 0
       )
-    , by = c("mouseID", "time")
+    , by = c("mouseID")
   ) %>%
   mutate(
     color = ifelse(
@@ -726,6 +763,41 @@ LHSamplingDF_color <- LHFilteredPro_sampling %>%
       , color
     )
   )
+  
+
+# LHSamplingDF_color <- LHFilteredPro_sampling %>%
+#   filter(
+#     time > 0
+#     , maxLH >= surgeMin
+#   ) %>%
+#   addOrderedColors(
+#     maxLH
+#     , mouseID
+#     , colorByGroups = TRUE
+#     , pkg = "viridis"
+#     , byMax = FALSE
+#     , revOrder = TRUE
+#     , comboTrt
+#   ) %>%
+#   select(
+#     mouseID
+#     , time
+#     , color
+#   ) %>%
+#   full_join(
+#     LHFilteredPro_sampling %>%
+#       filter(
+#         time > 0
+#       )
+#     , by = c("mouseID", "time")
+#   ) %>%
+#   mutate(
+#     color = ifelse(
+#       maxLH < surgeMin
+#       , "#C0C0C0"
+#       , color
+#     )
+#   )
 
 plotLH_overTime_color <-  function(df){
   df %>%
@@ -974,7 +1046,7 @@ figGABA2a_model <- GABApscs_240FilteredFiring %>%
   #   , nudgeErrorLine = 0
   #   , nudgeMeanLine = 0
   #   , meanBarWidth = .4
-  #   , color = "magenta"
+  #   , color = "#FF0099"
   # ) +
   # plotError_LMM(
   #   amplitudeMedian_errors %>%
@@ -996,7 +1068,7 @@ figGABA2b_model <- GABApscs_240FilteredFiring %>%
   #   , nudgeErrorLine = 0
   #   , nudgeMeanLine = 0
   #   , meanBarWidth = .4
-  #   , color = "magenta"
+  #   , color = "#FF0099"
   # ) +
   # plotError_LMM(
   #   riseTimeMedian_errors %>%
@@ -1018,7 +1090,7 @@ figGABA2c_model <- GABApscs_240FilteredFiring %>%
   #   , nudgeErrorLine = 0
   #   , nudgeMeanLine = 0
   #   , meanBarWidth = .4
-  #   , color = "magenta"
+  #   , color = "#FF0099"
   # ) +
   # plotError_LMM(
   #   decayTimeMedian_errors %>%
@@ -1040,7 +1112,7 @@ figGABA2d_model <- GABApscs_240FilteredFiring %>%
   #   , nudgeErrorLine = 0
   #   , nudgeMeanLine = 0
   #   , meanBarWidth = .4
-  #   , color = "magenta"
+  #   , color = "#FF0099"
   # ) +
   # plotError_LMM(
   #   FWHMMedian_errors %>%

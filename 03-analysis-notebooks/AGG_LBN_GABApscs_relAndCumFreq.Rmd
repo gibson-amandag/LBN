@@ -734,17 +734,17 @@ amplitude_relDist_plot <- plotRelDist(amplitude_avgDistByCell, "amplitude (pA)",
 amplitude_cumFreq_plot <- plotCumFreqDist(amplitude_avgDistByCell, "amplitude (pA)", zoom_x = TRUE, xmax = 125)
 
 amplitude_relDist_plot
-fileBaseName <- "amplitude_relDist_bin5"
-slideTitle <- "Amplitude - 5pA bin - relative distribution"
-exportFullPPTSlide()
-ppt <- pptAddOneGraph()
+# fileBaseName <- "amplitude_relDist_bin5"
+# slideTitle <- "Amplitude - 5pA bin - relative distribution"
+# exportFullPPTSlide()
+# ppt <- pptAddOneGraph()
 
 amplitude_cumFreq_plot
 
-fileBaseName <- "amplitude_cumFreqDist_bin5"
-slideTitle <- "Amplitude - 5pA bin - cumulative frequency distribution"
-exportFullPPTSlide()
-ppt <- pptAddOneGraph()
+# fileBaseName <- "amplitude_cumFreqDist_bin5"
+# slideTitle <- "Amplitude - 5pA bin - cumulative frequency distribution"
+# exportFullPPTSlide()
+# ppt <- pptAddOneGraph()
 ```
 
 ### Rise time
@@ -830,7 +830,7 @@ amplitude_cumFreq_plot +
 
 amplitude_cumFreq_plot +
   plotError_LMM_aes_xAxis(
-    amplitude_median_errors # cell medians
+    amplitudeMedian_errors # cell medians
     , meanBarWidth = 10
   )
 
@@ -1915,6 +1915,8 @@ distPlots <- plot_grid(
   , label_fontfamily = "Arial"
   , label_size = textSize
 )
+
+distPlots
 ```
 
 ```{r}
@@ -2007,6 +2009,30 @@ flexSave(
   , height = fullLength/3.1
   , units = "cm"
 )
+```
+
+
+```{r}
+pscProps %>%
+  plotCumFreqDist_allEvents(xVar = amplitude, xLab = "amplitude (pA)", zoom_x = TRUE, xmax = 125)+
+  plotError_LMM_aes_xAxis(
+    amplitudeMedian_errors
+  )
+pscProps %>%
+  plotCumFreqDist_allEvents(xVar = riseTime, xLab = "rise time (ms)", zoom_x = TRUE, xmax = 2.2)+
+  plotError_LMM_aes_xAxis(
+    riseTimeMedian_errors
+  )
+pscProps %>%
+  plotCumFreqDist_allEvents(xVar = decay9010, xLab = "decay time (ms)", zoom_x = TRUE, xmax = 80)+
+  plotError_LMM_aes_xAxis(
+    decayTimeMedian_errors
+  )
+pscProps %>%
+  plotCumFreqDist_allEvents(xVar = fwhm, xLab = "full width half maximum (ms)", zoom_x = TRUE, xmax = 20)+
+  plotError_LMM_aes_xAxis(
+    FWHMMedian_errors
+  )
 ```
 
 

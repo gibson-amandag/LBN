@@ -1,0 +1,515 @@
+---
+title: "AGG Comittee Meeting 2022-11-01"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r eval=FALSE, include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/06-run-LBN-stats.R")
+source("./01-scripts/05-make-LBN-plots-modelError-manuscript.R")
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+# Set-up
+```{r}
+figureNum <- 1
+
+pptBaseName <- makeBaseNameFunc("")
+
+plotFolder <- file.path(plotOutputFolder, "2024-03-04")
+
+imgType <-"png"
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotFolder
+  , compType = currentCompType
+)
+
+exportFullPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+    , width = 11.5
+    , height = 5
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = width
+    , height = height
+  )
+}
+
+exportHalfPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 5.67
+    , height = 5
+  )
+}
+
+exportThirdPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 3.6
+    , height = 5
+  )
+}
+
+exportQuarterPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 3.2
+    , height = 5
+  )
+}
+
+editableImgs <- TRUE
+pptAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddOneTable <- function(
+    table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_oneTable(
+    officer_ppt, 
+    title, 
+    table, 
+    dontFormat = dontFormat
+  )
+  return(officer_ppt)
+}
+
+pptUneditAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = FALSE
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphs <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphsMoreLeft <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraphMoreLeft(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddGraphTable <- function(
+    plot
+    , table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_graphTable(
+    officer_ppt, 
+    title, 
+    plot, 
+    table,
+    makeEditable = editableImgs
+    , dontFormat = dontFormat
+    , textSize = textSize
+  )
+  return(officer_ppt)
+}
+
+pptAddFourGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , plot4
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_fourGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    plot4,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddThreeGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_threeGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddStats <- function(
+    statsText
+    , officer_ppt = ppt
+){
+  officer_ppt <- addStatsToBottom(
+    officer_ppt,
+    statsText
+  )
+}
+
+pptAddTwoStats <- function(
+    statsText1
+    , statsText2
+    , officer_ppt = ppt
+){
+  officer_ppt <- addTwoStatsToGraphs(
+    officer_ppt,
+    statsText1,
+    statsText2
+  )
+}
+
+pptAddSectionHead <- function(
+    title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_sectionHead(
+    officer_ppt
+    , title
+  )
+}
+
+
+
+```
+
+```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("genericPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+# layout_properties(ppt, layout="Title Slide")
+
+subText <- "Amanda Gibson\n2024-03-05"
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "AGG_LBN"
+  , addDate = TRUE
+)
+```
+
+
+# Dam behavior
+
+```{r}
+fig_damBehavior_byDay <- damBehavior_byPND %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "mean # of exits"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , redMean = TRUE
+    , dotSize = 1
+    , zoom_y = TRUE
+    , ymax = 50
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = FALSE
+    , lineAlpha = 0.2
+    , dotAlpha = 0.4
+  ) +
+  stat_summary(
+    geom = "linerange", 
+    fun.data = mean_se,
+    linewidth = 0.6,
+    position = "identity",
+    show.legend = FALSE
+    # , color = "grey80"
+  ) +
+  stat_summary(
+    geom = "errorbar", 
+    fun.min = mean, 
+    fun = mean, 
+    fun.max = mean, 
+    width = .7,
+    linewidth = .6,
+    position = "identity",
+    # color = "grey80"
+  )
+  
+
+fig_damBehavior_byDay
+```
+
+```{r}
+fig_damBehavior_meanExits <- damBehavior_byDam %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "mean # of exits"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = 3
+    , zoom_y = TRUE
+    , ymax = 50
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = TRUE
+  ) +
+  facet_wrap(
+    ~earlyLifeTrt
+    , scales = "free_x"
+  ) +
+  theme(
+    axis.text.x = element_blank()
+    , axis.ticks.x = element_blank()
+  )
+fig_damBehavior_meanExits
+```
+
+
+
+```{r}
+figDamBehavior <- plot_grid(
+  fig_damBehavior_byDay
+  , fig_damBehavior_meanExits
+  , rel_widths = c(3, 1)
+  , align = c("h")
+  , axis = c("tb")
+)
+
+figDamBehavior
+
+fileBaseName <- "damBehavior"
+slideTitle <- "LBN dams had more exits from the nest than STD dams"
+ppt <- pptAddOneGraph()
+```
+
+# Offspring mass 
+
+```{r}
+figOffA
+
+fileBaseName <- "offMass"
+
+exportFullPPTSlide()
+slideTitle <- "Offspring mass"
+ppt <- pptAddOneGraph()
+```
+
+# Offspring maturation
+
+```{r}
+figOffAge_model
+
+fileBaseName <- "matAge"
+
+exportFullPPTSlide()
+slideTitle <- "LBN does not alter age for external markers of puberty"
+ppt <- pptAddOneGraph()
+```
+```{r}
+figOffMass_model
+
+fileBaseName <- "matMass"
+
+exportFullPPTSlide()
+slideTitle <- "LBN does not alter mass at external markers of puberty"
+ppt <- pptAddOneGraph()
+```
+
+
+# Cycles
+
+# Estrous cycle
+
+```{r}
+plot_grid(
+  figCycles_numCycles_model
+  , figCycles_lengthLog_model
+  , figCyclesD
+  , ncol = 3
+  , align = "h"
+  , axis = "bt"
+  , rel_widths = c(1, 1, 2)
+)
+
+fileBaseName <- "cyclesFeatures"
+
+exportFullPPTSlide()
+slideTitle <- "LBN does not alter estrous cyclicity"
+ppt <- pptAddOneGraph()
+```
+
+# Corticosterone
+
+## Males
+
+```{r}
+figCortA
+
+fileBaseName <- "cortMales_sep"
+
+exportFullPPTSlide()
+slideTitle <- "LBN does not alter repsponse to adult stress"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+figCortA_adult
+
+fileBaseName <- "cortMales"
+
+exportHalfPPTSlide()
+slideTitle <- "LBN does not alter corticosterone repsponse to adult stress"
+ppt <- pptAddTwoGraphs(figCortA_adult, ggplot())
+```
+
+```{r}
+figCortB_adult
+
+fileBaseName <- "cortPro"
+exportHalfPPTSlide()
+
+figCortC_adult
+
+fileBaseName <- "cortDi"
+exportHalfPPTSlide()
+
+slideTitle <- "LBN does not alter corticosterone response to adult stress"
+ppt <- pptAddTwoGraphs(figCortB_adult, figCortC_adult)
+```
+# LH
+```{r}
+LHSamplingDF_color %>%
+  plotLH_overTime_color ()
+
+
+fileBaseName <- "LH_samplingIndiv"
+
+exportFullPPTSlide()
+slideTitle <- "ALPS disrupts the LH surge, but this is not altered by LBN"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+figLH_samplingMax
+
+fileBaseName <- "LH_samplingMax"
+exportHalfPPTSlide()
+
+figLH_samplingSurged
+
+fileBaseName <- "LH_samplingSurged"
+exportHalfPPTSlide()
+
+slideTitle <- "ALPS disrupts the LH surge, but this is not altered by LBN"
+ppt <- pptAddTwoGraphsMoreLeft(figLH_samplingMax, figLH_samplingSurged)
+```
+
+```{r}
+figGABAe_model
+
+fileBaseName <- "PSCfreq"
+exportHalfPPTSlide()
+
+slideTitle <- "Neither LBN nor ALPS affected the frequency of GABAergic postsynaptic currents in GnRH neurons"
+ppt <- pptAddTwoGraphsMoreLeft(figGABAe_model, ggplot()+boxTheme())
+```
+

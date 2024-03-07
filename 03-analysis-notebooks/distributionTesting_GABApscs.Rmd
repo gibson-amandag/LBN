@@ -2359,7 +2359,7 @@ relPeak_byCell <- pscProps %>%
   #   , reverseColor = FALSE
   # )
   plotPSCProp_log(
-    yVar = absAmp
+    yVar = amplitude
     , yLab = "amplitude (pA)"
     , logBreaks = c(5, 10, 20, 40, 80, 160, 320, 480)
     , logLabels = c("5", "10", "20", "40", "80", "160", "320", "480")
@@ -3949,7 +3949,725 @@ mixed(
 ```
 
 ```{r}
+pscProps %>%
+  combineStress() %>%
+  ggplot(
+    aes(
+      x = amplitude
+      , color = comboTrt
+      , fill = comboTrt
+    )
+  ) +
+  geom_density(alpha = 0.8) +
+  labs(
+    x = "amplitude (pA)"
+    , y = "density"
+  ) +
+  comboTrtFillShape(STD_CON_fill = "lightgrey", STD_CON_color = "grey30")+
+  theme_pubr()+
+  scale_x_log10()+
+  boxTheme() +
+  textTheme()
+```
+
+# Bootstrapping of mean
+
+```{r}
+# Define the bootstrap function
+bootstrapMeansByGroup <- function(data, columnName, groupVars, nBootstrap = 2000, replace = TRUE, setSeed = NULL) {
+  # Optional: Set seed for reproducibility
+  if (!is.null(setSeed)) {
+    set.seed(setSeed)
+  }
+
+  # A function to resample the data and calculate the mean for the given column within each group
+  bootstrapGroup <- function(dataGrouped, columnName, replace) {
+    sample_data <- sample_n(dataGrouped, size = n(), replace = replace)
+    mean(sample_data[[deparse(substitute(columnName))]], na.rm = TRUE)
+  }
+  
+  # Apply bootstrapping to each group and store results
+  results <- data %>%
+    group_by(!!!syms(groupVars)) %>%
+    summarise(BootstrapMeans = list(map_dbl(1:nBootstrap, ~bootstrapGroup(cur_data(), {{columnName}}, replace))),
+              .groups = 'drop')
+  
+  # Return results
+  return(results)
+}
+
+# Example usage:
+# Assuming you have a dataframe named 'myData', and 'myVariable', 'group1' and 'group2' are your columns:
+# myData <- data.frame(group1 = rep(1:2, each = 50), group2 = rep(1:2, times = 50), myVariable = rnorm(100)) 
+# bootstrapResults <- bootstrapMeansByGroup(myData, myVariable, c(group1, group2), nBootstrap = 2000)
+# bootstrapResults
+```
+
+```{r}
+pscProps %>%
+  bootstrapMeansByGroup(
+    amplitude
+    , exprs(earlyLifeTrt, adultTrt)
+  )
+```
+
+```{r}
+bootstrapGroup <- function(dataGrouped, columnName, replace) {
+  sample_data <- sample_n(dataGrouped, size = n(), replace = replace)
+  mean(sample_data[[deparse(substitute(columnName))]], na.rm = TRUE)
+}
+
+res <- pscProps %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  summarize(
+    # bootstrapMean = list(map_dbl(1:20, ~ bootstrapGroup(pick(everything()), amplitude, replace = TRUE)))
+    bootstrapMean = map_dbl(1:20, ~ bootstrapGroup(pick(everything()), amplitude, replace = TRUE))
+  )
+
+
+means <- res %>%
+  filter(
+    earlyLifeTrt == "STD"
+    , adultTrt == "LBN"
+  ) %>%
+  pull(bootstrapMean)
+
+means[1]
+
+pscProps %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  bootstrapGroup(
+    amplitude
+    , replace = TRUE
+  )
+  
+  
+map_dbl(1:20, ~ bootstrapGroup(pscProps %>% group_by(earlyLifeTrt, adultTrt), amplitude, replace = TRUE))
+list(map_dbl(1:20, ~ bootstrapGroup(pscProps %>% group_by(earlyLifeTrt, adultTrt), amplitude, replace = TRUE)))
+```
+
+```{r}
+pscProps %>%
+  group_by(
+    earlyLifeTrt, adultTrt)
+  )
+```
+
+This one seems to work.
+
+```{r}
+bootstrapGroup <- function(grouped_data, columnName, nBootstrap = 2000, replace = TRUE, setSeed = NULL) {
+  if (!is.null(setSeed)) {
+    set.seed(setSeed)
+  }
+  
+  # Create one bootstrap sample and calculate its mean
+  oneBootstrapSample <- function(df) {
+    sample_data <- sample_n(df, size = n(), replace = replace)
+    mean(sample_data[[columnName]], na.rm = TRUE)
+  }
+  
+  # Perform bootstrapping for each group
+  bootstrapMeans <- grouped_data %>%
+    summarise(BootstrapMean = mean(map_dbl(1:nBootstrap, ~oneBootstrapSample(pick(everything())))),
+              .groups = 'drop')
+
+  return(bootstrapMeans)
+}
+
+# Example usage: Provide the grouped dataframe and the variable you want to bootstrap
+myData <- data.frame(
+  groupVar1 = rep(1:2, each = 50),
+  groupVar2 = rep(1:2, times = 50),
+  myVariable = rnorm(100)
+)
+groupedData <- myData %>% group_by(groupVar1, groupVar2)
+
+# Now call the bootstrapGroup function with the grouped data and variable
+resultingMeans <- bootstrapGroup(groupedData, 'myVariable', nBootstrap = 20)
+```
+
+```{r}
+# Assuming your data frame is called pscProps with columns earlyLifeTrt, adultTrt, and amplitude.
+groupedData <- pscProps %>% group_by(earlyLifeTrt, adultTrt)
+
+# Call the bootstrapGroup function with the grouped data and variable
+bootstrapResults <- bootstrapGroup(groupedData, 'amplitude', nBootstrap = 20)
+```
+
+
+Edit # 1 - switch to unquoted
+
+```{r}
+bootstrapGroup <- function(groupedData, columnName, nBootstrap = 2000, replace = TRUE, setSeed = NULL) {
+  if (!is.null(setSeed)) {
+    set.seed(setSeed)
+  }
+  
+  # Create one bootstrap sample and calculate its mean
+  oneBootstrapSample <- function(df) {
+    sampleData <- sample_n(df, size = n(), replace = replace)
+    mean(sampleData %>%
+           select(
+             {{ columnName }}
+           ) %>%
+           pull()
+    , na.rm = TRUE)
+  }
+  
+  # Perform bootstrapping for each group
+  bootstrapMeans <- groupedData %>%
+    summarise(BootstrapMean = mean(map_dbl(1:nBootstrap, ~oneBootstrapSample(pick(everything())))),
+              .groups = 'drop')
+
+  return(bootstrapMeans)
+}
+```
+
+```{r}
+pscProps %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  bootstrapGroup(
+    amplitude
+    , 20
+  )
+```
+
+Edit # 2 - save the individual bootstrap results
+
+```{r}
+bootstrapGroup <- function(groupedData, columnName, nBootstrap = 2000, replace = TRUE, setSeed = NULL) {
+  if (!is.null(setSeed)) {
+    set.seed(setSeed)
+  }
+  
+  # Create one bootstrap sample and calculate its mean
+  oneBootstrapSample <- function(df) {
+    sampleData <- sample_n(df, size = n(), replace = replace)
+    mean(sampleData %>%
+           select(
+             {{ columnName }}
+           ) %>%
+           pull()
+    , na.rm = TRUE)
+  }
+  
+  # Perform bootstrapping for each group
+  bootstrapMeans <- groupedData %>%
+    reframe(BootstrapMean = map_dbl(1:nBootstrap, ~oneBootstrapSample(pick(everything()))))
+
+  return(bootstrapMeans)
+}
+```
+
+```{r}
+pscProps %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  bootstrapGroup(
+    amplitude
+    , 20
+  )
+```
+
+Edit # 3 - Make this specific to psc props and save each feature
+
+This doesn't work, and we're running into the issue that it would be resampling independently for each column calculation
+```{r}
+bootstrapGroup <- function(df, groupingVars, nBootstrap = 2000, replace = TRUE, setSeed = NULL) {
+  if (!is.null(setSeed)) {
+    set.seed(setSeed)
+  }
+  
+  # Create one bootstrap sample and calculate its mean
+  oneBootstrapSample <- function(df, columnName) {
+    sampleData <- sample_n(df, size = n(), replace = replace)
+    mean(sampleData %>%
+           select(
+             {{ columnName }}
+           ) %>%
+           pull()
+    , na.rm = TRUE)
+  }
+  
+  # Perform bootstrapping for each group
+  bootstrapMeans <- df %>%
+    group_by(
+      !!! groupingVars
+    ) %>%
+    reframe(
+      amplitude = map_dbl(1:nBootstrap, ~oneBootstrapSample(pick(everything()), amplitude))
+      ,riseTime = map_dbl(1:nBootstrap, ~oneBootstrapSample(pick(everything()), riseTime))
+      ,decay9010 = map_dbl(1:nBootstrap, ~oneBootstrapSample(pick(everything()), decay9010))
+      ,fwhm = map_dbl(1:nBootstrap, ~oneBootstrapSample(pick(everything()), fwhm))
+    )
+  
+  # averagedBootstrapMeans <- bootstrapMeans %>%
+  #   group_by(
+  #     !!! groupingVars
+  #   ) %>%
+  #   meanSummary(
+  #     c(amplitude, riseTime, decay9010, fwhm)
+  #   ) %>%
+  #   arrange(
+  #     variable
+  #   )
+  # 
+  # amplitudePlot <- bootstrapMeans %>%
+  #   scatterPlotComboTrt(
+  #     yVar = amplitude
+  #     , yLab = "amplitude (pA)"
+  #   )
+  #   
+
+  return(
+    list(
+      "bootstrapRes" = bootstrapMeans
+      # , "bootstrapSummary" = averagedBootstrapMeans
+      # , "amplitudePlot" = amplitudePlot
+    )
+  )
+}
+```
+
+```{r}
+pscProps %>%
+  bootstrapGroup(
+    exprs(earlyLifeTrt, adultTrt)
+    , 20
+  )
+```
+
+
+Edit #4 - Had issues with grouping maintained after sample_n so summarized results weren't grouped, but now using group_map without a grouped variable  
+
+```{r}
+bootstrapGroup <- function(df, nBootstrap = 2000, replace = TRUE, setSeed = NULL) {
+  if (!is.null(setSeed)) {
+    set.seed(setSeed)
+  }
+  
+  # Perform bootstrapping for each group and store results in new columns
+  bootstrapMeans <- bind_rows(lapply(1:nBootstrap, function(i) {
+    sampleData <- group_map(df, function(.x, .y) {
+      df <- sample_n(.x %>% group_by(earlyLifeTrt, adultTrt), size = n(), replace = replace)
+      df %>%
+        group_by(earlyLifeTrt, adultTrt) %>%
+        summarize(
+          amplitude = mean(amplitude, na.rm = TRUE)
+          , riseTime = mean(riseTime, na.rm = TRUE)
+          , decay9010 = mean(decay9010, na.rm = TRUE)
+          , fwhm = mean(fwhm, na.rm = TRUE)
+          , .groups = "drop"
+        )
+    }, .keep = TRUE)
+  }))
+  return(bootstrapMeans)
+}
+```
+
+
+```{r}
+pscProps %>%
+  # group_by(
+  #   earlyLifeTrt, adultTrt
+  # ) %>%
+  bootstrapGroup(
+    nBootstrap = 20
+  )
+```
+
+Edit #5 - Fix grouping
+
+```{r}
+bootstrapGroup <- function(groupedDF, nBootstrap = 2000, replace = TRUE, setSeed = NULL) {
+  if (!is.null(setSeed)) {
+    set.seed(setSeed)
+  }
+  
+  # Perform bootstrapping for each group and store results in new columns
+  bootstrapMeans <- bind_rows(lapply(1:nBootstrap, function(i) {
+    sampleData <- group_map(groupedDF, function(.x, .y) {
+      df <- slice_sample(.x, prop = 1, replace = replace
+                         # , .preserve = TRUE
+                         )
+      df %>%
+        # group_by(earlyLifeTrt, adultTrt) %>%
+        summarize(
+          amplitude = mean(amplitude, na.rm = TRUE)
+          , riseTime = mean(riseTime, na.rm = TRUE)
+          , decay9010 = mean(decay9010, na.rm = TRUE)
+          , fwhm = mean(fwhm, na.rm = TRUE)
+          , .groups = "drop"
+        )
+    }, .keep = TRUE)
+  }))
+  return(bootstrapMeans)
+}
+```
+
+
+
+
+```{r}
+list_rbind(
+  map(
+    pscProps %>%
+      group_by(
+        earlyLifeTrt
+        , adultTrt
+      )
+    , function(.x){
+      df <- slice_sample(
+        .x
+        , prop = 1
+        , replace = TRUE
+      )
+      df %>%
+        summarize(
+          amplitude = mean(amplitude, na.rm = TRUE)
+          , riseTime = mean(riseTime, na.rm = TRUE)
+          , decay9010 = mean(decay9010, na.rm = TRUE)
+          , fwhm = mean(fwhm, na.rm = TRUE)
+          , .groups = "drop"
+        )
+    }
+  )
+)
+```
+
+
+```{r}
+pscProps %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  slice_sample(
+    prop = 1
+    , replace = TRUE
+  )
+```
+
+
+
+```{r}
+pscProps %>%
+  # group_by(
+  #   earlyLifeTrt, adultTrt
+  # ) %>%
+  bootstrapGroup(
+    nBootstrap = 20
+  )
+```
+
+```{r}
+mtcars %>%
+  group_by(cyl) %>%
+  group_map(~ head(.x, 2L), .keep = TRUE)
+
+mtcars %>%
+  group_by(cyl) %>%
+  group_map(~ head(.x, 2L), .keep = FALSE)
 
 ```
+
+## Working list of means from bootstrapping
+
+Edit #6 - start over:
+
+
+```{r}
+getOneBootstrapMeans <- function(
+    df
+    , replace = TRUE
+    , bootstrapIt = NA
+){
+  df <- slice_sample(
+    df
+    , prop = 1
+    , replace = replace
+  )
+  sumDF <- df %>%
+    summarize(
+      amplitude = mean(amplitude, na.rm = TRUE)
+      , riseTime = mean(riseTime, na.rm = TRUE)
+      , decay9010 = mean(decay9010, na.rm = TRUE)
+      , fwhm = mean(fwhm, na.rm = TRUE)
+      , .groups = "drop"
+    )
+  if(!is.na(bootstrapIt)){
+    sumDF <- sumDF %>%
+      mutate(
+        bootIt = bootstrapIt
+      )
+  }
+  return(sumDF)
+}
+
+getOneBootstrapMedians <- function(
+    df
+    , replace = TRUE
+    , bootstrapIt = NA
+){
+  df <- slice_sample(
+    df
+    , prop = 1
+    , replace = replace
+  )
+  sumDF <- df %>%
+    summarize(
+      amplitude = median(amplitude, na.rm = TRUE)
+      , riseTime = median(riseTime, na.rm = TRUE)
+      , decay9010 = median(decay9010, na.rm = TRUE)
+      , fwhm = median(fwhm, na.rm = TRUE)
+      , .groups = "drop"
+    )
+  if(!is.na(bootstrapIt)){
+    sumDF <- sumDF %>%
+      mutate(
+        bootIt = bootstrapIt
+      )
+  }
+  return(sumDF)
+}
+```
+
+```{r}
+bind_rows(
+  map(
+  1: 20
+  , ~ getOneBootstrapMeans(pscProps %>% group_by(earlyLifeTrt, adultTrt))
+)
+)
+```
+
+```{r}
+bootstrapGroup <- function(groupedDF, nBootstrap = 2000, replace = TRUE, setSeed = NULL, meanOrMedian = "mean") {
+  if (!is.null(setSeed)) {
+    set.seed(setSeed)
+  }
+  
+  if(meanOrMedian == "median"){
+    bootstrapRes <- bind_rows(
+      map(
+        1:nBootstrap
+        , ~ getOneBootstrapMedians(groupedDF, replace = replace, bootstrapIt = .x)
+      )
+    )
+  } else {
+    bootstrapRes <- bind_rows(
+      map(
+        1:nBootstrap
+        , ~ getOneBootstrapMeans(groupedDF, replace = replace, bootstrapIt = .x)
+      )
+    )
+  }
+  
+  
+  return(bootstrapRes)
+}
+```
+
+```{r}
+pscProps %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  bootstrapGroup(
+    nBootstrap = 20
+  )
+```
+
+```{r}
+analyzeBootstrapResults <- function(df, nBootstrap = 2000, replace = TRUE, setSeed = NULL, meanOrMedian = "mean", dotSize = 1, textSize = 11){
+  bootstrapRes <- df %>% 
+    group_by(earlyLifeTrt, adultTrt) %>% 
+    bootstrapGroup(nBootstrap = nBootstrap, replace = TRUE, setSeed = setSeed, meanOrMedian = meanOrMedian)
+  
+  bootstrapSum <- bootstrapRes %>%
+    group_by(
+      earlyLifeTrt, adultTrt
+    ) %>%
+    meanSummary(
+      col = c(amplitude, riseTime, decay9010, fwhm)
+    ) %>%
+    arrange(
+      variable
+      , adultTrt
+      , earlyLifeTrt
+    )
+  
+  # ANOVA tests
+  amplitude_bootstrapAnova <- anova_test(
+    bootstrapRes
+    , amplitude ~ earlyLifeTrt * adultTrt
+    , type = 3
+  )
+  riseTime_bootstrapAnova <- anova_test(
+    bootstrapRes
+    , riseTime ~ earlyLifeTrt * adultTrt
+    , type = 3
+  )
+  decay9010_bootstrapAnova <- anova_test(
+    bootstrapRes
+    , decay9010 ~ earlyLifeTrt * adultTrt
+    , type = 3
+  )
+  fwhm_bootstrapAnova <- anova_test(
+    bootstrapRes
+    , fwhm ~ earlyLifeTrt * adultTrt
+    , type = 3
+  )
+  
+  # Plots
+  amplitude_plot <- bootstrapRes %>%
+    combineStress() %>%
+    scatterPlotComboTrt(
+      yVar = amplitude
+      , yLab = "amplitude (pA)"
+      , dotSize = dotSize
+      , fontSize = textSize
+    )
+  riseTime_plot <- bootstrapRes %>%
+    combineStress() %>%
+    scatterPlotComboTrt(
+      yVar = riseTime
+      , yLab = "rise time (ms)"
+      , dotSize = dotSize
+      , fontSize = textSize
+    )
+  decay9010_plot <- bootstrapRes %>%
+    combineStress() %>%
+    scatterPlotComboTrt(
+      yVar = decay9010
+      , yLab = "decay time (ms)"
+      , dotSize = dotSize
+      , fontSize = textSize
+    )
+  fwhm_plot <- bootstrapRes %>%
+    combineStress() %>%
+    scatterPlotComboTrt(
+      yVar = fwhm
+      , yLab = "full width half maximum (ms)"
+      , dotSize = dotSize
+      , fontSize = textSize
+    )
+  
+  return(
+    list(
+      "results" = bootstrapRes
+      , "summary" = bootstrapSum
+      , "anovas" = list(
+        "amplitude" = amplitude_bootstrapAnova
+        , "riseTime" = riseTime_bootstrapAnova
+        , "decayTime" = decay9010_bootstrapAnova
+        , "fwhm" = fwhm_bootstrapAnova
+      )
+      , "plots" = list(
+        "amplitude" = amplitude_plot
+        , "riseTime" = riseTime_plot
+        , "decayTime" = decay9010_plot
+        , "fwhm" = fwhm_plot
+      )
+    )
+  )
+}
+```
+
+```{r}
+pscProps %>%
+  analyzeBootstrapResults(nBootstrap = 10)
+```
+
+```{r}
+pscProps %>%
+  analyzeBootstrapResults(nBootstrap = 10, meanOrMedian = "median")
+```
+```{r}
+pscProps %>%
+  analyzeBootstrapResults(nBootstrap = 20)
+```
+
+```{r}
+pscProps_100perCell_v1 %>%
+  analyzeBootstrapResults(nBootstrap = 10)
+```
+
+```{r}
+pscProps_100perCell_v1 %>%
+  analyzeBootstrapResults(nBootstrap = 1000)
+```
+
+This doesn't seem to work for the median. They are not normally distributed like the means are
+```{r}
+pscProps_100perCell_v1 %>%
+  analyzeBootstrapResults(nBootstrap = 100, meanOrMedian = "median")
+```
+
+```{r}
+max100PerCell_v1Res$amplitude$plots$cumulativeFreqPlot
+```
+
+
+```{r}
+figGABA2a_model
+allEventsRes$amplitude$plots$cumulativeFreqPlot
+```
+
+
+```{r}
+bootstrapRes_1000_100perCell_v1 <- pscProps_100perCell_v1 %>%
+  analyzeBootstrapResults(
+    nBootstrap = 1000
+    , setSeed = 928
+  )
+
+bootstrapRes_1000_100perCell_v2 <- pscProps_100perCell_v2 %>%
+  analyzeBootstrapResults(
+    nBootstrap = 1000
+    , setSeed = 928
+  )
+
+bootstrapRes_1000_100perCell_v3 <- pscProps_100perCell_v3 %>%
+  analyzeBootstrapResults(
+    nBootstrap = 1000
+    , setSeed = 928
+  )
+```
+
+# Num events by prop scatters
+
+## Amplitude
+
+```{r}
+pscProps %>%
+  left_join(
+    pscProps %>%
+    group_by(cellID) %>%
+    summarize(
+      numEvents = n()
+      , .groups = "drop"
+    )
+    , by = "cellID"
+  ) %>%
+  combineStress() %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = amplitude
+    , yLab = "amplitude (pA)"
+    , xVar = numEvents
+    , xLab = "events per cell"
+  ) +
+  geom_smooth(aes(color = comboTrt))
+```
+
 
 

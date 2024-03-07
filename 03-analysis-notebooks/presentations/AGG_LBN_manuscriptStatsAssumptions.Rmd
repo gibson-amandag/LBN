@@ -51,7 +51,7 @@ figDams
 ## Dam mass
 
 ```{r}
-damMass_flexTable
+damTable_earlyLifePND_flexTable
 ```
 
 ```{r}
@@ -76,7 +76,7 @@ shapiro.test(x = damFiltered$Cort_dam_P11)
 nparLD F1 LD F1
 
 ```{r}
-damBehavior_flexTable
+damTable_earlyLifePND_flexTable
 ```
 
 # Figure 2 - Offspring maturation figOff

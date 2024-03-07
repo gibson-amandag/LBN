@@ -293,8 +293,11 @@ scatterPlotComboTrt <- function(
   
   if(addMeanSE){
     viz <- viz +
-      addMeanHorizontalBar() +
-      addMeanSE_vertBar()
+      addMeanHorizontalBar(width = .95
+                           , size = 0.6
+                           , meanColor = "#FF0099") +
+      addMeanSE_vertBar(size = 0.6
+                        , barColor = "#FF0099")
   }
   
   return(viz)
@@ -314,6 +317,83 @@ getNiceName <- function(
     label <- df[[1]]
   }
   return(label)
+}
+
+addRandomColors <- function(df, colorVar, subjectVar, colorByGroups = FALSE, pkg = "rainbow", seedVal = 123, ...){
+  if(colorByGroups){
+    grouped_df <- df %>%
+      group_by(
+        {{ subjectVar }}
+        , ...
+      )
+  } else{
+    grouped_df <- df %>%
+      group_by(
+        {{ subjectVar }}
+      )
+  }
+  
+  grouped_df <- grouped_df %>%
+    summarize(
+      n = n()
+      , .groups = "drop"
+    )
+  
+  if(colorByGroups){
+    grouped_df <- grouped_df %>%
+      group_by(
+        ...
+      )
+  }
+  
+  set.seed(seedVal)
+  
+  ranked_df <- grouped_df %>%
+    mutate(
+      randNum = runif(n())
+      , rank = rank(randNum, ties.method = "first")
+    ) %>%
+    select(
+      -c(n, randNum)
+    )
+  
+  if(pkg == "rainbow"){
+    ranked_df <- ranked_df %>%  
+      mutate(
+        color = rainbow(max(rank))[rank]
+      ) %>%
+      ungroup()
+  }else{
+    if(pkg == "viridis"){
+      if(!require(viridis))install.packages('viridis')
+      ranked_df <- ranked_df %>%  
+        mutate(
+          # these are different color options
+          color = viridis::viridis(max(rank))[rank]
+        ) %>%
+        ungroup()
+    } else { # default rainbow
+      ranked_df <- ranked_df %>%  
+        mutate(
+          color = rainbow(max(rank))[rank]
+        ) %>%
+        ungroup()
+    }
+  }
+  
+  subjectVarStr <- deparse(substitute(subjectVar))
+  ellipsisVars <- substitute(alist(...))
+  ellipsisStrs <- sapply(ellipsisVars[-1], as.character)
+  print(subjectVarStr)
+  print(ellipsisStrs)
+  # add the calculated colors back to the original data
+  df <- df %>%
+    left_join(
+      ranked_df
+      , by = c( subjectVarStr, ellipsisStrs)
+    )
+  
+  return(ranked_df)
 }
 
 addOrderedColors <- function(df, orderVar, subjectVar, colorByGroups = FALSE, pkg = "rainbow", byMax = FALSE, revOrder = TRUE, ...) {
