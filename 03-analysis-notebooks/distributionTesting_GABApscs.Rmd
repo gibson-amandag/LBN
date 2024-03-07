@@ -4665,9 +4665,283 @@ pscProps %>%
     , yLab = "amplitude (pA)"
     , xVar = numEvents
     , xLab = "events per cell"
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 125
   ) +
-  geom_smooth(aes(color = comboTrt))
+  geom_smooth(
+    aes(color = comboTrt)
+    , method = "lm"
+    # , method = "loess"
+    # , method = "gam"
+  )
+```
+```{r}
+pscProps %>%
+  left_join(
+    pscProps %>%
+    group_by(cellID) %>%
+    summarize(
+      numEvents = n()
+      , .groups = "drop"
+    )
+    , by = "cellID"
+  ) %>%
+  combineStress() %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = riseTime
+    , yLab = "rise time (ms)"
+    , xVar = numEvents
+    , xLab = "events per cell"
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 2.2
+  ) +
+  geom_smooth(
+    aes(color = comboTrt)
+    , method = "lm"
+    # , method = "loess"
+    # , method = "gam"
+  )
+```
+```{r}
+pscProps %>%
+  left_join(
+    pscProps %>%
+    group_by(cellID) %>%
+    summarize(
+      numEvents = n()
+      , .groups = "drop"
+    )
+    , by = "cellID"
+  ) %>%
+  combineStress() %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = decay9010
+    , yLab = "decay time (ms)"
+    , xVar = numEvents
+    , xLab = "events per cell"
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 80
+  ) +
+  geom_smooth(
+    aes(color = comboTrt)
+    , method = "lm"
+    # , method = "loess"
+    # , method = "gam"
+  )
+```
+```{r}
+pscProps %>%
+  left_join(
+    pscProps %>%
+    group_by(cellID) %>%
+    summarize(
+      numEvents = n()
+      , .groups = "drop"
+    )
+    , by = "cellID"
+  ) %>%
+  combineStress() %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = fwhm
+    , yLab = "fwhm (ms)"
+    , xVar = numEvents
+    , xLab = "events per cell"
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 20
+  ) +
+  geom_smooth(
+    aes(color = comboTrt)
+    , method = "lm"
+    # , method = "loess"
+    # , method = "gam"
+  )
 ```
 
+# interval
 
+```{r}
+allEventsRes_int <- pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  fourWayAD(
+    interval
+    , "interval (s)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+  )
+
+allEventsRes_int$plots$cumulativeFreqPlot
+```
+
+```{r}
+pscInt %>%
+  left_join(
+    pscInt %>%
+    group_by(cellID) %>%
+    summarize(
+      numEvents = n()
+      , .groups = "drop"
+    )
+    , by = "cellID"
+  ) %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = interval
+    , yLab = "interval (s)"
+    , xVar = numEvents
+    , xLab = "events per cell"
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 20
+  ) +
+  geom_smooth(
+    aes(color = comboTrt)
+    , method = "lm"
+    # , method = "loess"
+    # , method = "gam"
+  )
+```
+```{r}
+pscInt_numEventsPerCell <- pscInt %>%
+    group_by(cellID, earlyLifeTrt, adultTrt) %>%
+    summarize(
+      numEvents = n()
+      , .groups = "drop"
+    )
+
+pscInt_numEventsPerCell %>%
+  plotCumulativeFreqDist (
+    numEvents
+    , "events per cell"
+)
+
+pscInt_numEventsPerCell %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    nCellsLess300 = sum(numEvents < 300)
+    , nCells = n()
+  )
+
+pscInt_numEventsPerCell %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  quartilesSummary(
+    numEvents
+  ) %>%
+  relocate(
+    max, .after = q3
+  )
+```
+
+Preparing comparison of bootstrap differences
+
+```{r}
+# need to calculate observed difference in original dataset before sampling
+
+orig_diff <- pscProps %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    amplitude = mean(amplitude, na.rm = TRUE)
+    , riseTime = mean(riseTime, na.rm = TRUE)
+    , decay9010 = mean(decay9010, na.rm = TRUE)
+    , fwhm = mean(fwhm, na.rm = TRUE)
+    , .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = c(amplitude, riseTime, decay9010, fwhm)
+    , names_to = "variable"
+    , values_to = "mean"
+  ) %>%
+  pivot_wider(
+    id_cols = c(variable)
+    , names_from = c(earlyLifeTrt, adultTrt)
+    , names_sep = "_"
+    , values_from = mean
+  ) %>%
+  mutate(
+    orig_stdCONvALPS = STD_ALPS - STD_CON
+    , orig_lbnCONvALPS = LBN_ALPS - LBN_CON
+    , orig_conSTDvLBN = LBN_CON - STD_CON
+    , orig_alpsSTDvLBN = LBN_ALPS - STD_ALPS
+    , orig_STD_CONvLBN_ALPS = LBN_ALPS - STD_CON
+    , orig_STD_ALPSvLBN_CON = LBN_CON - STD_ALPS
+  ) %>%
+  select(
+    -c(STD_ALPS, STD_CON, LBN_ALPS, LBN_CON)
+  )
+
+
+propLargerDiff <- bootstrapRes_iterations10_maxPerCellNone$results %>%
+  pivot_longer(
+    cols = c(amplitude, riseTime, decay9010, fwhm)
+    , names_to = "variable"
+    , values_to = "mean"
+  ) %>%
+  pivot_wider(
+    id_cols = c(bootIt, variable)
+    , names_from = c(earlyLifeTrt, adultTrt)
+    , names_sep = "_"
+    , values_from = mean
+  ) %>%
+  mutate(
+    stdCONvALPS = STD_ALPS - STD_CON
+    , lbnCONvALPS = LBN_ALPS - LBN_CON
+    , conSTDvLBN = LBN_CON - STD_CON
+    , alpsSTDvLBN = LBN_ALPS - STD_ALPS
+    , STD_CONvLBN_ALPS = LBN_ALPS - STD_CON
+    , STD_ALPSvLBN_CON = LBN_CON - STD_ALPS
+  ) %>%
+  left_join(
+    orig_diff
+    , by = "variable"
+  ) %>%
+  mutate(
+    stdCONvALPS_isBigger = (stdCONvALPS <= -abs(orig_stdCONvALPS) | stdCONvALPS >= abs(orig_stdCONvALPS))
+    , lbnCONvALPS_isBigger = (lbnCONvALPS <= -abs(orig_lbnCONvALPS) | lbnCONvALPS >= abs(orig_lbnCONvALPS))
+    , conSTDvLBN_isBigger = (conSTDvLBN <= -abs(orig_conSTDvLBN) | conSTDvLBN >= abs(orig_conSTDvLBN))
+    , alpsSTDvLBN_isBigger = (alpsSTDvLBN <= -abs(orig_alpsSTDvLBN) | alpsSTDvLBN >= abs(orig_alpsSTDvLBN))
+    , STD_CONvLBN_ALPS_isBigger = (STD_CONvLBN_ALPS <= -abs(orig_STD_CONvLBN_ALPS) | STD_CONvLBN_ALPS >= abs(orig_STD_CONvLBN_ALPS))
+    , STD_ALPSvLBN_CON_isBigger = (STD_ALPSvLBN_CON <= -abs(orig_STD_ALPSvLBN_CON) | STD_ALPSvLBN_CON >= abs(orig_STD_ALPSvLBN_CON))
+  ) %>%
+  group_by(
+    variable
+  ) %>%
+  summarize( # these are p-values, 1 - proportion where larger than original difference
+    stdCONvALPS = 1 - mean(stdCONvALPS_isBigger)
+    , lbnCONvALPS = 1 - mean(lbnCONvALPS_isBigger)
+    , conSTDvLBN = 1 - mean(conSTDvLBN_isBigger)
+    , alpsSTDvLBN = 1- mean(alpsSTDvLBN_isBigger)
+    , STD_CONvLBN_ALPS = 1 - mean(STD_CONvLBN_ALPS_isBigger)
+    , STD_ALPSvLBN_CON = 1- mean(STD_ALPSvLBN_CON_isBigger)
+    , .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = stdCONvALPS:STD_ALPSvLBN_CON
+    , names_to = "comparison"
+    , values_to = "p.value"
+  )
+
+propLargerDiff %>%
+  group_by(
+    variable
+  ) %>%
+  adjust_pvalue(p.col = "p.value")
+
+propLargerDiff %>%
+  group_by(
+    variable
+  ) %>%
+  group_map(~ adjust_pvalue(.x, p.col = "p.value"))
+  adjust_pvalue(p.col = "p.value")
+```
 

@@ -522,32 +522,40 @@ getOneBootstrapMeans <- function(
   }
   return(sumDF)
 }
-# getOneBootstrapMeans <- function(
-#     df
-#     , replace = TRUE
-#     , bootstrapIt = NA
-# ){
-#   df <- slice_sample(
-#     df
-#     , prop = 1
-#     , replace = replace
-#   )
-#   sumDF <- df %>%
-#     summarize(
-#       amplitude = mean(amplitude, na.rm = TRUE)
-#       , riseTime = mean(riseTime, na.rm = TRUE)
-#       , decay9010 = mean(decay9010, na.rm = TRUE)
-#       , fwhm = mean(fwhm, na.rm = TRUE)
-#       , .groups = "drop"
-#     )
-#   if(!is.na(bootstrapIt)){
-#     sumDF <- sumDF %>%
-#       mutate(
-#         bootIt = bootstrapIt
-#       )
-#   }
-#   return(sumDF)
-# }
+getOneBootstrapMeans_int <- function(
+    df
+    , maxPerCell = 100
+    , groupingVars = exprs(earlyLifeTrt, adultTrt)
+    , replace = TRUE
+    , bootstrapIt = NA
+){
+  if(!is.null(maxPerCell)){
+    df <- df %>%
+      group_by(cellID) %>%
+      slice_sample(n = maxPerCell) %>%
+      ungroup()
+  }
+  
+  df <- slice_sample(
+    df %>%
+      group_by(!!! groupingVars)
+    , prop = 1
+    , replace = replace
+  )
+  
+  sumDF <- df %>%
+    summarize(
+      interval = mean(interval, na.rm = TRUE)
+      , .groups = "drop"
+    )
+  if(!is.na(bootstrapIt)){
+    sumDF <- sumDF %>%
+      mutate(
+        bootIt = bootstrapIt
+      )
+  }
+  return(sumDF)
+}
 
 bootstrapGroup <- function(df
                            , nBootstrap = 2000
@@ -555,16 +563,27 @@ bootstrapGroup <- function(df
                            , groupingVars = exprs(earlyLifeTrt, adultTrt)
                            , replace = TRUE # only for sampling after picking events from each cell
                            , setSeed = NULL
+                           , forInterval = FALSE
                            ) {
   if (!is.null(setSeed)) {
     set.seed(setSeed)
   }
-  bootstrapRes <- bind_rows(
-    map(
-      1:nBootstrap
-      , ~ getOneBootstrapMeans(df, replace = replace, bootstrapIt = .x, maxPerCell = maxPerCell, groupingVars = groupingVars)
+  
+  if(!forInterval){
+    bootstrapRes <- bind_rows(
+      map(
+        1:nBootstrap
+        , ~ getOneBootstrapMeans(df, replace = replace, bootstrapIt = .x, maxPerCell = maxPerCell, groupingVars = groupingVars)
+      )
     )
-  )
+  } else{
+    bootstrapRes <- bind_rows(
+      map(
+        1:nBootstrap
+        , ~ getOneBootstrapMeans_int(df, replace = replace, bootstrapIt = .x, maxPerCell = maxPerCell, groupingVars = groupingVars)
+      )
+    )
+  }
   
   return(bootstrapRes)
 }
@@ -610,97 +629,147 @@ analyzeBootstrapResults <- function(
     , setSeed = NULL
     , dotSize = 1
     , textSize = 11
+    , forInterval = FALSE
 ){
   bootstrapRes <- df %>% 
-    bootstrapGroup(nBootstrap = nBootstrap, maxPerCell = maxPerCell, groupingVars = groupingVars, replace = replace, setSeed = setSeed)
+    bootstrapGroup(nBootstrap = nBootstrap, maxPerCell = maxPerCell, groupingVars = groupingVars, replace = replace, setSeed = setSeed, forInterval = forInterval)
+
   
-  bootstrapSum <- bootstrapRes %>%
-    group_by(
-      earlyLifeTrt, adultTrt
-    ) %>%
-    meanSummary(
-      col = c(amplitude, riseTime, decay9010, fwhm)
-    ) %>%
-    arrange(
-      variable
-      , adultTrt
-      , earlyLifeTrt
-    )
-  
-  # ANOVA tests
-  amplitude_bootstrapAnova <- anova_test(
-    bootstrapRes
-    , amplitude ~ earlyLifeTrt * adultTrt
-    , type = 3
-  )
-  riseTime_bootstrapAnova <- anova_test(
-    bootstrapRes
-    , riseTime ~ earlyLifeTrt * adultTrt
-    , type = 3
-  )
-  decay9010_bootstrapAnova <- anova_test(
-    bootstrapRes
-    , decay9010 ~ earlyLifeTrt * adultTrt
-    , type = 3
-  )
-  fwhm_bootstrapAnova <- anova_test(
-    bootstrapRes
-    , fwhm ~ earlyLifeTrt * adultTrt
-    , type = 3
-  )
-  
-  # Plots
-  amplitude_plot <- bootstrapRes %>%
-    combineStress() %>%
-    scatterPlotComboTrt(
-      yVar = amplitude
-      , yLab = "amplitude (pA)"
-      , dotSize = dotSize
-      , fontSize = textSize
-    )
-  riseTime_plot <- bootstrapRes %>%
-    combineStress() %>%
-    scatterPlotComboTrt(
-      yVar = riseTime
-      , yLab = "rise time (ms)"
-      , dotSize = dotSize
-      , fontSize = textSize
-    )
-  decay9010_plot <- bootstrapRes %>%
-    combineStress() %>%
-    scatterPlotComboTrt(
-      yVar = decay9010
-      , yLab = "decay time (ms)"
-      , dotSize = dotSize
-      , fontSize = textSize
-    )
-  fwhm_plot <- bootstrapRes %>%
-    combineStress() %>%
-    scatterPlotComboTrt(
-      yVar = fwhm
-      , yLab = "full width half maximum (ms)"
-      , dotSize = dotSize
-      , fontSize = textSize
-    )
-  
-  return(
-    list(
-      "results" = bootstrapRes
-      , "summary" = bootstrapSum
-      , "anovas" = list(
-        "amplitude" = amplitude_bootstrapAnova
-        , "riseTime" = riseTime_bootstrapAnova
-        , "decayTime" = decay9010_bootstrapAnova
-        , "fwhm" = fwhm_bootstrapAnova
+  if(!forInterval){
+    bootstrapSum <- bootstrapRes %>%
+      group_by(
+        earlyLifeTrt, adultTrt
+      ) %>%
+      meanSummary(
+        col = c(amplitude, riseTime, decay9010, fwhm)
+      ) %>%
+      arrange(
+        variable
+        , adultTrt
+        , earlyLifeTrt
       )
-      , "plots" = list(
-        "amplitude" = amplitude_plot
-        , "riseTime" = riseTime_plot
-        , "decayTime" = decay9010_plot
-        , "fwhm" = fwhm_plot
+    
+    # ANOVA tests
+    amplitude_bootstrapAnova <- anova_test(
+      bootstrapRes
+      , amplitude ~ earlyLifeTrt * adultTrt
+      , type = 3
+    )
+    riseTime_bootstrapAnova <- anova_test(
+      bootstrapRes
+      , riseTime ~ earlyLifeTrt * adultTrt
+      , type = 3
+    )
+    decay9010_bootstrapAnova <- anova_test(
+      bootstrapRes
+      , decay9010 ~ earlyLifeTrt * adultTrt
+      , type = 3
+    )
+    fwhm_bootstrapAnova <- anova_test(
+      bootstrapRes
+      , fwhm ~ earlyLifeTrt * adultTrt
+      , type = 3
+    )
+    
+    # Plots
+    amplitude_plot <- bootstrapRes %>%
+      combineStress() %>%
+      scatterPlotComboTrt(
+        yVar = amplitude
+        , yLab = "amplitude (pA)"
+        , dotSize = dotSize
+        , fontSize = textSize
+      )
+    riseTime_plot <- bootstrapRes %>%
+      combineStress() %>%
+      scatterPlotComboTrt(
+        yVar = riseTime
+        , yLab = "rise time (ms)"
+        , dotSize = dotSize
+        , fontSize = textSize
+      )
+    decay9010_plot <- bootstrapRes %>%
+      combineStress() %>%
+      scatterPlotComboTrt(
+        yVar = decay9010
+        , yLab = "decay time (ms)"
+        , dotSize = dotSize
+        , fontSize = textSize
+      )
+    fwhm_plot <- bootstrapRes %>%
+      combineStress() %>%
+      scatterPlotComboTrt(
+        yVar = fwhm
+        , yLab = "full width half maximum (ms)"
+        , dotSize = dotSize
+        , fontSize = textSize
+      )
+    
+    return(
+      list(
+        "results" = bootstrapRes
+        , "compDiffs" = bootstrapCompDiffs
+        , "summary" = bootstrapSum
+        , "anovas" = list(
+          "amplitude" = amplitude_bootstrapAnova
+          , "riseTime" = riseTime_bootstrapAnova
+          , "decayTime" = decay9010_bootstrapAnova
+          , "fwhm" = fwhm_bootstrapAnova
+        )
+        , "plots" = list(
+          "amplitude" = amplitude_plot
+          , "riseTime" = riseTime_plot
+          , "decayTime" = decay9010_plot
+          , "fwhm" = fwhm_plot
+        )
       )
     )
-  )
+  } else {
+    bootstrapSum <- bootstrapRes %>%
+      group_by(
+        earlyLifeTrt, adultTrt
+      ) %>%
+      meanSummary(
+        col = c(interval)
+      ) %>%
+      arrange(
+        variable
+        , adultTrt
+        , earlyLifeTrt
+      )
+    
+    # ANOVA tests
+    interval_bootstrapAnova <- anova_test(
+      bootstrapRes
+      , interval ~ earlyLifeTrt * adultTrt
+      , type = 3
+    )
+    
+    # Plots
+    interval_plot <- bootstrapRes %>%
+      combineStress() %>%
+      scatterPlotComboTrt(
+        yVar = interval
+        , yLab = "interval (s)"
+        , dotSize = dotSize
+        , fontSize = textSize
+      )
+    
+    return(
+      list(
+        "results" = bootstrapRes
+        , "compDiffs" = bootstrapCompDiffs
+        , "summary" = bootstrapSum
+        , "anovas" = list(
+          "interval" = interval_bootstrapAnova
+        )
+        , "plots" = list(
+          "interval" = interval_plot
+        )
+      )
+    )
+  }
+  
 }
 ```
 
@@ -1156,7 +1225,6 @@ pscProps %>%
     , setSeed = 123
   )
 ```
-
 ```{r}
 bootstrapRes_iterations10_maxPerCellNone <- pscProps %>%
   analyzeBootstrapResults(
@@ -1167,6 +1235,16 @@ bootstrapRes_iterations10_maxPerCellNone <- pscProps %>%
 
 bootstrapRes_iterations10_maxPerCellNone$anovas
 ```
+
+```{r}
+bootstrapRes_iterations10_maxPerCellNone$compDiffs %>%
+  group_by(
+    variable
+  ) %>%
+  adjust_pvalue(p.col = "p.value", method = "holm")
+```
+
+
 ```{r}
 pscProps_100perCell_v1 %>%
   group_by(
@@ -1216,6 +1294,15 @@ bootstrapRes_iterations2000_maxPerCellNone <- pscProps %>%
     , setSeed = 123
   )
 ```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCellNone$compDiffs %>%
+  group_by(
+    variable
+  ) %>%
+  adjust_pvalue(p.col = "p.value")
+```
+
 
 ```{r}
 bootstrapRes_iterations2000_maxPerCell10$anovas
@@ -1766,5 +1853,135 @@ pptAddOneGraph()
 allEventsRes$fwhm$plots$fullDensityPlot
 slideTitle <- "FWHM density plot, full x axis"
 pptAddOneGraph()
+```
+
+# Interval
+
+```{r}
+allEventsRes_int <- pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  fourWayAD(
+    interval
+    , "interval (s)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+  )
+
+allEventsRes_int$plots$cumulativeFreqPlot
+```
+
+## 100 per cell
+```{r}
+set.seed(28)
+pscInt_100perCell_v1 <- pscInt %>%
+  group_by(
+    cellID
+  ) %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  slice_sample(n = 100) %>%
+  ungroup()
+```
+
+```{r}
+max100PerCell_v1Res_int <- pscInt_100perCell_v1 %>%
+  fourWayAD(
+    interval
+    , "interval (s)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+  )
+
+max100PerCell_v1Res_int$plots$cumulativeFreqPlot
+```
+
+## 200 per cell
+```{r}
+set.seed(28)
+pscInt_200perCell_v1 <- pscInt %>%
+  group_by(
+    cellID
+  ) %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  slice_sample(n = 200) %>%
+  ungroup()
+```
+
+```{r}
+max200PerCell_v1Res_int <- pscInt_200perCell_v1 %>%
+  fourWayAD(
+    interval
+    , "interval (s)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+  )
+
+max200PerCell_v1Res_int$plots$cumulativeFreqPlot
+```
+
+## 300 per cell
+```{r}
+set.seed(28)
+pscInt_300perCell_v1 <- pscInt %>%
+  group_by(
+    cellID
+  ) %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  slice_sample(n = 300) %>%
+  ungroup()
+```
+
+```{r}
+max300PerCell_v1Res_int <- pscInt_300perCell_v1 %>%
+  fourWayAD(
+    interval
+    , "interval (s)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+  )
+
+max300PerCell_v1Res_int$plots$cumulativeFreqPlot
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCell100_int <-  pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  analyzeBootstrapResults(nBootstrap = 2000, maxPerCell = 100, setSeed = 123, forInterval = TRUE)
+```
+```{r}
+bootstrapRes_iterations2000_maxPerCell200_int <-  pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  analyzeBootstrapResults(nBootstrap = 2000, maxPerCell = 200, setSeed = 123, forInterval = TRUE)
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCell300_int <-  pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  analyzeBootstrapResults(nBootstrap = 2000, maxPerCell = 300, setSeed = 123, forInterval = TRUE)
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCellNone_int <-  pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  analyzeBootstrapResults(nBootstrap = 2000, maxPerCell = NULL, setSeed = 123, forInterval = TRUE)
 ```
 
