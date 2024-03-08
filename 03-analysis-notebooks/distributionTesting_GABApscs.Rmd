@@ -4840,7 +4840,9 @@ pscInt_numEventsPerCell %>%
   )
 ```
 
+# Comparisons of bootstrap differences
 Preparing comparison of bootstrap differences
+This isn't the way to do it. They will all be centered around the original differences
 
 ```{r}
 # need to calculate observed difference in original dataset before sampling
@@ -4943,5 +4945,211 @@ propLargerDiff %>%
   ) %>%
   group_map(~ adjust_pvalue(.x, p.col = "p.value"))
   adjust_pvalue(p.col = "p.value")
+```
+
+## get the original mean of the std-con, and compare to a proportion of that value
+
+```{r}
+origMean <- pscProps %>%
+    group_by(
+      earlyLifeTrt
+      , adultTrt
+    ) %>%
+    summarize(
+      amplitude = mean(amplitude, na.rm = TRUE)
+      , riseTime = mean(riseTime, na.rm = TRUE)
+      , decay9010 = mean(decay9010, na.rm = TRUE)
+      , fwhm = mean(fwhm, na.rm = TRUE)
+      , .groups = "drop"
+    )
+  
+  getPerc_STD_CON_mean <- function(df, column, prop = 0.15){
+    stdConMean <- df %>%
+      filter(
+        earlyLifeTrt == "STD"
+        , adultTrt == "CON"
+      ) %>%
+      select(
+        {{ column }}
+      ) %>%
+      pull()
+    
+    return(stdConMean * prop)
+  }
+  
+  getPerc_STD_CON_mean <- function(df, column, prop = 0.15){
+    stdCon <- df %>%
+      filter(
+        earlyLifeTrt == "STD"
+        , adultTrt == "CON"
+      )
+    
+    stdConMean <- stdCon[[column]]
+    
+    return(stdConMean * prop)
+  }
+  
+  origMean %>%
+    getPerc_STD_CON_mean("amplitude")
+```
+
+```{r}
+bootstrapRes_iterations10_maxPerCellNone$results %>%
+  pivot_longer(
+    cols = c(amplitude, riseTime, decay9010, fwhm)
+    , names_to = "variable"
+    , values_to = "mean"
+  ) %>%
+  pivot_wider(
+    id_cols = c(bootIt, variable)
+    , names_from = c(earlyLifeTrt, adultTrt)
+    , names_sep = "_"
+    , values_from = mean
+  ) %>%
+  mutate(
+    stdCONvALPS = STD_ALPS - STD_CON
+    , lbnCONvALPS = LBN_ALPS - LBN_CON
+    , conSTDvLBN = LBN_CON - STD_CON
+    , alpsSTDvLBN = LBN_ALPS - STD_ALPS
+    , STD_CONvLBN_ALPS = LBN_ALPS - STD_CON
+    , STD_ALPSvLBN_CON = LBN_CON - STD_ALPS
+  ) %>%
+  rowwise() %>%
+  mutate(
+    diffOfInterest = getPerc_STD_CON_mean(origMean, variable)
+    , .after = variable
+  ) %>%
+  mutate(
+    stdCONvALPS_isBigger = (stdCONvALPS <= -abs(diffOfInterest) | stdCONvALPS >= abs(diffOfInterest))
+    , lbnCONvALPS_isBigger = (lbnCONvALPS <= -abs(diffOfInterest) | lbnCONvALPS >= abs(diffOfInterest))
+    , conSTDvLBN_isBigger = (conSTDvLBN <= -abs(diffOfInterest) | conSTDvLBN >= abs(diffOfInterest))
+    , alpsSTDvLBN_isBigger = (alpsSTDvLBN <= -abs(diffOfInterest) | alpsSTDvLBN >= abs(diffOfInterest))
+    , STD_CONvLBN_ALPS_isBigger = (STD_CONvLBN_ALPS <= -abs(diffOfInterest) | STD_CONvLBN_ALPS >= abs(diffOfInterest))
+    , STD_ALPSvLBN_CON_isBigger = (STD_ALPSvLBN_CON <= -abs(diffOfInterest) | STD_ALPSvLBN_CON >= abs(diffOfInterest))
+  ) %>%
+  group_by(
+    variable
+  ) %>%
+  summarize( # these are p-values, 1 - proportion where larger than original difference
+    stdCONvALPS = 1 - mean(stdCONvALPS_isBigger)
+    , lbnCONvALPS = 1 - mean(lbnCONvALPS_isBigger)
+    , conSTDvLBN = 1 - mean(conSTDvLBN_isBigger)
+    , alpsSTDvLBN = 1- mean(alpsSTDvLBN_isBigger)
+    , STD_CONvLBN_ALPS = 1 - mean(STD_CONvLBN_ALPS_isBigger)
+    , STD_ALPSvLBN_CON = 1- mean(STD_ALPSvLBN_CON_isBigger)
+    , .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = stdCONvALPS:STD_ALPSvLBN_CON
+    , names_to = "comparison"
+    , values_to = "p.value"
+  )
+```
+
+# Confidence intervals from bootstrap
+
+```{r}
+bootstrapRes_iterations2000_maxPerCellNone$meanDiffs %>%
+  pivot_longer(
+    cols = stdCONvALPS:STD_ALPSvLBN_CON
+    , names_to = "comparison"
+    , values_to = "difference"
+  ) %>%
+  group_by(
+    variable
+    , comparison
+  ) %>%
+  # arrange(
+  #   difference
+  # )
+  summarize(
+    meanDiff = mean(difference, na.rm = TRUE)
+    , lowerCI = quantile(difference, probs = 0.05, na.rm = TRUE)
+    , upperCI = quantile(difference, probs = 0.95, na.rm = TRUE)
+    , minDiff = min(difference, na.rm = TRUE)
+    , maxDiff = max(difference, na.rm = TRUE)
+    , bothSameDir = ifelse(
+      (lowerCI < 0 & upperCI < 0) | (lowerCI > 0 & upperCI > 0)
+      , TRUE
+      , FALSE
+    )
+    , .groups = "drop"
+  ) %>%
+  filter(
+    bothSameDir == TRUE
+  )
+
+bootstrapRes_iterations2000_maxPerCellNone$meanDiffs %>%
+  pivot_longer(
+    cols = STD_CON:LBN_ALPS
+    , names_to = "group"
+    , values_to = "mean"
+  ) %>%
+  group_by(
+    variable
+    , group
+  ) %>%
+  # arrange(
+  #   difference
+  # )
+  summarize(
+    lowerCI = quantile(mean, probs = 0.05, na.rm = TRUE)
+    , upperCI = quantile(mean, probs = 0.95, na.rm = TRUE)
+    , min = min(mean, na.rm = TRUE)
+    , max = max(mean, na.rm = TRUE)
+    , mean = mean(mean, na.rm = TRUE)
+    , .groups = "drop"
+  ) %>%
+  relocate(
+    mean, .before = lowerCI
+  )
+
+
+```
+
+### Plotting confidence interval
+
+```{r}
+amplitudeErrors <- bootstrapRes_iterations2000_maxPerCellNone$meansCI %>%
+  filter(
+    variable == "amplitude"
+  ) %>%
+  combineStress() %>%
+  rename(
+    y = mean
+    , lower = lowerCI
+    , upper = upperCI
+  )
+
+amplitudeErrors
+
+amplitudeMedian_errors
+
+bootstrapRes_iterations2000_maxPerCellNone$results %>%
+  combineStress() %>%
+  scatterPlotComboTrt(
+    yVar = amplitude
+    , yLab = "amplitude (pA)"
+    , addMeanSE = FALSE
+    # , zoom_y = TRUE
+    # , ymin = 0
+    # , ymax = 125
+  ) +
+  plotError_LMM(
+    amplitudeErrors
+    , xVar = comboTrt
+  )
+```
+
+```{r}
+install.packages("Mediana")
+```
+
+```{r}
+library(Mediana)
+```
+
+```{r}
+
 ```
 

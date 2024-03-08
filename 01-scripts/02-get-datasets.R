@@ -50,6 +50,7 @@ GABApscs_120 <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs_120")
 GABApscs_240 <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs_240")
 
 pscProps <- loadExcelSheet(dataFolder, LBN_DataName, "pscProps")
+pscInt <- loadExcelSheet(dataFolder, LBN_DataName, "pscInt")
 
 cellInfo <- loadExcelSheet(dataFolder, LBN_DataName, "cellInfo")
 cellExclusion <- loadExcelSheet(dataFolder, LBN_DataName, "cellExclusion")
@@ -721,6 +722,20 @@ pscProps <- pscProps %>%
   mutate(
     amplitude = -relPeak
     , .after = relPeak
+  )
+
+pscInt <- pscInt %>%
+  left_join(
+    GABApscs_240 %>%
+      select(
+        cellID
+        , mouseID
+        , damID
+        , earlyLifeTrt
+        , adultTrt
+        , comboTrt
+      )
+    , by = "cellID"
   )
 
 # UPDATE COMBO FRAMES WITH MATURATION -------------------------------------
