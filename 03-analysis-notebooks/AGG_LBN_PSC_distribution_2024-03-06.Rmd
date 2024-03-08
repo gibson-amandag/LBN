@@ -683,6 +683,154 @@ plotBootstrapErrors_xAxis <- function(
 }
 ```
 
+```{r}
+formatBootstrapPvaluesCI <- function(bootDiffCI){
+  bootDiffCI %>%
+    group_by(
+      variable
+    ) %>%
+    mutate(
+      mult2.p.value = p.value * 2
+    ) %>%
+    adjust_pvalue(p.col = "mult2.p.value", method = "holm") %>%
+    formatPCol(p.value) %>%
+    formatPCol(mult2.p.value) %>%
+    formatPCol(mult2.p.value.adj) %>%
+    rename(
+      p = mult2.p.value
+      , p.adj = mult2.p.value.adj
+    ) %>%
+    mutate(
+      CI = paste0("[", roundDecimals(lowerCIDiff, 2), ",", roundDecimals(upperCIDiff, 2), "]")
+      , .after = meanDiff
+    ) %>%
+    select(
+      - c(bothSameDir, p.value, lowerCIDiff, upperCIDiff, minDiff, maxDiff)
+    )
+}
+
+renameBootstrapComparisonGroups <- function(df, removeComparison = TRUE, twoLineLabels = FALSE){
+  df <- df %>%
+    mutate(
+      comp = case_when(
+        comparison == "STD_ALPSvLBN_CON" ~ "STD-ALPS vs LBN-CON"
+        , comparison == "STD_CONvLBN_ALPS" ~ "STD-CON vs LBN-ALPS"
+        , comparison == "alpsSTDvLBN" ~ "STD-ALPS vs LBN-ALPS"
+        , comparison == "conSTDvLBN" ~ "STD-CON vs LBN-CON"
+        , comparison == "lbnCONvALPS" ~ "LBN-CON vs LBN-ALPS"
+        , comparison == "stdCONvALPS" ~ "STD-CON vs STD-ALPS"
+      )
+      , comp = factor(
+        comp
+        , levels = c(
+          "STD-CON vs STD-ALPS"
+          , "LBN-CON vs LBN-ALPS"
+          , "STD-CON vs LBN-CON"
+          , "STD-ALPS vs LBN-ALPS"
+          , "STD-CON vs LBN-ALPS"
+          , "STD-ALPS vs LBN-CON"
+          )
+      )
+      , .after = comparison
+    ) %>%
+    arrange(
+      variable, comp
+    )
+  
+  if(twoLineLabels){
+    df <- df %>%
+      makeCompTwoLines()
+  }
+  
+  if(removeComparison) {
+    df <- df %>%
+    select(
+      -comparison
+    )
+  }
+  return(df)
+}
+
+makeCompTwoLines <- function(df){
+  df %>%
+    mutate(
+      comp = gsub(" vs ", "\n", comp, fixed = TRUE)
+        , comp = factor(
+          comp
+          , levels = c(
+            "STD-CON\nSTD-ALPS"
+            , "LBN-CON\nLBN-ALPS"
+            , "STD-CON\nLBN-CON"
+            , "STD-ALPS\nLBN-ALPS"
+            , "STD-CON\nLBN-ALPS"
+            , "STD-ALPS\nLBN-CON"
+          )
+        )
+    )
+}
+```
+
+```{r}
+plotBootstrapPairwiseDiffs <- function(bootRes, variableAsString, yLab, compProp = 0.15, specMeanDiffsDF = NULL){
+  diffCItoPlot <- bootRes$diffsCI %>%
+  makeCompTwoLines() %>%
+  rename(
+    y = meanDiff
+    , lower = lowerCIDiff
+    , upper = upperCIDiff
+  )
+
+percOfSTDCON = bootRes$meansCI %>% 
+               filter(variable == variableAsString
+                      , earlyLifeTrt == "STD"
+                      , adultTrt == "CON") %>%
+               pull(mean) * compProp
+
+if(is.null(specMeanDiffsDF)){
+  meanDiffs <- bootRes$extra$meanDiffs
+} else {
+  meanDiffs <- specMeanDiffsDF
+}
+
+plot <- meanDiffs %>%
+  renameBootstrapComparisonGroups(twoLineLabels = TRUE) %>%
+  filter(
+    variable == variableAsString
+  ) %>%
+  ggplot(
+    aes(
+      x = comp
+      , y = difference
+    )
+  ) +
+  jitterGeom() +
+  theme_pubr()+
+  boxTheme() +
+  textTheme() +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  geom_hline(yintercept = percOfSTDCON, color = "blue") +
+  geom_hline(yintercept = - percOfSTDCON, color = "blue") +
+  labs(y = yLab, x = "pairwise comparisons between groups") +
+  theme(
+    axis.title.x = element_text(margin = margin(t = 0))
+  )
+
+if(is.null(specMeanDiffsDF)){
+  plot <- plot +
+    plotError_LMM(
+    diffCItoPlot %>%
+      filter(
+        variable == variableAsString
+      )
+    , xVar = comp
+  )
+}
+return(plot)
+}
+```
+
+
+
 ### Analyze bootstrap
 ```{r}
 analyzeBootstrapResults <- function(
@@ -708,7 +856,10 @@ analyzeBootstrapResults <- function(
       cols = c(amplitude, riseTime, decay9010, fwhm)
       , names_to = "variable"
       , values_to = "mean"
-    )
+    ) %>%
+      mutate(
+        variable = factor(variable, levels = c("amplitude", "riseTime", "decay9010", "fwhm"))
+      )
   } else {
     bootstrapMeans <- bootstrapRes %>%
       pivot_longer(
@@ -748,12 +899,14 @@ analyzeBootstrapResults <- function(
       , STD_ALPSvLBN_CON = LBN_CON - STD_ALPS
     )
   
-  bootstrapMeanDiffsSum <- bootstrapMeanDiffs %>%
+  bootstrapMeanDiffs_long <- bootstrapMeanDiffs %>%
     pivot_longer(
       cols = stdCONvALPS:STD_ALPSvLBN_CON
       , names_to = "comparison"
       , values_to = "difference"
-    ) %>%
+    )
+  
+  bootstrapMeanDiffsSum <- bootstrapMeanDiffs_long %>%
     group_by(
       variable
       , comparison
@@ -775,8 +928,11 @@ analyzeBootstrapResults <- function(
         , 1 - mean(difference < 0, na.rm = TRUE)
       )
       , .groups = "drop"
-    )
+    ) %>%
+    renameBootstrapComparisonGroups()
   
+  bootstrapDiffPs <- bootstrapMeanDiffsSum %>%
+    formatBootstrapPvaluesCI()
   
   if(!forInterval){
     origMean <- pscProps %>%
@@ -834,7 +990,9 @@ analyzeBootstrapResults <- function(
         cols = stdCONvALPS:STD_ALPSvLBN_CON
         , names_to = "comparison"
         , values_to = "p.value"
-      )
+      ) %>%
+      renameBootstrapComparisonGroups()
+    
     # Errors 
     amplitudeErrors <- bootstrapMeanSum %>%
       filter(
@@ -1071,6 +1229,7 @@ analyzeBootstrapResults <- function(
         "results" = bootstrapRes
         , "meansCI" = bootstrapMeanSum
         , "diffsCI" = bootstrapMeanDiffsSum
+        , "P_formatted" = bootstrapDiffPs
         , "compDiffs" = bootstrapCompDiffs
         , "distPlots" = distPlots
         , "plots" = list(
@@ -1105,7 +1264,7 @@ analyzeBootstrapResults <- function(
         )
         , "extra" = list(
           "longMeans" = bootstrapMeans
-          , "meanDiffs" = bootstrapMeanDiffs
+          , "meanDiffs" = bootstrapMeanDiffs_long
         )
       )
     )
@@ -1167,6 +1326,7 @@ analyzeBootstrapResults <- function(
         "results" = bootstrapRes
         , "meansCI" = bootstrapMeanSum
         , "diffsCI" = bootstrapMeanDiffsSum
+        , "P_formatted" = bootstrapDiffPs
         , "plots" = list(
           "interval" = interval_plot
         )
@@ -1184,7 +1344,7 @@ analyzeBootstrapResults <- function(
         )
         , "extra" = list(
           "longMeans" = bootstrapMeans
-          , "meanDiffs" = bootstrapMeanDiffs
+          , "meanDiffs" = bootstrapMeanDiffs_long
         )
       )
     )

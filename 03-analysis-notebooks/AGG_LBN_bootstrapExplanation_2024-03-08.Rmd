@@ -1,0 +1,449 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Set-up PPT 
+```{r}
+figureNum <- 1
+
+pptBaseName <- makeBaseNameFunc("")
+
+plotFolder <- file.path(plotOutputFolder, "GABA_PSC_props")
+
+imgType <-"png"
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotFolder
+  , compType = currentCompType
+)
+
+exportFullPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+    , width = 11.5
+    , height = 5
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = width
+    , height = height
+  )
+}
+
+exportHalfPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 5.67
+    , height = 5
+  )
+}
+
+exportThirdPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 3.6
+    , height = 5
+  )
+}
+
+exportQuarterPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 3.2
+    , height = 5
+  )
+}
+
+editableImgs <- FALSE
+pptAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddOneTable <- function(
+    table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_oneTable(
+    officer_ppt, 
+    title, 
+    table, 
+    dontFormat = dontFormat
+  )
+  return(officer_ppt)
+}
+
+pptUneditAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = FALSE
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphs <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphsMoreLeft <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraphMoreLeft(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddGraphTable <- function(
+    plot
+    , table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_graphTable(
+    officer_ppt, 
+    title, 
+    plot, 
+    table,
+    makeEditable = editableImgs
+    , dontFormat = dontFormat
+    , textSize = textSize
+  )
+  return(officer_ppt)
+}
+
+pptAddFourGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , plot4
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_fourGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    plot4,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddThreeGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_threeGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddStats <- function(
+    statsText
+    , officer_ppt = ppt
+){
+  officer_ppt <- addStatsToBottom(
+    officer_ppt,
+    statsText
+  )
+}
+
+pptAddTwoStats <- function(
+    statsText1
+    , statsText2
+    , officer_ppt = ppt
+){
+  officer_ppt <- addTwoStatsToGraphs(
+    officer_ppt,
+    statsText1,
+    statsText2
+  )
+}
+
+pptAddSectionHead <- function(
+    title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_sectionHead(
+    officer_ppt
+    , title
+  )
+}
+```
+
+```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("genericPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+# layout_properties(ppt, layout="Title Slide")
+
+subText <- "Bootstrapping of PSC properties"
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "AGG_LBN_bootstrap"
+  , addDate = TRUE
+)
+```
+
+```{r}
+allEventsRes <- runFourWayAD_allProps(pscProps)
+bootstrapRes_iterations5000_maxPerCellNone <- pscProps %>%
+  analyzeBootstrapResults(
+    nBootstrap = 5000
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+  )
+
+allEventsRes_int <- pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  fourWayAD(
+    interval
+    , "interval (s)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+  )
+
+```
+
+
+```{r}
+demoBootstrapRes <- pscProps %>%
+  analyzeBootstrapResults(
+    nBootstrap = 20
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+  )
+
+demoBootstrapRes_int <- pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  analyzeBootstrapResults(
+    nBootstrap = 20
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+    , forInterval = TRUE
+  )
+```
+
+```{r}
+bootstrapRes_iterations5000_maxPerCellNone <- pscProps %>%
+  analyzeBootstrapResults(
+    nBootstrap = 5000
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+  )
+
+bootstrapRes_int_iterations5000_maxPerCellNone <- pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  analyzeBootstrapResults(
+    nBootstrap = 5000
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+    , forInterval = TRUE
+  )
+```
+
+
+```{r}
+endIt = 1
+
+for (endIt in c(1:20)) {
+  meanPlot <- demoBootstrapRes$results %>%
+    filter(
+      bootIt %in% seq(1:endIt)
+    ) %>%
+    combineStress() %>%
+    scatterPlotComboTrt(
+      yVar = amplitude
+      , yLab = "amplitude (pA)"
+      , addMeanSE = FALSE
+      , zoom_y = TRUE
+      , ymin = 0
+      , ymax = 45
+    )
+  # slideTitle <- paste0("Mean amplitude estimate, iteration ", endIt)
+  # ppt <- pptAddOneGraph()
+  compPlot <- plotBootstrapPairwiseDiffs(
+    demoBootstrapRes
+    , "amplitude", "difference in amplitude (pA)"
+    , specMeanDiffsDF = demoBootstrapRes$extra$meanDiffs %>%
+      filter(
+        bootIt %in% seq(1:endIt)
+      )
+  ) +
+    coord_cartesian(ylim = c(-10, 7))
+  # slideTitle <- paste0("Pairwise comparisons of difference, iteration ", endIt)
+  # ppt <- pptAddOneGraph()
+  slideTitle <- paste0("Amplitude, iteration ", endIt)
+  ppt <- pptAddTwoGraphsMoreLeft(compPlot, meanPlot)
+}
+```
+
+
+```{r}
+meanPlot <- demoBootstrapRes$plots$amplitude +
+  coord_cartesian(ylim = c(0, 45))
+compPlot <- plotBootstrapPairwiseDiffs(demoBootstrapRes, "amplitude", "difference in amplitude (pA)") +
+  coord_cartesian(ylim = c(-10, 7))
+slideTitle <- paste0("Amplitude with confidence intervals after 20 iteration")
+ppt <- pptAddTwoGraphsMoreLeft(compPlot, meanPlot)
+
+meanPlot <- demoBootstrapRes$plots$riseTime
+compPlot <- plotBootstrapPairwiseDiffs(demoBootstrapRes, "riseTime", "difference in rise time (ms)")
+slideTitle <- "Rise time with confidence intervals after 20 iterations"
+ppt <- pptAddTwoGraphsMoreLeft(compPlot, meanPlot)
+
+meanPlot <- demoBootstrapRes$plots$decayTime
+compPlot <- plotBootstrapPairwiseDiffs(demoBootstrapRes, "decay9010", "difference in decay time (ms)")
+slideTitle <- "Decay time with confidence intervals after 20 iterations"
+ppt <- pptAddTwoGraphsMoreLeft(compPlot, meanPlot)
+
+meanPlot <- demoBootstrapRes$plots$fwhm
+compPlot <- plotBootstrapPairwiseDiffs(demoBootstrapRes, "fwhm", "difference in full width halm max (ms)")
+slideTitle <- "FWHM with confidence intervals after 20 iterations"
+ppt <- pptAddTwoGraphsMoreLeft(compPlot, meanPlot)
+```
+
+```{r}
+meanPlot <- demoBootstrapRes_int$plots$interval
+compPlot <- plotBootstrapPairwiseDiffs(demoBootstrapRes_int, "interval", "difference in interval (s)")
+slideTitle <- "Interval with confidence intervals after 20 iterations"
+ppt <- pptAddTwoGraphsMoreLeft(compPlot, meanPlot)
+```
+
+```{r}
+meanPlot <- bootstrapRes_iterations5000_maxPerCellNone$plots$amplitude +
+  coord_cartesian(ylim = c(0, 45))
+compPlot <- plotBootstrapPairwiseDiffs(bootstrapRes_iterations5000_maxPerCellNone, "amplitude", "difference in amplitude (pA)") +
+  coord_cartesian(ylim = c(-10, 7))
+slideTitle <- paste0("Amplitude with confidence intervals after 20 iteration")
+ppt <- pptAddTwoGraphsMoreLeft(compPlot, meanPlot)
+
+meanPlot <- bootstrapRes_iterations5000_maxPerCellNone$plots$riseTime
+compPlot <- plotBootstrapPairwiseDiffs(bootstrapRes_iterations5000_maxPerCellNone, "riseTime", "difference in rise time (ms)")
+slideTitle <- "Rise time with confidence intervals after 20 iterations"
+ppt <- pptAddTwoGraphsMoreLeft(compPlot, meanPlot)
+
+meanPlot <- bootstrapRes_iterations5000_maxPerCellNone$plots$decayTime
+compPlot <- plotBootstrapPairwiseDiffs(bootstrapRes_iterations5000_maxPerCellNone, "decay9010", "difference in decay time (ms)")
+slideTitle <- "Decay time with confidence intervals after 20 iterations"
+ppt <- pptAddTwoGraphsMoreLeft(compPlot, meanPlot)
+
+meanPlot <- bootstrapRes_iterations5000_maxPerCellNone$plots$fwhm
+compPlot <- plotBootstrapPairwiseDiffs(bootstrapRes_iterations5000_maxPerCellNone, "fwhm", "difference in full width halm max (ms)")
+slideTitle <- "FWHM with confidence intervals after 20 iterations"
+ppt <- pptAddTwoGraphsMoreLeft(compPlot, meanPlot)
+```
+
+```{r}
+meanPlot <- bootstrapRes_int_iterations5000_maxPerCellNone$plots$interval
+compPlot <- plotBootstrapPairwiseDiffs(bootstrapRes_int_iterations5000_maxPerCellNone, "interval", "difference in interval (s)")
+slideTitle <- "Interval with confidence intervals after 20 iterations"
+ppt <- pptAddTwoGraphsMoreLeft(compPlot, meanPlot)
+```
+
+
