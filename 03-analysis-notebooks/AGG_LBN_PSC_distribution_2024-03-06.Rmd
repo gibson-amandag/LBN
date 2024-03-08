@@ -703,7 +703,7 @@ analyzeBootstrapResults <- function(
     bootstrapGroup(nBootstrap = nBootstrap, maxPerCell = maxPerCell, groupingVars = groupingVars, replace = replace, setSeed = setSeed, forInterval = forInterval)
   
   if(!forInterval){
-    bootstrapMeans <- boostrapRes %>%
+    bootstrapMeans <- bootstrapRes %>%
       pivot_longer(
       cols = c(amplitude, riseTime, decay9010, fwhm)
       , names_to = "variable"
@@ -758,9 +758,6 @@ analyzeBootstrapResults <- function(
       variable
       , comparison
     ) %>%
-    # arrange(
-    #   difference
-    # )
     summarize(
       meanDiff = mean(difference, na.rm = TRUE)
       , lowerCIDiff = quantile(difference, probs = CIprop / 2, na.rm = TRUE)
