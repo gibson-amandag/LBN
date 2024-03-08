@@ -52,14 +52,15 @@ subnParColNames <- function(tbl) {
   return(tbl)
 }
 
-formatPCol <- function(df){
+formatPCol <- function(df, pCol = p){
+  pColAsText = deparse(substitute(pCol))
   df <- df %>%
     mutate(
-      p = ifelse(
-        p < 0.001, "<0.001"
+      !! pColAsText := ifelse(
+        {{ pCol }} < 0.001, "<0.001"
         , ifelse(
-          p > 0.999, ">0.999"
-          , format(round(p, 3), nsmall = 3, trim = TRUE)
+          {{ pCol }} > 0.999, ">0.999"
+          , format(round({{ pCol }}, 3), nsmall = 3, trim = TRUE)
         )
       )
     )
