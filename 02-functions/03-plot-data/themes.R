@@ -1,10 +1,10 @@
-textTheme <- function(size = 11, boldXText = FALSE){
+textTheme <- function(size = 11, boldXText = FALSE, forManuscript = isManuscript){
   theme = theme(
     text = element_text(size = size, family = "Arial", color = "black"),
     axis.text = element_text(size = size, family = "Arial", color = "black"), # for some reason, not acquiring consistently
     strip.text = element_text(face = "bold", size = size),
     axis.title = element_text(face = "bold")
-    , axis.title.x = element_text(margin = margin(t = -2))
+    , axis.title.x = element_text(margin = margin(t = ifelse(forManuscript, -2, 0)))
     , plot.title = element_text(hjust = 0.5, size = size, family = "Arial", color = "black", face = "bold", margin = margin(b = -3))
   )
   
@@ -37,9 +37,10 @@ boxTheme <- function(axisSize = 0.5){
 earlyLifeFill <- function(
   STD = "STD",
   LBN = "LBN",
-  STDColor = "white",
-  LBNColor = "cyan4"
+  STDColor = ifelse(forManuscript, "#CCCCCC", "white"),
+  LBNColor = "cyan3"
   , fillAlpha = 0.7
+  , forManuscript = isManuscript
 ){
   fill <- scale_fill_manual(
     "early life trt", 
@@ -51,9 +52,10 @@ earlyLifeFill <- function(
 earlyLifeColor <- function(
   STD = "STD",
   LBN = "LBN",
-  STDColor = "grey30",
-  LBNColor = "cyan4"
+  STDColor = ifelse(forManuscript, "#CCCCCC", "white"),
+  LBNColor = "cyan3"
   , colorAlpha = 1
+  , forManuscript = isManuscript
 ){
   color <- scale_color_manual(
     "early life trt", 
@@ -122,16 +124,17 @@ earlyLifeLineType <- function(
 }
 
 comboTrtFillShape <- function(
-  STD_CON_color = "grey",
-  STD_ALPS_color = "black",
-  LBN_CON_color = "darkcyan",
-  LBN_ALPS_color = "#dfc27d",
-  STD_CON_fill = "white",
-  STD_ALPS_fill = "black",
-  LBN_CON_fill = "darkcyan",
-  LBN_ALPS_fill = "#dfc27d"
+  STD_CON_color = ifelse(forManuscript, "#CCCCCC", "white"),
+  STD_ALPS_color = "#666666",
+  LBN_CON_color = "cyan3",
+  LBN_ALPS_color = "#FF0099",
+  STD_CON_fill = ifelse(forManuscript, "#CCCCCC", "white"),
+  STD_ALPS_fill = "#666666",
+  LBN_CON_fill = "cyan3",
+  LBN_ALPS_fill = "#FF0099"
   , fillAlpha = 0.7
   , colorAlpha = 1
+  , forManuscript = isManuscript
 ){
   layers <- list(
     scale_color_manual(
@@ -148,19 +151,21 @@ comboTrtFillShape <- function(
                  "LBN-ALPS"=LBN_ALPS_fill), fillAlpha)),
     scale_shape_manual(
       "treatment", 
-      values = c("STD-CON"=21, 
-                 "STD-ALPS"=23,
-                 "LBN-CON"=21, 
-                 "LBN-ALPS"=23))
+      values = c(
+        "STD-CON"=ifelse(forManuscript, 16, 21), 
+        "STD-ALPS"=ifelse(forManuscript, 16, 21),
+        "LBN-CON"=ifelse(forManuscript, 16, 21), 
+        "LBN-ALPS"=ifelse(forManuscript, 16, 21)
+                 ))
   )
   return(layers)
 }
 
 comboTrtLineColor <- function(
-  STD_CON_color = "grey",
-  STD_ALPS_color = "black",
-  LBN_CON_color = "darkcyan",
-  LBN_ALPS_color = "#dfc27d"
+  STD_CON_color = "#CCCCCC",
+  STD_ALPS_color = "#000000",
+  LBN_CON_color = "cyan3",
+  LBN_ALPS_color = "#FF0099"
 ){
   layers <- list(
     scale_color_manual(
@@ -173,12 +178,14 @@ comboTrtLineColor <- function(
   return(layers)
 }
 
+
 dosageFillShape <- function(
-  color_0 = "black",
+  color_0 = if(forManuscript){"#CCCCCC"}else{"black"},
   color_2 = "black",
   fill_0 = "white",
   fill_2 = "black"
-  , fillAlpha = 0.7
+  , fillAlpha = 1
+  , forManuscript = isManuscript
 ){
   layers <- list(
     scale_color_manual(
@@ -197,8 +204,8 @@ dosageFillShape <- function(
     ),
     scale_shape_manual(
       "treatment", 
-      values = c("0"=21,
-                 "2"=21),
+      values = c("0"=ifelse(forManuscript, 16, 21),
+                 "2"=ifelse(forManuscript, 16, 21)),
       labels = c("0" = "0mg/kg",
                  "2" = "2mg/kg")
     )

@@ -23,7 +23,7 @@ plotError_LMM <- function(
     , xVar
     , meanBarWidth = 0.9
     , barSize = 0.6
-    , color = "#FF3399" 
+    , color = "black" 
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
 ) {

@@ -160,7 +160,7 @@ figDams_left <- plot_grid(
   , figDamsBehaviorPlots[[1]]
   , figDamsBehaviorPlots[[3]]
   , nrow = 3
-  , labels = c("", "D", "F")
+  , labels = c("", "D", "E")
   , label_fontfamily = "Arial"
   , label_size = textSize
 )
@@ -169,7 +169,72 @@ figDams_right <- plot_grid(
   figDams_row1[[1]]
   , figDamsRightPlots[[1]]
   , figDamsRightPlots[[2]]
-  , labels = c("C", "E", "G")
+  , labels = c("C", "", "")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , nrow = 3
+)
+
+figDams <- plot_grid(
+  figDams_left
+  , figDams_right
+  , ncol = 2
+  , rel_widths = c(3, 1)
+)
+  
+figDams
+```
+
+
+```{r}
+figDamsPlots <- cowplot::align_plots(
+  figDams_exitsRandom
+  , figDams_offNest_random
+  , align = "v"
+  , axis = "l"
+)
+
+figDamsBehaviorPlots <- cowplot::align_plots(figDamsPlots[[1]], figDams_meanExits_random, figDamsPlots[[2]], figDams_meanOffNest_random, align = "h", axis = "bt")
+
+figDamsRightPlots <- cowplot::align_plots(
+  figDamsBehaviorPlots[[2]]
+  , figDamsBehaviorPlots[[4]]
+  , figDamsD
+  , align = "v"
+  , axis = "lr"
+)
+
+figDams_row1 <- align_plots(
+  figDamsRightPlots[[3]]
+  , figDams_mass
+  , align = "h"
+  , axis = "tb"
+)
+
+figDams_left <- plot_grid(
+  plot_grid(
+    NULL
+    , figDams_row1[[2]]
+    , nrow = 1
+    , align = "h"
+    , axis = "bt"
+    , labels = c("A", "B")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+  )
+  , figDamsBehaviorPlots[[1]]
+  , figDamsBehaviorPlots[[3]]
+  , nrow = 3
+  , labels = c("", "D", "E")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figDams_right <- plot_grid(
+  figDams_row1[[1]]
+  , figDamsRightPlots[[1]]
+  , figDamsRightPlots[[2]]
+  , labels = c("C", "", "")
   , label_fontfamily = "Arial"
   , label_size = textSize
   , nrow = 3
@@ -189,6 +254,18 @@ figDams
 ```{r}
 flexSave(
   "figDams_allRainbow"
+  , plot = figDams
+  , width = twoCols
+  , height = fullLength - 0.1
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+
+```{r}
+flexSave(
+  "figDams_allRainbow_random"
   , plot = figDams
   , width = twoCols
   , height = fullLength - 0.1
@@ -341,9 +418,10 @@ damCort_t.Test
 ## grouped maturation
 ```{r}
 figOffLeftPlots <- cowplot::align_plots(
-  figOffA
+  figOffA_indiv
   , figOffAge_model
   , figOffMass_model
+  , figOffA_group
   , align = "v", axis = "l"
 )
 
@@ -376,7 +454,7 @@ figOffMat <- plot_grid(
 )
 
 figOff <- plot_grid(
-  figOffLeftPlots[[1]]
+  figOffLeftPlots[[4]]
   , figOffMat
   , nrow = 2
   , labels = c("A", NULL)
@@ -397,6 +475,19 @@ flexSave(
   , filePath = manuscriptFolder
 )
 ```
+
+```{r}
+flexSave(
+  "figOffIndiv"
+  , plot = figOffA_indiv
+  , width = oneCol*.9
+  , height = fullLength/3/1.3
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+
 
 ## Table - offspring counts
 
@@ -748,7 +839,24 @@ figCort_byAdult <- plot_grid(
 )
 
 figCort_byAdult
+```
 
+```{r}
+figCort_byAdult <- plot_grid(
+  figCortA_adult +
+    theme(
+      plot.margin = unit(c(0.3,0.1,0,0.1), "cm")
+    )
+  , figCort_females_adult
+  , nrow = 1
+  , rel_widths = c(1, 2)
+  , align = "vh", axis = "ltrb"
+  , labels = c("A", "B")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figCort_byAdult
 ```
 
 ```{r}
@@ -761,6 +869,25 @@ flexSave(
   , filePath = manuscriptFolder
 )
 ```
+
+```{r}
+flexSave(
+  "figCort_v3"
+  , plot = figCort_byAdult
+  , width = twoCols
+  , height = halfLength
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+```{r}
+cortFilteredFemales %>%
+  filter(
+    cort > 450
+  )
+```
+
 
 ## count
 
@@ -1517,7 +1644,7 @@ figLH <- plot_grid(
   , nrow = 3
   , align = "hv"
   , axis = "tblr"
-  , labels = c("A", "", "B", "", "","C", "E", "F")
+  , labels = c("A", "", "B", "", "","C", "D", "E", "F")
   , label_fontfamily = "Arial"
   , label_size = textSize
 )

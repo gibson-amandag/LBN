@@ -228,7 +228,7 @@ male_mass_lmm_emm <- emmeans(
     filter(
       day >= 11
     )
-  , at = list(day = c(11, 21, 35, 70))
+  , at = list(day = c(11, 21, 35, 56, 72))
 )
 
 male_mass_lmm_emm.pairs <- contrast(
@@ -613,6 +613,7 @@ LH_diAfternoon_lmm_errors <- LH_diAfternoon_lmm %>%
 
 ## Pro ephys --------------------------------------------------------------
 
+# 2024-03-10, because there is censoring of the data at 40ng/mL and not normally distributed, this is not the most appropriate test.
 LH_proEphys_lmm <- mixed(
   maxLH ~ earlyLifeTrt * adultTrt + (1|damID)
   , data = acuteStressFilteredPro_ephys
@@ -671,6 +672,7 @@ LH_proEphys_lmm_errors <- LH_proEphys_lmm %>%
 
 ## Pro sampling --------------------------------------------------------------
 
+# 2024-03-10, because there is censoring of the data at 40ng/mL and not normally distributed, this is not the most appropriate test.
 LH_proSampling_lmm <- mixed(
   maxLH ~ earlyLifeTrt * adultTrt + (1|damID)
   , data = acuteStressFilteredPro_sampling
@@ -698,41 +700,6 @@ LH_proSampling_lmm_errors <- LH_proSampling_lmm %>%
   combineStress()
 
 
-## Rank-based transformation of max LH --------------------
-
-### Ephys limited sampling ----------------
-
-rankedLH_ephys <- acuteStressFilteredPro_ephys %>%
-  filter(
-    !is.na(maxLH)
-  ) %>%
-  mutate(
-    rankedLH = rank(maxLH)
-  )
-
-rankedLH_ephys_lmm <- mixed(
-  rankedLH ~ earlyLifeTrt * adultTrt + (1|damID)
-  , data = rankedLH_ephys
-  , method = "KR"
-)
-
-### Full sampling --------------------
-
-rankedLH_sampling <- acuteStressFilteredPro_sampling %>%
-  filter(
-    !is.na(maxLH)
-  ) %>%
-  mutate(
-    rankedLH = rank(maxLH)
-  )
-
-rankedLH_sampling_lmm <- mixed(
-  rankedLH ~ earlyLifeTrt * adultTrt + (1|damID)
-  , data = rankedLH_sampling
-  , method = "KR"
-)
-
-
 ## LH peak time in full sampling ----------------
 
 LH_proSampling_peakTime_lmm <- mixed(
@@ -756,6 +723,53 @@ ALPS_contTable <- table(
 propSurged.Chi.Sq.res <- chisq_test(ALPS_contTable) 
 
 propSurged.Chi.Sq.descriptives <-  chisq_descriptives(propSurged.Chi.Sq.res)
+
+
+## Binomial logistic regression -----------
+propSurged_extendedSampling_glmm <- mixed(
+  surged ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFilteredPro_sampling
+  , family = binomial(link = "logit")
+  , method = "LRT"
+)
+
+propSurged_extendedSampling_glmm_emm <- emmeans(
+  propSurged_extendedSampling_glmm
+  , "adultTrt"
+  , type = "response"
+)
+
+## this doesn't really seem to make much sense... don't kneed it to interpret results
+# propSurged_extendedSampling_glmm_emm.pairs <- contrast(
+#   propSurged_extendedSampling_glmm_emm
+#   , "pairwise"
+# )
+
+propSurged_limitedSampling_glmm <- mixed(
+  surged ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFilteredPro_ephys
+  , family = binomial(link = "logit")
+  , method = "LRT"
+)
+
+propSurged_limitedSampling_glmm_emm.adultTrt <- emmeans(
+  propSurged_limitedSampling_glmm
+  , "adultTrt"
+  , type = "response"
+)
+
+## this doesn't really seem to make much sense...but don't need it since just two groups
+# propSurged_limitedSampling_glmm_emm.pairs <- contrast(
+#   propSurged_limitedSampling_glmm_emm
+#   , "pairwise"
+# )
+
+propSurged_limitedSampling_glmm_emm.earlyLife <- emmeans(
+  propSurged_limitedSampling_glmm
+  , "earlyLifeTrt"
+  , type = "response"
+)
+
 
 # GABA - capacitance ------------------------------------------------------
 
@@ -841,7 +855,7 @@ holdingCurrent_lmm_errors <- holdingCurrent_lmm %>%
 
 # Negative binomial of counts of PSCs in 2 min
 
-GABApscs_240_count <- GABApscs_240FilteredFiring %>%
+GABApscs_240_count <- GABApscs_240Filtered %>% # this includes the cell that has no PSCs
   mutate(
     numEvents = frequency * duration
     , .after = frequency
@@ -882,6 +896,32 @@ numEvents_nb.GLMM_errors <- numEvents_nb.GLMM %>%
     , upper = upper / 240.02
   )
 
+# GABA - PSC interval --------------------------
+
+interval_lmm <- mixed(
+  log10(interval) ~ earlyLifeTrt * adultTrt + (1|damID) + (1|mouseID)
+  , data = GABApscs_240FilteredFiring
+  , method = "KR"
+)
+
+## errors for graph ------------
+interval_lmm_emm <- emmeans(
+  interval_lmm
+  , "earlyLifeTrt"
+  , by = c("adultTrt")
+  , type = "response"
+)
+
+interval_lmm_error <- interval_lmm_emm %>%
+  as_data_frame() %>%
+  rename(
+    y = response
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+  ) %>%
+  combineStress()
 
 # GABA - PSC amplitude ----------------------------------------------------
 

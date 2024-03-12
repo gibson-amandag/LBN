@@ -19,8 +19,10 @@ cortPlot <- function(
   , meanFollowsLineType = TRUE
   , yUnitsNewLine = FALSE
   , pointAlpha = 1
-  , lineAlpha =0.4
+  , lineAlpha =1
+  , lineSize = 0.25
   , clipVal = "on"
+  , forManuscript = isManuscript
 ){
   if(yUnitsNewLine){
     yLab <- "corticosterone\n(ng/mL)"
@@ -41,9 +43,10 @@ cortPlot <- function(
       # color = "black",
       aes(group = mouseID, linetype =  {{ groupVar }}, color =  {{ groupVar }}),
       position = position_dodge(positionDodge)
+      , linewidth = lineSize
       # https://github.com/eclarke/ggbeeswarm/issues/55
       # position = position_quasirandom() # 2023-06-18, I think there's an error here, and that this is the right path for this to work
-    ) +
+    )
     
     # 2023-06-23: See above error note. Also, might be possible to still use geom_point with the position_quasirandom function instead
     # geom_quasirandom(
@@ -56,22 +59,33 @@ cortPlot <- function(
     #   size = pointSize
     # ) + 
   
-    geom_point(
-      # shape = 21,
-      # alpha = pointAlpha,
+  if(forManuscript){
+    viz <- viz + geom_point(
+      aes(
+        group = mouseID
+        , shape = {{ groupVar }}
+        , color = {{ groupVar }}
+      )
+      , position = position_dodge(positionDodge)
+      , size = pointSize
+    )
+  } else {
+    viz <- viz + geom_point(
       color = "black"
-      , aes(fill= {{ groupVar }}
-          ,group=mouseID
-          , shape= {{ groupVar }}
-          # , color= {{ groupVar }}
-      ),
-      position = position_dodge(positionDodge),
-      size = pointSize
-    ) +
+      , aes(
+        group = mouseID
+        , fill = {{ groupVar }}
+        , shape = {{ groupVar }}
+      )
+      , position = position_dodge(positionDodge)
+      , size = pointSize
+    )
+  }
+  
+  viz <- viz +
     theme_pubr() +
     expand_limits(y = 0) +
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}, clip = clipVal) +
-    # rremove("xlab") + ## seems like can't add back after if do this
     labs(
       y = yLab,
       x = NULL
@@ -115,7 +129,7 @@ cortPlot <- function(
   
   if(deparse(substitute(groupVar)) == "comboTrt"){
     viz <- viz + 
-    comboTrtFillShape(fillAlpha = pointAlpha)
+    comboTrtFillShape(fillAlpha = pointAlpha, forManuscript = forManuscript)
   } else {
     viz <- viz + labs(color = "treatment", shape = "treatment", fill = "treatment")
   }
@@ -835,6 +849,7 @@ propSurgedPlotCombo_forSBN <- function(
   df,
   fontSize = 11
   , labelSize = 12
+  , forManuscript = isManuscript
 ){
   viz <- df %>%
     ggplot(aes(
@@ -853,15 +868,6 @@ propSurgedPlotCombo_forSBN <- function(
         size = labelSize
       )+
       labs(y = "% with LH surge") + 
-      # scale_color_manual(values = c(
-      #   "STD-CON.FALSE"="white",
-      #   "STD-ALPS.FALSE"="white",
-      #   "LBN-CON.FALSE"="white",
-      #   "LBN-ALPS.FALSE"="darkcyan", ## so that can have a line at zero. Edit illustrator
-      #   "STD-CON.TRUE"="black",
-      #   "STD-ALPS.TRUE"="black",
-      #   "LBN-CON.TRUE"="darkcyan"
-      # )) +
       scale_color_manual(values = c(
         "STD-CON.FALSE"="grey20",
         "STD-ALPS.FALSE"="grey20",
@@ -869,19 +875,18 @@ propSurgedPlotCombo_forSBN <- function(
         "LBN-ALPS.FALSE"="grey20",
         "STD-CON.TRUE"="black",
         "STD-ALPS.TRUE"="black",
-        "LBN-CON.TRUE"="darkcyan",
-        "LBN-ALPS.TRUE"="darkcyan"
+        "LBN-CON.TRUE"="cyan3",
+        "LBN-ALPS.TRUE"="#FF0099"
       )) +
       scale_fill_manual(values = c(
         "STD-CON.FALSE"="white",
         "STD-ALPS.FALSE"="white",
         "LBN-CON.FALSE"="white",
         "LBN-ALPS.FALSE"="white",
-        "STD-CON.TRUE"="grey90",
+        "STD-CON.TRUE"="#CCCCCC",
         "STD-ALPS.TRUE"="black",
-        "LBN-CON.TRUE"="lightblue1",
-        "LBN-ALPS.TRUE"="darkcyan"
-        # "white", "white", "white", "grey90", "black", "lightblue1", "darkcyan"
+        "LBN-CON.TRUE"="cyan3",
+        "LBN-ALPS.TRUE"="#FF0099"
       )) +
       scale_linetype_manual(values = c(
         "STD-CON.FALSE"="dotted",
@@ -1328,6 +1333,7 @@ scatterPlotComboTrt_surgeAmp <- function(
     , surgeLineColor = "magenta"
     , twoLineXLabs = FALSE
     , tiltedXLabs = FALSE
+    , forManuscript = isManuscript
 ){
   STD_CON_fill  <- "white"
   STD_ALPS_fill  <- "black"

@@ -426,6 +426,16 @@ fourWayAD <- function(
     , sortByQuartile = colorCellByQuartiles
   )
   
+  plotQuartiles_log <- plotPSCProp_log(
+    df
+    , {{ feature }}
+    , xLab
+    , textSize = textSize
+    , byQuartiles = colorCellByQuartiles
+    , sortByQuartile = colorCellByQuartiles
+    , byCell = FALSE
+  )
+  
   return(
     list(
       "adTest" = adTestResult
@@ -438,6 +448,7 @@ fourWayAD <- function(
         , "fullDensityPlot" = fullDensityPlot
         , "densityPlot_log" = densityPlot_log
         , "plotByCell_log" = plotByCell_log
+        , "plotsQuartiles_log" = plotQuartiles_log
       )
       , "vectors" = list(
         "SC" = SC

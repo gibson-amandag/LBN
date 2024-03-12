@@ -3,6 +3,7 @@ dotSize <- 1.5
 # textSize <- 24
 # dotSize <- 3
 facetMatByLitter <- FALSE
+isManuscript <- TRUE
 
 # Dam behavior ------------------------------------------------------------
 
@@ -13,6 +14,27 @@ figDams_exits <- damBehavior_byPND %>%
     , fontSize = textSize
     , addTriangleForMean = FALSE
     , colorByDam = TRUE
+    , dotSize = 1
+    , zoom_y = TRUE
+    , ymax = 60
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = TRUE
+    , lineAlpha = 0.2
+    , dotAlpha = 0.5
+  ) + 
+  theme(
+    strip.text.x.top = element_text(margin = margin(b=-10))
+  )
+
+figDams_exitsRandom <- damBehavior_byPND %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "mean # of exits / hr"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , randomColor = TRUE
     , dotSize = 1
     , zoom_y = TRUE
     , ymax = 60
@@ -52,7 +74,7 @@ figDams_exits <- damBehavior_byPND %>%
 figDams_meanExits <- damBehavior_byDam %>%
   plotDamBehavior(
     yVar = Num_exits
-    , yLab = "mean # of exits"
+    , yLab = "mean # of exits / hr"
     , fontSize = textSize
     , addTriangleForMean = FALSE
     , colorByDam = TRUE
@@ -68,7 +90,47 @@ figDams_meanExits <- damBehavior_byDam %>%
     , axis.title.x = element_blank()
   )
 
+figDams_meanExits_random <- damBehavior_byDam %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "mean # of exits / hr"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , randomColor = TRUE
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymax = 60
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = TRUE
+  ) +
+  theme(
+    axis.text.x = element_text()
+    , axis.title.x = element_blank()
+  )
+
 figDams_offNest <- damBehavior_byPND %>%
+  plotDamBehavior(
+    yVar = Perc_off_nest
+    , yLab = "mean % off nest"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = 1
+    , zoom_y = TRUE
+    , ymax = 100
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = TRUE
+    , lineAlpha = 0.2
+    , dotAlpha = 0.5
+  ) +
+  theme(
+    strip.text.x.top = element_text(margin = margin(b=-10))
+  )
+
+figDams_offNest_random <- damBehavior_byPND %>%
   plotDamBehavior(
     yVar = Perc_off_nest
     , yLab = "mean % off nest"
@@ -129,6 +191,26 @@ figDams_meanOffNest <- damBehavior_byDam %>%
     , axis.title.x = element_blank()
   )
 
+figDams_meanOffNest_random <- damBehavior_byDam %>%
+  plotDamBehavior(
+    yVar = Perc_off_nest
+    , yLab = "mean % off exits"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , randomColor = TRUE
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymax = 100
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = TRUE
+  ) +
+  theme(
+    axis.text.x = element_text()
+    , axis.title.x = element_blank()
+  )
+
 
 # Dam corticosterone ------------------------------------------------------
 
@@ -148,11 +230,11 @@ figDamsD <- damFiltered %>%
   addMeanHorizontalBar(
     width = .95
     , size = 0.6
-    , meanColor = "#FF0099"
+    , meanColor = "black"
   ) +
   addMeanSE_vertBar(
     size = 0.6
-    , barColor = "#FF0099"
+    , barColor = "black"
   )
 
 # Dam Mass ------------------------------------------------------
@@ -208,7 +290,7 @@ figDams_mass <- damFiltered %>%
 
 # Offspring mass ----------------------------------------------------------
 
-figOffA <- massFiltered %>%
+figOffA_indiv <- massFiltered %>%
   plot_mass_lines(
     groupByDam = TRUE,
     facetBySex = TRUE,
@@ -223,10 +305,48 @@ figOffA <- massFiltered %>%
     zoom_x = TRUE, # Zoom to part of x axis
     xmin = 0,
     xmax = 72,
-    zoom_y = FALSE, # Zoom to part of y axis
+    zoom_y = TRUE, # Zoom to part of y axis
     ymin = 0,
-    ymax = 35,
-    indivLineAlpha = .2,
+    ymax = 32,
+    indivLineAlpha = 0.9,
+    indivLineSize = 0.2,
+    errorBarWidth = 0,
+    meanLineSize = 0.5,
+    meanAlpha = 1,
+    errorBarSize = .5,
+    # errorBarColor = "grey10",
+    errorBarAlpha = 1,
+    textSize = textSize,
+    axisSize = 0.5,
+    legendPosition = "none",
+    STDColor = "grey80",
+    LBNColor = "#66CCCC"
+  ) +
+  theme(
+    legend.key = element_rect(fill = NA)
+    , strip.text = element_blank()
+    , axis.title.x = element_blank()
+  )
+
+figOffA_group <- massFiltered %>%
+  plot_mass_lines(
+    groupByDam = TRUE,
+    facetBySex = TRUE,
+    useLineType = FALSE,
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = damID,
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mean mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = FALSE, # plot individual lines
+    meanLines = FALSE, # plot mean lines with SE #2023-11-22 to add model error
+    zoom_x = TRUE, # Zoom to part of x axis
+    xmin = 0,
+    xmax = 72,
+    zoom_y = TRUE, # Zoom to part of y axis
+    ymin = 0,
+    ymax = 30,
+    indivLineAlpha = 1,
     indivLineSize = 0.2,
     errorBarWidth = 0,
     meanLineSize = 0.5,
@@ -237,9 +357,9 @@ figOffA <- massFiltered %>%
     textSize = textSize,
     axisSize = 0.5,
     # legendPosition = "bottom",
-    legendPosition = c(0.85, 0.2),
-    STDColor = "#4D4D4D",
-    LBNColor = "#008B8B"
+    legendPosition = c(0.1, 0.6),
+    STDColor = "grey20",
+    LBNColor = "darkcyan"
   ) +
   theme(
     legend.key = element_rect(fill = NA)
@@ -252,7 +372,7 @@ figOffA <- massFiltered %>%
     , ribbonAlpha = 0.7
   ) +
   scale_fill_manual(
-    values = c("STD" = "grey30", "LBN" = "#008B8B")
+    values = c("STD" = "grey70", "LBN" = "cyan3") # might need to be different
     , "early-life trt"
   )
 
@@ -372,7 +492,7 @@ figCyclesA <-  cyclesFiltered %>%
   addCycleStartCol() %>%
   addPNDForCyles() %>%
   plotCycleTraces(
-    colorValues = c("grey30", "cyan4")
+    colorValues = c("grey30", "cyan3")
     , fontSize = textSize
     , removeFacets = TRUE
     , ncol = 4
@@ -398,6 +518,7 @@ figCycles_numCycles_model <- cyclesFiltered %>%
     , dotSize = dotSize
     , addMean = FALSE
     , addSEM = FALSE
+    , forManuscript = FALSE
   ) + 
   plotError_LMM(
     numCycles_lmm_error
@@ -439,8 +560,8 @@ figCyclesD <- cyclesPercLong %>%
     , dotSize = dotSize
     , strip.position = "top"
     , ylabel = "mean % days in stage"
-    , meanColor = "#FF0099"
-    , barColor = "#FF0099"
+    , meanColor = "black"
+    , barColor = "black"
     ,
   ) +
   coord_cartesian(ylim = c(0, 80), clip = "off") +
@@ -563,15 +684,23 @@ figCortA_adult <- cortFilteredMales %>%
     male_cort_lmm_error %>%
       mutate(
         time = ifelse(
-          time == 0
-          , time - 2
-          , time + 2
+          (time == 0 & earlyLifeTrt == "STD")
+          , time - 2.0
+          , ifelse(
+            (time == 0 & earlyLifeTrt == "LBN")
+            , time - 1.5
+            , ifelse(
+              (time == 5 & earlyLifeTrt == "STD")
+              , time + 1.4
+              , time + 1.9
+            )
         )
       )
+    )
     , xVar = time
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 1
+    , meanBarWidth = 0.7
     , color = comboTrt
   ) +
   labs(title = "males")
@@ -586,15 +715,23 @@ figCortB_adult <- cortFilteredDi %>%
       ) %>%
       mutate(
         time = ifelse(
-          time == 0
-          , time - 2
-          , time + 2
+          (time == 0 & earlyLifeTrt == "STD")
+          , time - 2.0
+          , ifelse(
+            (time == 0 & earlyLifeTrt == "LBN")
+            , time - 1.5
+            , ifelse(
+              (time == 5 & earlyLifeTrt == "STD")
+              , time + 1.4
+              , time + 1.9
+            )
+          )
         )
       )
     , xVar = time
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 1
+    , meanBarWidth = .7
     , color = comboTrt
   ) +
   labs(title = "diestrous females")
@@ -609,18 +746,57 @@ figCortC_adult <- cortFilteredPro %>%
       ) %>%
       mutate(
         time = ifelse(
-          time == 0
-          , time - 2
-          , time + 2
+          (time == 0 & earlyLifeTrt == "STD")
+          , time - 2.0
+          , ifelse(
+            (time == 0 & earlyLifeTrt == "LBN")
+            , time - 1.5
+            , ifelse(
+              (time == 5 & earlyLifeTrt == "STD")
+              , time + 1.4
+              , time + 1.9
+            )
+          )
         )
       )
     , xVar = time
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
-    , meanBarWidth = 1
+    , meanBarWidth = .7
     , color = comboTrt
   ) +
   labs(title = "proestrous females")
+
+figCort_females_adult <- cortFilteredFemales %>%
+  plotCort_adultSep() +
+  cortScale +
+  facet_wrap(
+    ~ Sac_cycle + adultTrt
+    , nrow = 1
+  ) +
+  plotError_LMM_aes(
+    female_cort_lmm_error %>%
+      mutate(
+        time = ifelse(
+          (time == 0 & earlyLifeTrt == "STD")
+          , time - 2.0
+          , ifelse(
+            (time == 0 & earlyLifeTrt == "LBN")
+            , time - 1.5
+            , ifelse(
+              (time == 5 & earlyLifeTrt == "STD")
+              , time + 1.4
+              , time + 1.9
+            )
+          )
+        )
+      )
+    , xVar = time
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = .7
+    , color = comboTrt
+  )
 
 ## cort administration cort ------
 cortAdmin_cort <- maleCortAdmin_cort_filtered %>%
@@ -641,7 +817,7 @@ cortAdmin_cort <- maleCortAdmin_cort_filtered %>%
     , xBreaks = c(0, 1, 2, 3, 4, 5)
     # , xLabels = c("0h", "1h", "2h", "3h", "4h", "5h")
     , xLabels = c(0, 1, 2, 3, 4, 5)
-    , pointAlpha = 0.7
+    , pointAlpha = 1
     , yUnitsNewLine = TRUE
   ) +
   # facet_wrap(
@@ -658,7 +834,7 @@ cortAdmin_cort <- maleCortAdmin_cort_filtered %>%
     , legend.title = element_blank()
     , axis.title.x = element_text(margin = margin(t = -1))
   )  +
-  dosageFillShape(fillAlpha = 0.7)+
+  dosageFillShape(fillAlpha = 1)+
   plotError_LMM(
     maleCortAdmin_cort_lmm_error %>%
       mutate(
@@ -693,32 +869,39 @@ figLH_diAfternoon <- acuteStressFilteredDi %>%
     , useSpecYLab = TRUE
     , thisYLab = "avg. evening LH (ng/mL)"
   )(
-    zoom_y = TRUE
+    zoom_y = FALSE
     , ymin = 0
     , ymax = 40
   ) +
   plotError_LMM(
     LH_diAfternoon_lmm_errors
     , xVar = comboTrt
-  )
+  ) +
+  labs(title = "diestrus")
 
 ### Pro - ephys -----------
 
 figLH_ephysMax <- acuteStressFilteredPro_ephys %>%
-  scatterPlotComboTrt_surgeAmp(
-    yVar = maxLH
-    , yLab = "max evening LH (ng/mL)"
-    , dotSize = dotSize
+  plotCatVarFunc(
+    expr(maxLH)
+    , thisYLab = "max evening LH (ng/mL)"
     , fontSize = textSize
-    , addMeanSE = FALSE
-    , surgeMin = surgeMin
-    , surgeLineColor = "grey"
+    , dotSize = dotSize
     , twoLineXLabs = TRUE
+    , useFacetLabels = FALSE
+    , addMeanSE = FALSE
+    , useSpecYLab = TRUE
+  )(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 40
   ) +
-  plotError_LMM(
-    LH_proEphys_lmm_errors
-    , xVar = comboTrt
-  )
+  geom_hline(yintercept = surgeMin, color = "grey") +
+  addMedianHorizontalBar(width = 0.9, size = 0.6, color = "black")+
+  stat_summary(fun.min = function(z) { quantile(z,0.25) },
+               fun.max = function(z) { quantile(z,0.75) }
+               , geom = "linerange") +
+  labs(title = "limited sampling")
 
 ### Pro - ephys - surged ---------------
 
@@ -727,7 +910,8 @@ figLH_ephysSurged <- acuteStressFilteredPro_ephys %>%
   propSurgedPlotCombo_forSBN(
     fontSize = textSize
     , labelSize = 5
-  )
+  ) +
+  labs(title = "limited sampling")
 
 ### Pro - sampling - over time -----------
 
@@ -847,20 +1031,26 @@ figLH_samplingTime_LBNALPS <- LHSamplingDF_color %>%
 ### Pro - sampling max -----------
 
 figLH_samplingMax <- acuteStressFilteredPro_sampling %>%
-  scatterPlotComboTrt_surgeAmp(
-    yVar = maxLH
-    , yLab = "max evening LH (ng/mL)"
-    , dotSize = dotSize
+  plotCatVarFunc(
+    expr(maxLH)
+    , thisYLab = "max evening LH (ng/mL)"
     , fontSize = textSize
-    , addMeanSE = FALSE
-    , surgeMin = surgeMin
-    , surgeLineColor = "grey"
+    , dotSize = dotSize
     , twoLineXLabs = TRUE
+    , useFacetLabels = FALSE
+    , addMeanSE = FALSE
+    , useSpecYLab = TRUE
+  )(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 40
   ) +
-  plotError_LMM(
-    LH_proSampling_lmm_errors
-    , xVar = comboTrt
-  )
+  geom_hline(yintercept = surgeMin, color = "grey")+
+  addMedianHorizontalBar(width = 0.9, size = 0.6, color = "black")+
+  stat_summary(fun.min = function(z) { quantile(z,0.25) },
+               fun.max = function(z) { quantile(z,0.75) }
+               , geom = "linerange") +
+  labs(title = "extended sampling")
 
 
 ### Pro - sampling - surged ---------------
@@ -874,7 +1064,8 @@ figLH_samplingSurged <- acuteStressFilteredPro_sampling %>%
   propSurgedPlotCombo_forSBN(
     fontSize = textSize
     , labelSize = 5
-  )
+  ) +
+  labs(title = "extended sampling")
 
 
 
@@ -982,6 +1173,19 @@ plotGABAfwhm_noMean <- plotCatVarFunc(
   # , jitterWidth = 0.2
 )
 
+plotGABAinterval_noMean <- plotCatVarFunc(
+  expr(interval)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , tiltedXLabs = FALSE
+  , useFacetLabels = FALSE
+  , addMeanSE = FALSE
+  , useSpecYLab = TRUE
+  , thisYLab = "interval (s)"
+  # , jitterWidth = 0.2
+)
+
 figGABAa_model <- GABApscs_240FilteredFiring %>%
   plotCapacitance_noMean(
     zoom_y = TRUE
@@ -1027,7 +1231,7 @@ figGABAd_model <- GABApscs_240FilteredFiring %>%
     breaks = c(-100, -75, -50, -25, 0, 25)
   )
 
-figGABAe_model <- GABApscs_240FilteredFiring %>%
+figGABAe_model <- GABApscs_240Filtered %>% #changed 2024-03-11 from filtered firing
   plotGABAfreq_noMean(
     zoom_y = TRUE
     , ymin = 0
@@ -1036,6 +1240,14 @@ figGABAe_model <- GABApscs_240FilteredFiring %>%
   plotError_LMM(
     numEvents_nb.GLMM_errors
     , xVar = comboTrt
+  )
+
+figGABA_int_model <- GABApscs_240FilteredFiring %>%
+  plotGABAinterval_noMean(
+    
+  ) +
+  plotError_LMM(
+    
   )
 
 figGABA2a_model <- GABApscs_240FilteredFiring %>%

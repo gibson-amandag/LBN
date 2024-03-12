@@ -87,8 +87,8 @@ scatterPlotLBN <- function(
   df,
   yVar,
   yLab,
-  STDColor = "white",
-  LBNColor = "cyan4",
+  STDColor = if(forManuscript){"#CCCCCC"}else{"white"},
+  LBNColor = "cyan3",
   textSize = 12,
   zoom_x = FALSE, # Zoom to part of x axis
   xmin = NULL,
@@ -97,7 +97,7 @@ scatterPlotLBN <- function(
   ymin = NULL,
   ymax = NULL,
   dotSize = 1.5,
-  fillAlpha = 0.7, # changed 2023-06-18 from 1
+  fillAlpha = 1, 
   jitterWidth = 0.42,
   jitterHeight = 0,
   title = NULL,
@@ -106,23 +106,39 @@ scatterPlotLBN <- function(
   , meanColor = "black"
   , barColor = "black"
   , boldX = TRUE
+  , forManuscript = isManuscript
 ){
-  viz <- df %>%
-    ggplot(
-      aes(
-        x = earlyLifeTrt,
-        y = {{ yVar }},
-        fill = earlyLifeTrt
-      )
-    ) +
+  if(forManuscript){
+    viz <- df %>%
+      ggplot(
+        aes(
+          x = earlyLifeTrt,
+          y = {{ yVar }}
+          , color = earlyLifeTrt
+        )
+      ) +
+      earlyLifeColor(STDColor = STDColor, LBNColor = LBNColor, colorAlpha = fillAlpha, forManuscript = forManuscript)
+  } else {
+    viz <- df %>%
+      ggplot(
+        aes(
+          x = earlyLifeTrt,
+          y = {{ yVar }},
+          fill = earlyLifeTrt
+        )
+      ) +
+      earlyLifeFill(STDColor = STDColor, LBNColor = LBNColor, fillAlpha = fillAlpha, forManuscript = forManuscript)
+  }
+  
+  viz <- viz +
     jitterGeom(
       size = dotSize,
       alpha = fillAlpha,
       width = jitterWidth,
       height = jitterHeight
+      , forManuscript = forManuscript
     )+
     labs(y = yLab, title = title)+
-    earlyLifeFill(STDColor = STDColor, LBNColor = LBNColor, fillAlpha = fillAlpha) +
     # theme_pubr(margin = FALSE)+
     theme_pubr()+
     expand_limits(y=0)+
@@ -171,19 +187,36 @@ scatterPlotTwoVars_byLBN <- function(
   STDColor = "white",
   LBNColor = "cyan4",
   xIsDate = FALSE
+  , forManuscript = isManuscript
 ){
-  viz <- df %>%
-    ggplot(
-      aes(
-        x = {{ xVar }},
-        y = {{ yVar }},
-        fill = earlyLifeTrt
-      )
-    ) +
+  if(forManuscript){
+    viz <- df %>%
+      ggplot(
+        aes(
+          x = earlyLifeTrt,
+          y = {{ yVar }}
+          , color = earlyLifeTrt
+        )
+      ) +
+      earlyLifeColor(STDColor = STDColor, LBNColor = LBNColor, colorAlpha = fillAlpha, forManuscript = forManuscript)
+  } else {
+    viz <- df %>%
+      ggplot(
+        aes(
+          x = earlyLifeTrt,
+          y = {{ yVar }},
+          fill = earlyLifeTrt
+        )
+      ) +
+      earlyLifeFill(STDColor = STDColor, LBNColor = LBNColor, fillAlpha = fillAlpha, forManuscript = forManuscript)
+  }
+  
+  viz <- viz +
     jitterGeom(
       size = dotSize,
       width = jitterWidth,
       height = jitterHeight
+      , forManuscript = forManuscript
     ) +
     labs(y = yLab, x = xLab)
   
@@ -219,17 +252,32 @@ scatterPlotTwoVars_byComboTrt <- function(
   ymin = NULL,
   ymax = NULL
   , xIsDate = FALSE
+  , forManuscript = isManuscript
 ){
-  viz <- df %>%
-    ggplot(
-      aes(
-        x = {{ xVar }},
-        y = {{ yVar }},
-        fill = comboTrt,
-        shape = comboTrt
+  if(forManuscript){
+    viz <- df %>%
+      ggplot(
+        aes(
+          x = {{ xVar }},
+          y = {{ yVar }}
+          , color = comboTrt
+          , shape = comboTrt
+        )
       )
-    ) +
-    jitterGeom(size = dotSize, width = 0) +
+  } else {
+    viz <- df %>%
+      ggplot(
+        aes(
+          x = {{ xVar }},
+          y = {{ yVar }}
+          , fill = comboTrt
+          , shape = comboTrt
+        )
+      )
+  }
+  
+  viz <- viz +
+    jitterGeom(size = dotSize, width = 0, forManuscript = forManuscript) +
     labs(y = yLab, x = xLab)
   
   if(xIsDate){
@@ -240,7 +288,7 @@ scatterPlotTwoVars_byComboTrt <- function(
   
   viz <- viz +
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
-    comboTrtFillShape()+
+    comboTrtFillShape(forManuscript = forManuscript)+
     theme_pubr()+
     textTheme(size = fontSize)+
     boxTheme()
@@ -259,27 +307,44 @@ scatterPlotComboTrt <- function(
   ymin = NULL,
   ymax = NULL
   , jitterWidth = 0.42
-  , alpha = 0.7 # changed 2023-06-18 from 1
+  , alpha = 1
+  , forManuscript = isManuscript
 ){
-  viz <- df %>%
+  df <- df %>%
     filter(
       !is.na({{ yVar }})
-    ) %>%
-    ggplot(
-      aes(
-        x = comboTrt,
-        y = {{ yVar }},
-        fill = comboTrt,
-        shape = comboTrt
+    )
+  
+  if(forManuscript){
+    viz <- df %>%
+      ggplot(
+        aes(
+          x = {{ xVar }}
+          , y = {{ yVar }}
+          , shape = comboTrt
+          , color = comboTrt
+        )
+      ) 
+  } else {
+    viz <- df %>%
+      ggplot(
+        aes(
+          x = {{ xVar }}
+          , y = {{ yVar }}
+          , fill = comboTrt
+          , shape = comboTrt
+        )
       )
-    ) +
+  }
+  
+  viz <- viz +
     jitterGeom_shapeAes(
       size = dotSize
       , width = jitterWidth
       , alpha = alpha
     ) +
     labs(y = yLab)+
-    comboTrtFillShape(fillAlpha = alpha) +
+    comboTrtFillShape(fillAlpha = alpha, forManuscript = forManuscript) +
     theme_pubr()+
     expand_limits(y=0)+
     coord_cartesian(if(FALSE){xlim = c(NULL, NULL)}, if(zoom_y){ylim = c(ymin, ymax)}) +
@@ -295,9 +360,9 @@ scatterPlotComboTrt <- function(
     viz <- viz +
       addMeanHorizontalBar(width = .95
                            , size = 0.6
-                           , meanColor = "#FF0099") +
+                           , meanColor = "black") +
       addMeanSE_vertBar(size = 0.6
-                        , barColor = "#FF0099")
+                        , barColor = "black")
   }
   
   return(viz)
@@ -384,8 +449,8 @@ addRandomColors <- function(df, colorVar, subjectVar, colorByGroups = FALSE, pkg
   subjectVarStr <- deparse(substitute(subjectVar))
   ellipsisVars <- substitute(alist(...))
   ellipsisStrs <- sapply(ellipsisVars[-1], as.character)
-  print(subjectVarStr)
-  print(ellipsisStrs)
+  # print(subjectVarStr)
+  # print(ellipsisStrs)
   # add the calculated colors back to the original data
   df <- df %>%
     left_join(
@@ -393,7 +458,7 @@ addRandomColors <- function(df, colorVar, subjectVar, colorByGroups = FALSE, pkg
       , by = c( subjectVarStr, ellipsisStrs)
     )
   
-  return(ranked_df)
+  return(df)
 }
 
 addOrderedColors <- function(df, orderVar, subjectVar, colorByGroups = FALSE, pkg = "rainbow", byMax = FALSE, revOrder = TRUE, ...) {

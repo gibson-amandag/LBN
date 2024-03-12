@@ -466,19 +466,22 @@ cyclesPercLong <- cyclesFiltered %>%
 acuteStressFiltered <- AcuteStress_off %>%
   filterLBNCohorts() %>%
   mutate(
-    Sac_cycle = factor(Sac_cycle, levels = c("proestrus", "diestrus"))
+    Sac_cycle = factor(Sac_cycle, levels = c("diestrus", "proestrus"))
+    # Sac_cycle = factor(Sac_cycle, levels = c("proestrus", "diestrus"))
   )
 
 cortFiltered <- Cort_off %>%
   filterLBNCohorts() %>%
   mutate(
-    Sac_cycle = factor(Sac_cycle, levels =c("proestrus", "diestrus"))
+    Sac_cycle = factor(Sac_cycle, levels = c("diestrus", "proestrus"))
+    # Sac_cycle = factor(Sac_cycle, levels =c("proestrus", "diestrus"))
   )
 
 LHFiltered <- LH_off %>%
   filterLBNCohorts() %>%
   mutate(
-    Sac_cycle = factor(Sac_cycle, levels = c("proestrus", "diestrus"))
+    Sac_cycle = factor(Sac_cycle, levels = c("diestrus", "proestrus"))
+    # Sac_cycle = factor(Sac_cycle, levels = c("proestrus", "diestrus"))
   )
 
 # Filter acute stress -----------------------------------------------------
@@ -566,10 +569,11 @@ acuteStressFiltered_M_DiPro <- acuteStressFiltered %>%
     hormoneStatus = ifelse(
       sex == "M"
       , "male"
-      , Sac_cycle
+      , as.character(Sac_cycle)
     )
   ) %>% mutate(
-    hormoneStatus = factor(hormoneStatus, c("male","proestrus", "diestrus"))
+    hormoneStatus = factor(hormoneStatus, c("male","diestrus", "proestrus"))
+    # hormoneStatus = factor(hormoneStatus, c("male","proestrus", "diestrus"))
   )
 
 acuteStressFilteredMales <- acuteStressFiltered %>%
@@ -684,7 +688,8 @@ cortFiltered_M_DiPro <- cortFiltered %>%
     )
   ) %>%
   mutate(
-    hormoneStatus = factor(hormoneStatus, c("male","proestrus", "diestrus"))
+    hormoneStatus = factor(hormoneStatus, c("male","diestrus", "proestrus"))
+    # hormoneStatus = factor(hormoneStatus, c("male","proestrus", "diestrus"))
   )
 
 cortFilteredMales <- cortFiltered %>%

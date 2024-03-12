@@ -55,6 +55,7 @@ plotDamBehavior <- function(
     , addTriangleForMean = FALSE
     , redMean = FALSE
     , colorByDam = FALSE
+    , randomColor = FALSE
     , showDots = TRUE
     , addVertError = TRUE
     , facetByTrt = TRUE
@@ -83,16 +84,28 @@ plotDamBehavior <- function(
     )
   
   if(colorByDam){
-    df <- df %>%
-      addOrderedColors(
-        orderVar = !! enquo(yVar)
-        , subjectVar = damID
-        , colorByGroups = FALSE
-        , pkg = "rainbow"
-        , byMax = FALSE
-        , revOrder = TRUE
-        , earlyLifeTrt
-      )
+    if(randomColor){
+      df <- df %>%
+        addRandomColors(
+          colorVar = !! enquo(yVar)
+          , subjectVar = damID
+          , colorByGroups = TRUE
+          , pkg = "rainbow"
+          , seedVal = 123
+          , earlyLifeTrt
+        )
+    } else {
+      df <- df %>%
+        addOrderedColors(
+          orderVar = !! enquo(yVar)
+          , subjectVar = damID
+          , colorByGroups = FALSE
+          , pkg = "rainbow"
+          , byMax = FALSE
+          , revOrder = TRUE
+          , earlyLifeTrt
+        )
+    }
   }
   
   if(subset){
@@ -199,7 +212,7 @@ plotDamBehavior <- function(
       )
       if(showDots){
         viz <- viz + geom_point(
-          shape = 21,
+          shape = 16,
           alpha = dotAlpha, 
           stroke = 0,
           aes(
@@ -275,7 +288,7 @@ plotDamBehavior <- function(
   } else {
     # if don't have a time-based x-asis, always show dots
     viz <- viz + geom_point(
-      shape = 21,
+      shape = 16,
       alpha = dotAlpha, 
       aes(
         group=damID
@@ -419,7 +432,7 @@ behavior_overTime <- function(
     )
   } else {
     viz <- viz + geom_point(
-      shape = 21,
+      shape = 16,
       alpha = 1, 
       aes(fill=earlyLifeTrt,group=damID), 
       position = position_dodge(0.4), 

@@ -714,8 +714,8 @@ manuscriptCortPlotFunc <- function(
     , stripPosition = "bottom"
     , plotMean = TRUE
     , plotSE = TRUE
-    , pointAlpha = .9
-    , lineAlpha = 0.4
+    , pointAlpha = 1
+    , lineAlpha = .65
     , clipVal = "off"
     , facetByAdultOnly = FALSE
 ){
@@ -1035,6 +1035,7 @@ plotCatVarFunc <- function(
     , alpha = 0.7
     , addMeanSE = TRUE
     , jitterWidth = 0.42
+    , forManuscript = isManuscript
 ){
   yVar <- as.character(singleVar)
   if(!useSpecYLab){
@@ -1064,6 +1065,7 @@ plotCatVarFunc <- function(
         , alpha = alpha
         , addMeanSE = addMeanSE
         , jitterWidth = jitterWidth
+        , forManuscript = forManuscript
       )
     
     if(twoLineXLabs){

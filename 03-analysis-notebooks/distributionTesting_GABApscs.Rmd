@@ -5149,7 +5149,375 @@ install.packages("Mediana")
 library(Mediana)
 ```
 
-```{r}
 
+```{r}
+fixSmallRise_boot <- pscProps %>%
+  mutate(
+    riseTime = ifelse(
+      riseTime < 1/10000*1000
+      , NA
+      , riseTime
+    )
+  ) %>%
+  analyzeBootstrapResults(nBootstrap = 20, maxPerCell = NULL)
+
+fixSmallRise_AD <- pscProps %>%
+  mutate(
+    riseTime = ifelse(
+      riseTime < 1/10000*1000
+      , NA
+      , riseTime
+    )
+  ) %>%
+  runFourWayAD_allProps()
 ```
+
+```{r}
+fixSmallRise_boot$cumulativeFreqPlots$riseTime
+fixSmallRise_boot$plots$riseTime
+fixSmallRise_AD$riseTime$plots$plotByCell_log
+```
+
+
+```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("genericPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+# layout_properties(ppt, layout="Title Slide")
+
+subText <- "PSC properties"
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "AGG_LBN_riseTime2"
+  , addDate = TRUE
+)
+```
+
+```{r}
+allEventsRes$riseTime$plots$cumulativeFreqPlot +
+  geom_vline(xintercept = 0.1, color = "red")
+slideTitle <- "Rise time with shortest included"
+ppt <- pptAddOneGraph()
+allEventsRes$riseTime$plots$plotByCell_log +
+  geom_hline(yintercept = 0.1, color = "red")
+ppt <- pptAddOneGraph()
+allEventsRes$riseTime$plots$plotsQuartiles_log +
+  geom_hline(yintercept = 0.1, color = "red")
+ppt <- pptAddOneGraph()
+
+fixSmallRise_AD$riseTime$plots$cumulativeFreqPlot +
+  geom_vline(xintercept = 0.1, color = "red")
+slideTitle <- "Rise times less than 0.1 ms (sampling interval) set to NA for failure to calculate"
+ppt <- pptAddOneGraph()
+fixSmallRise_AD$riseTime$plots$plotByCell_log +
+  geom_hline(yintercept = 0.1, color = "red")
+ppt <- pptAddOneGraph()
+fixSmallRise_AD$riseTime$plots$plotsQuartiles_log +
+  geom_hline(yintercept = 0.1, color = "red")
+ppt <- pptAddOneGraph()
+```
+```{r}
+fixSmallRise_AD$riseTime$plots$plotsQuartiles_log +
+  scale_y_log10(
+    breaks = c(0.1, 0.15, 0.18, 0.2, 0.2)
+  )
+```
+
+```{r}
+pscProps %>%
+  filter(
+    riseTime < 0.1
+  ) %>%
+  summarize(
+    n = n()
+    , meanAmp = mean(amplitude, na.rm = TRUE)
+  )
+
+pscProps %>%
+  filter(
+    riseTime > 0.1
+  ) %>%
+  summarize(
+    n = n()
+    , meanAmp = mean(amplitude, na.rm = TRUE)
+  )
+```
+
+```{r}
+allEventsRes$riseTime$plots$densityPlot_log
+slide <- "Rise time with shortest included"
+ppt <- pptAddOneGraph()
+
+fixSmallRise_AD$riseTime$plots$densityPlot_log
+slide <- "Rise times less than 0.1 ms (sampling interval) set to NA for failure to calculate"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+pscProps %>%
+  summarize(
+    n = n()
+    , nLess0.1 = sum(riseTime < 0.1)
+    , percLess0.1 = nLess0.1/n * 100
+   ,  nLess0.3 = sum(riseTime < 0.3)
+    , percLess0.3 = nLess0.3/n * 100
+  )
+```
+
+
+```{r}
+pscProps %>%
+  filter(
+    riseTime < 0.3 
+  )
+```
+
+
+```{r}
+pscProps %>%
+  filter(
+    amplitude < 10
+  ) %>%
+  summarize(
+    meanRise = mean(riseTime, na.rm = TRUE)
+  )
+```
+
+
+```{r}
+smallPSCs <- pscRiseTime %>%
+  group_by(cellID) %>%
+  mutate(
+    eventNum = row_number() - 1
+    , .after = cellID
+  ) %>%
+  filter(
+    riseTime < 0.3
+  )
+
+saveDFsToExcel(
+  "smallPSCs"
+  , "smallPSCs" = smallPSCs
+)
+```
+```{r}
+excludeLess10 <- pscProps %>%
+  mutate(
+    riseTime = ifelse(
+      amplitude < 10
+      , NA
+      , riseTime
+    )
+    , decay9010 = ifelse(
+      amplitude < 10
+      , NA
+      , decay9010
+    )
+    , fwhm = ifelse(
+      amplitude < 10
+      , NA
+      , fwhm
+    )
+  )
+
+excludeLess10 %>%
+  summarize(
+    nEvents = n()
+    , nLess10pA = sum(amplitude < 10)
+    , percLess10pA = nLess10pA / nEvents * 100
+  )
+```
+
+```{r}
+pscProps %>%
+  filter(
+    riseTime < 0.3
+  ) %>%
+  quartilesSummary(
+    amplitude
+  )
+
+pscProps %>%
+  filter(
+    riseTime < 0.3
+  ) %>%
+  plotCumulativeFreqDist(xVar = amplitude
+                         , xLab = "amplitude (pA) for events with rise time <0.3ms")
+```
+
+```{r}
+pscProps %>%
+  filter(
+    riseTime < 0.21
+  ) %>%
+  quartilesSummary(
+    amplitude
+  )
+
+pscProps %>%
+  filter(
+    riseTime < 0.21
+  ) %>%
+  plotCumulativeFreqDist(xVar = amplitude
+                         , xLab = "amplitude (pA) for events with rise time <0.3ms")
+```
+
+```{r}
+excludeSmall_AD <- runFourWayAD_allProps(excludeLess10)
+
+allEventsRes$riseTime$plots$plotsQuartiles_log +
+  scale_y_log10(breaks = c(0.01, 0.1, 0.2, 0.3, 0.5, 0.75, 1), limits = c(0.1, 0.6)) +
+  geom_hline(yintercept = 0.21)
+```
+
+
+
+```{r}
+bootstrapRes_maxPerCellNone_excludeSmall <- excludeLess10 %>%
+  analyzeBootstrapResults(
+    nBootstrap = 50
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+  )
+```
+
+```{r fig.height=11, fig.width=8}
+
+bootstrapRes_maxPerCellNone_excludeSmall$distPlots
+```
+```{r}
+pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  mutate(
+    eventNum = row_number() - 1
+    , .after = cellID
+  ) %>%
+  filter(
+    riseTime < 0.21
+    , amplitude > 25
+  ) %>%
+  relocate(
+    riseTime
+    , .after = amplitude
+  )
+```
+
+
+```{r}
+bootstrapRes_maxPerCellNone_excludeSmall <- excludeLess10 %>%
+  analyzeBootstrapResults(
+    nBootstrap = 50
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+  )
+```
+
+```{r}
+excludeLess14.5 <- pscProps %>%
+  mutate(
+    riseTime = ifelse(
+      amplitude < 14.5
+      , NA
+      , riseTime
+    )
+    , decay9010 = ifelse(
+      amplitude < 14.5
+      , NA
+      , decay9010
+    )
+    , fwhm = ifelse(
+      amplitude < 14.5
+      , NA
+      , fwhm
+    )
+  )
+
+excludeLess14.5 %>%
+  summarize(
+    nEvents = n()
+    , nLess14.5pA = sum(amplitude < 14.5)
+    , percLess14.5pA = nLess14.5pA / nEvents * 100
+  )
+```
+
+```{r}
+pscProps %>%
+  mutate(
+    ampLess14.5pA = ifelse(amplitude < 14.5, TRUE, FALSE)
+  ) %>%
+  group_by(
+    ampLess14.5pA
+  ) %>%
+  quartilesSummary(riseTime)
+
+
+
+pscProps %>%
+  mutate(
+    ampLess14.5pA = ifelse(amplitude < 14.5, TRUE, FALSE)
+  ) %>%
+  group_by(
+    ampLess14.5pA
+  ) %>% 
+  calcCumFreq(riseTime) %>%
+    ggplot(
+      aes(
+        x = riseTime
+        , y = cumFreq
+        , group = ampLess14.5pA
+        , color = ampLess14.5pA
+      )
+    ) +
+    geom_line() +
+    boxTheme() +
+    textTheme(size = textSize) +
+  labs(y = "cumulative frequency (%)", x = "rise time (ms)") +
+  coord_cartesian(xlim = c(0, 2.2)) +
+  geom_line(
+    data = pscProps %>%
+      calcCumFreq(riseTime)
+    , aes(
+      x = riseTime
+      , y = cumFreq
+    )
+    , inherit.aes = FALSE
+  )
+  
+pscProps %>%
+  mutate(
+    ampLess14.5pA = ifelse(amplitude < 14.5, TRUE, FALSE)
+  ) %>%
+  calcCumFreq(riseTime) %>%
+    ggplot(
+      aes(
+        x = riseTime
+        , y = cumFreq
+        # , group = ampLess14.5pA
+        # , color = ampLess14.5pA
+      )
+    ) +
+    geom_line() +
+    boxTheme() +
+    textTheme(size = textSize) +
+  labs(y = "cumulative frequency (%)", x = "rise time (ms)") +
+  coord_cartesian(xlim = c(0, 2.2))
+  
+```
+
 

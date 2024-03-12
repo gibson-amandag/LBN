@@ -234,8 +234,9 @@ dosage_scatterAndLMM <- function(
     , useSpecYLab = TRUE
     , addLegend = FALSE
     , removeXTicks = FALSE
-    , alpha = 0.7
+    , alpha = 1
     , addMeanSE = FALSE
+    , forManuscript = isManuscript
 ){
   yVar <- as.character(singleVar)
   if(!useSpecYLab){
@@ -249,28 +250,53 @@ dosage_scatterAndLMM <- function(
     , ymin = 0
     , ymax = 20
   ){
-    plot <- df %>%
+    df <- df %>%
       filter(
         !is.na( {{singleVar}} )
         , !is.na(adultTrt)
-      ) %>%
-      scatterPlot_general(
-        xVar = dosage
-        , xLab = "dosage (mg/kg)"
-        , yVar = !! singleVar
-        , yLab = yLabel
-        , dotSize = thisDotSize
-        , textSize = thisFontSize
-        , fillVar = dosage
-        , fillValues = alpha(c("white", "black"), alpha)
-        , zoom_y = zoom_y
-        , ymin = ymin
-        , ymax = ymax
-        , fillAlpha = alpha
-        , addMean = addMeanSE
-        , addSE = addMeanSE
-        , hideXAxisLab = FALSE
       )
+    
+    if(forManuscript){
+      plot <- df %>%
+        scatterPlot_general(
+          xVar = dosage
+          , xLab = "dosage (mg/kg)"
+          , yVar = !! singleVar
+          , yLab = yLabel
+          , dotSize = thisDotSize
+          , textSize = thisFontSize
+          , lineColorVar = dosage
+          , lineColorValues = alpha(c("#CCCCCC", "black"), alpha)
+          , zoom_y = zoom_y
+          , ymin = ymin
+          , ymax = ymax
+          , fillAlpha = alpha
+          , addMean = addMeanSE
+          , addSE = addMeanSE
+          , hideXAxisLab = FALSE
+        )
+      
+    } else {
+      plot <- df %>%
+        scatterPlot_general(
+          xVar = dosage
+          , xLab = "dosage (mg/kg)"
+          , yVar = !! singleVar
+          , yLab = yLabel
+          , dotSize = thisDotSize
+          , textSize = thisFontSize
+          , fillVar = dosage
+          , fillValues = alpha(c("white", "black"), alpha)
+          , zoom_y = zoom_y
+          , ymin = ymin
+          , ymax = ymax
+          , fillAlpha = alpha
+          , addMean = addMeanSE
+          , addSE = addMeanSE
+          , hideXAxisLab = FALSE
+        )
+    }
+      
     
     if(twoLineXLabs){
       plot <- plot +

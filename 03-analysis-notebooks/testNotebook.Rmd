@@ -16159,6 +16159,22 @@ summary(
     , family = "binomial"
     , data = acuteStressFilteredPro_sampling)
 )
+summary(
+  glm(surged ~ earlyLifeTrt * adultTrt
+    , family = "binomial"
+    , data = acuteStressFilteredPro_sampling)
+)
+
+summary(
+  glm(surged ~ adultTrt
+    , family = binomial(link = "logit")
+    , data = acuteStressFilteredPro_sampling)
+)
+summary(
+  glm(surged ~ earlyLifeTrt * adultTrt
+    , family = binomial(link = "logit")
+    , data = acuteStressFilteredPro_sampling)
+)
 ```
 
 ```{r}
@@ -17044,6 +17060,18 @@ mixed(
   , family = binomial(link = "logit")
   , method = "LRT"
 )
+
+mixed(
+  surged ~ earlyLifeTrt * adultTrt + (1|damID)
+  , acuteStressFilteredPro_ephys %>%
+    mutate(
+      surged = ifelse(
+        maxLH >= surgeMin, 1, 0
+      )
+    )
+  , family = binomial(link = "logit")
+  , method = "LRT"
+)
 ```
 
 ```{r}
@@ -17140,6 +17168,367 @@ damBehavior_byPND %>%
     , pkg = "rainbow"
     , seedVal = 123
     , earlyLifeTrt
+  )
+
+damBehavior_byPND %>%
+  addRandomColors(
+    colorVar = Num_exits
+    , subjectVar = damID
+    , colorByGroups = TRUE
+    , pkg = "rainbow"
+    , seedVal = 123
+    , earlyLifeTrt
+  )
+```
+
+
+```{r}
+percChangeBodyMass_hormoneStatus_lmm <- mixed(
+  percChangeBodyMass ~ earlyLifeTrt * adultTrt * hormoneStatus + (1|damID)
+  , data = acuteStressFiltered_M_DiPro
+  , method = "KR"
+)
+
+percChangeBodyMass_hormoneStatus_lmm
+
+contrast(
+ emmeans(
+    percChangeBodyMass_hormoneStatus_lmm
+    , "hormoneStatus"
+ )
+ , "pairwise"
+ , simple = "each"
+ , combine = TRUE
+ , adjust = "holm"
+)
+
+# this isn't actually justified by the full model
+percChangeBodyMass_hormoneStatus_lmm_emm <- emmeans(
+  percChangeBodyMass_hormoneStatus_lmm
+  , "hormoneStatus"
+  , by = "adultTrt"
+)
+
+contrast(
+  percChangeBodyMass_hormoneStatus_lmm_emm
+  , "pairwise"
+  , simple = list("hormoneStatus")
+  , combine = TRUE
+  , adjust = "holm"
+)
+```
+
+```{r}
+percChangeBodyMass_sex_lmm <- mixed(
+  percChangeBodyMass ~ earlyLifeTrt * adultTrt * sex + (1|damID)
+  , data = acuteStressFiltered_M_DiPro
+  , method = "KR"
+)
+
+percChangeBodyMass_sex_lmm
+
+# this isn't actually justified by the full model
+percChangeBodyMass_sex_lmm_emm <- emmeans(
+  percChangeBodyMass_sex_lmm
+  , "sex"
+  , by = "adultTrt"
+)
+
+contrast(
+  percChangeBodyMass_sex_lmm_emm
+  , "pairwise"
+  , simple = list("sex")
+  , combine = TRUE
+  , adjust = "holm"
+)
+```
+
+```{r}
+acuteStress_fakeLimitedLH_proSampling <- LHFilteredPro_sampling %>%
+  filter(
+    time %in% c(5, 5.5)
+  ) %>%
+  getMaxFromRepMeasures_plusOtherVal(
+    col = LH,
+    maxColName = maxLH_ephys,
+    groupingVar = mouseID,
+    valCol = time,
+    valAtMaxColName = timeAtMax_ephys
+  ) %>%
+  right_join(
+    acuteStressFilteredPro_sampling
+    , by = "mouseID"
+  ) 
+
+fakeLimited_max <- acuteStress_fakeLimitedLH_proSampling %>%
+  plotCatVarFunc(
+    expr(maxLH_ephys)
+    , fontSize = textSize
+    , dotSize = 2
+    , twoLineXLabs = TRUE
+    , useFacetLabels = FALSE
+    , useSpecYLab = TRUE
+    , thisYLab = "max LH (ng/mL) fake limited"
+    , addMeanSE = FALSE
+  )() +
+  geom_hline(
+    yintercept = 3,
+    color = "grey"
+  )
+
+fakeLimited_prop <- acuteStress_fakeLimitedLH_proSampling %>%
+  filter(
+    !is.na(maxLH_ephys)
+  ) %>%
+  mutate(
+    surged = maxLH_ephys > surgeMin
+  ) %>%
+  propSurgedPlotCombo_forSBN(
+    fontSize = textSize
+    , labelSize = 5
+  ) +
+  labs(title = "fake limited sampling")
+
+plot_grid(fakeLimited_max, fakeLimited_prop, align = "hv", axis = "tlbr", rel_widths = c(1.5, 1))
+```
+
+```{r}
+isManuscript = FALSE
+timeSampling <- acuteStressFilteredPro_sampling %>%
+  plotCatVarFunc(expr(timeAtMax), fontSize = textSize, dotSize = 2, twoLineXLabs = TRUE, useFacetLabels = FALSE, useSpecYLab = TRUE, thisYLab = "time at max LH (h relative to lights out)", addMeanSE = TRUE)() +
+  scale_y_continuous(limits = c(4.5, 10), breaks = c(5, 5.5, 6.5, 7.5, 8.5, 9.5), labels = c(-2.5, -2, -1, 0, 1, 2)) + labs(title = "extended sampling")
+timeLimited <- acuteStressFilteredPro_ephys %>%
+  plotCatVarFunc(expr(timeAtMax), fontSize = textSize, dotSize = 2, twoLineXLabs = TRUE, useFacetLabels = FALSE, useSpecYLab = TRUE, thisYLab = "time at max LH (h relative to lights out)", addMeanSE = TRUE)() +
+  scale_y_continuous(limits = c(4.5, 10), breaks = c(5, 5.5, 6.5, 7.5, 8.5, 9.5), labels = c(-2.5, -2, -1, 0, 1, 2)) + labs(title = "limited sampling")
+
+plot_grid(
+  timeSampling, timeLimited, nrow = 1
+)
+```
+
+I don't think that this is how you'd actually do this formally
+
+```{r}
+## Rank-based transformation of max LH --------------------
+
+### Ephys limited sampling ----------------
+
+rankedLH_ephys <- acuteStressFilteredPro_ephys %>%
+  filter(
+    !is.na(maxLH)
+  ) %>%
+  mutate(
+    rankedLH = rank(maxLH)
+  )
+
+rankedLH_ephys_lmm <- mixed(
+  rankedLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = rankedLH_ephys
+  , method = "KR"
+)
+
+### Full sampling --------------------
+
+rankedLH_sampling <- acuteStressFilteredPro_sampling %>%
+  filter(
+    !is.na(maxLH)
+  ) %>%
+  mutate(
+    rankedLH = rank(maxLH)
+  )
+
+rankedLH_sampling_lmm <- mixed(
+  rankedLH ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = rankedLH_sampling
+  , method = "KR"
+)
+```
+
+# dabestr - estimation statistics as ref'd/suggested by eNeuro
+
+```{r}
+install.packages("dabestr")
+```
+
+```{r}
+library(dabestr)
+```
+
+
+
+```{r}
+unpaired_delta2 <- load(
+  pscProps
+  , x = adultTrt
+  , y = amplitude
+  , experiment = earlyLifeTrt
+  , colour = adultTrt
+  , delta2 = TRUE
+)
+
+print(unpaired_delta2)
+
+unpaired_delta2.mean_diff <- mean_diff(unpaired_delta2)
+
+print(unpaired_delta2.mean_diff)
+```
+
+```{r}
+set.seed(12345) # Fix the seed so the results are replicable.
+# pop_size = 10000 # Size of each population.
+N <- 20 # The number of samples taken from each population
+
+# Create samples
+placebo <- rnorm(N / 2, mean = 4, sd = 0.4)
+placebo <- c(placebo, rnorm(N / 2, mean = 2.8, sd = 0.4))
+drug <- rnorm(N / 2, mean = 3, sd = 0.4)
+drug <- c(drug, rnorm(N / 2, mean = 2.5, sd = 0.4))
+
+# Add a `Genotype` column as the second variable
+genotype <- c(rep("M", N / 2), rep("W", N / 2))
+
+# Add an `id` column for paired data plotting.
+id <- 1:N
+
+# Add a `Rep` column as the first variable for the 2 replicates of experiments done
+Rep <- rep(c("Rep1", "Rep2"), N / 2)
+
+# Combine all columns into a DataFrame.
+df <- tibble::tibble(
+  Placebo = placebo,
+  Drug = drug,
+  Genotype = genotype,
+  ID = id,
+  Rep = Rep
+)
+
+df <- df %>%
+  tidyr::gather(key = Treatment, value = Measurement, -ID, -Genotype, -Rep)
+```
+
+```{r}
+set.seed(12345) # Fix the seed so the results are replicable.
+# pop_size = 10000 # Size of each population.
+N <- 10 # The number of samples taken from each population
+
+# Create samples
+placebo <- rnorm(N, mean = 4, sd = 0.4)
+placebo <- c(placebo, rnorm(N+2, mean = 2.8, sd = 0.4))
+drug <- rnorm(N, mean = 3, sd = 0.4)
+drug <- c(drug, rnorm(N+2, mean = 2.5, sd = 0.4))
+
+# Add a `Genotype` column as the second variable
+genotype <- c(rep("M", N), rep("W", N +2))
+
+# Add an `id` column for paired data plotting.
+id <- 1:(N*2+2)
+
+# Add a `Rep` column as the first variable for the 2 replicates of experiments done
+Rep <- rep(c("Rep1", "Rep2"), N + 1)
+
+# Combine all columns into a DataFrame.
+df <- tibble::tibble(
+  Placebo = placebo,
+  Drug = drug,
+  Genotype = genotype,
+  ID = id,
+  Rep = Rep
+)
+
+df <- df %>%
+  tidyr::gather(key = Treatment, value = Measurement, -ID, -Genotype, -Rep)
+```
+
+```{r}
+unpaired_delta2 <- load(df,
+  x = Genotype, y = Measurement,
+  experiment = Treatment, colour = Genotype,
+  delta2 = TRUE
+)
+```
+
+```{r}
+print(unpaired_delta2)
+```
+It seems that this 2x2 design doesn't work when the number of observations aren't the same in each group?
+```{r}
+unpaired_delta2.mean_diff <- mean_diff(unpaired_delta2)
+
+print(unpaired_delta2.mean_diff)
+```
+
+```{r}
+dabest_plot(unpaired_delta2.mean_diff)
+```
+
+Apparently it doesn't let you reuse a group
+```{r}
+multi_groups <- load(pscProps %>% combineStress(),
+  x = comboTrt, y = amplitude,
+  idx = list(
+    c("STD-CON", "STD-ALPS"),
+    c("LBN-CON", "LBN-ALPS"),
+    c("STD-CON", "LBN-CON"),
+    c("STD-ALPS", "LBN-ALPS")
+  )
+)
+
+print(multi_groups)
+```
+
+# interval demo plots
+```{r}
+GABApscs_240Filtered %>%
+  plotGABAinterval_noMean(
+    # zoom_y = TRUE
+    # , ymin = 0
+    # , ymax = 40
+  ) +
+  scale_y_log10()
+
+mixed(
+  log10(interval) ~ earlyLifeTrt * adultTrt + (1|damID) + (1|mouseID)
+  , data = GABApscs_240Filtered
+  , method = "KR"
+)
+
+GABApscs_240Filtered %>%
+  mutate(
+    manualInt = 240 / (frequency * 240)
+  ) %>%
+  scatterPlotComboTrt(
+    yVar = manualInt
+    , yLab = "manual interval (s)"
+    , dotSize = dotSize
+    , fontSize = textSize
+    , addMeanSE = FALSE
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 40
+  )
+
+GABApscs_240Filtered %>%
+  plotGABAfreq_noMean()
+```
+
+```{r}
+pscProps %>%
+  filter(
+    cellID != "20221129e"
+    , amplitude < 200
+  ) %>%
+  combineStress() %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = decay9010
+    , yLab = "decay time (ms)"
+    , xVar = amplitude
+    , xLab = "amplitude (pA)"
+  ) +
+  geom_smooth(
+    aes(color = comboTrt)
+    , method = "lm"
+    # , method = "loess"
+    # , method = "gam"
   )
 ```
 

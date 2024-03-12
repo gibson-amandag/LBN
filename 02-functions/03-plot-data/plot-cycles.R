@@ -194,13 +194,13 @@ plotCyclesPercent <- function(
   medianAlpha = 0.7,
   strip.position = "bottom",
   fontSize = 11,
-  fillScale = earlyLifeFill(fillAlpha = 0.7)
+  fillScale = earlyLifeColor(colorAlpha = 1)
   , meanColor = "black"
   , barColor = "black"
 ){
   viz <- df %>%
     ggplot(
-      aes(x = {{ xVar }}, y = percent, fill = {{ xVar }})
+      aes(x = {{ xVar }}, y = percent, fill = {{ xVar }}, color = {{ xVar }})
     ) +
     facet_wrap(
       ~ stage,

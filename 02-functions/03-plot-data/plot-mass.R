@@ -118,7 +118,7 @@ plot_mass_lines <- function(
   
   if(facetBySex){
     plot <- plot +
-      facet_wrap(vars(sex), labeller = labeller(sex = c("F"="female", "M"="male")))
+      facet_wrap(vars(sex), labeller = labeller(sex = c("F"="female", "M"="male")), scales = "free_y")
   }
   
   if(moveDownFacets){

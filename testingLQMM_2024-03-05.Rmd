@@ -1,0 +1,1653 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+sumQuartiles <- pscProps %>%
+  mutate(
+    logAmp = log10(amplitude)
+    , logRiseTime = log10(riseTime)
+    , logDecayTime = log10(decay9010)
+    , logFWHM = log10(fwhm)
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  select(
+    -relPeak
+  ) %>%
+  quartilesSummary() %>%
+  arrange(variable) %>%
+  relocate(
+    max
+    , .after = q3
+  )
+
+sumQuartiles
+```
+# Without treatment included 
+
+```{r}
+quantiles <- c(
+  0.25
+  , 0.5
+  , 0.75
+)
+```
+
+
+## Amplitude
+```{r}
+
+logAmplitude_models_simplified <- lqmm(
+  log10(amplitude) ~ 1 # ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    # method = "df", 
+    LP_max_iter = 1000
+  )
+)
+
+logAmplitude_models_simplified
+
+sumQuartiles %>%
+  filter(
+    variable == "amplitude" | variable == "logAmp"
+  )
+summary(logAmplitude_models_simplified)
+
+print("amplitude response-transformed 25th percentile estimate")
+10^logAmplitude_models_simplified$`0.25`$theta[[1]]
+
+print("amplitude response-transformed 50th percentile estimate")
+10^logAmplitude_models_simplified$`0.50`$theta[[1]]
+
+print("amplitude response-transformed 75th percentile estimate")
+10^logAmplitude_models_simplified$`0.75`$theta[[1]]
+
+
+```
+
+Get the predictions, with or without cell level specified 
+
+```{r}
+predictions_amplitude_overall <- predint(
+  logAmplitude_models_simplified, level = 0
+)
+
+predictions_amplitude <- predint(
+  logAmplitude_models_simplified, level = 1
+) 
+```
+
+```{r}
+
+predByCell_amplitude0.25 <- predictions_amplitude[["0.25"]] %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>% 
+  summarize(
+    across(yhat:SE, ~ mean(.x, na.rm = TRUE))
+    , across(yhat:SE, ~ 10^.x)
+  )
+
+predByCell_amplitude0.50 <- predictions_amplitude[["0.50"]] %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>% 
+  summarize(
+    across(yhat:SE, ~ mean(.x, na.rm = TRUE))
+    , across(yhat:SE, ~ 10^.x)
+  )
+
+predByCell_amplitude0.75 <- predictions_amplitude[["0.75"]] %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>% 
+  summarize(
+    across(yhat:SE, ~ mean(.x, na.rm = TRUE))
+    , across(yhat:SE, ~ 10^.x)
+  )
+
+
+predByCell_amplitude0.25
+predByCell_amplitude0.50
+predByCell_amplitude0.75
+
+predByCell_amplitude0.25 %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    mean = mean(yhat, na.rm = TRUE)
+  )
+predByCell_amplitude0.50 %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    mean = mean(yhat, na.rm = TRUE)
+  )
+predByCell_amplitude0.75 %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    mean = mean(yhat, na.rm = TRUE)
+  )
+```
+
+
+
+```{r} 
+predByCell_amplitude_overall0.25 <- predictions_amplitude_overall[["0.25"]] %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>% 
+  summarize(
+    across(yhat:SE, ~ mean(.x, na.rm = TRUE))
+    , across(yhat:SE, ~ 10^.x)
+  )
+
+predByCell_amplitude_overall0.50 <- predictions_amplitude_overall[["0.50"]] %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>% 
+  summarize(
+    across(yhat:SE, ~ mean(.x, na.rm = TRUE))
+    , across(yhat:SE, ~ 10^.x)
+  )
+
+predByCell_amplitude_overall0.75 <- predictions_amplitude_overall[["0.75"]] %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>% 
+  summarize(
+    across(yhat:SE, ~ mean(.x, na.rm = TRUE))
+    , across(yhat:SE, ~ 10^.x)
+  )
+
+
+predByCell_amplitude_overall0.25
+predByCell_amplitude_overall0.50
+predByCell_amplitude_overall0.75
+
+predByCell_amplitude_overall0.25 %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    mean = mean(yhat, na.rm = TRUE)
+  )
+predByCell_amplitude_overall0.50 %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    mean = mean(yhat, na.rm = TRUE)
+  )
+predByCell_amplitude_overall0.75 %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    mean = mean(yhat, na.rm = TRUE)
+  )
+
+```
+
+## Rise time
+
+```{r}
+logRiseTime_models_simplified <- lqmm(
+  log10(riseTime) ~ 1 # ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 1000
+  )
+)
+
+logRiseTime_models_simplified
+
+sumQuartiles %>%
+  filter(
+    variable == "riseTime" | variable == "logRiseTime"
+  )
+summary(logRiseTime_models_simplified)
+
+print("amplitude response-transformed 25th percentile theta estimate")
+10^logRiseTime_models_simplified$`0.25`$theta[[1]]
+
+print("amplitude response-transformed 50th percentile theta estimate")
+10^logRiseTime_models_simplified$`0.50`$theta[[1]]
+
+print("amplitude response-transformed 75th percentile theta estimate")
+10^logRiseTime_models_simplified$`0.75`$theta[[1]]
+
+
+```
+
+Get the predictions, with or without cell level specified 
+
+```{r}
+predictions_riseTime_overall <- predint(
+  logRiseTime_models_simplified, level = 0
+)
+
+predictions_riseTime <- predint(
+  logRiseTime_models_simplified, level = 1
+) 
+```
+Even though the theta is really off, if you do the by-cell prediction, the average of this seems plausible?
+```{r}
+
+predByCell_riseTime0.25 <- predictions_riseTime[["0.25"]] %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>% 
+  summarize(
+    across(yhat:SE, ~ mean(.x, na.rm = TRUE))
+    , across(yhat:SE, ~ 10^.x)
+  )
+
+predByCell_riseTime0.50 <- predictions_riseTime[["0.50"]] %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>% 
+  summarize(
+    across(yhat:SE, ~ mean(.x, na.rm = TRUE))
+    , across(yhat:SE, ~ 10^.x)
+  )
+
+predByCell_riseTime0.75 <- predictions_riseTime[["0.75"]] %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>% 
+  summarize(
+    across(yhat:SE, ~ mean(.x, na.rm = TRUE))
+    , across(yhat:SE, ~ 10^.x)
+  )
+
+
+predByCell_riseTime0.25
+predByCell_riseTime0.50
+predByCell_riseTime0.75
+
+predByCell_riseTime0.25 %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    mean = mean(yhat, na.rm = TRUE)
+  )
+predByCell_riseTime0.50 %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    mean = mean(yhat, na.rm = TRUE)
+  )
+predByCell_riseTime0.75 %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    mean = mean(yhat, na.rm = TRUE)
+  )
+```
+
+
+```{r}
+pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  quartilesSummary(col = riseTime)
+```
+
+
+
+```{r} 
+predByCell_riseTime_overall0.25 <- predictions_riseTime_overall[["0.25"]] %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>% 
+  summarize(
+    across(yhat:SE, ~ mean(.x, na.rm = TRUE))
+    , across(yhat:SE, ~ 10^.x)
+  )
+
+predByCell_riseTime_overall0.50 <- predictions_riseTime_overall[["0.50"]] %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>% 
+  summarize(
+    across(yhat:SE, ~ mean(.x, na.rm = TRUE))
+    , across(yhat:SE, ~ 10^.x)
+  )
+
+predByCell_riseTime_overall0.75 <- predictions_riseTime_overall[["0.75"]] %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>% 
+  summarize(
+    across(yhat:SE, ~ mean(.x, na.rm = TRUE))
+    , across(yhat:SE, ~ 10^.x)
+  )
+
+
+predByCell_riseTime_overall0.25
+predByCell_riseTime_overall0.50
+predByCell_riseTime_overall0.75
+
+predByCell_riseTime_overall0.25 %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    mean = mean(yhat, na.rm = TRUE)
+  )
+predByCell_riseTime_overall0.50 %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    mean = mean(yhat, na.rm = TRUE)
+  )
+predByCell_riseTime_overall0.75 %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    mean = mean(yhat, na.rm = TRUE)
+  )
+
+```
+
+# Amplitude, only median
+```{r}
+logAmplitude_models <- lqmm(
+  log10(amplitude) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = 0.5
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 1000
+  )
+)
+```
+
+The covariance matrix of the random effects has an intercept of 1, is this normal?
+
+```{r}
+logAmplitude_models
+```
+
+```{r}
+logRiseTime_models
+```
+
+```{r}
+logDecayTime_models
+```
+```{r}
+logFWHM_models
+```
+
+
+Get the predictions with level = 0 and level = 1 (by cell)
+
+```{r}
+withFactors_predictions_amplitude_overall <- predint(
+  logAmplitude_models, level = 0
+)
+
+withFactors_predictions_amplitude <- predint(
+  logAmplitude_models, level = 1
+) 
+```
+
+
+## by cell
+Match these predictions back to the original dataset. Take the average (which is really just collapsing all the extra event rows) and then convert back to the response variable
+
+Then group by treatment, and take the mean to get a group value
+
+```{r}
+withFactors_predByCell_amplitude0.50 <- withFactors_predictions_amplitude %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>% 
+  summarize(
+    across(yhat:SE, ~ mean(.x, na.rm = TRUE))
+    , across(yhat:SE, ~ 10^.x)
+  )
+withFactors_predByCell_amplitude0.50
+
+withFactors_predByCell_amplitude0.50 %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    mean = mean(yhat, na.rm = TRUE)
+  )
+```
+
+
+Average distribution by cell, then by group
+STD-CON, 26.8
+STD-ALPS, 28.1
+LBN-CON, 24.1
+LBN-ALPS, 32.2
+```{r}
+amplitude_avgDistByCell <- calcAvgRelFreqAndCumFreq(pscProps, amplitude, 0.1)
+
+amplitude_avgDistByCell %>%
+  filter(
+    cumProp < 50.5 & cumProp > 49.5
+  )
+```
+
+## Overall (from level = 0)
+
+```{r} 
+withFactors_predByCell_amplitude_overall0.50 <- withFactors_predictions_amplitude_overall %>%
+  bind_cols(
+    pscProps %>%
+      select(
+        cellID
+        , mouseID
+        , earlyLifeTrt
+        , adultTrt
+      )
+  ) %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>% 
+  summarize(
+    across(yhat:SE, ~ mean(.x, na.rm = TRUE))
+    , across(yhat:SE, ~ 10^.x)
+  )
+withFactors_predByCell_amplitude_overall0.50
+withFactors_predByCell_amplitude_overall0.50 %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  summarize(
+    mean = mean(yhat, na.rm = TRUE)
+  )
+```
+
+These seem to match the errors given by emmeans for the model
+```{r}
+logAmplitude_emm <- emmeans(
+  logAmplitude_models
+  , ~ earlyLifeTrt * adultTrt
+  , type = "response"
+)
+
+amplitudeMedian_errors <- logAmplitude_emm %>%
+  getLQMM_MedianCI()
+
+amplitudeMedian_errors
+```
+
+To get a test of main effects and interactions:
+```{r}
+logAmplitude_emm_jt <- joint_tests(
+  logAmplitude_emm
+)
+logAmplitude_emm_jt
+```
+
+```{r}
+pscProps%>%
+  countMiceAndLitters(filterByVar = amplitude, groupingVars = exprs(adultTrt, earlyLifeTrt)) %>%
+  # group_by(
+  #   adultTrt, earlyLifeTrt
+  # ) %>%
+  relocate(earlyLifeTrt, .before = adultTrt)
+
+pscProps %>%
+  group_by(
+    cellID
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    n = n()
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  quartilesSummary() %>%
+  relocate(
+    max
+    , .after = q3
+  ) %>%
+  rename(
+    `quartile 1` = q1
+    , `quartile 3` = q3
+  ) %>%
+  select(
+    -variable
+  )
+
+
+
+pscProps %>%
+  group_by(
+    cellID
+    , earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    n = n()
+    , .groups = "drop"
+  ) %>%
+  group_by(
+    adultTrt
+    , earlyLifeTrt
+  ) %>%
+  summarize(
+    fewerThan25 = sum(n<25)
+    , greaterThan200 = sum(n>200)
+  )
+```
+
+```{r}
+set.seed(123)
+pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  slice_sample(
+    n = 100
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    n =
+  )
+```
+
+
+
+# QRLMM package
+
+```{r}
+install.packages("qrLMM")
+```
+
+```{r}
+library(qrLMM)
+```
+earlyLifeTrt "STD" "LBN"
+adultTrt "CON" "ALPS"
+
+
+
+```{r}
+mat <- cbind(
+  intercept = rep(1, nrow(pscProps)),
+  early = as.numeric(pscProps$earlyLifeTrt) - 1,
+  adult = as.numeric(pscProps$adultTrt) - 1,
+  interaction = (as.numeric(pscProps$earlyLifeTrt) - 1) * (as.numeric(pscProps$adultTrt) - 1))
+
+colSums(mat)
+
+QRLMM(
+  y = pscProps$amplitude
+  , x = mat
+  , z = matrix(1, nrow = nrow(mat), ncol = 1)
+  , groups = factor(pscProps$cellID)
+)
+```
+
+
+```{r}
+mat <- logAmplitude_models$mmf
+
+QRLMM(
+  y = pscProps$amplitude
+  , x = logAmplitude_models$mmf
+  , z = logAmplitude_models$mmr
+  , groups = factor(pscProps$cellID)
+  , 
+)
+```
+
+```{r}
+logAmplitude_models
+logAmplitude_models$cov_name
+
+VarCorr(logAmplitude_models)
+```
+```{r}
+logAmplitude_sum <- summary(logAmplitude_models)
+
+logAmplitude_sum$group
+logAmplitude_sum$ngroups
+logAmplitude_sum$B
+logAmplitude_sum$weights
+```
+
+```{r}
+ranef_values <- ranef(logAmplitude_models)
+var(ranef_values$`(Intercept)`)
+VarCorr(logAmplitude_models)
+```
+```{r}
+logAmplitude_models <- lqmm(
+  log10(amplitude) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = 0.5
+  , data = pscProps
+  , control = lqmmControl(
+    method = "df"
+    , LP_max_iter = 1000
+  )
+)
+
+logAmplitude_models$cov_name
+VarCorr(logAmplitude_models)
+
+logAmplitude_emm <- emmeans(
+  logAmplitude_models
+  , ~ earlyLifeTrt * adultTrt
+  , type = "response"
+)
+
+logAmplitude_emm
+```
+
+```{r}
+logAmplitude_models <- lqmm(
+  log10(amplitude) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = 0.5
+  , data = pscProps
+  , control = lqmmControl(
+    # method = "df"
+    , LP_max_iter = 1000
+  )
+)
+
+logAmplitude_models$cov_name
+VarCorr(logAmplitude_models)
+
+logAmplitude_emm <- emmeans(
+  logAmplitude_models
+  , ~ earlyLifeTrt * adultTrt
+  , type = "response"
+)
+
+logAmplitude_emm
+```
+
+
+
+```{r}
+logAmp_asFactor <- lqmm(
+  log10(amplitude) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = 0.5
+  , data = pscProps %>%
+    mutate(cellID = factor(cellID))
+  , covariance = "pdCompSymm"
+  , control = lqmmControl(
+    LP_max_iter = 1000
+  )
+)
+
+logAmp_asFactor
+```
+
+
+```{r}
+library(quantreg)
+```
+
+```{r}
+logAmplitude_rq <- rq(
+  log10(amplitude) ~ earlyLifeTrt * adultTrt
+  , data = pscProps
+)
+
+summary(logAmplitude_rq)
+
+summary(logAmplitude_models)
+```
+
+
+```{r}
+pscProps %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    n = n()
+    , nCells = unique()
+  )
+```
+
+
+
+# Fitting only with cells that have at least 20 events
+```{r}
+greater20Cells <- pscProps %>%
+  group_by(cellID) %>%
+  summarize(
+    n = n()
+  ) %>%
+  ungroup() %>%
+  filter(
+    n > 20
+  )
+```
+
+
+```{r}
+limPSCs <- pscProps %>%
+  filter(
+    cellID %in% greater20Cells$cellID
+  )
+logAmplitude_models <- lqmm(
+  log10(amplitude) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  # , data = limPSCs
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 1000
+  )
+)
+
+
+
+logAmplitude_emm <- emmeans(
+  logAmplitude_models
+  , ~ earlyLifeTrt * adultTrt
+  , type = "response"
+)
+logAmplitude_emm
+```
+```{r}
+pscProps %>%
+  filter(
+    cellID %in% greater20Cells$cellID
+  ) %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  quartilesSummary(col = amplitude)
+```
+
+# LQMM example data
+
+```{r}
+Orthodont.sub %>%
+  ggplot(
+    aes(
+      x = age
+      , y = distance
+      , group = age
+    )
+  ) +
+  geom_boxplot() +
+  geom_point() +
+  boxTheme() +
+  textTheme()
+```
+
+```{r}
+Orthodont.sub %>%
+  ggplot(
+    aes(
+      x = age
+      , y = distance
+    )
+  ) +
+  geom_boxplot(
+    aes(
+      group = age
+    )
+  ) +
+  geom_point(
+    aes(
+      color = Subject
+    )
+  ) +
+  geom_line(
+    aes(
+      color = Subject
+    )
+  ) +
+  boxTheme() +
+  textTheme()
+```
+
+```{r}
+medianByAge <- Orthodont.sub %>%
+  group_by(
+    age
+  ) %>%
+  summarize(
+    medianDist = median(distance, na.rm = TRUE)
+  )
+
+diffFromMedian <- Orthodont.sub %>%
+  left_join(
+    medianByAge
+    , by = "age"
+  ) %>%
+  mutate(
+    diffFromMedian = distance - medianDist
+  )
+
+diffFromMedian %>%
+  ggplot(
+    aes(
+      x = Subject
+      , y = diffFromMedian
+    )
+  ) +
+  geom_point(
+    aes(
+      color = Subject
+    )
+  ) +
+  stat_summary(fun = mean) +
+  geom_hline(yintercept = 0, color = "grey") +
+  boxTheme() +
+  ylab("difference from median at age") +
+  textTheme()
+```
+
+
+```{r}
+fit.lqmm <- lqmm(fixed = distance ~ age.c, random = ~ 1, group =
+  Subject, tau = 0.5, nK = 7, type = "normal", data = Orthodont.sub)
+fit.lqmm
+```
+
+```{r}
+predint(fit.lqmm) %>%
+  bind_cols(
+    Orthodont.sub
+  ) %>%
+  group_by(
+    age
+  ) %>%
+  summarize(
+    median = mean(yhat)
+    , lower.CL = mean(lower)
+    , upper.CL = mean(upper)
+  )
+```
+
+```{r}
+fit.lqmm.emm <- emmeans(
+  fit.lqmm
+  , ~age.c
+  , at = list(age.c = c(-3, -1, 1, 3))
+)
+
+emmsToPlot <- fit.lqmm.emm %>%
+  as.data.frame() %>%
+  rename(
+    distance = emmean
+    , lower = lower.CL
+    , upper = upper.CL
+  ) %>%
+  mutate(
+    age = age.c + 11
+  )
+```
+
+```{r}
+randEfs <- ranef.lqmm(fit.lqmm) %>%
+  rename(
+    randomEffects = `(Intercept)`
+  ) %>%
+  rownames_to_column("Subject")
+
+randEfs
+```
+
+```{r}
+medianByAge <- Orthodont.sub %>%
+  group_by(
+    age
+  ) %>%
+  summarize(
+    medianDist = median(distance, na.rm = TRUE)
+  )
+
+diffFromMedian <- Orthodont.sub %>%
+  left_join(
+    medianByAge
+    , by = "age"
+  ) %>%
+  mutate(
+    diffFromMedian = distance - medianDist
+  )
+
+diffFromMedian %>%
+  ggplot(
+    aes(
+      x = Subject
+      , y = diffFromMedian
+    )
+  ) +
+  geom_point(
+    aes(
+      color = Subject
+    )
+  ) +
+  stat_summary(fun = mean) +
+  geom_hline(yintercept = 0, color = "grey") +
+  geom_point(
+    data = randEfs
+    , aes(
+      x = Subject
+      , y = randomEffects
+    )
+    , color = "red"
+    , size = 4
+    , shape = 3
+  ) +
+  boxTheme() +
+  ylab("difference from median at age") +
+  textTheme()
+```
+```{r}
+Orthodont.sub %>%
+  ggplot(
+    aes(
+      x = age
+      , y = distance
+    )
+  ) +
+  # geom_boxplot(
+  #   aes(
+  #     group = age
+  #   )
+  # ) +
+  geom_point(
+    aes(
+      color = Subject
+    )
+  ) +
+  geom_line(
+    aes(
+      color = Subject
+    )
+  ) +
+  stat_summary(
+    aes(
+      group = age
+    )
+    , fun = median
+    , size = .4
+    # , geom = ""
+  ) +
+  geom_point(
+    data = emmsToPlot
+    , fill = "red"
+    , color = "red"
+    , size = 3
+    , shape = 23
+  ) +
+  boxTheme() +
+  textTheme()
+```
+
+```{r}
+fit.lqmm
+```
+
+
+```{r}
+Orthodont.sub %>%
+  group_by(
+    age.c
+  ) %>%
+  quartilesSummary(distance)
+```
+
+
+When you compare the lqmm model for the example data with the estimates from a quantile model of the same data without grouping by subject, the estimates of the fiexed effects are different
+
+```{r}
+fit.lqmm
+rq(distance ~ age.c, data = Orthodont.sub)
+```
+# Fit with mouseID as the grouping variable instead of cellID
+
+```{r}
+logAmplitude_models_byMouse <- lqmm(
+  log10(amplitude) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = pscProps
+  , control = lqmmControl(
+    LP_max_iter = 1000
+  )
+)
+
+logAmplitude_emm_byMouse <- emmeans(
+  logAmplitude_models_byMouse
+  , ~ earlyLifeTrt * adultTrt
+  , type = "response"
+)
+
+logAmplitude_emm_jt_byMouse <- joint_tests(
+  logAmplitude_emm_byMouse
+)
+
+amplitudeMedian_errors_byMouse <- logAmplitude_emm_byMouse %>%
+  getLQMM_MedianCI()
+
+logAmplitude_models_byMouse
+logAmplitude_emm_byMouse
+logAmplitude_emm_jt_byMouse
+```
+# Quantile regression without cell
+
+```{r}
+logAmplitude_model_noCells <- rq(
+  log10(amplitude) ~ earlyLifeTrt * adultTrt
+  , data = pscProps
+)
+```
+```{r}
+logAmplitude_model_noCells
+
+summary(logAmplitude_model_noCells)
+
+emmeans(
+  logAmplitude_model_noCells
+  , ~ earlyLifeTrt * adultTrt
+  , type = "response"
+)
+```
+
+```{r}
+randomDec <- pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  slice_sample(
+    prop = 0.1
+  ) %>%
+  ungroup()
+
+logAmplitude_model_noCells_dec <- rq(
+  log10(amplitude) ~ earlyLifeTrt * adultTrt
+  , data = randomDec
+)
+```
+
+```{r}
+logAmplitude_model_noCells_dec
+
+summary(logAmplitude_model_noCells_dec)
+
+emmeans(
+  logAmplitude_model_noCells_dec
+  , ~ earlyLifeTrt * adultTrt
+  , type = "response"
+)
+```
+
+## Central 40% only
+
+There's a problem with fitting even the rq function for all the data
+
+```{r}
+central40perc <- pscProps %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  mutate(
+    lower_bound = quantile(amplitude, probs = 0.3)
+    , upper_bound = quantile(amplitude, probs = 0.7)
+  ) %>%
+  filter(
+    amplitude >= lower_bound & amplitude <= upper_bound
+  )
+```
+
+If you give it just the central 40%, it still estimates the same values for the medians, but even though there's less data, the errors are actually smaller, and this becomes significant. The covariance matrix is still 1 though
+```{r}
+logAmplitude_central <- lqmm(
+  log10(amplitude) ~ earlyLifeTrt * adultTrt
+  , random = ~ 1
+  , group = cellID
+  , tau = quantiles
+  , data = central40perc
+  , control = lqmmControl(
+    LP_max_iter = 1000
+  )
+)
+
+logAmplitude_emm_central <- emmeans(
+  logAmplitude_central
+  , ~ earlyLifeTrt * adultTrt
+  , type = "response"
+)
+
+logAmplitude_emm_jt_central <- joint_tests(
+  logAmplitude_emm_central
+)
+
+amplitudeMedian_errors <- logAmplitude_emm_central %>%
+  getLQMM_MedianCI()
+
+logAmplitude_central
+logAmplitude_emm_central
+logAmplitude_emm_jt_central
+
+logAmplitude_emm
+```
+
+# 2024-03-06
+
+Tried to use the rq function from the library quantreg to fit the median values from each cell to a quantile regression model instead.
+
+I noticed that it wasn't providing a p-value to the estimate, which has also been a problem when I switched from the full to the decimated dataset yesterday
+I think that the switch happens when there are less than 1000 total events for the model, and may have to do with how the summary function calculates standard error. There's some information in the help documents for summary.rq that explain some of the options and alternative methods for calculating error
+
+```{r}
+library(quantreg)
+```
+
+```{r}
+pscProps_medianByCell <- pscProps %>%
+  group_by(
+    cellID, mouseID, damID, earlyLifeTrt, adultTrt
+  ) %>%
+  summarize(
+    amplitude = median(amplitude, na.rm = TRUE)
+    , riseTime = median(riseTime, na.rm = TRUE)
+    , decay9010 = median(decay9010, na.rm = TRUE)
+    , fwhm = median(fwhm, na.rm = TRUE)
+    , .groups = "drop"
+  ) %>%
+  combineStress()
+
+
+pscProps_medianByCell %>%
+  scatterPlotComboTrt(
+    yVar = amplitude
+    , yLab = "amplitude (pA)"
+    , addMeanSE = FALSE
+  )
+```
+
+```{r}
+mod <- rq(
+  log10(amplitude) ~ earlyLifeTrt * adultTrt
+  , data = pscProps
+  , method = "fn"
+)
+
+mod
+summary(mod)
+mod <- rq(
+  log10(riseTime) ~ earlyLifeTrt * adultTrt
+  , data = pscProps
+  , method = "fn"
+)
+
+mod
+summary(mod)
+mod <- rq(
+  log10(decay9010) ~ earlyLifeTrt * adultTrt
+  , data = pscProps
+  , method = "fn"
+)
+
+mod
+summary(mod)
+mod <- rq(
+  log10(fwhm) ~ earlyLifeTrt * adultTrt
+  , data = pscProps
+  , method = "fn"
+)
+
+mod
+summary(mod)
+```
+
+## 20% of events sampled by cell
+If doing this 20% approach, should probably be doing a bootstrap approach where that 20% is picked many times and then you see what the value and error should be
+```{r}
+# set seed if using this for real
+pscProps_20percentEvents <- pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  slice_sample(prop = 0.2) %>%
+  ungroup()
+
+
+mod <- rq(
+  log10(amplitude) ~ earlyLifeTrt * adultTrt
+  , data = pscProps_20percentEvents
+  , method = "fn"
+)
+
+mod
+summary(mod)
+mod <- rq(
+  log10(riseTime) ~ earlyLifeTrt * adultTrt
+  , data = pscProps_20percentEvents
+  , method = "fn"
+)
+
+mod
+summary(mod)
+mod <- rq(
+  log10(decay9010) ~ earlyLifeTrt * adultTrt
+  , data = pscProps_20percentEvents
+  , method = "fn"
+)
+
+mod
+summary(mod)
+mod <- rq(
+  log10(fwhm) ~ earlyLifeTrt * adultTrt
+  , data = pscProps_20percentEvents
+  , method = "fn"
+)
+
+mod
+summary(mod)
+```
+
+## Random effects graph by cell
+
+What does the random effects graph look like compared to the distribution of events by cell?
+
+```{r}
+plotPSCProp_diffFromMedian <- function(
+  df
+  , yVar
+  , yLab
+  , logBreaks
+  , logLabels
+  , byCell = TRUE
+  , dotSize = 0.75
+  , dotAlpha = 0.6
+  , jitterWidth = 0.35
+  , byQuartiles = TRUE
+  , sortByQuartile = TRUE
+){
+  if(byCell){
+    if(sortByQuartile){
+      df_counts <- df %>%
+        group_by(cellID) %>%
+          summarize(
+            quartile50 = quantile({{ yVar }}, probs = 0.50, na.rm = TRUE)
+            , .groups = "drop"
+          ) %>%
+          arrange(
+            desc(quartile50)
+          )
+      
+    } else {
+      df_counts <- df %>%
+        group_by(cellID) %>%
+          summarize(
+            count = n()
+            , .groups = "drop"
+          ) %>%
+          arrange(
+            desc(count)
+          )
+      
+    }
+    
+    df <- df %>%
+      mutate(
+        cellID = factor(
+          cellID
+          , levels = df_counts$cellID
+        )
+      )
+  }
+  
+  df <- df %>%
+    combineStress()
+  
+  if(byQuartiles){
+    df <- df %>%
+      add_quartile_colors(
+        if(byCell){cellID} else {comboTrt}
+        , value_col = {{ yVar }}
+      )
+  }
+  
+  df <- df %>%
+    left_join(
+      df %>%
+        group_by(
+          cellID
+        ) %>%
+        mutate(
+          median = median({{ yVar }})
+          , .groups = "drop"
+        )
+      , by = "cellID"
+    ) %>%
+    mutate(
+      diffFromMedian = {{ yVar }} - median
+    )
+  
+  viz <- df %>%
+    ggplot(
+      aes(
+        x = if(byCell){cellID} else{comboTrt}
+        , y = diffFromMedian
+        , color = if(byQuartiles){Color} else {log({{ yVar }})}
+        , fill = if(byQuartiles){Color} else {log({{ yVar }})}
+      )
+  ) +
+  jitterGeom(
+    size = dotSize,
+    alpha = dotAlpha,
+    width = jitterWidth,
+    height = 0
+  ) +
+  theme_pubr()+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = textSize)+
+  boxTheme() +
+  theme(
+    axis.text.x = element_blank()
+  ) + 
+  labs(y = yLab, x = ifelse(byCell, "cell", ""))
+  
+  if(byQuartiles){
+    viz <- viz +
+      scale_color_identity() +
+      scale_fill_identity()
+  } else {
+    viz <- viz +
+      scale_color_viridis() +
+      scale_fill_viridis()
+  }
+  
+  viz <- viz +
+    facet_wrap(
+      ~ comboTrt
+      , nrow = 1
+      , scales = "free_x"
+      , strip.position = "bottom"
+    ) +
+    scale_y_log10(
+      breaks = logBreaks
+      , labels = logLabels
+    )
+  
+  return(viz)
+}
+```
+
+
+```{r}
+relPeak_byCell <- pscProps %>%
+  # plotPSCProp_negLog(
+  #   yVar = relPeak
+  #   , yLab = "amplitude (pA)"
+  #   , byCell = TRUE
+  #   , reverseColor = FALSE
+  # )
+  plotPSCProp_diffFromMedian(
+    yVar = amplitude
+    , yLab = "amplitude (pA)"
+    , logBreaks = seq(-200, 200, by = 50)
+    , logLabels = seq(-200, 200, by = 50)
+    , byCell = TRUE
+  )
+
+relPeak_byCell
+```
+
+```{r}
+df <- pscProps
+yVar <- expr(amplitude)
+yLab = "amplitude difference from median (pA)"
+
+jitterWidth <- 0.3
+logBreaks = seq(-200, 200, by = 50)
+logLabels = seq(-200, 200, by = 50)
+
+df_counts <- df %>%
+  group_by(cellID) %>%
+    summarize(
+      quartile50 = quantile({{ yVar }}, probs = 0.50, na.rm = TRUE)
+      , .groups = "drop"
+    ) %>%
+    arrange(
+      desc(quartile50)
+    )
+
+df <- df %>%
+  left_join(
+    df_counts %>%
+      select(
+        cellID
+        , quartile50
+      )
+    , by = "cellID"
+  ) %>%
+  combineStress() %>%
+  add_quartile_colors(
+    cellID
+    , {{ yVar }}
+  ) %>%
+  mutate(
+    diffFromMedian = {{ yVar }} - quartile50
+  )
+
+df
+
+viz <- df %>%
+    ggplot(
+      aes(
+        x = if(byCell){cellID} else{comboTrt}
+        , y = diffFromMedian
+        , color = Color
+        , fill = Color
+      )
+  ) +
+  jitterGeom(
+    size = .5,
+    alpha = dotAlpha,
+    width = jitterWidth,
+    height = 0
+  ) +
+  theme_pubr()+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = 11)+
+  boxTheme() +
+  theme(
+    axis.text.x = element_blank()
+  ) + 
+  labs(y = yLab, x = ifelse(byCell, "cell", ""))
+  
+  viz <- viz +
+    scale_color_identity() +
+    scale_fill_identity()
+  viz <- viz +
+    facet_wrap(
+      ~ comboTrt
+      , nrow = 1
+      , scales = "free_x"
+      , strip.position = "bottom"
+    # ) +
+    # scale_y_log10(
+    #   breaks = logBreaks
+    #   , labels = logLabels
+    )
+  
+viz
+```
+  
+
+I'm not actually sure how to adjust the random effects for the log scale, but either way, they are mostly on the order of <2pA adjustments per cell, so this would suggest to me that cell isn't actually adding anything to the model?
+```{r}
+amplitude_randomEffects <- ranef(logAmplitude_models) %>%
+  rownames_to_column(var = "cellID") %>%
+  rename(
+    amplitude = `(Intercept)`
+  ) %>%
+  mutate(
+    # amplitude = ifelse( # don't actually trust this mutation. How do I know if it's a negative direction from median or a small log?
+    #   amplitude < 0, - 10^(-amplitude)
+    #   , 10^(amplitude)
+    # )
+    amplitude = 10^amplitude
+  )
+
+amplitude_randomEffects
+```
+
+Maybe it would be helpful to estimate the variation within each cell? 
+
+It seems like maybe they're just not actually clustered, and that's why the lqmm model is having a hard time figuring out what to do with them
+
+```{r}
+set_sum_contrasts()
+```
+
+
+```{r}
+amplitude_mixedModel <- mixed(
+  amplitude ~ earlyLifeTrt * adultTrt + (1|cellID)
+  , data = pscProps
+  , method = "KR"
+)
+
+summary(amplitude_mixedModel$full_model)
+amplitude_mixedModel$anova_table
+```
+
+
+
+

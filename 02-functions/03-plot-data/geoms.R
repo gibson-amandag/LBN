@@ -25,6 +25,7 @@ jitterGeom <- function(
   alpha = 1,
   width = 0.42,
   height = 0
+  , forManuscript = isManuscript
 ){
   # geom_jitter(
   #   shape = 21,
@@ -34,7 +35,7 @@ jitterGeom <- function(
   #   height = height
   # )
   geom_quasirandom(
-    shape = 21
+    shape = ifelse(forManuscript, 16, 21)
     , size = size
     # , alpha = alpha
     , width = width

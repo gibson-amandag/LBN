@@ -51,6 +51,7 @@ GABApscs_240 <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs_240")
 
 pscProps <- loadExcelSheet(dataFolder, LBN_DataName, "pscProps")
 pscInt <- loadExcelSheet(dataFolder, LBN_DataName, "pscInt")
+pscRiseTime <- loadExcelSheet(dataFolder, LBN_DataName, "pscRiseTime")
 
 cellInfo <- loadExcelSheet(dataFolder, LBN_DataName, "cellInfo")
 cellExclusion <- loadExcelSheet(dataFolder, LBN_DataName, "cellExclusion")
@@ -725,6 +726,20 @@ pscProps <- pscProps %>%
   )
 
 pscInt <- pscInt %>%
+  left_join(
+    GABApscs_240 %>%
+      select(
+        cellID
+        , mouseID
+        , damID
+        , earlyLifeTrt
+        , adultTrt
+        , comboTrt
+      )
+    , by = "cellID"
+  )
+
+pscRiseTime <- pscRiseTime %>%
   left_join(
     GABApscs_240 %>%
       select(
