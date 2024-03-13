@@ -45,8 +45,18 @@ LHprofileServer <- function(
       LH_long_react <- reactive({
         df <- LH_long 
         
+        # 2024-02-06. Fast way to exclude ephys mice
+        nonEphysMice <- surgedDF %>%
+          filter(
+            !is.na(LH_hr7.5) & !is.na(LH_hr5.5)
+          )
+        
         filterLH <- LHfilter$useFilter()
         minLH <- LHfilter$surgeMin()
+        df <- df %>%
+          filter(
+            mouseID %in% nonEphysMice$mouseID
+          )
 
         if(!is.null(filterLH) & !is.null(minLH)){
           if(filterLH & !is.na(minLH)){
@@ -75,7 +85,8 @@ LHprofileServer <- function(
           facet_wrap(
             # ~adultTrt
             ~comboTrt
-          )
+          ) +
+          geom_hline(yintercept = LHfilter$surgeMin(), color = "blue")
         return(plot)
       })
       
@@ -112,14 +123,22 @@ LHprofileServer <- function(
       
       plotSurged <- reactive({
         req(LHfilter$surgeMin())
+        
+        # 2024-02-06. Fast way to exclude ephys mice
+        nonEphysMice <- surgedDF %>%
+          filter(
+            !is.na(LH_hr7.5) & !is.na(LH_hr5.5)
+          )
+        
         AcuteStressDF %>%
           mutate(
             surged = maxLH > LHfilter$surgeMin()
           ) %>%
           filter(
             Sac_cycle == "proestrus",
-            ReproTract_mass > 125
+            ReproTract_mass > 125 # hard-coded
             # ,litterNum == 2
+            , mouseID %in% nonEphysMice$mouseID
           ) %>%
           propSurgedPlot(
             fontSize = 16

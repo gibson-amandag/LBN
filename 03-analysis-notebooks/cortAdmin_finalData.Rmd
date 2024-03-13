@@ -397,7 +397,23 @@ BD_cort_save
 2 mg/kg corticosterone dosage administered at hours 0, 1, and 3h leads
 to similar serum corticosterone levels as the ALPS paradigm
 
- <- = 
+```{r}
+BD_comboNutALPS <- rbind(
+  BD_cortALPS %>%
+    mutate(
+      atePrevNutella = NA,
+      ateNutella = NA,
+      cortNutTrt = adultTrt
+    ), 
+  BD_cort4 %>% 
+    filter(Sac_date == date_parse("2022-05-27")) %>%
+    mutate(
+      cortNutTrt = dosage
+    )
+)
+```
+
+
 ```{r}
 BD_comboNutALPS_meanSum <- BD_comboNutALPS %>%
   group_by(

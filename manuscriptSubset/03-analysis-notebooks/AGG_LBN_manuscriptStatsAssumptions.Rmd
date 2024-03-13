@@ -1,0 +1,618 @@
+---
+title: "R Notebook"
+output: html_notebook
+# fig-width: 11.5
+# fig-height: 5
+df-print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# knitr::opts_chunk$set(fig.width=11.5, fig.height=5) 
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/06-run-lqmm.R")
+source("./01-scripts/06-run-LBN-stats.R")
+source("./01-scripts/05-make-LBN-plots-modelError-manuscript.R")
+source("./01-scripts/06-make-LBN-tables.R")
+```
+
+https://sscc.wisc.edu/sscc/pubs/RegDiag-R/normality.html#qqplots
+
+
+```{r}
+library(performance)
+```
+
+```{r}
+checkLMMassumptions <- function(afexModel){
+  modCheck <- check_model(afexModel$full_model, panel = FALSE)
+  return(list(
+    plot(modCheck)
+    , ggplot()+
+        geom_qq(aes(sample = residuals(afexModel$full_model))) +
+        geom_abline(color = "red")
+  ))
+}
+```
+
+# Figure 1 - Dams figDams
+
+```{r}  
+figDams
+```
+
+
+## Dam mass
+
+```{r}
+damTable_earlyLifePND_flexTable
+```
+
+```{r}
+checkLMMassumptions(damMass_lmm)
+```
+## Table - dam cort
+
+```{r}
+damCort_flexTable
+```
+
+```{r}
+qqnorm(damFiltered$Cort_dam_P11)
+```
+
+```{r}
+shapiro.test(x = damFiltered$Cort_dam_P11)
+```
+
+## Table - Dam behavior
+
+nparLD F1 LD F1
+
+```{r}
+damTable_earlyLifePND_flexTable
+```
+
+# Figure 2 - Offspring maturation figOff
+
+```{r}
+figOff
+```
+## Table - offspring mass
+
+```{r}
+massLMM_flexTable
+```
+
+
+```{r}
+female_mass_lmm %>%
+  checkLMMassumptions()
+```
+```{r}
+male_mass_lmm %>%
+  checkLMMassumptions()
+```
+
+## Table - VO, estrus, PPS
+
+```{r}
+matMass_lmm_flexTable
+```
+
+```{r}
+VO_age_lmm %>%
+  checkLMMassumptions()
+```
+```{r}
+VO_mass_lmm %>%
+  checkLMMassumptions()
+```
+```{r}
+Estrus_age_lmm %>%
+  checkLMMassumptions()
+```
+```{r}
+Estrus_mass_lmm %>%
+  checkLMMassumptions()
+```
+```{r}
+PreputialSep_age_lmm %>%
+  checkLMMassumptions()
+```
+```{r}
+PreputialSep_mass_lmm %>%
+  checkLMMassumptions()
+```
+
+
+## Table - AGD
+
+```{r}
+AGD_flexTable
+```
+
+```{r}
+AGD_lmm %>%
+  checkLMMassumptions()
+```
+
+# Figure 3 - Cycles
+
+```{r}
+figCycles
+```
+
+## Table - Cycles length
+
+```{r}
+cycles_flexTable
+```
+
+
+```{r}
+numCycles_lmm %>%
+  checkLMMassumptions()
+```
+```{r}
+lengthCycles_log_lmm %>%
+  checkLMMassumptions()
+```
+
+
+# Figure 4 - Corticosterone
+
+```{r}
+figCort
+
+```
+
+## cort lmm 
+
+```{r}
+cort_flexTable
+```
+
+```{r}
+male_cort_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+female_cort_lmm %>%
+  checkLMMassumptions()
+```
+
+# Figure 5 - Male masses - ALPS
+```{r}
+figMaleMassALPS
+```
+
+## lmm
+
+```{r}
+maleBodyMassAM_ALPS_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+malePercChangeBodyMass_ALPS_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+maleAdrenalMass_ALPS_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+maleRelAdrenalMassPM_ALPS_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+maleSeminalVesicleMass_ALPS_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+maleRelSeminalVesicleMassPM_ALPS_lmm %>%
+  checkLMMassumptions()
+```
+
+
+```{r}
+maleTestesMass_ALPS_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+maleRelTestesMassPM_ALPS_lmm %>%
+  checkLMMassumptions()
+```
+
+
+# Figure 6 - Male cort administration
+```{r}
+figMaleCortAdmin
+```
+
+
+## Cort LMM 
+
+```{r}
+maleCortAdmin_cort_flexTable
+```
+
+
+```{r}
+maleCortAdmin_cort_lmm %>%
+  checkLMMassumptions()
+```
+
+## mass LMM
+
+```{r}
+maleBodyMassAM_dosage_lmm %>%
+  checkLMMassumptions()
+
+```
+```{r}
+malePercChangeBodyMass_dosage_lmm %>%
+  checkLMMassumptions()
+
+```
+```{r}
+maleAdrenalMass_dosage_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+maleRelAdrenalMassPM_dosage_lmm %>%
+  checkLMMassumptions()
+
+```
+
+```{r}
+maleSeminalVesicleMass_dosage_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+maleRelSeminalVesicleMassPM_dosage_lmm %>%
+  checkLMMassumptions()
+
+```
+
+```{r}
+maleTestesMass_dosage_lmm %>%
+  checkLMMassumptions()
+
+```
+
+
+```{r}
+maleRelTestesMassPM_dosage_lmm %>%
+  checkLMMassumptions()
+```
+
+# Figure 7 - Female masses
+
+```{r}
+figFemalesMasses
+```
+
+## LMM
+```{r}
+femaleALPS_RelPM_flexTable
+```
+
+
+```{r}
+femaleBodyMassAM_ALPS_lmm  %>%
+  checkLMMassumptions()
+
+```
+
+```{r}
+femalePercChangeBodyMass_ALPS_lmm %>%
+  checkLMMassumptions()
+
+```
+
+```{r}
+femaleAdrenalMass_ALPS_lmm %>%
+  checkLMMassumptions()
+
+```
+
+```{r}
+femaleRelAdrenalMassPM_ALPS_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+femaleUterineMass_ALPS_lmm %>%
+  checkLMMassumptions()
+
+```
+
+```{r}
+femaleRelUterineMassPM_ALPS_lmm %>%
+  checkLMMassumptions()
+```
+
+# Figure 8 - LH
+
+```{r}
+figLH
+
+```
+
+
+
+## Di LMM
+```{r}
+LH_diAfternoon_flexTable
+```
+
+```{r}
+LH_diAfternoon_lmm %>%
+  checkLMMassumptions()
+```
+
+## Pro LMM
+
+```{r}
+LH_pro_flexTable
+```
+
+```{r}
+LH_proEphys_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+rankedLH_ephys_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+LH_proSampling_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+rankedLH_sampling_lmm %>%
+  checkLMMassumptions()
+```
+
+## Chi-squared
+
+```{r}
+propSurgedChiSq_flexTable
+```
+
+
+## Peak Time
+
+```{r}
+LH_pro_peakTime_flexTable
+```
+
+
+```{r}
+LH_proSampling_peakTime_lmm %>%
+  checkLMMassumptions()
+```
+
+
+# Figure 9 - GABA PSCs - passives and frequency
+
+```{r}
+figGABA
+```
+
+## LMMs
+```{r}
+pscLMMs_flexTable
+```
+
+```{r}
+capacitance_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+inputResistance_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+seriesResistance_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+holdingCurrent_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+relAmplitude_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+riseTime_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+decayTime_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+fwhm_lmm %>%
+  checkLMMassumptions()
+```
+
+```{r}
+mixed(log10(decay9010) ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID),
+      data = GABApscs_240Filtered) %>%
+  checkLMMassumptions()
+
+ggplot()+
+  geom_qq(aes(sample = residuals(relAmplitude_lmm$full_model))) +
+  geom_abline(color = "red")
+```
+
+
+```{r}
+tableCaption <- "Statistics from linear mixed models of electrophysiology properties on day of adult treatment. The mean value for each cell was calculated, and data were fit with the formula `feature ~ early-life treatment * adult treatment + (1 | dam) + (1 | mouseID)`."
+```
+
+```{r}
+psc_LMM_num <- propSurged_num + 1
+tableNum <- psc_LMM_num
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+## # of events
+
+```{r}
+tbl <- numEvents_nb.GLMM_Anova_flexTable
+tbl
+```
+
+```{r}
+numEvents_formula <-  getLMMFormula(numEvents_nb.GLMM_sum)
+
+numEvents_formula <- gsub("numEvents", "# events per 240s", numEvents_formula)
+
+tableCaption <- paste0("Statistics for number of post-synaptic current (PSC) events per 240s in GnRH neurons on the day of adult treatment. As the frequency data were skewed right and included zeros, a generalized linear mixed effects negative binomial model was used. Data were fit with the model equation `", numEvents_formula, "`. The joint_tests function of the emmeans package was used to obtain these p-value estimates from the model." )
+```
+```{r}
+numEvents_GLMM_num <- psc_LMM_num + 1
+tableNum <- numEvents_GLMM_num
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+
+```{r}
+tbl <- psc_medianLQMMs_flexTable
+tbl
+```
+
+
+```{r}
+tableCaption <- paste0("Statistics for post-synaptic current (PSC) properties in GnRH neurons on the day of adult treatment. To test if treatments altered the median values of properties for all PSCs, linear quantile mixed models were fit with the model equation `log10(feature) ~ early-life treatment * adult treatment` using the package LQMM. The grouping factor was cell. The joint_tests function of the emmeans package was used to obtain these p-value estimates from the model." )
+```
+```{r}
+LQMM_medians_num <- numEvents_GLMM_num + 1
+tableNum <- LQMM_medians_num
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+
+# Figure 10 - PSC properties
+
+```{r}
+
+figGABA2 <- plot_grid(
+  NULL
+  , plot_grid(
+    NULL
+    , figGABAe_model
+    , figGABA2a_model
+    , figGABA2b_model
+    , figGABA2c_model
+    , figGABA2d_model
+    , ncol = 3
+    , labels = c("B", "C", "D", "E", "F", "G")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+    , align = "vh"
+    , axis = "lrtb"
+  )
+  , nrow = 2
+  , rel_heights = c(1, 2)
+  , labels = c("A", "")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figGABA2
+```
+
+
+```{r eval=FALSE, include=FALSE}
+figGABA2_left <- plot_grid(
+  relPeak_byCell
+  , riseTime_byCell
+  , decayTime_byCell
+  , fwhm_byCell
+  , nrow = 4
+  , labels = c("A", "C", "E", "G")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , align = "vh"
+  , axis = "lrtb"
+)
+
+figGABA2_right <- plot_grid(
+  relPeak_byTrt
+  , riseTime_byTrt
+  , decayTime_byTrt
+  , fwhm_byTrt
+  , nrow = 4
+  , labels = c("B", "D", "F", "H")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , align = "vh"
+  , axis = "lrtb"
+)
+
+figGABA2 <- plot_grid(
+  figGABA2_left
+  , figGABA2_right
+  , ncol = 2
+  # , rel_widths = c(2, 1)
+)
+
+figGABA2
+
+```
+
+```{r}
+flexSave(
+  "figPSC_props"
+  , plot = figGABA2
+  , width = twoCols
+  # , height = 28/2
+  , height = 28*2/3
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+
+
+
+

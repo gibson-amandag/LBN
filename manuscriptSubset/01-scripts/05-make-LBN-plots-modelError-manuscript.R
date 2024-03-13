@@ -1532,7 +1532,7 @@ figGABA2c_model <- GABApscs_240FilteredPropsFreq %>%
   #   , nudgeErrorLine = 0
   #   , nudgeMeanLine = 0
   #   , meanBarWidth = .4
-  #   , color = "#FF0099"
+  #   , color = "#FF0099
   # ) +
   # plotError_LMM(
   #   decayTimeMedian_errors %>%

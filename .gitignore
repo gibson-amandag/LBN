@@ -1,12 +1,12 @@
 # History files
-.Rhistory
-.Rapp.history
+*.Rhistory
+*.Rapp.history
 
 # Session Data files
-.RData
+*.RData
 
 # User-specific files
-.Ruserdata
+*.Ruserdata
 
 # Example code in package build process
 *-Ex.R
@@ -18,8 +18,8 @@
 /*.Rcheck/
 
 # RStudio files
-.Rproj
-.Rproj.user/
+*.Rproj
+*.Rproj.user/
 
 # produced vignettes
 vignettes/*.html
@@ -37,7 +37,7 @@ vignettes/*.pdf
 *.knit.md
 
 # R Environment Variables
-.Renviron
+*.Renviron
 
 # pkgdown site
 docs/

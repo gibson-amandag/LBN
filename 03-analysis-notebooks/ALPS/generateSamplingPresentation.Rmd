@@ -27,7 +27,7 @@ LBN_data %>%
     , sex == "F"
     , is.na(Sac_stop_off)
     , is.na(Sac_date)
-    , DOB < (Sys.Date() - 90)
+    , DOB <= (Sys.Date() - 90)
   ) %>%
   createRemainingPPT(
     addToName = "LBN" 
@@ -75,9 +75,10 @@ View(AcuteStress_off %>%
 ```{r}
 samplingDF_today <- AcuteStress_off %>%
   filter(
-    # Sac_date == date_parse("2022-01-12")
-    Sac_date == dateToday
+    Sac_date == date_parse("2024-01-25")
+    # Sac_date == dateToday
     # cohort == 5
+    , sex == "F"
   )
 samplingDF_today <- samplingDF_today %>%
   addRegExForSamplingDF(arrangeByLH = TRUE) %>%
@@ -180,6 +181,7 @@ print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0
   )
 )
 ```
+
 proestrus 
 ```{r eval=FALSE, include=FALSE}
 samplingDF_ALPS <- AcuteStress_off %>%
@@ -219,6 +221,7 @@ print(samplingPPT, target = file.path(reportOutputFolder, "samplingPPTs", paste0
   )
 )
 ```
+
 Full Presentation by Cycle Stage - All CBAs
 ```{r eval=FALSE, include=FALSE}
 samplingDF_ALPS <- AcuteStress_off %>%

@@ -1,0 +1,3434 @@
+---
+title: "Distributions approach"
+output: html_notebook
+---
+
+kSamples distribution
+
+```{r}
+# install.packages("kSamples")
+library(kSamples)
+library(viridis)
+```
+
+# Functions
+
+```{r}
+
+getAD_Pval <- function(result, version = 1, fromPaired = FALSE){
+  if(fromPaired){
+    result <- result$test_result
+  }
+  tbl <- result$ad
+  tbl_tibble <- tbl %>% as.tibble()
+  p_val <- tbl_tibble$` asympt. P-value`[[version]]
+  return(p_val)
+}
+
+calcCumFreq <- function(
+    df
+    , varToSum
+){
+  df %>%
+    arrange(
+      {{ varToSum }}
+    ) %>%
+    mutate(
+      cumFreq = ecdf({{ varToSum }})({{ varToSum }}) * 100
+    )
+}
+
+plotCumulativeFreqDist <- function(
+    df
+    , xVar
+    , xLab
+    , yLab = "cumulative frequency (%)"
+    , zoom_x = FALSE
+    , xmin = NA
+    , xmax = NA
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 100
+    , textSize = 11
+    , legendPosition = c(0.6, 0.3)
+    , scaleLog10 = FALSE
+) {
+  plot <- df %>%
+    combineStress() %>%
+    group_by(earlyLifeTrt, adultTrt) %>%
+    calcCumFreq({{ xVar }}) %>%
+    ggplot(
+      aes(
+        x = {{ xVar }}
+        , y = cumFreq
+        , group = comboTrt
+        , color = comboTrt
+      )
+    ) +
+    geom_line() +
+    boxTheme() +
+    textTheme(size = textSize)
+  
+  if(scaleLog10){
+    plot <- plot + scale_x_log10()
+  } else {
+    plot <- plot + 
+      expand_limits(x = 0) +
+      coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})
+  }
+  
+  plot <- plot +
+    expand_limits(y = 0) +
+    xlab(xLab) +
+    ylab(yLab) +
+    comboTrtLineColor() +
+    theme(
+      legend.position = legendPosition 
+      , legend.key = element_blank()
+    )
+  return(plot)
+}
+
+plotDensityDistribution <- function(
+    df
+    , xVar
+    , xLab
+    , yLab = "density"
+    , zoom_x = FALSE
+    , xmin = NA
+    , xmax = NA
+    , zoom_y = FALSE
+    , ymin = NA
+    , ymax = NA
+    , textSize = 11
+    , legendPosition = c(0.6, 0.3)
+    , STD_CON_fill = "lightgrey"
+    , STD_CON_color = "grey30"
+    , fillAlpha = 0.8
+    , scaleLog10 = FALSE
+) {
+  plot <- df %>%
+    combineStress() %>%
+    ggplot(
+      aes(
+        x = {{ xVar }}
+        , color = comboTrt
+        # , fill = comboTrt
+      )
+    ) +
+    geom_density(alpha = fillAlpha)
+  
+  if(scaleLog10){
+    plot <- plot + scale_x_log10()
+  } else {
+    plot <- plot +
+      expand_limits(x = 0) +
+      coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})
+  }
+  plot <- plot +
+    xlab(xLab) +
+    ylab(yLab) +
+    comboTrtFillShape(STD_CON_fill = STD_CON_fill, STD_CON_color = STD_CON_color) +
+    theme_pubr() +
+    boxTheme() +
+    textTheme(textSize)
+  
+  return(plot)
+}
+
+plotPSCProp_log <- function(
+  df
+  , yVar
+  , yLab
+  , logBreaks = waiver()
+  , logLabels = waiver()
+  , byCell = TRUE
+  , dotSize = 0.75
+  , dotAlpha = 0.6
+  , jitterWidth = 0.35
+  , byQuartiles = TRUE
+  , sortByQuartile = TRUE
+  , textSize = textSize
+){
+  if(byCell){
+    if(sortByQuartile){
+      df_counts <- df %>%
+        group_by(cellID) %>%
+          summarize(
+            quartile50 = quantile({{ yVar }}, probs = 0.50, na.rm = TRUE)
+            , .groups = "drop"
+          ) %>%
+          arrange(
+            desc(quartile50)
+          )
+      
+    } else {
+      df_counts <- df %>%
+        group_by(cellID) %>%
+          summarize(
+            count = n()
+            , .groups = "drop"
+          ) %>%
+          arrange(
+            desc(count)
+          )
+      
+    }
+    
+    df <- df %>%
+      mutate(
+        cellID = factor(
+          cellID
+          , levels = df_counts$cellID
+        )
+      )
+  }
+  
+  df <- df %>%
+    combineStress()
+  
+  if(byQuartiles){
+    df <- df %>%
+      add_quartile_colors(
+        if(byCell){cellID} else {comboTrt}
+        , value_col = {{ yVar }}
+      )
+  }
+  
+  viz <- df %>%
+    ggplot(
+      aes(
+        x = if(byCell){cellID} else{comboTrt}
+        , y = {{ yVar }}
+        , color = if(byQuartiles){Color} else {log({{ yVar }})}
+        , fill = if(byQuartiles){Color} else {log({{ yVar }})}
+      )
+  ) +
+  jitterGeom(
+    size = dotSize,
+    alpha = dotAlpha,
+    width = jitterWidth,
+    height = 0
+  ) +
+  theme_pubr()+
+  theme(
+    legend.position = "none"
+  )+
+  textTheme(size = textSize)+
+  boxTheme() +
+  theme(
+    axis.text.x = element_blank()
+  ) + 
+  labs(y = yLab, x = ifelse(byCell, "cell", ""))
+  
+  if(byQuartiles){
+    viz <- viz +
+      scale_color_identity() +
+      scale_fill_identity()
+  } else {
+    viz <- viz +
+      scale_color_viridis() +
+      scale_fill_viridis()
+  }
+  
+  viz <- viz +
+    facet_wrap(
+      ~ comboTrt
+      , nrow = 1
+      , scales = "free_x"
+      , strip.position = "bottom"
+    ) +
+    scale_y_log10(
+      breaks = logBreaks
+      , labels = logLabels
+    )
+  
+  return(viz)
+}
+
+add_quartile_colors <- function(
+    data
+    , group_col
+    , value_col
+    , reverse_order = FALSE
+) {
+  data <- data %>%
+    group_by({{ group_col }}) %>%
+    mutate(
+      QuartileID = cut({{ value_col }},
+                       breaks = quantile({{ value_col }}, probs = 0:4/4, na.rm = TRUE),
+                       include.lowest = TRUE,
+                       labels = FALSE)
+    ) %>% 
+    ungroup()
+  
+  # quartile_colors <- viridis(4, option = "D")
+  quartile_colors <- c("1" = "#2c7bb6", "2" = "#abd9e9", "3" = "#fdae61", "4" = "#d7191c")
+  if (reverse_order) {
+    color_assignment <- (4 - as.numeric(data$QuartileID)) +1
+  } else {
+    color_assignment <- as.numeric(data$QuartileID)
+  }
+
+  data$Color <- quartile_colors[color_assignment]
+
+  data <- data %>%
+    select(-QuartileID)
+
+    # mutate(
+    #   Color = viridis(4, option = "D")[as.numeric(QuartileID)]
+    # ) %>%
+    # select(-QuartileID)
+
+  return(data)
+}
+```
+
+## Four way AD + plots
+```{r}
+fourWayAD <- function(
+    df
+    , feature
+    , xLab
+    , testVersion = 1
+    , zoom_x = FALSE
+    , xmin = NA
+    , xmax = NA
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 100
+    , textSize = 11
+    , legendPosition = c(0.6, 0.3)
+    , STD_CON_fill = "lightgrey" # for density plot
+    , STD_CON_color = "grey30"
+    , colorCellByQuartiles = TRUE
+){
+  SC <- df %>%
+    filter(
+      earlyLifeTrt == "STD"
+      , adultTrt == "CON"
+    ) %>%
+    select(
+      {{ feature }}
+    ) %>% 
+    pull()
+  
+  SA <- df %>%
+    filter(
+      earlyLifeTrt == "STD"
+      , adultTrt == "ALPS"
+    ) %>%
+    select(
+      {{ feature }}
+    ) %>% 
+    pull()
+  
+  LC <- df %>%
+    filter(
+      earlyLifeTrt == "LBN"
+      , adultTrt == "CON"
+    ) %>%
+    select(
+      {{ feature }}
+    ) %>% 
+    pull()
+  
+  LA <- df %>%
+    filter(
+      earlyLifeTrt == "LBN"
+      , adultTrt == "ALPS"
+    ) %>%
+    select(
+      {{ feature }}
+    ) %>% 
+    pull()
+  
+  adTestResult <- ad.test(
+    SC
+    , SA
+    , LC
+    , LA
+  )
+  
+  pVal <- getAD_Pval(adTestResult, version = testVersion)
+  
+  cumFreqPlot <- plotCumulativeFreqDist(
+    df
+    , {{ feature }}
+    , xLab
+    , zoom_x = zoom_x
+    , xmin = xmin
+    , xmax = xmax
+    , zoom_y = zoom_y
+    , ymin = ymin
+    , ymax = ymax
+    , textSize = textSize
+    , legendPosition = legendPosition
+  )
+  
+  fullDistCumFreqPlot <- plotCumulativeFreqDist(
+    df
+    , {{ feature }}
+    , xLab
+    , textSize = textSize
+    , legendPosition = legendPosition
+  )
+  
+  cumFreqPlot_log <- plotCumulativeFreqDist(
+    df
+    , {{ feature }}
+    , xLab
+    , textSize = textSize
+    , legendPosition = c(0.1, 0.6)
+    , scaleLog10 = TRUE
+  )
+  
+  densityPlot <- plotDensityDistribution(
+    df
+    , {{ feature }}
+    , xLab
+    , zoom_x = zoom_x
+    , xmin = xmin
+    , xmax = xmax
+    , textSize = textSize
+    , legendPosition = legendPosition
+    , STD_CON_fill = STD_CON_fill
+    , STD_CON_color = STD_CON_color
+  )
+  
+  fullDensityPlot <- plotDensityDistribution(
+    df
+    , {{ feature }}
+    , xLab
+    , textSize = textSize
+    , legendPosition = legendPosition
+    , STD_CON_fill = STD_CON_fill
+    , STD_CON_color = STD_CON_color
+  )
+  
+  densityPlot_log <- plotDensityDistribution(
+    df
+    , {{ feature }}
+    , xLab
+    , textSize = textSize
+    , legendPosition = legendPosition
+    , STD_CON_fill = STD_CON_fill
+    , STD_CON_color = STD_CON_color
+    , scaleLog10 = TRUE
+  )
+  
+  plotByCell_log <- plotPSCProp_log(
+    df
+    , {{ feature }}
+    , xLab
+    , textSize = textSize
+    , byQuartiles = colorCellByQuartiles
+    , sortByQuartile = colorCellByQuartiles
+  )
+  
+  plotQuartiles_log <- plotPSCProp_log(
+    df
+    , {{ feature }}
+    , xLab
+    , textSize = textSize
+    , byQuartiles = colorCellByQuartiles
+    , sortByQuartile = colorCellByQuartiles
+    , byCell = FALSE
+  )
+  
+  return(
+    list(
+      "adTest" = adTestResult
+      , "pVal" = pVal
+      , "plots" = list(
+        "cumulativeFreqPlot" = cumFreqPlot
+        , "fullCumulativeFreqPlot" = fullDistCumFreqPlot
+        , "cumulativeFreqPlot_log" = cumFreqPlot_log
+        , "densityPlot" = densityPlot
+        , "fullDensityPlot" = fullDensityPlot
+        , "densityPlot_log" = densityPlot_log
+        , "plotByCell_log" = plotByCell_log
+        , "plotsQuartiles_log" = plotQuartiles_log
+      )
+      , "vectors" = list(
+        "SC" = SC
+        , "SA" = SA
+        , "LC" = LC
+        , "LA" = LA
+      )
+    )
+  )
+}
+```
+
+## Fit all
+```{r}
+runFourWayAD_allProps <- function(df, colorCellByQuartiles = TRUE, appendToPCol = NULL){
+  amplitudeRes <- fourWayAD(df, amplitude, "amplitude (pA)", zoom_x = TRUE, xmin = 0, xmax = 125, colorCellByQuartiles = colorCellByQuartiles)
+  riseTimeRes <- fourWayAD(df, riseTime, "rise time (ms)", zoom_x = TRUE, xmin = 0, xmax = 2.2, colorCellByQuartiles = colorCellByQuartiles)
+  decayTimeRes <- fourWayAD(df, decay9010, "decay time (ms)", zoom_x = TRUE, xmin = 0, xmax = 80, colorCellByQuartiles = colorCellByQuartiles)
+  fwhmRes <- fourWayAD(df, fwhm, "fwhm (ms)", zoom_x = TRUE, xmin = 0, xmax = 20, colorCellByQuartiles = colorCellByQuartiles)
+  
+  pValDF <- data.frame(
+    "feature" = c("amplitude", "rise time", "decay time", "fwhm")
+    , "p.value" = c(amplitudeRes$pVal, riseTimeRes$pVal, decayTimeRes$pVal, fwhmRes$pVal)
+  )
+  
+  if(!is.null(appendToPCol)){
+    newColName = paste0("p.value", appendToPCol)
+    pValDF <- pValDF %>%
+      rename(
+        !!newColName := p.value
+      )
+  }
+  return(
+    list(
+      "amplitude" = amplitudeRes
+      , "riseTime" = riseTimeRes
+      , "decayTime" = decayTimeRes
+      , "fwhm" = fwhmRes
+      , "pVals" = pValDF
+    )
+  )
+}
+```
+
+## Bootstrapping function
+
+```{r}
+getOneBootstrapMeans <- function(
+    df
+    , maxPerCell = 100
+    , groupingVars = exprs(earlyLifeTrt, adultTrt)
+    , replace = TRUE
+    , bootstrapIt = NA
+){
+  if(!is.null(maxPerCell)){
+    df <- df %>%
+      group_by(cellID) %>%
+      slice_sample(n = maxPerCell) %>%
+      ungroup()
+  }
+  
+  df <- slice_sample(
+    df %>%
+      group_by(!!! groupingVars)
+    , prop = 1
+    , replace = replace
+  )
+  
+  sumDF <- df %>%
+    summarize(
+      amplitude = mean(amplitude, na.rm = TRUE)
+      , riseTime = mean(riseTime, na.rm = TRUE)
+      , decay9010 = mean(decay9010, na.rm = TRUE)
+      , fwhm = mean(fwhm, na.rm = TRUE)
+      , .groups = "drop"
+    )
+  if(!is.na(bootstrapIt)){
+    sumDF <- sumDF %>%
+      mutate(
+        bootIt = bootstrapIt
+      )
+  }
+  return(sumDF)
+}
+getOneBootstrapMeans_int <- function(
+    df
+    , maxPerCell = 100
+    , groupingVars = exprs(earlyLifeTrt, adultTrt)
+    , replace = TRUE
+    , bootstrapIt = NA
+){
+  if(!is.null(maxPerCell)){
+    df <- df %>%
+      group_by(cellID) %>%
+      slice_sample(n = maxPerCell) %>%
+      ungroup()
+  }
+  
+  df <- slice_sample(
+    df %>%
+      group_by(!!! groupingVars)
+    , prop = 1
+    , replace = replace
+  )
+  
+  sumDF <- df %>%
+    summarize(
+      interval = mean(interval, na.rm = TRUE)
+      , .groups = "drop"
+    )
+  if(!is.na(bootstrapIt)){
+    sumDF <- sumDF %>%
+      mutate(
+        bootIt = bootstrapIt
+      )
+  }
+  return(sumDF)
+}
+
+bootstrapGroup <- function(df
+                           , nBootstrap = 2000
+                           , maxPerCell = 100 # set to NULL if don't want to limit per cell
+                           , groupingVars = exprs(earlyLifeTrt, adultTrt)
+                           , replace = TRUE # only for sampling after picking events from each cell
+                           , setSeed = NULL
+                           , forInterval = FALSE
+                           ) {
+  if (!is.null(setSeed)) {
+    set.seed(setSeed)
+  }
+  
+  if(!forInterval){
+    bootstrapRes <- bind_rows(
+      map(
+        1:nBootstrap
+        , ~ getOneBootstrapMeans(df, replace = replace, bootstrapIt = .x, maxPerCell = maxPerCell, groupingVars = groupingVars)
+      )
+    )
+  } else{
+    bootstrapRes <- bind_rows(
+      map(
+        1:nBootstrap
+        , ~ getOneBootstrapMeans_int(df, replace = replace, bootstrapIt = .x, maxPerCell = maxPerCell, groupingVars = groupingVars)
+      )
+    )
+  }
+  
+  return(bootstrapRes)
+}
+# bootstrapGroup <- function(groupedDF
+#                            , nBootstrap = 2000
+#                            , replace = TRUE 
+#                            , setSeed = NULL
+#                            , meanOrMedian = "mean"
+#                            ) {
+#   if (!is.null(setSeed)) {
+#     set.seed(setSeed)
+#   }
+#   
+#   if(meanOrMedian == "median"){
+#     bootstrapRes <- bind_rows(
+#       map(
+#         1:nBootstrap
+#         , ~ getOneBootstrapMedians(groupedDF, replace = replace, bootstrapIt = .x)
+#       )
+#     )
+#   } else {
+#     bootstrapRes <- bind_rows(
+#       map(
+#         1:nBootstrap
+#         , ~ getOneBootstrapMeans(groupedDF, replace = replace, bootstrapIt = .x)
+#       )
+#     )
+#   }
+#   
+#   
+#   return(bootstrapRes)
+# }
+
+plotBootstrapErrors_xAxis <- function(
+  df
+  , xLab
+  , zoom_x = FALSE
+  , xmin = NA
+  , xmax = NA
+  , textSize = 11
+  , dotSize = 0.5
+  , meanBarWidth = 0.75
+  , barSize = 0.5
+) {
+  df %>%
+    ggplot(
+      aes(
+        y = comboTrt
+        , x = y
+        , color = comboTrt
+      )
+    ) +
+    # geom_point(size = dotSize) +
+    geom_errorbar(
+      aes(
+        y = comboTrt
+        , xmin = y
+        , xmax = y
+      )
+      , width = meanBarWidth
+      , linewidth = barSize
+    ) +
+    geom_linerange(
+      aes(
+        y = comboTrt
+        , xmin = lower
+        , xmax = upper
+      )
+    ) +
+    comboTrtLineColor() +
+    expand_limits(x = 0) +
+    coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}) +
+    labs(x = xLab) +
+    scale_y_discrete(
+      limits = rev
+      , labels = c(
+        "STD-CON" = "SC"
+        , "LBN-CON" = "LC"
+        , "STD-ALPS" = "SA"
+        , "LBN-ALPS" = "LA"
+        # "STD-CON" = "STD\nCON"
+        # , "LBN-CON" = "LBN\nCON"
+        # , "STD-ALPS" = "STD\nALPS"
+        # , "LBN-ALPS" = "LBN\nALPS"
+      )
+      # , position = "right"
+    )+
+    theme_pubr()+
+    boxTheme() +
+    textTheme(size = textSize) +
+    theme(
+      axis.title.y = element_blank()
+      , axis.text.y = element_text(face = "bold")
+      , legend.position = "none"
+    )
+}
+```
+
+```{r}
+formatBootstrapPvaluesCI <- function(bootDiffCI){
+  bootDiffCI %>%
+    group_by(
+      variable
+    ) %>%
+    mutate(
+      mult2.p.value = p.value * 2
+    ) %>%
+    adjust_pvalue(p.col = "mult2.p.value", method = "holm") %>%
+    formatPCol(p.value) %>%
+    formatPCol(mult2.p.value) %>%
+    formatPCol(mult2.p.value.adj) %>%
+    rename(
+      p = mult2.p.value
+      , p.adj = mult2.p.value.adj
+    ) %>%
+    mutate(
+      CI = paste0("[", roundDecimals(lowerCIDiff, 2), ",", roundDecimals(upperCIDiff, 2), "]")
+      , .after = meanDiff
+    ) %>%
+    select(
+      - c(bothSameDir, p.value, lowerCIDiff, upperCIDiff, minDiff, maxDiff)
+    )
+}
+
+renameBootstrapComparisonGroups <- function(df, removeComparison = TRUE, twoLineLabels = FALSE){
+  df <- df %>%
+    mutate(
+      comp = case_when(
+        comparison == "STD_ALPSvLBN_CON" ~ "STD-ALPS vs LBN-CON"
+        , comparison == "STD_CONvLBN_ALPS" ~ "STD-CON vs LBN-ALPS"
+        , comparison == "alpsSTDvLBN" ~ "STD-ALPS vs LBN-ALPS"
+        , comparison == "conSTDvLBN" ~ "STD-CON vs LBN-CON"
+        , comparison == "lbnCONvALPS" ~ "LBN-CON vs LBN-ALPS"
+        , comparison == "stdCONvALPS" ~ "STD-CON vs STD-ALPS"
+      )
+      , comp = factor(
+        comp
+        , levels = c(
+          "STD-CON vs STD-ALPS"
+          , "LBN-CON vs LBN-ALPS"
+          , "STD-CON vs LBN-CON"
+          , "STD-ALPS vs LBN-ALPS"
+          , "STD-CON vs LBN-ALPS"
+          , "STD-ALPS vs LBN-CON"
+          )
+      )
+      , .after = comparison
+    ) %>%
+    arrange(
+      variable, comp
+    )
+  
+  if(twoLineLabels){
+    df <- df %>%
+      makeCompTwoLines()
+  }
+  
+  if(removeComparison) {
+    df <- df %>%
+    select(
+      -comparison
+    )
+  }
+  return(df)
+}
+
+makeCompTwoLines <- function(df){
+  df %>%
+    mutate(
+      comp = gsub(" vs ", "\n", comp, fixed = TRUE)
+        , comp = factor(
+          comp
+          , levels = c(
+            "STD-CON\nSTD-ALPS"
+            , "LBN-CON\nLBN-ALPS"
+            , "STD-CON\nLBN-CON"
+            , "STD-ALPS\nLBN-ALPS"
+            , "STD-CON\nLBN-ALPS"
+            , "STD-ALPS\nLBN-CON"
+          )
+        )
+    )
+}
+```
+
+```{r}
+plotBootstrapPairwiseDiffs <- function(bootRes, variableAsString, yLab, compProp = 0.15, specMeanDiffsDF = NULL){
+  diffCItoPlot <- bootRes$diffsCI %>%
+  makeCompTwoLines() %>%
+  rename(
+    y = meanDiff
+    , lower = lowerCIDiff
+    , upper = upperCIDiff
+  )
+
+percOfSTDCON = bootRes$meansCI %>% 
+               filter(variable == variableAsString
+                      , earlyLifeTrt == "STD"
+                      , adultTrt == "CON") %>%
+               pull(mean) * compProp
+
+if(is.null(specMeanDiffsDF)){
+  meanDiffs <- bootRes$extra$meanDiffs
+} else {
+  meanDiffs <- specMeanDiffsDF
+}
+
+plot <- meanDiffs %>%
+  renameBootstrapComparisonGroups(twoLineLabels = TRUE) %>%
+  filter(
+    variable == variableAsString
+  ) %>%
+  ggplot(
+    aes(
+      x = comp
+      , y = difference
+    )
+  ) +
+  jitterGeom() +
+  theme_pubr()+
+  boxTheme() +
+  textTheme() +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  geom_hline(yintercept = percOfSTDCON, color = "blue") +
+  geom_hline(yintercept = - percOfSTDCON, color = "blue") +
+  labs(y = yLab, x = "pairwise comparisons between groups") +
+  theme(
+    axis.title.x = element_text(margin = margin(t = 0))
+  )
+
+if(is.null(specMeanDiffsDF)){
+  plot <- plot +
+    plotError_LMM(
+    diffCItoPlot %>%
+      filter(
+        variable == variableAsString
+      )
+    , xVar = comp
+  )
+}
+return(plot)
+}
+```
+
+
+
+### Analyze bootstrap
+```{r}
+analyzeBootstrapResults <- function(
+    df
+    , nBootstrap = 2000
+    , maxPerCell = 100
+    , groupingVars = exprs(earlyLifeTrt, adultTrt)
+    , replace = TRUE
+    , setSeed = NULL
+    , dotSize = 1
+    , textSize = 11
+    , forInterval = FALSE
+    , propDifferent = 0.15
+    , CIprop = 0.05
+    , legendPosition = c(0.7, 0.3)
+){
+  bootstrapRes <- df %>% 
+    bootstrapGroup(nBootstrap = nBootstrap, maxPerCell = maxPerCell, groupingVars = groupingVars, replace = replace, setSeed = setSeed, forInterval = forInterval)
+  
+  if(!forInterval){
+    bootstrapMeans <- bootstrapRes %>%
+      pivot_longer(
+      cols = c(amplitude, riseTime, decay9010, fwhm)
+      , names_to = "variable"
+      , values_to = "mean"
+    ) %>%
+      mutate(
+        variable = factor(variable, levels = c("amplitude", "riseTime", "decay9010", "fwhm"))
+      )
+  } else {
+    bootstrapMeans <- bootstrapRes %>%
+      pivot_longer(
+      cols = c(interval)
+      , names_to = "variable"
+      , values_to = "mean"
+    )
+  }
+  
+  bootstrapMeanSum <- bootstrapMeans %>%
+    group_by(variable, earlyLifeTrt, adultTrt) %>%
+    summarize(
+      lowerCI = quantile(mean, probs = CIprop / 2, na.rm = TRUE)
+      , upperCI = quantile(mean, probs = 1-(CIprop /2), na.rm = TRUE)
+      , min = min(mean, na.rm = TRUE)
+      , max = max(mean, na.rm = TRUE)
+      , mean = mean(mean, na.rm = TRUE)
+      , .groups = "drop"
+    ) %>%
+    relocate(
+      mean, .before = lowerCI
+    )
+  
+  bootstrapMeanDiffs <- bootstrapMeans %>%
+    pivot_wider(
+      id_cols = c(bootIt, variable)
+      , names_from = c(earlyLifeTrt, adultTrt)
+      , names_sep = "_"
+      , values_from = mean
+    ) %>%
+    mutate(
+      stdCONvALPS = STD_ALPS - STD_CON
+      , lbnCONvALPS = LBN_ALPS - LBN_CON
+      , conSTDvLBN = LBN_CON - STD_CON
+      , alpsSTDvLBN = LBN_ALPS - STD_ALPS
+      , STD_CONvLBN_ALPS = LBN_ALPS - STD_CON
+      , STD_ALPSvLBN_CON = LBN_CON - STD_ALPS
+    )
+  
+  bootstrapMeanDiffs_long <- bootstrapMeanDiffs %>%
+    pivot_longer(
+      cols = stdCONvALPS:STD_ALPSvLBN_CON
+      , names_to = "comparison"
+      , values_to = "difference"
+    )
+  
+  bootstrapMeanDiffsSum <- bootstrapMeanDiffs_long %>%
+    group_by(
+      variable
+      , comparison
+    ) %>%
+    summarize(
+      meanDiff = mean(difference, na.rm = TRUE)
+      , lowerCIDiff = quantile(difference, probs = CIprop / 2, na.rm = TRUE)
+      , upperCIDiff = quantile(difference, probs = 1-(CIprop / 2), na.rm = TRUE)
+      , minDiff = min(difference, na.rm = TRUE)
+      , maxDiff = max(difference, na.rm = TRUE)
+      , bothSameDir = ifelse(
+        (lowerCIDiff < 0 & upperCIDiff < 0) | (lowerCIDiff > 0 & upperCIDiff > 0)
+        , TRUE
+        , FALSE
+      )
+      , p.value = ifelse(
+        meanDiff > 0
+        , 1 - mean(difference > 0, na.rm = TRUE)
+        , 1 - mean(difference < 0, na.rm = TRUE)
+      )
+      , .groups = "drop"
+    ) %>%
+    renameBootstrapComparisonGroups()
+  
+  bootstrapDiffPs <- bootstrapMeanDiffsSum %>%
+    formatBootstrapPvaluesCI()
+  
+  if(!forInterval){
+    origMean <- pscProps %>%
+      group_by(
+        earlyLifeTrt
+        , adultTrt
+      ) %>%
+      summarize(
+        amplitude = mean(amplitude, na.rm = TRUE)
+        , riseTime = mean(riseTime, na.rm = TRUE)
+        , decay9010 = mean(decay9010, na.rm = TRUE)
+        , fwhm = mean(fwhm, na.rm = TRUE)
+        , .groups = "drop"
+      )
+    
+    getPerc_STD_CON_mean <- function(df, column, prop = propDifferent){
+      stdCon <- df %>%
+        filter(
+          earlyLifeTrt == "STD"
+          , adultTrt == "CON"
+        )
+      
+      stdConMean <- stdCon[[column]]
+      
+      return(stdConMean * prop)
+    }
+    
+    bootstrapCompDiffs <-  bootstrapMeanDiffs %>%
+      rowwise() %>%
+      mutate(
+        diffOfInterest = getPerc_STD_CON_mean(origMean, variable)
+        , .after = variable
+      ) %>%
+      mutate(
+        stdCONvALPS_isBigger = (stdCONvALPS <= -abs(diffOfInterest) | stdCONvALPS >= abs(diffOfInterest))
+        , lbnCONvALPS_isBigger = (lbnCONvALPS <= -abs(diffOfInterest) | lbnCONvALPS >= abs(diffOfInterest))
+        , conSTDvLBN_isBigger = (conSTDvLBN <= -abs(diffOfInterest) | conSTDvLBN >= abs(diffOfInterest))
+        , alpsSTDvLBN_isBigger = (alpsSTDvLBN <= -abs(diffOfInterest) | alpsSTDvLBN >= abs(diffOfInterest))
+        , STD_CONvLBN_ALPS_isBigger = (STD_CONvLBN_ALPS <= -abs(diffOfInterest) | STD_CONvLBN_ALPS >= abs(diffOfInterest))
+        , STD_ALPSvLBN_CON_isBigger = (STD_ALPSvLBN_CON <= -abs(diffOfInterest) | STD_ALPSvLBN_CON >= abs(diffOfInterest))
+      ) %>%
+      group_by(
+        variable
+      ) %>%
+      summarize( # these are p-values, 1 - proportion where larger than original difference
+        stdCONvALPS = 1 - mean(stdCONvALPS_isBigger)
+        , lbnCONvALPS = 1 - mean(lbnCONvALPS_isBigger)
+        , conSTDvLBN = 1 - mean(conSTDvLBN_isBigger)
+        , alpsSTDvLBN = 1- mean(alpsSTDvLBN_isBigger)
+        , STD_CONvLBN_ALPS = 1 - mean(STD_CONvLBN_ALPS_isBigger)
+        , STD_ALPSvLBN_CON = 1- mean(STD_ALPSvLBN_CON_isBigger)
+        , .groups = "drop"
+      ) %>%
+      pivot_longer(
+        cols = stdCONvALPS:STD_ALPSvLBN_CON
+        , names_to = "comparison"
+        , values_to = "p.value"
+      ) %>%
+      renameBootstrapComparisonGroups()
+    
+    # Errors 
+    amplitudeErrors <- bootstrapMeanSum %>%
+      filter(
+      variable == "amplitude"
+    ) %>%
+    combineStress() %>%
+    rename(
+      y = mean
+      , lower = lowerCI
+      , upper = upperCI
+    )
+    
+    riseTimeErrors <- bootstrapMeanSum %>%
+      filter(
+      variable == "riseTime"
+    ) %>%
+    combineStress() %>%
+    rename(
+      y = mean
+      , lower = lowerCI
+      , upper = upperCI
+    )
+    
+    decay9010Errors <- bootstrapMeanSum %>%
+      filter(
+      variable == "decay9010"
+    ) %>%
+    combineStress() %>%
+    rename(
+      y = mean
+      , lower = lowerCI
+      , upper = upperCI
+    )
+    
+    fwhmErrors <- bootstrapMeanSum %>%
+      filter(
+      variable == "fwhm"
+    ) %>%
+    combineStress() %>%
+    rename(
+      y = mean
+      , lower = lowerCI
+      , upper = upperCI
+    )
+    
+    # Plots
+    amplitude_plot <- bootstrapRes %>%
+      combineStress() %>%
+      scatterPlotComboTrt(
+        yVar = amplitude
+        , yLab = "amplitude (pA)"
+        , dotSize = dotSize
+        , fontSize = textSize
+        , addMeanSE = FALSE
+      ) +
+      plotError_LMM_comboTrt(
+        amplitudeErrors
+      )
+    
+    
+    riseTime_plot <- bootstrapRes %>%
+      combineStress() %>%
+      scatterPlotComboTrt(
+        yVar = riseTime
+        , yLab = "rise time (ms)"
+        , dotSize = dotSize
+        , fontSize = textSize
+      ) +
+      plotError_LMM_comboTrt(
+        riseTimeErrors
+      )
+    
+    decay9010_plot <- bootstrapRes %>%
+      combineStress() %>%
+      scatterPlotComboTrt(
+        yVar = decay9010
+        , yLab = "decay time (ms)"
+        , dotSize = dotSize
+        , fontSize = textSize
+      ) +
+      plotError_LMM_comboTrt(
+        decay9010Errors
+      )
+    
+    fwhm_plot <- bootstrapRes %>%
+      combineStress() %>%
+      scatterPlotComboTrt(
+        yVar = fwhm
+        , yLab = "full width half maximum (ms)"
+        , dotSize = dotSize
+        , fontSize = textSize
+      ) +
+      plotError_LMM_comboTrt(
+        fwhmErrors
+      )
+    
+    amplitude_ecdfPlot <- plotCumulativeFreqDist(
+      df
+      , amplitude
+      , "amplitude (pA)"
+      , zoom_x = TRUE
+      , xmin = 0
+      , xmax = 125
+      , textSize = textSize
+      , legendPosition = legendPosition
+    )
+    
+    amplitude_ecdfPlot_full <- plotCumulativeFreqDist(
+      df
+      , amplitude
+      , "amplitude (pA)"
+      , textSize = textSize
+      , legendPosition = legendPosition
+    )
+    
+    riseTime_ecdfPlot <- plotCumulativeFreqDist(
+      df
+      , riseTime
+      , "rise time (ms)"
+      , zoom_x = TRUE
+      , xmin = 0
+      , xmax = 2.2
+      , textSize = textSize
+      , legendPosition = legendPosition
+    )
+    
+    riseTime_ecdfPlot_full <- plotCumulativeFreqDist(
+      df
+      , riseTime
+      , "rise time (ms)"
+      , textSize = textSize
+      , legendPosition = legendPosition
+    )
+    
+    decay9010_ecdfPlot <- plotCumulativeFreqDist(
+      df
+      , decay9010
+      , "decay time (ms)"
+      , zoom_x = TRUE
+      , xmin = 0
+      , xmax = 80
+      , textSize = textSize
+      , legendPosition = legendPosition
+    )
+    
+    decay9010_ecdfPlot_full <- plotCumulativeFreqDist(
+      df
+      , decay9010
+      , "decay time (ms)"
+      , textSize = textSize
+      , legendPosition = legendPosition
+    )
+    
+    fwhm_ecdfPlot <- plotCumulativeFreqDist(
+      df
+      , fwhm
+      , "full width half maximum (ms)"
+      , zoom_x = TRUE
+      , xmin = 0
+      , xmax = 20
+      , textSize = textSize
+      , legendPosition = legendPosition
+    )
+    
+    fwhm_ecdfPlot_full <- plotCumulativeFreqDist(
+      df
+      , fwhm
+      , "full width half maximum (ms)"
+      , textSize = textSize
+      , legendPosition = legendPosition
+    )
+    
+    amplitude_errors_x <- amplitudeErrors %>%
+      plotBootstrapErrors_xAxis(
+        xLab = "amplitude (pA)"
+        , zoom_x = TRUE
+        , xmin = 0
+        , xmax = 125
+      )
+    
+    riseTime_errors_x <- riseTimeErrors %>%
+      plotBootstrapErrors_xAxis(
+        xLab = "rise time (ms)"
+        , zoom_x = TRUE
+        , xmin = 0
+        , xmax = 2.2
+      )
+    
+    decay9010_errors_x <- decay9010Errors %>%
+      plotBootstrapErrors_xAxis(
+        xLab = "decay time (ms)"
+        , zoom_x = TRUE
+        , xmin = 0
+        , xmax = 80
+      )
+    
+    fwhm_errors_x <- fwhmErrors %>%
+      plotBootstrapErrors_xAxis(
+        xLab = "full width half maximum (ms)"
+        , zoom_x = TRUE
+        , xmin = 0
+        , xmax = 20
+      )
+    
+    freqPlots_aligned <- align_plots(
+      amplitude_ecdfPlot
+      , riseTime_ecdfPlot
+      , decay9010_ecdfPlot
+      , fwhm_ecdfPlot
+      , align = "h"
+      , axis = "tb"
+    )
+    
+    distPlots <- plot_grid(
+      amplitude_errors_x
+      , riseTime_errors_x
+      , freqPlots_aligned[[1]]
+      , freqPlots_aligned[[2]]
+      , decay9010_errors_x
+      , fwhm_errors_x
+      , freqPlots_aligned[[3]]
+      , freqPlots_aligned[[4]]
+      , ncol = 2
+      , rel_heights = c(rep(c(0.4, 1), 4))
+      , align = "v"
+      , axis = "lr"
+      , labels = c("A", "B", "", "", "C", "D", "", "")
+      , label_fontfamily = "Arial"
+      , label_size = textSize
+    )
+    
+    return(
+      list(
+        "results" = bootstrapRes
+        , "meansCI" = bootstrapMeanSum
+        , "diffsCI" = bootstrapMeanDiffsSum
+        , "P_formatted" = bootstrapDiffPs
+        , "compDiffs" = bootstrapCompDiffs
+        , "distPlots" = distPlots
+        , "plots" = list(
+          "amplitude" = amplitude_plot
+          , "riseTime" = riseTime_plot
+          , "decayTime" = decay9010_plot
+          , "fwhm" = fwhm_plot
+        )
+        , "cumulativeFreqPlots" = list(
+          "amplitude" = amplitude_ecdfPlot
+          , "riseTime" = riseTime_ecdfPlot
+          , "decayTime" = decay9010_ecdfPlot
+          , "fwhm" = fwhm_ecdfPlot
+        )
+        , "cumulativeFreqPlots_full" = list(
+          "amplitude" = amplitude_ecdfPlot_full
+          , "riseTime" = riseTime_ecdfPlot_full
+          , "decayTime" = decay9010_ecdfPlot_full
+          , "fwhm" = fwhm_ecdfPlot_full
+        )
+        , "errorPlots" = list(
+          "amplitude" = amplitude_errors_x
+          , "riseTime" = riseTime_errors_x
+          , "decayTime" = decay9010_errors_x
+          , "fwhm" = fwhm_errors_x
+        )
+        , "errors" = list(
+          "amplitude" = amplitudeErrors
+          , "riseTime" = riseTimeErrors
+          , "decayTime" = decay9010Errors
+          , "fwhm" = fwhmErrors
+        )
+        , "extra" = list(
+          "longMeans" = bootstrapMeans
+          , "meanDiffs" = bootstrapMeanDiffs_long
+        )
+      )
+    )
+  } else {
+    intervalErrors <- bootstrapMeanSum %>%
+      filter(
+      variable == "interval"
+    ) %>%
+    combineStress() %>%
+    rename(
+      y = mean
+      , lower = lowerCI
+      , upper = upperCI
+    )
+    
+    # Plots
+    interval_plot <- bootstrapRes %>%
+      combineStress() %>%
+      scatterPlotComboTrt(
+        yVar = interval
+        , yLab = "interval (s)"
+        , dotSize = dotSize
+        , fontSize = textSize
+        , addMeanSE = FALSE
+      ) +
+      plotError_LMM_comboTrt(
+        intervalErrors
+      )
+    
+    interval_ecdfPlot <- plotCumulativeFreqDist(
+      df
+      , interval
+      , "interval (s)"
+      , zoom_x = TRUE
+      , xmin = 0
+      , xmax = 20
+      , textSize = textSize
+      , legendPosition = legendPosition
+    )
+    
+    interval_ecdfPlot_full <- plotCumulativeFreqDist(
+      df
+      , interval
+      , "interval (s)"
+      , textSize = textSize
+      , legendPosition = legendPosition
+    )
+    
+    interval_errors_x <- intervalErrors %>%
+      plotBootstrapErrors_xAxis(
+        xLab = "interval (s)"
+        , zoom_x = TRUE
+        , xmin = 0
+        , xmax = 20
+      )
+    
+    return(
+      list(
+        "results" = bootstrapRes
+        , "meansCI" = bootstrapMeanSum
+        , "diffsCI" = bootstrapMeanDiffsSum
+        , "P_formatted" = bootstrapDiffPs
+        , "plots" = list(
+          "interval" = interval_plot
+        )
+        , "cumulativeFreqPlots" = list(
+          "interval" = interval_ecdfPlot
+        )
+        , "cumulativeFreqPlots_full" = list(
+          "interval" = interval_ecdfPlot_full
+        )
+        , "errorPlots" = list(
+          "interval" = interval_errors_x
+        )
+        , "errors" = list(
+          "interval" = intervalErrors
+        )
+        , "extra" = list(
+          "longMeans" = bootstrapMeans
+          , "meanDiffs" = bootstrapMeanDiffs_long
+        )
+      )
+    )
+  }
+  
+}
+```
+
+
+# All events
+
+results output grouped by property
+
+then $ to access within
+ - adTest: output from 4way AD
+ - pVal: pVal from version 1
+ - plots: 
+  - cumulativeFreqPlot: cumulative frequency (limited x dist)
+  - fullCumulativeFreqPlot: cumulative frequency (full x dist)
+  - cumulativeFreqPlot_log: cumulative frequency x on log scale
+  - densityPlot: density plot (limited x dist)
+  - densityPlot_log: density plot x on log scale
+  - plotByCell_log: distribution of each cell's events on the log scale, colored by quartile
+ - vectors: 
+  - SC: Standard control vector
+  - SA: Standard ALPS vector
+  - LC: LBN control vector
+  - LA: LBN ALPS vector
+
+```{r}
+allEventsRes <- runFourWayAD_allProps(pscProps)
+
+allEventsRes$amplitude$adTest
+allEventsRes$riseTime$adTest
+allEventsRes$decayTime$adTest
+allEventsRes$fwhm$adTest
+
+allEventsRes$amplitude$plots$cumulativeFreqPlot
+allEventsRes$riseTime$plots$cumulativeFreqPlot
+allEventsRes$decayTime$plots$cumulativeFreqPlot
+allEventsRes$fwhm$plots$cumulativeFreqPlot
+```
+
+
+## Amplitude
+
+```{r}
+allEventsRes$amplitude$plots
+```
+
+
+## Rise time
+
+```{r}
+allEventsRes$riseTime$plots
+```
+
+## Decay time
+
+```{r}
+allEventsRes$decayTime$plots
+```
+
+## FWHM
+
+```{r}
+allEventsRes$fwhm$plots
+```
+
+# Limit 100 per cell iteration 1
+
+```{r}
+set.seed(28)
+pscProps_100perCell_v1 <- pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  slice_sample(n = 100) %>%
+  ungroup()
+```
+
+```{r}
+max100PerCell_v1Res <- runFourWayAD_allProps(pscProps_100perCell_v1, appendToPCol = "_v1")
+
+max100PerCell_v1Res$amplitude$adTest
+max100PerCell_v1Res$riseTime$adTest
+max100PerCell_v1Res$decayTime$adTest
+max100PerCell_v1Res$fwhm$adTest
+
+max100PerCell_v1Res$amplitude$plots$cumulativeFreqPlot
+max100PerCell_v1Res$riseTime$plots$cumulativeFreqPlot
+max100PerCell_v1Res$decayTime$plots$cumulativeFreqPlot
+max100PerCell_v1Res$fwhm$plots$cumulativeFreqPlot
+```
+
+## Amplitude
+
+```{r}
+max100PerCell_v1Res$amplitude$plots
+```
+
+
+## Rise time
+
+```{r}
+max100PerCell_v1Res$riseTime$plots
+```
+
+## Decay time
+
+```{r}
+max100PerCell_v1Res$decayTime$plots
+```
+
+## FWHM
+
+```{r}
+max100PerCell_v1Res$fwhm$plots
+```
+
+# Limit 100 per cell iteration 2
+
+```{r}
+set.seed(473)
+pscProps_100perCell_v2 <- pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  slice_sample(n = 100) %>%
+  ungroup()
+```
+
+```{r}
+max100PerCell_v2Res <- runFourWayAD_allProps(pscProps_100perCell_v2, appendToPCol = "_v2")
+
+max100PerCell_v2Res$amplitude$adTest
+max100PerCell_v2Res$riseTime$adTest
+max100PerCell_v2Res$decayTime$adTest
+max100PerCell_v2Res$fwhm$adTest
+
+max100PerCell_v2Res$amplitude$plots$cumulativeFreqPlot
+max100PerCell_v2Res$riseTime$plots$cumulativeFreqPlot
+max100PerCell_v2Res$decayTime$plots$cumulativeFreqPlot
+max100PerCell_v2Res$fwhm$plots$cumulativeFreqPlot
+```
+
+## Amplitude
+
+```{r}
+max100PerCell_v2Res$amplitude$plots
+```
+
+
+## Rise time
+
+```{r}
+max100PerCell_v2Res$riseTime$plots
+```
+
+## Decay time
+
+```{r}
+max100PerCell_v2Res$decayTime$plots
+```
+
+## FWHM
+
+```{r}
+max100PerCell_v2Res$fwhm$plots
+```
+
+# Limit 100 per cell iteration 3
+
+```{r}
+set.seed(332)
+pscProps_100perCell_v3 <- pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  slice_sample(n = 100) %>%
+  ungroup()
+```
+
+```{r}
+max100PerCell_v3Res <- runFourWayAD_allProps(pscProps_100perCell_v3, appendToPCol = "_v3")
+
+max100PerCell_v3Res$amplitude$adTest
+max100PerCell_v3Res$riseTime$adTest
+max100PerCell_v3Res$decayTime$adTest
+max100PerCell_v3Res$fwhm$adTest
+
+max100PerCell_v3Res$amplitude$plots$cumulativeFreqPlot
+max100PerCell_v3Res$riseTime$plots$cumulativeFreqPlot
+max100PerCell_v3Res$decayTime$plots$cumulativeFreqPlot
+max100PerCell_v3Res$fwhm$plots$cumulativeFreqPlot
+```
+
+
+## Amplitude
+
+```{r}
+max100PerCell_v3Res$amplitude$plots
+```
+
+
+## Rise time
+
+```{r}
+max100PerCell_v3Res$riseTime$plots
+```
+
+## Decay time
+
+```{r}
+max100PerCell_v3Res$decayTime$plots
+```
+
+## FWHM
+
+```{r}
+max100PerCell_v3Res$fwhm$plots
+```
+
+# Comparison of AD test output, max 100/cell
+
+# Limit 100 per cell iteration 3
+
+```{r}
+set.seed(872)
+pscProps_100perCell_v4 <- pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  slice_sample(n = 100) %>%
+  ungroup()
+max100PerCell_v4Res <- runFourWayAD_allProps(pscProps_100perCell_v4, appendToPCol = "_v4")
+```
+```{r}
+set.seed(249)
+pscProps_100perCell_v5 <- pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  slice_sample(n = 100) %>%
+  ungroup()
+max100PerCell_v5Res <- runFourWayAD_allProps(pscProps_100perCell_v5, appendToPCol = "_v5")
+```
+```{r}
+set.seed(761)
+pscProps_100perCell_v6 <- pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  slice_sample(n = 100) %>%
+  ungroup()
+max100PerCell_v6Res <- runFourWayAD_allProps(pscProps_100perCell_v6, appendToPCol = "_v6")
+```
+
+```{r}
+pscProps_100perCell_v1 %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    n = n()
+  )
+```
+
+
+```{r}
+max100PerCell_v1Res$pVals %>%
+  left_join(
+    max100PerCell_v2Res$pVals
+    , by = "feature"
+  ) %>%
+  left_join(
+    max100PerCell_v3Res$pVals
+    , by = "feature"
+  ) %>%
+  left_join(
+    max100PerCell_v4Res$pVals
+    , by = "feature"
+  ) %>%
+  left_join(
+    max100PerCell_v5Res$pVals
+    , by = "feature"
+  ) %>%
+  left_join(
+    max100PerCell_v6Res$pVals
+    , by = "feature"
+  )
+```
+
+# 10% of 100 events max v1.1
+
+```{r}
+set.seed(236)
+pscProps_100perCell_v1_decimate1 <- pscProps_100perCell_v1 %>%
+  group_by(
+    cellID
+  ) %>%
+  # slice_sample(prop = 0.1) %>%
+  # do -0.9 (remove 90%) instead of 0.1 (keep 10%), as it will round down to integers.
+  # with keep 10%, this goes to to zero if there are less than 10 events. Also probably has implications for not multiples of 10
+  slice_sample(prop = -0.9) %>% 
+  ungroup()
+```
+```{r}
+max100PerCell_v1_decimate1Res <- runFourWayAD_allProps(pscProps_100perCell_v1_decimate1, colorCellByQuartiles = FALSE, appendToPCol = "_v1.1")
+
+max100PerCell_v1_decimate1Res$amplitude$adTest
+max100PerCell_v1_decimate1Res$riseTime$adTest
+max100PerCell_v1_decimate1Res$decayTime$adTest
+max100PerCell_v1_decimate1Res$fwhm$adTest
+
+max100PerCell_v1_decimate1Res$amplitude$plots$cumulativeFreqPlot
+max100PerCell_v1_decimate1Res$riseTime$plots$cumulativeFreqPlot
+max100PerCell_v1_decimate1Res$decayTime$plots$cumulativeFreqPlot
+max100PerCell_v1_decimate1Res$fwhm$plots$cumulativeFreqPlot
+```
+```{r}
+set.seed(521)
+pscProps_100perCell_v1_decimate2 <- pscProps_100perCell_v1 %>%
+  group_by(
+    cellID
+  ) %>%
+  # slice_sample(prop = 0.1) %>%
+  # do -0.9 (remove 90%) instead of 0.1 (keep 10%), as it will round down to integers.
+  # with keep 10%, this goes to to zero if there are less than 10 events. Also probably has implications for not multiples of 10
+  slice_sample(prop = -0.9) %>% 
+  ungroup()
+```
+```{r}
+max100PerCell_v1_decimate2Res <- runFourWayAD_allProps(pscProps_100perCell_v1_decimate2, colorCellByQuartiles = FALSE)
+
+max100PerCell_v1_decimate2Res$amplitude$adTest
+max100PerCell_v1_decimate2Res$riseTime$adTest
+max100PerCell_v1_decimate2Res$decayTime$adTest
+max100PerCell_v1_decimate2Res$fwhm$adTest
+
+max100PerCell_v1_decimate2Res$amplitude$plots$cumulativeFreqPlot
+max100PerCell_v1_decimate2Res$riseTime$plots$cumulativeFreqPlot
+max100PerCell_v1_decimate2Res$decayTime$plots$cumulativeFreqPlot
+max100PerCell_v1_decimate2Res$fwhm$plots$cumulativeFreqPlot
+```
+
+```{r}
+set.seed(382)
+pscProps_100perCell_v1_decimate3 <- pscProps_100perCell_v1 %>%
+  group_by(
+    cellID
+  ) %>%
+  # slice_sample(prop = 0.1) %>%
+  # do -0.9 (remove 90%) instead of 0.1 (keep 10%), as it will round down to integers.
+  # with keep 10%, this goes to to zero if there are less than 10 events. Also probably has implications for not multiples of 10
+  slice_sample(prop = -0.9) %>% 
+  ungroup()
+```
+
+```{r}
+max100PerCell_v1_decimate3Res <- runFourWayAD_allProps(pscProps_100perCell_v1_decimate3, colorCellByQuartiles = FALSE, appendToPCol = "_v1.3")
+```
+
+```{r}
+set.seed(378)
+pscProps_100perCell_v1_decimate4 <- pscProps_100perCell_v1 %>%
+  group_by(
+    cellID
+  ) %>%
+  # slice_sample(prop = 0.1) %>%
+  # do -0.9 (remove 90%) instead of 0.1 (keep 10%), as it will round down to integers.
+  # with keep 10%, this goes to to zero if there are less than 10 events. Also probably has implications for not multiples of 10
+  slice_sample(prop = -0.9) %>% 
+  ungroup()
+```
+
+```{r}
+max100PerCell_v1_decimate4Res <- runFourWayAD_allProps(pscProps_100perCell_v1_decimate4, colorCellByQuartiles = FALSE, appendToPCol = "_v1.4")
+```
+
+```{r}
+set.seed(959)
+pscProps_100perCell_v1_decimate5 <- pscProps_100perCell_v1 %>%
+  group_by(
+    cellID
+  ) %>%
+  # slice_sample(prop = 0.1) %>%
+  # do -0.9 (remove 90%) instead of 0.1 (keep 10%), as it will round down to integers.
+  # with keep 10%, this goes to to zero if there are less than 10 events. Also probably has implications for not multiples of 10
+  slice_sample(prop = -0.9) %>% 
+  ungroup()
+```
+
+```{r}
+max100PerCell_v1_decimate5Res <- runFourWayAD_allProps(pscProps_100perCell_v1_decimate5, colorCellByQuartiles = FALSE, appendToPCol = "_v1.5")
+```
+
+```{r}
+set.seed(197)
+pscProps_100perCell_v1_decimate6 <- pscProps_100perCell_v1 %>%
+  group_by(
+    cellID
+  ) %>%
+  # slice_sample(prop = 0.1) %>%
+  # do -0.9 (remove 90%) instead of 0.1 (keep 10%), as it will round down to integers.
+  # with keep 10%, this goes to to zero if there are less than 10 events. Also probably has implications for not multiples of 10
+  slice_sample(prop = -0.9) %>% 
+  ungroup()
+```
+
+```{r}
+max100PerCell_v1_decimate6Res <- runFourWayAD_allProps(pscProps_100perCell_v1_decimate6, colorCellByQuartiles = FALSE, appendToPCol = "_v1.6")
+```
+
+```{r}
+max100PerCell_v1_decimate1Res$pVals %>%
+  left_join(
+    max100PerCell_v1_decimate2Res$pVals
+    , by = "feature"
+  ) %>%
+  left_join(
+    max100PerCell_v1_decimate3Res$pVals
+    , by = "feature"
+  ) %>%
+  left_join(
+    max100PerCell_v1_decimate4Res$pVals
+    , by = "feature"
+  ) %>%
+  left_join(
+    max100PerCell_v1_decimate5Res$pVals
+    , by = "feature"
+  ) %>%
+  left_join(
+    max100PerCell_v1_decimate6Res$pVals
+    , by = "feature"
+  )
+```
+
+```{r}
+max100PerCell_v1_decimate1Res$amplitude$plots$cumulativeFreqPlot
+max100PerCell_v1_decimate2Res$amplitude$plots$cumulativeFreqPlot
+max100PerCell_v1_decimate3Res$amplitude$plots$cumulativeFreqPlot
+max100PerCell_v1_decimate4Res$amplitude$plots$cumulativeFreqPlot
+max100PerCell_v1_decimate5Res$amplitude$plots$cumulativeFreqPlot
+max100PerCell_v1_decimate6Res$amplitude$plots$cumulativeFreqPlot
+```
+
+
+
+# Bootstrap results
+
+```{r}
+pscProps %>%
+  analyzeBootstrapResults(
+    nBootstrap = 20
+    , maxPerCell = 10
+    , setSeed = 123
+  )
+```
+```{r}
+bootstrapRes_iterations10_maxPerCellNone <- pscProps %>%
+  analyzeBootstrapResults(
+    nBootstrap = 10
+    , maxPerCell = NULL
+    , setSeed = 123
+  )
+
+bootstrapRes_iterations10_maxPerCellNone$anovas
+```
+
+```{r}
+bootstrapRes_iterations10_maxPerCellNone$compDiffs %>%
+  group_by(
+    variable
+  ) %>%
+  adjust_pvalue(p.col = "p.value", method = "holm")
+```
+
+
+```{r}
+pscProps_100perCell_v1 %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  summarize(
+    n = n()
+  )
+```
+
+
+```{r}
+bootstrapRes_iterations2000_maxPerCell10 <- pscProps %>%
+  analyzeBootstrapResults(
+    nBootstrap = 2000
+    , maxPerCell = 10
+    , setSeed = 123
+  )
+
+bootstrapRes_iterations2000_maxPerCell10$plots$amplitude
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCell50 <- pscProps %>%
+  analyzeBootstrapResults(
+    nBootstrap = 2000
+    , maxPerCell = 50
+    , setSeed = 123
+  )
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCell100 <- pscProps %>%
+  analyzeBootstrapResults(
+    nBootstrap = 2000
+    , maxPerCell = 100
+    , setSeed = 123
+  )
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCellNone <- pscProps %>%
+  analyzeBootstrapResults(
+    nBootstrap = 2000
+    , maxPerCell = NULL
+    , setSeed = 123
+    , propDifferent = 0.1
+  )
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCellNone$compDiffs %>%
+  group_by(
+    variable
+  ) %>%
+  adjust_pvalue(p.col = "p.value") %>%
+  filter(
+    p.value.adj < 0.05
+    # p.value < 0.05
+  )
+```
+
+
+```{r}
+bootstrapRes_iterations2000_maxPerCell10$anovas
+```
+```{r}
+bootstrapRes_iterations2000_maxPerCell50$anovas
+```
+```{r}
+bootstrapRes_iterations2000_maxPerCell100$anovas
+```
+```{r}
+bootstrapRes_iterations2000_maxPerCellNone$anovas
+```
+```{r}
+bootstrapRes_iterations2000_maxPerCell10$plots$amplitude +
+  coord_cartesian(ylim = c(0, 60))
+bootstrapRes_iterations2000_maxPerCell50$plots$amplitude +
+  coord_cartesian(ylim = c(0, 60))
+bootstrapRes_iterations2000_maxPerCell100$plots$amplitude +
+  coord_cartesian(ylim = c(0, 60))
+bootstrapRes_iterations2000_maxPerCellNone$plots$amplitude +
+  coord_cartesian(ylim = c(0, 60))
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCell10$plots$riseTime +
+  coord_cartesian(ylim = c(0, 1.2))  
+bootstrapRes_iterations2000_maxPerCell50$plots$riseTime +
+  coord_cartesian(ylim = c(0, 1.2))  
+bootstrapRes_iterations2000_maxPerCell100$plots$riseTime +
+  coord_cartesian(ylim = c(0, 1.2))  
+bootstrapRes_iterations2000_maxPerCellNone$plots$riseTime +
+  coord_cartesian(ylim = c(0, 1.2))  
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCell10$plots$decayTime +
+  coord_cartesian(ylim = c(0, 40))  
+bootstrapRes_iterations2000_maxPerCell50$plots$decayTime +
+  coord_cartesian(ylim = c(0, 40))  
+bootstrapRes_iterations2000_maxPerCell100$plots$decayTime +
+  coord_cartesian(ylim = c(0, 40))  
+bootstrapRes_iterations2000_maxPerCellNone$plots$decayTime +
+  coord_cartesian(ylim = c(0, 40))  
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCell10$plots$fwhm +
+  coord_cartesian(ylim = c(0, 10))  
+bootstrapRes_iterations2000_maxPerCell50$plots$fwhm +
+  coord_cartesian(ylim = c(0, 10))  
+bootstrapRes_iterations2000_maxPerCell100$plots$fwhm +
+  coord_cartesian(ylim = c(0, 10))  
+bootstrapRes_iterations2000_maxPerCellNone$plots$fwhm +
+  coord_cartesian(ylim = c(0, 10))  
+```
+
+
+
+# Set-up PPT 
+```{r}
+figureNum <- 1
+
+pptBaseName <- makeBaseNameFunc("")
+
+plotFolder <- file.path(plotOutputFolder, "GABA_PSC_props")
+
+imgType <-"png"
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotFolder
+  , compType = currentCompType
+)
+
+exportFullPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+    , width = 11.5
+    , height = 5
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = width
+    , height = height
+  )
+}
+
+exportHalfPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 5.67
+    , height = 5
+  )
+}
+
+exportThirdPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 3.6
+    , height = 5
+  )
+}
+
+exportQuarterPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 3.2
+    , height = 5
+  )
+}
+
+editableImgs <- FALSE
+pptAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddOneTable <- function(
+    table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_oneTable(
+    officer_ppt, 
+    title, 
+    table, 
+    dontFormat = dontFormat
+  )
+  return(officer_ppt)
+}
+
+pptUneditAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = FALSE
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphs <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphsMoreLeft <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraphMoreLeft(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddGraphTable <- function(
+    plot
+    , table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_graphTable(
+    officer_ppt, 
+    title, 
+    plot, 
+    table,
+    makeEditable = editableImgs
+    , dontFormat = dontFormat
+    , textSize = textSize
+  )
+  return(officer_ppt)
+}
+
+pptAddFourGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , plot4
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_fourGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    plot4,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddThreeGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_threeGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddStats <- function(
+    statsText
+    , officer_ppt = ppt
+){
+  officer_ppt <- addStatsToBottom(
+    officer_ppt,
+    statsText
+  )
+}
+
+pptAddTwoStats <- function(
+    statsText1
+    , statsText2
+    , officer_ppt = ppt
+){
+  officer_ppt <- addTwoStatsToGraphs(
+    officer_ppt,
+    statsText1,
+    statsText2
+  )
+}
+
+pptAddSectionHead <- function(
+    title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_sectionHead(
+    officer_ppt
+    , title
+  )
+}
+
+
+
+```
+
+```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("genericPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+# layout_properties(ppt, layout="Title Slide")
+
+subText <- "PSC properties"
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "AGG_LBN_decayTimes"
+  , addDate = TRUE
+)
+```
+
+```{r}
+max100PerCell_v1Res$amplitude$plots$cumulativeFreqPlot
+slideTitle <- "Amplitude, max 100 version 1 (no decimation)"
+pptAddOneGraph()
+
+max100PerCell_v1_decimate1Res$amplitude$plots$cumulativeFreqPlot
+slideTitle <- "Amplitude, max 100 version 1, decimate version 1"
+pptAddOneGraph()
+
+max100PerCell_v1_decimate2Res$amplitude$plots$cumulativeFreqPlot
+slideTitle <- "Amplitude, max 100 version 1, decimate version 2"
+pptAddOneGraph()
+max100PerCell_v1_decimate3Res$amplitude$plots$cumulativeFreqPlot
+slideTitle <- "Amplitude, max 100 version 1, decimate version 3"
+pptAddOneGraph()
+max100PerCell_v1_decimate4Res$amplitude$plots$cumulativeFreqPlot
+slideTitle <- "Amplitude, max 100 version 1, decimate version 4"
+pptAddOneGraph()
+max100PerCell_v1_decimate5Res$amplitude$plots$cumulativeFreqPlot
+slideTitle <- "Amplitude, max 100 version 1, decimate version 5"
+pptAddOneGraph()
+max100PerCell_v1_decimate6Res$amplitude$plots$cumulativeFreqPlot
+slideTitle <- "Amplitude, max 100 version 1, decimate version 6"
+pptAddOneGraph()
+```
+Density plots from all data
+```{r}
+allEventsRes$amplitude$plots$densityPlot
+slideTitle <- "Amplitude density plot, restricted x axis"
+pptAddOneGraph()
+allEventsRes$amplitude$plots$fullDensityPlot
+slideTitle <- "Amplitude density plot, full x axis"
+pptAddOneGraph()
+
+allEventsRes$riseTime$plots$densityPlot
+slideTitle <- "Rise time density plot, restricted x axis"
+pptAddOneGraph()
+allEventsRes$riseTime$plots$fullDensityPlot
+slideTitle <- "Rise time density plot, full x axis"
+pptAddOneGraph()
+
+allEventsRes$decayTime$plots$densityPlot
+slideTitle <- "Decay time density plot, restricted x axis"
+pptAddOneGraph()
+allEventsRes$decayTime$plots$fullDensityPlot
+slideTitle <- "Decay time density plot, full x axis"
+pptAddOneGraph()
+
+allEventsRes$fwhm$plots$densityPlot
+slideTitle <- "FWHM density plot, restricted x axis"
+pptAddOneGraph()
+allEventsRes$fwhm$plots$fullDensityPlot
+slideTitle <- "FWHM density plot, full x axis"
+pptAddOneGraph()
+```
+
+# Bootstrap presentation
+
+```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("genericPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+# layout_properties(ppt, layout="Title Slide")
+
+subText <- "Bootstrapping of PSC properties"
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "AGG_LBN_bootstrap"
+  , addDate = TRUE
+)
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCell10$plots$amplitude +
+  coord_cartesian(ylim = c(0, 60))
+slideTitle <- "Amplitude; 2000 bootstrap iterations with a maximum of 10 events per cell"
+ppt <- pptAddOneGraph()
+bootstrapRes_iterations2000_maxPerCell50$plots$amplitude +
+  coord_cartesian(ylim = c(0, 60))
+slideTitle <- "Amplitude; 2000 bootstrap iterations with a maximum of 50 events per cell"
+ppt <- pptAddOneGraph()
+bootstrapRes_iterations2000_maxPerCell100$plots$amplitude +
+  coord_cartesian(ylim = c(0, 60))
+slideTitle <- "Amplitude; 2000 bootstrap iterations with a maximum of 100 events per cell"
+ppt <- pptAddOneGraph()
+bootstrapRes_iterations2000_maxPerCellNone$plots$amplitude +
+  coord_cartesian(ylim = c(0, 60))
+slideTitle <- "Amplitude; 2000 bootstrap iterations all events (no max per cell)"
+ppt <- pptAddOneGraph()
+```
+```{r}
+bootstrapRes_iterations2000_maxPerCell10$plots$riseTime +
+  coord_cartesian(ylim = c(0, 1.2))  
+slideTitle <- "Rise time; 2000 bootstrap iterations with a maximum of 10 events per cell"
+ppt <- pptAddOneGraph()
+bootstrapRes_iterations2000_maxPerCell50$plots$riseTime +
+  coord_cartesian(ylim = c(0, 1.2))  
+slideTitle <- "Rise time; 2000 bootstrap iterations with a maximum of 50 events per cell"
+ppt <- pptAddOneGraph()
+bootstrapRes_iterations2000_maxPerCell100$plots$riseTime +
+  coord_cartesian(ylim = c(0, 1.2))  
+slideTitle <- "Rise time; 2000 bootstrap iterations with a maximum of 100 events per cell"
+ppt <- pptAddOneGraph()
+bootstrapRes_iterations2000_maxPerCellNone$plots$riseTime +
+  coord_cartesian(ylim = c(0, 1.2))  
+slideTitle <- "Rise time; 2000 bootstrap iterations all events (no max per cell)"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCell10$plots$decayTime +
+  coord_cartesian(ylim = c(0, 40))  
+slideTitle <- "Decay time; 2000 bootstrap iterations with a maximum of 10 events per cell"
+ppt <- pptAddOneGraph()
+bootstrapRes_iterations2000_maxPerCell50$plots$decayTime +
+  coord_cartesian(ylim = c(0, 40))  
+slideTitle <- "Decay time; 2000 bootstrap iterations with a maximum of 50 events per cell"
+ppt <- pptAddOneGraph()
+bootstrapRes_iterations2000_maxPerCell100$plots$decayTime +
+  coord_cartesian(ylim = c(0, 40))  
+slideTitle <- "Decay time; 2000 bootstrap iterations with a maximum of 100 events per cell"
+ppt <- pptAddOneGraph()
+bootstrapRes_iterations2000_maxPerCellNone$plots$decayTime +
+  coord_cartesian(ylim = c(0, 40))  
+slideTitle <- "Decay time; 2000 bootstrap iterations all events (no max per cell)"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCell10$plots$fwhm +
+  coord_cartesian(ylim = c(0, 10))  
+slideTitle <- "FWHM; 2000 bootstrap iterations with a maximum of 10 events per cell"
+ppt <- pptAddOneGraph()
+bootstrapRes_iterations2000_maxPerCell50$plots$fwhm +
+  coord_cartesian(ylim = c(0, 10))  
+slideTitle <- "FWHM; 2000 bootstrap iterations with a maximum of 50 events per cell"
+ppt <- pptAddOneGraph()
+bootstrapRes_iterations2000_maxPerCell100$plots$fwhm +
+  coord_cartesian(ylim = c(0, 10))  
+slideTitle <- "FWHM; 2000 bootstrap iterations with a maximum of 100 events per cell"
+ppt <- pptAddOneGraph()
+bootstrapRes_iterations2000_maxPerCellNone$plots$fwhm +
+  coord_cartesian(ylim = c(0, 10))  
+slideTitle <- "FWHM; 2000 bootstrap iterations all events (no max per cell)"
+ppt <- pptAddOneGraph()
+```
+
+
+```{r}
+max100PerCell_v1Res$amplitude$plots$cumulativeFreqPlot
+slideTitle <- "Amplitude, 100 events per cell"
+ppt <- pptAddOneGraph()
+max100PerCell_v1Res$riseTime$plots$cumulativeFreqPlot
+slideTitle <- "Rise time, 100 events per cell"
+ppt <- pptAddOneGraph()
+max100PerCell_v1Res$decayTime$plots$cumulativeFreqPlot
+slideTitle <- "Decay time, 100 events per cell"
+ppt <- pptAddOneGraph()
+max100PerCell_v1Res$fwhm$plots$cumulativeFreqPlot
+slideTitle <- "FWHM, 100 events per cell"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+allEventsRes$amplitude$plots$cumulativeFreqPlot
+slideTitle <- "Amplitude, all events"
+ppt <- pptAddOneGraph()
+allEventsRes$riseTime$plots$cumulativeFreqPlot
+slideTitle <- "Rise time, all events"
+ppt <- pptAddOneGraph()
+allEventsRes$decayTime$plots$cumulativeFreqPlot
+slideTitle <- "Decay time, all events"
+ppt <- pptAddOneGraph()
+allEventsRes$fwhm$plots$cumulativeFreqPlot
+slideTitle <- "FWHM, all events"
+ppt <- pptAddOneGraph()
+```
+
+Density plots from all data
+```{r}
+allEventsRes$amplitude$plots$densityPlot
+slideTitle <- "Amplitude density plot, restricted x axis"
+pptAddOneGraph()
+allEventsRes$amplitude$plots$fullDensityPlot
+slideTitle <- "Amplitude density plot, full x axis"
+pptAddOneGraph()
+
+allEventsRes$riseTime$plots$densityPlot
+slideTitle <- "Rise time density plot, restricted x axis"
+pptAddOneGraph()
+allEventsRes$riseTime$plots$fullDensityPlot
+slideTitle <- "Rise time density plot, full x axis"
+pptAddOneGraph()
+
+allEventsRes$decayTime$plots$densityPlot
+slideTitle <- "Decay time density plot, restricted x axis"
+pptAddOneGraph()
+allEventsRes$decayTime$plots$fullDensityPlot
+slideTitle <- "Decay time density plot, full x axis"
+pptAddOneGraph()
+
+allEventsRes$fwhm$plots$densityPlot
+slideTitle <- "FWHM density plot, restricted x axis"
+pptAddOneGraph()
+allEventsRes$fwhm$plots$fullDensityPlot
+slideTitle <- "FWHM density plot, full x axis"
+pptAddOneGraph()
+```
+
+# Interval
+
+```{r}
+allEventsRes_int <- pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  fourWayAD(
+    interval
+    , "interval (s)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+  )
+
+allEventsRes_int$plots$cumulativeFreqPlot
+```
+
+## 100 per cell
+```{r}
+set.seed(28)
+pscInt_100perCell_v1 <- pscInt %>%
+  group_by(
+    cellID
+  ) %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  slice_sample(n = 100) %>%
+  ungroup()
+```
+
+```{r}
+max100PerCell_v1Res_int <- pscInt_100perCell_v1 %>%
+  fourWayAD(
+    interval
+    , "interval (s)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+  )
+
+max100PerCell_v1Res_int$plots$cumulativeFreqPlot
+```
+
+## 200 per cell
+```{r}
+set.seed(28)
+pscInt_200perCell_v1 <- pscInt %>%
+  group_by(
+    cellID
+  ) %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  slice_sample(n = 200) %>%
+  ungroup()
+```
+
+```{r}
+max200PerCell_v1Res_int <- pscInt_200perCell_v1 %>%
+  fourWayAD(
+    interval
+    , "interval (s)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+  )
+
+max200PerCell_v1Res_int$plots$cumulativeFreqPlot
+```
+
+## 300 per cell
+```{r}
+set.seed(28)
+pscInt_300perCell_v1 <- pscInt %>%
+  group_by(
+    cellID
+  ) %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  slice_sample(n = 300) %>%
+  ungroup()
+```
+
+```{r}
+max300PerCell_v1Res_int <- pscInt_300perCell_v1 %>%
+  fourWayAD(
+    interval
+    , "interval (s)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+  )
+
+max300PerCell_v1Res_int$plots$cumulativeFreqPlot
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCell100_int <-  pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  analyzeBootstrapResults(nBootstrap = 2000, maxPerCell = 100, setSeed = 123, forInterval = TRUE)
+```
+```{r}
+bootstrapRes_iterations2000_maxPerCell200_int <-  pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  analyzeBootstrapResults(nBootstrap = 2000, maxPerCell = 200, setSeed = 123, forInterval = TRUE)
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCell300_int <-  pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  analyzeBootstrapResults(nBootstrap = 2000, maxPerCell = 300, setSeed = 123, forInterval = TRUE)
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCellNone_int <-  pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  analyzeBootstrapResults(nBootstrap = 2000, maxPerCell = NULL, setSeed = 123, forInterval = TRUE)
+```
+
+
+# 2024-03-07: All Events
+
+## Anderson-Darling
+
+results output grouped by property
+
+then $ to access within
+ - adTest: output from 4way AD
+ - pVal: pVal from version 1
+ - plots: 
+  - cumulativeFreqPlot: cumulative frequency (limited x dist)
+  - fullCumulativeFreqPlot: cumulative frequency (full x dist)
+  - cumulativeFreqPlot_log: cumulative frequency x on log scale
+  - densityPlot: density plot (limited x dist)
+  - densityPlot_log: density plot x on log scale
+  - plotByCell_log: distribution of each cell's events on the log scale, colored by quartile
+ - vectors: 
+  - SC: Standard control vector
+  - SA: Standard ALPS vector
+  - LC: LBN control vector
+  - LA: LBN ALPS vector
+
+```{r}
+allEventsRes <- runFourWayAD_allProps(pscProps)
+
+allEventsRes$amplitude$adTest
+allEventsRes$riseTime$adTest
+allEventsRes$decayTime$adTest
+allEventsRes$fwhm$adTest
+
+allEventsRes$amplitude$plots$cumulativeFreqPlot
+allEventsRes$riseTime$plots$cumulativeFreqPlot
+allEventsRes$decayTime$plots$cumulativeFreqPlot
+allEventsRes$fwhm$plots$cumulativeFreqPlot
+```
+
+## Bootstrap
+
+```{r}
+bootstrapRes_iterations100_maxPerCellNone <- pscProps %>%
+  analyzeBootstrapResults(
+    nBootstrap = 100
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+  )
+
+bootstrapRes_iterations100_maxPerCellNone$diffsCI %>%
+  group_by(
+    variable
+  ) %>%
+  adjust_pvalue(p.col = "p.value", method = "holm")
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCellNone <- pscProps %>%
+  analyzeBootstrapResults(
+    nBootstrap = 2000
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+  )
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCellNone$diffsCI %>%
+  group_by(
+    variable
+  ) %>%
+  mutate(
+    mult2.p.value = p.value * 2
+  ) %>%
+  adjust_pvalue(p.col = "mult2.p.value", method = "holm") %>%
+  rename(
+    p = p.value
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p.value = p
+    , p = mult2.p.value
+  ) %>%
+  formatPCol() %>%
+  rename(
+    mult2.p.value = p
+    , p = mult2.p.value.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    mult2.p.value.adj = p
+  ) %>%
+  select(
+    -bothSameDir
+  ) %>%
+  rename(
+    p = p.value
+    , mult.p = mult2.p.value
+    , adj.p = mult2.p.value.adj
+  ) %>%
+  makeManuscriptFlexTable(
+    vertMergeCols = "variable"
+    , round2Cols = c("meanDiff", "lowerCIDiff", "upperCIDiff", "minDiff", "maxDiff")
+    , horzLines = c(6, 12, 18)
+  )
+```
+
+
+```{r}
+bootstrapRes_iterations5000_maxPerCellNone <- pscProps %>%
+  analyzeBootstrapResults(
+    nBootstrap = 5000
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+  )
+```
+
+```{r}
+bootstrapRes_iterations5000_maxPerCellNone$diffsCI %>%
+  group_by(
+    variable
+  ) %>%
+  mutate(
+    mult2.p.value = p.value * 2
+  ) %>%
+  adjust_pvalue(p.col = "mult2.p.value", method = "holm") %>%
+  rename(
+    p = p.value
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p.value = p
+    , p = mult2.p.value
+  ) %>%
+  formatPCol() %>%
+  rename(
+    mult2.p.value = p
+    , p = mult2.p.value.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    mult2.p.value.adj = p
+  ) %>%
+  select(
+    -bothSameDir
+  ) %>%
+  rename(
+    p = p.value
+    , mult.p = mult2.p.value
+    , adj.p = mult2.p.value.adj
+  ) %>%
+  makeManuscriptFlexTable(
+    vertMergeCols = "variable"
+    , round2Cols = c("meanDiff", "lowerCIDiff", "upperCIDiff", "minDiff", "maxDiff")
+    , horzLines = c(6, 12, 18)
+  )
+```
+
+
+```{r}
+bootstrapRes_iterations2000_maxPerCellNone$errors$amplitude %>%
+  plotBootstrapErrors_xAxis(
+    xLab = "amplitude"
+    # , zoom_x = TRUE
+    # , xmin 
+  )
+```
+
+
+```{r}
+bootstrapRes_iterations2000_maxPerCellNone$distPlots
+bootstrapRes_iterations5000_maxPerCellNone$distPlots
+```
+```{r}
+flexSave(
+  "figDistPlots_bootstrap"
+  # , plot = bootstrapRes_iterations2000_maxPerCellNone$distPlots
+  , plot = bootstrapRes_iterations5000_maxPerCellNone$distPlots
+  , filePath = manuscriptFolder
+  , width = twoCols
+  , height = fullLength
+  , units = "cm"
+)
+```
+
+```{r}
+dist_fullX <- plot_grid(
+  bootstrapRes_iterations5000_maxPerCellNone$cumulativeFreqPlots_full$amplitude +
+    theme(
+      axis.title.y = element_blank()
+      , axis.title.x = element_blank()
+      , legend.position = "none"
+    )
+  , bootstrapRes_iterations5000_maxPerCellNone$cumulativeFreqPlots_full$riseTime +
+    theme(
+      axis.title.y = element_blank()
+      , axis.title.x = element_blank()
+      , legend.position = "none"
+    )
+  , bootstrapRes_iterations5000_maxPerCellNone$cumulativeFreqPlots_full$decayTime +
+    theme(
+      axis.title.y = element_blank()
+      , axis.title.x = element_blank()
+      , legend.position = "none"
+    )
+  , bootstrapRes_iterations5000_maxPerCellNone$cumulativeFreqPlots_full$fwhm +
+    theme(
+      axis.title.y = element_blank()
+      , axis.title.x = element_blank()
+      , legend.position = "none"
+    )
+  , align = "hv"
+  , axis = "tlbr"
+  , ncol = 2
+)
+```
+
+```{r}
+flexSave(
+  "figDist_inset"
+  , plot = dist_fullX
+  , filePath = manuscriptFolder
+  , width = twoCols/2
+  , height = fullLength/3.1
+  , units = "cm"
+)
+```
+
+```{r}
+bootstrapRes_iterations2000_maxPerCellNone$plots
+```
+
+
+```{r}
+bootstrapRes_iterations2000_maxPerCellNone$diffsCI
+```
+
+
+```{r}
+bootstrapRes_iterations2000_maxPerCellNone$compDiffs %>%
+  group_by(
+    variable
+  ) %>%
+  adjust_pvalue(p.col = "p.value", method = "holm") %>%
+  filter(
+    p.value.adj <0.05
+  )
+```
+
+```{r}
+allEventsRes$pVals
+```
+
+
+```{r}
+getAD_Pval <- function(result, version = 1){
+  tbl <- result$ad
+  tbl_tibble <- tbl %>% as.tibble()
+  p_val <- tbl_tibble$` asympt. P-value`[[version]]
+  return(p_val)
+}
+
+dist_pairwise <- function(adRes, variable, isInt = FALSE){
+  if(!isInt){
+    vectorList <- adRes[[variable]]$vectors
+  } else{
+    vectorList <- adRes$vectors
+  }
+  ks_SCvSA <- ks.test(vectorList$SC, vectorList$SA)
+  ks_SCvLC <- ks.test(vectorList$SC, vectorList$LC)
+  ks_SCvLA <- ks.test(vectorList$SC, vectorList$LA)
+  ks_LCvSA <- ks.test(vectorList$LC, vectorList$SA)
+  ks_LCvLA <- ks.test(vectorList$LC, vectorList$LA)
+  ks_LAvSA <- ks.test(vectorList$LA, vectorList$SA)
+  
+  KS_res <- adjust_pvalue(
+    data.frame(
+      "comp" = c(
+        "STD-CON vs STD-ALPS"
+        , "STD-CON vs LBN-CON"
+        , "STD-CON vs LBN-ALPS"
+        , "STD-ALPS vs LBN-CON"
+        , "LBN-CON vs LBN-ALPS"
+        , "STD-ALPS vs LBN-ALPS"
+      )
+      , "p" = c(
+        ks_SCvSA$p.value
+        , ks_SCvLC$p.value
+        , ks_SCvLA$p.value
+        , ks_LCvSA$p.value
+        , ks_LCvLA$p.value
+        , ks_LAvSA$p.value
+      )
+    )
+    , p.col = "p"
+    , method = "holm"
+  ) %>%
+    formatPCol() %>%
+    rename(
+      orgP = p
+      , p = p.adj
+    ) %>%
+    formatPCol() %>%
+    rename(
+      p = orgP
+      , `holm adj p` = p
+    )
+  
+  ad_SCvSA <- ad.test(vectorList$SC, vectorList$SA)
+  ad_SCvLC <- ad.test(vectorList$SC, vectorList$LC)
+  ad_SCvLA <- ad.test(vectorList$SC, vectorList$LA)
+  ad_LCvSA <- ad.test(vectorList$LC, vectorList$SA)
+  ad_LCvLA <- ad.test(vectorList$LC, vectorList$LA)
+  ad_LAvSA <- ad.test(vectorList$LA, vectorList$SA)
+  
+  AD_res <- adjust_pvalue(
+    data.frame(
+      "comp" = c(
+        "STD-CON vs STD-ALPS"
+        , "STD-CON vs LBN-CON"
+        , "STD-CON vs LBN-ALPS"
+        , "STD-ALPS vs LBN-CON"
+        , "LBN-CON vs LBN-ALPS"
+        , "STD-ALPS vs LBN-ALPS"
+      )
+      , "p" = c(
+        getAD_Pval(ad_SCvSA)
+        , getAD_Pval(ad_SCvLC)
+        , getAD_Pval(ad_SCvLA)
+        , getAD_Pval(ad_LCvSA)
+        , getAD_Pval(ad_LCvLA)
+        , getAD_Pval(ad_LAvSA)
+      )
+    )
+    , p.col = "p"
+    , method = "holm"
+  ) %>%
+    formatPCol() %>%
+    rename(
+      orgP = p
+      , p = p.adj
+    ) %>%
+    formatPCol() %>%
+    rename(
+      p = orgP
+      , `holm adj p` = p
+    )
+  
+  joinedRes <- KS_res %>%
+    left_join(
+      AD_res
+      , by = "comp"
+      , suffix = c(".KS", ".AD")
+    )
+  
+  return(list(
+    "KS" = KS_res
+    , "AD" = AD_res
+    , "joinedRes" = joinedRes
+  ))
+}
+```
+
+```{r}
+allEventsDistTestPs_amplitude <- dist_pairwise(allEventsRes, "amplitude")
+allEventsDistTestPs_riseTime <- dist_pairwise(allEventsRes, "riseTime")
+allEventsDistTestPs_decayTime <- dist_pairwise(allEventsRes, "decayTime")
+allEventsDistTestPs_fwhm <- dist_pairwise(allEventsRes, "fwhm")
+```
+
+```{r}
+bootstrapPvalues <- bootstrapRes_iterations5000_maxPerCellNone$diffsCI %>%
+  group_by(
+    variable
+  ) %>%
+  mutate(
+    mult2.p.value = p.value * 2
+  ) %>%
+  adjust_pvalue(p.col = "mult2.p.value", method = "holm") %>%
+  rename(
+    p = p.value
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p.value = p
+    , p = mult2.p.value
+  ) %>%
+  formatPCol() %>%
+  rename(
+    mult2.p.value = p
+    , p = mult2.p.value.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    mult2.p.value.adj = p
+  ) %>%
+  select(
+    -bothSameDir, p.value
+  ) %>%
+  rename(
+    p = mult2.p.value
+    , `Holm adj p` = mult2.p.value.adj
+  )
+```
+
+```{r}
+allEventsDistTestPs <- bind_rows(list(
+  "amplitude" = allEventsDistTestPs_amplitude$joinedRes
+  , "riseTime" = allEventsDistTestPs_riseTime$joinedRes
+  , "decay9010" = allEventsDistTestPs_decayTime$joinedRes
+  , "fwhm" = allEventsDistTestPs_fwhm$joinedRes
+), .id = "variable")
+```
+
+
+```{r}
+bootstrapComparisons <- bootstrapPvalues %>%
+  mutate(
+    comp = case_when(
+      comparison == "STD_ALPSvLBN_CON" ~ "STD-ALPS vs LBN-CON"
+      , comparison == "STD_CONvLBN_ALPS" ~ "STD-CON vs LBN-ALPS"
+      , comparison == "alpsSTDvLBN" ~ "STD-ALPS vs LBN-ALPS"
+      , comparison == "conSTDvLBN" ~ "STD-CON vs LBN-CON"
+      , comparison == "lbnCONvALPS" ~ "LBN-CON vs LBN-ALPS"
+      , comparison == "stdCONvALPS" ~ "STD-CON vs STD-ALPS"
+    )
+  ) %>%
+  rename(
+    p.boot = p
+    , `Holm adj p.boot` = `Holm adj p`
+  ) %>%
+  select(
+    variable
+    , comp
+    , meanDiff
+    , lowerCIDiff
+    , upperCIDiff
+    , p.boot
+    , `Holm adj p.boot`
+  )
+```
+
+```{r}
+allPs <- bootstrapComparisons %>%
+  left_join(
+    allEventsDistTestPs
+    , by = c("variable", "comp")
+  ) %>%
+  mutate(
+    meanDiff = roundDecimals(meanDiff, 2)
+    , `95%CI` = paste0("[", roundDecimals(lowerCIDiff, 2), ", ", roundDecimals(upperCIDiff, 2), "]")
+    , .after = meanDiff
+  ) %>%
+  select(
+    -lowerCIDiff, -upperCIDiff
+  ) 
+```
+
+```{r}
+allPs_flexTable <- allPs %>%
+  mutate(
+    variable = factor(variable, levels = c("amplitude", "riseTime", "decay9010", "fwhm"))
+  ) %>%
+  arrange(
+    variable
+  ) %>%
+  makeManuscriptFlexTable(
+    vertLines = c(2, 6, 8)
+    , horzLines = c(6, 12, 18)
+    , vertMergeCols = "variable"
+  )
+
+allPs_flexTable
+
+doc <- addTableAndCaptionToDoc(allPs_flexTable, "", 1, doc)
+
+print(doc, "./distributionPvalues.docx")
+```
+
+
+```{r}
+allPs %>%
+  filter(
+    variable == "amplitude"
+  )
+allPs %>%
+  filter(
+    variable == "riseTime"
+  )
+allPs %>%
+  filter(
+    variable == "decay9010"
+  )
+allPs %>%
+  filter(
+    variable == "fwhm"
+  )
+```
+## Interval
+
+### AD tests
+
+```{r}
+allEventsRes_int <- pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  fourWayAD(
+    interval
+    , "interval (s)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+  )
+
+allEventsRes_int$plots$cumulativeFreqPlot
+```
+
+```{r}
+allEventsRes_int$adTest
+
+allEventsRes_int_pvals <- dist_pairwise(allEventsRes_int, "amplitude", isInt = TRUE)
+```
+
+### BS tests, all events
+
+```{r}
+bootstrapRes_int_iterations5000_maxPerCellNone <- pscInt %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  analyzeBootstrapResults(
+    nBootstrap = 5000
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+    , forInterval = TRUE
+  )
+```
+
+```{r}
+bootstrapInt_pvalues <- bootstrapRes_int_iterations5000_maxPerCellNone$diffsCI %>%
+  group_by(
+    variable
+  ) %>%
+  mutate(
+    mult2.p.value = p.value * 2
+  ) %>%
+  adjust_pvalue(p.col = "mult2.p.value", method = "holm") %>%
+  rename(
+    p = p.value
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p.value = p
+    , p = mult2.p.value
+  ) %>%
+  formatPCol() %>%
+  rename(
+    mult2.p.value = p
+    , p = mult2.p.value.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    mult2.p.value.adj = p
+  ) %>%
+  select(
+    -bothSameDir, p.value
+  ) %>%
+  rename(
+    p = mult2.p.value
+    , `Holm adj p` = mult2.p.value.adj
+  )
+
+bootstrapInt_comparisons <- bootstrapInt_pvalues %>%
+  mutate(
+    comp = case_when(
+      comparison == "STD_ALPSvLBN_CON" ~ "STD-ALPS vs LBN-CON"
+      , comparison == "STD_CONvLBN_ALPS" ~ "STD-CON vs LBN-ALPS"
+      , comparison == "alpsSTDvLBN" ~ "STD-ALPS vs LBN-ALPS"
+      , comparison == "conSTDvLBN" ~ "STD-CON vs LBN-CON"
+      , comparison == "lbnCONvALPS" ~ "LBN-CON vs LBN-ALPS"
+      , comparison == "stdCONvALPS" ~ "STD-CON vs STD-ALPS"
+    )
+  ) %>%
+  rename(
+    p.boot = p
+    , `Holm adj p.boot` = `Holm adj p`
+  ) %>%
+  select(
+    variable
+    , comp
+    , meanDiff
+    , lowerCIDiff
+    , upperCIDiff
+    , p.boot
+    , `Holm adj p.boot`
+  )
+```
+
+```{r}
+allPs_int <- bootstrapInt_comparisons %>%
+  left_join(
+    allEventsRes_int_pvals$joinedRes %>%
+      mutate(
+        variable = "interval"
+      )
+    , by = c("variable", "comp")
+  ) %>%
+  mutate(
+    meanDiff = roundDecimals(meanDiff, 2)
+    , `95%CI` = paste0("[", roundDecimals(lowerCIDiff, 2), ", ", roundDecimals(upperCIDiff, 2), "]")
+    , .after = meanDiff
+  ) %>%
+  select(
+    -lowerCIDiff, -upperCIDiff
+  ) 
+```
+
+```{r}
+allPs_int_flexTable <- allPs_int %>%
+  makeManuscriptFlexTable(
+    vertLines = c(2, 6, 8)
+    , vertMergeCols = c("variable")
+  )
+allPs_int_flexTable
+
+doc <- addTableAndCaptionToDoc(allPs_int_flexTable, "", 2, doc)
+```
+
+```{r}
+bootstrapRes_int_iterations5000_maxPerCellNone$plots
+```
+```{r}
+intPlot <- plot_grid(
+  bootstrapRes_int_iterations5000_maxPerCellNone$errorPlots$interval +
+    coord_cartesian(xlim = c(0, 10))
+  , bootstrapRes_int_iterations5000_maxPerCellNone$cumulativeFreqPlots$interval +
+    coord_cartesian(xlim = c(0, 10))
+  , align = "v"
+  , axis = "lr"
+  , rel_heights = c(0.4, 1)
+  , nrow = 2
+)
+```
+
+```{r}
+flexSave(
+  "figDist_int"
+  , plot = intPlot
+  , filePath = manuscriptFolder
+  , width = twoCols/2
+  , height = fullLength/2
+  , units = "cm"
+)
+```
+
+
+
+```{r}
+flexSave(
+  "figDist_int_full"
+  , plot = bootstrapRes_int_iterations5000_maxPerCellNone$cumulativeFreqPlots_full$interval +
+    theme(
+      axis.title.y = element_blank()
+      , axis.title.x = element_blank()
+      , legend.position = "none"
+    )
+  , filePath = manuscriptFolder
+  , width = twoCols/2/2
+  , height = fullLength/3.1/2
+  , units = "cm"
+)
+
+```
+
+
+```{r}
+bootstrapRes_int_iterations5000_maxPerCellNone$cumulativeFreqPlots_full$interval
+```
+
+### AD tests - not high freq
+
+```{r}
+GABApscs_240 %>%
+  filter(
+    frequency > 5
+  ) 
+```
+
+
+```{r}
+allEventsRes_int_noHighFreq <- pscInt %>%
+  filter(
+    !is.na(interval)
+    , ! cellID %in% c("20220306f")
+  ) %>%
+  fourWayAD(
+    interval
+    , "interval (s)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+  )
+
+allEventsRes_int_noHighFreq$plots$cumulativeFreqPlot
+```
+
+```{r}
+allEventsRes_int_noHighFreq$adTest
+
+allEventsRes_int_noHighFreq_pvals <- dist_pairwise(allEventsRes_int_noHighFreq, "amplitude", isInt = TRUE)
+```
+
+### BS tests - not high freq
+
+```{r}
+bootstrapRes_int_noHighFreq_iterations5000_maxPerCellNone <- pscInt %>%
+  filter(
+    !is.na(interval)
+    , cellID != "20220306f"
+  ) %>%
+  analyzeBootstrapResults(
+    nBootstrap = 5000
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+    , forInterval = TRUE
+  )
+```
+
+```{r}
+bootstrapInt_noHighFreq_pvalues <- bootstrapRes_int_noHighFreq_iterations5000_maxPerCellNone$diffsCI %>%
+  group_by(
+    variable
+  ) %>%
+  mutate(
+    mult2.p.value = p.value * 2
+  ) %>%
+  adjust_pvalue(p.col = "mult2.p.value", method = "holm") %>%
+  rename(
+    p = p.value
+  ) %>%
+  formatPCol() %>%
+  rename(
+    p.value = p
+    , p = mult2.p.value
+  ) %>%
+  formatPCol() %>%
+  rename(
+    mult2.p.value = p
+    , p = mult2.p.value.adj
+  ) %>%
+  formatPCol() %>%
+  rename(
+    mult2.p.value.adj = p
+  ) %>%
+  select(
+    -bothSameDir, p.value
+  ) %>%
+  rename(
+    p = mult2.p.value
+    , `Holm adj p` = mult2.p.value.adj
+  )
+
+bootstrapInt_noHighFreq_comparisons <- bootstrapInt_noHighFreq_pvalues %>%
+  mutate(
+    comp = case_when(
+      comparison == "STD_ALPSvLBN_CON" ~ "STD-ALPS vs LBN-CON"
+      , comparison == "STD_CONvLBN_ALPS" ~ "STD-CON vs LBN-ALPS"
+      , comparison == "alpsSTDvLBN" ~ "STD-ALPS vs LBN-ALPS"
+      , comparison == "conSTDvLBN" ~ "STD-CON vs LBN-CON"
+      , comparison == "lbnCONvALPS" ~ "LBN-CON vs LBN-ALPS"
+      , comparison == "stdCONvALPS" ~ "STD-CON vs STD-ALPS"
+    )
+  ) %>%
+  rename(
+    p.boot = p
+    , `Holm adj p.boot` = `Holm adj p`
+  ) %>%
+  select(
+    variable
+    , comp
+    , meanDiff
+    , lowerCIDiff
+    , upperCIDiff
+    , p.boot
+    , `Holm adj p.boot`
+  )
+```
+
+```{r}
+allPs_int_noHighFreq <- bootstrapInt_noHighFreq_comparisons %>%
+  left_join(
+    allEventsRes_int_noHighFreq_pvals$joinedRes %>%
+      mutate(
+        variable = "interval"
+      )
+    , by = c("variable", "comp")
+  ) %>%
+  mutate(
+    meanDiff = roundDecimals(meanDiff, 2)
+    , `95%CI` = paste0("[", roundDecimals(lowerCIDiff, 2), ", ", roundDecimals(upperCIDiff, 2), "]")
+    , .after = meanDiff
+  ) %>%
+  select(
+    -lowerCIDiff, -upperCIDiff
+  ) 
+```
+
+```{r}
+allPs_int_noHighFreq_flexTable <- allPs_int_noHighFreq %>%
+  makeManuscriptFlexTable(
+    vertLines = c(2, 6, 8)
+    , vertMergeCols = c("variable")
+  )
+allPs_int_noHighFreq_flexTable
+```
+
+```{r}
+bootstrapRes_int_noHighFreq_iterations5000_maxPerCellNone$plots
+bootstrapRes_int_iterations5000_maxPerCellNone$plots
+
+bootstrapRes_int_noHighFreq_iterations5000_maxPerCellNone$meansCI
+bootstrapRes_int_iterations5000_maxPerCellNone$meansCI
+```
+```{r}
+plot_grid(
+  bootstrapRes_int_noHighFreq_iterations5000_maxPerCellNone$errorPlots$interval +
+    coord_cartesian(xlim = c(0, 10))
+  , bootstrapRes_int_noHighFreq_iterations5000_maxPerCellNone$cumulativeFreqPlots$interval +
+    coord_cartesian(xlim = c(0, 10))
+  , align = "v"
+  , axis = "lr"
+  , nrow = 2
+)
+```
+
+
+```{r}
+bootstrapRes_int_noHighFreq_iterations5000_maxPerCellNone$cumulativeFreqPlots_full$interval
+```
+
+
+
+
+

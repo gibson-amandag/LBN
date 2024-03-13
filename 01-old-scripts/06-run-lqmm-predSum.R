@@ -60,9 +60,9 @@ getLQMMpredictions <- function(
 simplifyQuartileOutput <- function(df # just one quartile
 ){
   df %>%
-    subEarlyLifeTrtInRowNames_quartile() %>%
-    subAdultTrtInRowNames_quartile() %>%
-    subColonInRowNames() %>%
+    # subEarlyLifeTrtInRowNames_quartile() %>%
+    # subAdultTrtInRowNames_quartile() %>%
+    # subColonInRowNames() %>%
     as.data.frame() %>%
     rownames_to_column(var = "fixed effect") %>%
     rename(
