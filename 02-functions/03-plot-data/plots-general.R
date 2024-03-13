@@ -319,7 +319,7 @@ scatterPlotComboTrt <- function(
     viz <- df %>%
       ggplot(
         aes(
-          x = {{ xVar }}
+          x = comboTrt
           , y = {{ yVar }}
           , shape = comboTrt
           , color = comboTrt
@@ -329,7 +329,7 @@ scatterPlotComboTrt <- function(
     viz <- df %>%
       ggplot(
         aes(
-          x = {{ xVar }}
+          x = comboTrt
           , y = {{ yVar }}
           , fill = comboTrt
           , shape = comboTrt

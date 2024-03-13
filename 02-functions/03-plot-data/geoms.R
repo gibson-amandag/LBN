@@ -78,8 +78,8 @@ jitterGeom_shapeAes <- function(
 }
 
 addMeanHorizontalBar <- function(
-  width = 0.7,
-  size = 0.4,
+  width = 0.9,
+  size = 0.6,
   addLineType = FALSE,
   lineTypeName = "early life trt",
   lineTypeGuide = c("STD" = "dotted", "LBN" = "solid"),
@@ -90,12 +90,9 @@ addMeanHorizontalBar <- function(
 ){
   if(!addLineType){
     geom <- stat_summary(
-        geom = "errorbar", 
-        fun.min = mean, 
-        fun = mean, 
-        fun.max = mean, 
+        geom = "meanbar", 
+        fun.y = mean,
         width = width,
-        # size = size,
         linewidth = size,
         position = barPosition,
         color = meanColor,
@@ -104,12 +101,9 @@ addMeanHorizontalBar <- function(
   } else{
     geom <- list(
       stat_summary(
-        geom = "errorbar", 
-        fun.min = mean, 
-        fun = mean, 
-        fun.max = mean, 
+        geom = "meanbar",
+        fun.y = mean,
         width = width,
-        # size = size,
         linewidth = size,
         position = barPosition,
         color = meanColor,
@@ -121,7 +115,7 @@ addMeanHorizontalBar <- function(
 }
 
 addMeanSE_vertBar <- function(
-  size = 0.4,
+  size = 0.6,
   barPosition = "identity",
   barColor = "black", # added 2023-11-22, possible that this will cause problems where the bar color is based on a group
   ... # into aes
@@ -145,12 +139,9 @@ addMedianHorizontalBar <- function(
   alpha = 0.7
 ){
   stat_summary(
-    geom = "errorbar", 
-    fun.min = median, 
-    fun = median, 
-    fun.max = median, 
+    geom = "meanbar",
+    fun.y = median,
     width = width,
-    # size = size,
     linewidth = size,
     color = color,
     alpha = alpha

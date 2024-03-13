@@ -476,7 +476,7 @@ plotFreqPres <- plotCatVarFunc(
 ```
 
 ```{r}
-GABApscs_240FilteredFiring %>%
+GABApscs_240FilteredPropsFreq %>%
   plotFreqPres()
 
 fileBaseName <- "GABAfreq"
@@ -494,7 +494,7 @@ plotAmpPres <- plotCatVarFunc(
 ```
 
 ```{r}
-GABApscs_240FilteredFiring %>%
+GABApscs_240FilteredPropsFreq %>%
   plotAmpPres()
 
 fileBaseName <- "GABAAmp"

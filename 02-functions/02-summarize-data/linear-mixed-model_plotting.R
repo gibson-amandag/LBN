@@ -28,11 +28,12 @@ plotError_LMM <- function(
     , nudgeMeanLine = 0
 ) {
   geoms <- list(
-    geom_errorbar(
+    geom_meanbar(
       aes(
         x = {{xVar}}
-        , ymin = y
-        , ymax = y
+        , y = y
+        # , ymax = y
+        # , ymin = NA
       )
       , data = lmmData
       , inherit.aes = FALSE
@@ -69,11 +70,10 @@ plotError_LMM_aes <- function(
     , ...
 ) {
   geoms <- list(
-    geom_errorbar(
+    geom_meanbar(
       aes(
         x = {{xVar}}
-        , ymin = y
-        , ymax = y
+        , y = y
         , ...
       )
       , data = lmmData

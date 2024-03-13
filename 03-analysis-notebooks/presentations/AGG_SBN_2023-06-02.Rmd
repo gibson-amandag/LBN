@@ -346,7 +346,7 @@ exportRow( rowWidth = 14.169
 ```
 
 ```{r}
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   filter(
     frequency > 5
   )

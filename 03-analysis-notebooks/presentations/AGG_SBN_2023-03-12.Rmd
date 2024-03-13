@@ -929,13 +929,13 @@ cortFilteredPro %>%
   )
 
 
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   anova_test(
     dv = frequency
     , between = c(earlyLifeTrt, adultTrt)
   )
 
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   anova_test(
     dv = relPeak
     , between = c(earlyLifeTrt, adultTrt)
@@ -1450,7 +1450,7 @@ holdingCurrANOVA
 GABAfreqANOVA
 GABAampANOVA
 
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   countMiceAndLitters(frequency, vars(earlyLifeTrt, adultTrt))
 ```
 

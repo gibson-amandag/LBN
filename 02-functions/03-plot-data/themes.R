@@ -162,7 +162,7 @@ comboTrtFillShape <- function(
 }
 
 comboTrtLineColor <- function(
-  STD_CON_color = "#CCCCCC",
+  STD_CON_color = "#999999",
   STD_ALPS_color = "#000000",
   LBN_CON_color = "cyan3",
   LBN_ALPS_color = "#FF0099"

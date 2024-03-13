@@ -672,17 +672,17 @@ plotGABAamp <- plotCatVarFunc(
   , dotSize = dotSize
 )
 
-capacitancePlot <- GABApscsFilteredFiring %>%
+capacitancePlot <- GABApscsFilteredPropsFreq %>%
   plotCapacitance()
-RseriesPlot <- GABApscsFilteredFiring %>%
+RseriesPlot <- GABApscsFilteredPropsFreq %>%
   plotRseries()
-RinputPlot <- GABApscsFilteredFiring %>%
+RinputPlot <- GABApscsFilteredPropsFreq %>%
   plotRinput()
-holdingCurrPlot <- GABApscsFilteredFiring %>%
+holdingCurrPlot <- GABApscsFilteredPropsFreq %>%
   plotHoldingCurr()
-GABAfreqPlot <- GABApscsFilteredFiring %>%
+GABAfreqPlot <- GABApscsFilteredPropsFreq %>%
   plotGABAfreq()
-GABAampPlot <- GABApscsFilteredFiring %>%
+GABAampPlot <- GABApscsFilteredPropsFreq %>%
   plotGABAamp()
 
 

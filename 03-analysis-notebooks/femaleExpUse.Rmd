@@ -234,7 +234,7 @@ sumDamInfo <- damInfo %>%
 
 
 ```{r}
-sumGabaInfo <- GABApscsFilteredFiring %>%
+sumGabaInfo <- GABApscsFilteredPropsFreq %>%
   addLocation() %>%
   countMiceAndLitters(
     groupingVars = vars(earlyLifeTrt, adultTrt, litterNum, moved)
@@ -242,7 +242,7 @@ sumGabaInfo <- GABApscsFilteredFiring %>%
 sumGabaInfo
 
 
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   group_by(mouseID) %>%
   summarize(
     uterineMass = ReproTract_mass

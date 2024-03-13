@@ -7556,16 +7556,16 @@ GABApscsFiltered %>%
 ```{r}
 testANOVA <- anovaComboTrtFunc(expr(capacitance), fontSize = 12)
 
-testANOVA(GABApscsFilteredFiring)
+testANOVA(GABApscsFilteredPropsFreq)
 
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   select(
     Rel
   )
 ```
 
 ```{r}
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   filter(
     is.na(adultTrt)
   )
@@ -10485,7 +10485,7 @@ damBehavior_byPND_ZT %>%
 ```
 
 ```{r}
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   scatterPlotComboTrt(
     yVar = frequency
     , yLab = "frequency"
@@ -10774,7 +10774,7 @@ damFiltered %>%
 ```
 
 ```{r}
-GABApscs_240FilteredFiring %>%
+GABApscs_240FilteredPropsFreq %>%
   plotCatVarFunc()
   scatterPlotComboTrt(
     yVar = frequency
@@ -12436,7 +12436,7 @@ figDamsC + geom_errorbar(
 ```
 
 ```{r}
-GABApscs_240FilteredFiring %>%
+GABApscs_240FilteredPropsFreq %>%
   select(
     mouseID
     , cellID
@@ -12446,14 +12446,14 @@ GABApscs_240FilteredFiring %>%
     mouseID
   )
 
-GABApscs_240FilteredFiring %>%
+GABApscs_240FilteredPropsFreq %>%
   countMiceAndLitters(groupingVars = exprs(earlyLifeTrt, adultTrt))
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   countMiceAndLitters(groupingVars = exprs(earlyLifeTrt, adultTrt))
 ```
 
 ```{r}
-GABApscs_240FilteredFiring %>%
+GABApscs_240FilteredPropsFreq %>%
   group_by(
     earlyLifeTrt
     , adultTrt
@@ -12461,7 +12461,7 @@ GABApscs_240FilteredFiring %>%
   meanSummary(
     frequency
   )
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   group_by(
     earlyLifeTrt
     , adultTrt
@@ -12472,14 +12472,14 @@ GABApscsFilteredFiring %>%
 ```
 
 ```{r}
-GABApscs_240FilteredFiring %>%
+GABApscs_240FilteredPropsFreq %>%
   plotGABAfreq()
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   plotGABAfreq()
 ```
 
 ```{r}
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   select(
     cellID
   ) %>%
@@ -12814,7 +12814,7 @@ acuteStressFilteredMales %>%
 ```
 
 ```{r}
-GABApscs_240FilteredFiring %>%
+GABApscs_240FilteredPropsFreq %>%
   countMiceAndLitters(
     groupingVars = exprs(earlyLifeTrt, adultTrt)
   )
@@ -13130,7 +13130,7 @@ saveDFsToExcel(
 ```
 
 ```{r}
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   select(
     cellID
     , mouseID
@@ -14558,7 +14558,7 @@ chisq_descriptives(surged_ChiSq) %>% flextable()
 
 ```{r}
 
-df <- GABApscsFilteredFiring
+df <- GABApscsFilteredPropsFreq
 
 # Get the unique levels of comboTrt
 comboTrt_levels <- levels(df$comboTrt)
@@ -14601,7 +14601,7 @@ maleCortAdmin %>%
 ```
 
 ```{r}
-GABApscs_240FilteredFiring %>%
+GABApscs_240FilteredPropsFreq %>%
   mutate(
     timeSinceSucrose = timeSinceSac - 0.5
   ) %>%
@@ -14846,7 +14846,7 @@ acuteStressFilteredMales %>%
 ```
 
 ```{r}
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   select(
     # cellID, adultTrt
     cellID, earlyLifeTrt
@@ -16901,7 +16901,7 @@ flexSave(
 
 ```{r}
 
-viz <- GABApscs_240FilteredFiring %>%
+viz <- GABApscs_240FilteredPropsFreq %>%
     filter(
       !is.na(amplitude)
     ) %>%
@@ -17530,5 +17530,1230 @@ pscProps %>%
     # , method = "loess"
     # , method = "gam"
   )
+```
+
+
+```{r}
+set.seed(1234)
+df <- data.frame(
+  group = rep(LETTERS[1:4], each = 100),
+  value = rnorm(400)
+)
+
+# Define a function to get the value closest to a given target
+get_closest <- function(x, target) {
+  x[which.min(abs(x - target))]
+}
+
+getClosestValues <- function(df, groupVar, value){
+  closest_values <- df %>%
+    group_by({{ groupVar }}) %>%
+    summarise(
+      min = min({{ value }}),
+      Q1 = quantile({{ value }}, probs = 0.25),
+      Q2 = median({{ value }}),
+      Q3 = quantile({{ value }}, probs = 0.75),
+      max = max({{ value }})
+    ) %>%
+    # Transpose into a long format for easier matching
+    pivot_longer(cols = c(min, Q1, Q2, Q3, max), names_to = "stat", values_to = "target") %>%
+    # For each statistic and group get the closest value from the original dataframe
+    group_by(stat, {{ groupVar }}) %>%
+    mutate(closest_value = get_closest(
+      df %>% filter(
+        {{ groupVar }} == {{ groupVar }}
+      ) %>%
+        pull(
+          {{ value }}
+        )
+      , target)) %>%
+    # Ensure rows are unique if there are multiple values that are equally close to the target
+    distinct()
+  return(closest_values)
+}
+
+getClosestValues(damBehavior_byDam, earlyLifeTrt, Num_exits)
+
+getClosestValues(df, group, value)
+
+# Use dplyr to find the values that are closest to the min, Q1, Q2, Q3, and max for each group
+closest_values <- df %>%
+  group_by(group) %>%
+  summarise(
+    min = min(value),
+    Q1 = quantile(value, probs = 0.25),
+    Q2 = median(value),
+    Q3 = quantile(value, probs = 0.75),
+    max = max(value)
+  ) %>%
+  # Transpose into a long format for easier matching
+  pivot_longer(cols = c(min, Q1, Q2, Q3, max), names_to = "stat", values_to = "target") %>%
+  # For each statistic and group get the closest value from the original dataframe
+  group_by(stat, group) %>%
+  mutate(closest_value = get_closest(df$value[df$group == group], target)) %>%
+  # Ensure rows are unique if there are multiple values that are equally close to the target
+  distinct()
+
+# View the resulting dataframe with values closest to each quantile
+print(closest_values)
+```
+
+```{r}
+# Define a function to get the index of the value closest to a given target
+get_closest <- function(x, target) {
+  which.min(abs(x - target))
+}
+
+# Define a function to get the closest values for each quantile for a given group variable and value column
+getClosestToQuartileValues <- function(df, idCol, groupVar, value){
+  idColAsText = deparse(substitute(idCol))
+  closest_indexes <- df %>%
+    group_by({{ groupVar }}) %>%
+    summarise(
+      min_value = min({{ value }}),
+      Q1_value = quantile({{ value }}, probs = 0.25),
+      Q2_value = median({{ value }}),
+      Q3_value = quantile({{ value }}, probs = 0.75),
+      max_value = max({{ value }}),
+      .groups = 'drop'
+    ) %>%
+    pivot_longer(
+      cols = starts_with(c("min_", "Q1_", "Q2_", "Q3_", "max_")),
+      names_to = "stat",
+      values_to = "target"
+    ) %>%
+    rowwise() %>%
+    mutate(
+      closest_index = get_closest(
+        df %>% filter({{ groupVar }} == {{ groupVar }}) %>% pull({{ value }}),
+        target
+      )
+    ) %>%
+    ungroup() %>%
+    # select(-target) %>%
+    # Get the closest rows from the original dataframe
+    mutate(
+       !! idColAsText := df %>% 
+        filter({{ groupVar }} == {{ groupVar }}) %>% 
+        slice(closest_index) %>% 
+        pull({{ idCol }})
+    )
+  return(closest_indexes)
+
+  # Use the indexes to get the rows from the original dataframe that match the closest values
+  closest_values <- df %>%
+    filter(({{ idCol }} %in% closest_indexes$closest_row)) %>%
+    arrange({{ groupVar }}, {{ value }})
+
+  return(closest_values)
+}
+
+getClosestValues(damBehavior_byDam, damID, earlyLifeTrt, Num_exits)
+
+
+# Example usage with a sample dataframe plus an 'idCol'
+set.seed(1234)
+df <- tibble(
+  id = 1:400,
+  group = rep(LETTERS[1:4], each = 100),
+  value = rnorm(400)
+)
+
+# Get the closest rows from the dataframe based on the specified value column and group
+closest_values_df <- getClosestValues(df, id, group, value)
+
+# Print the result
+print(closest_values_df)
+```
+
+```{r}
+closestDamsDF <- getClosestToQuartileValues(damBehavior_byDam %>% filter(cohort %in% c(9, 10)), damID, earlyLifeTrt, Num_exits)
+
+specificColors <- damBehavior_byDam %>%
+  filter(
+    damID %in% closestDamsDF$damID
+  ) %>%
+  addOrderedColors(orderVar = Num_exits, subjectVar = damID, colorByGroups = FALSE, pkg = "viridis", byMax = FALSE, revOrder = TRUE, earlyLifeTrt)
+  
+
+figDams_exits_select <- damBehavior_byPND %>%
+  left_join(
+    specificColors %>%
+      select(
+        damID
+        , color
+      )
+  ) %>%
+  mutate(
+    color = ifelse(
+      !is.na(color)
+      , alpha(color, 1)
+      # , alpha("white", 0)
+      , NA
+    )
+  ) %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "mean # of exits / hr"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = 1
+    , zoom_y = TRUE
+    , ymax = 60
+    , ymin = 0
+    , showDots = FALSE
+    , showMean = TRUE
+    , addVertError = TRUE
+    , lineAlpha = 1
+    , dotAlpha = 1
+    , lineSize = 0.25
+    , useProvidedColor = TRUE
+  ) + 
+  theme(
+    strip.text.x.top = element_text(margin = margin(b=-10))
+  )
+
+figDams_meanExits_select <- damBehavior_byDam %>%
+  left_join(
+    specificColors %>%
+      select(
+        damID
+        , color
+      )
+  ) %>%
+  mutate(
+    color = ifelse(
+      !is.na(color)
+      , color
+      , ifelse(
+        earlyLifeTrt == "STD"
+        , "#CCCCCC"
+        , "cyan3"
+      )
+    )
+  ) %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "mean # of exits / hr"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , randomColor = TRUE
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymax = 60
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = TRUE
+    , colorPkg = "viridis"
+    , useProvidedColor = TRUE
+  ) +
+  theme(
+    axis.text.x = element_text()
+    , axis.title.x = element_blank()
+  )
+
+
+```
+
+```{r}
+isManuscript = TRUE
+testOnlyOneError <- damFiltered %>%
+  scatterPlotLBN(
+    yVar = Cort_dam_P11
+    , yLab = "dam cort"
+    , addMean = FALSE
+  ) +
+  # stat_summary(
+  #   geom = "errorbarTest",
+  #     fun.min = mean,
+  #     fun = mean,
+  #     width = .9,
+  #     linewidth = .6
+  #   , color = "black"
+  # )
+  # stat_summary(
+  #   geom = "errorbar",
+  #     fun.min = mean,
+  #     fun = mean,
+  #     width = .9,
+  #     linewidth = .6
+  #   , color = "black"
+  # ) +
+  stat_summary(
+    geom = "meanbar",
+    fun.y = mean,
+    width = .9,
+    size = .6,
+    color = "black"
+  )
+
+testOnlyOneError
+```
+
+```{r}
+
+flexSave(
+  "testOnlyOneError"
+  , plot = testOnlyOneError
+  , filePath = manuscriptFolder
+)
+```
+
+```{r}
+recalcAvg = pscAllEvents_filtered %>%
+  group_by(
+    cellID
+  ) %>%
+  summarize(
+    across(peakTime:fwhm, ~ mean(.x, na.rm = TRUE))
+  )
+
+
+#dropping this because _240 has the correct subset included
+# GABApscs_240FilteredFiring %>%
+#   full_join(
+#     recalcAvg
+#     , by = "cellID"
+#     , suffix = c("", "_new")
+#   )
+```
+
+```{r}
+pscProps_recalc <- pscAllEvents %>%
+  group_by(
+    cellID
+    , seriesID
+  ) %>%
+  mutate(
+    eventNum = row_number() - 1
+    , .after = seriesID
+  ) %>%
+  mutate(
+    backInt = peakTime - lag(peakTime, default = 0)
+    , forInt = lead(peakTime, default = 120) - peakTime
+    , .after = interval
+  ) %>%
+  filter(
+    backInt >= 0.2 & forInt >= 0.2
+  )
+
+cellsWithDiffs <- pscProps_recalc %>%
+  group_by(
+    cellID
+  ) %>%
+  summarize(
+    n_recalc = n()
+  ) %>%
+  left_join(
+    pscProps %>%
+      group_by(
+        cellID
+      ) %>%
+      summarize(
+        n_igor = n()
+      )
+    , by = "cellID"
+  ) %>%
+  mutate(
+    diff = n_recalc - n_igor
+  ) %>%
+  filter(
+    diff != 0
+  )
+
+pscProps %>%
+  filter(
+    cellID %in% cellsWithDiffs$cellID
+    , cellID == "20220130b"
+  )
+
+pscProps_recalc %>%
+  filter(
+    cellID %in% cellsWithDiffs$cellID
+    # , cellID == "20220130b"
+  # ) %>%
+  # mutate(
+  #   amplitude = -relPeak
+  # ) %>%
+  # select(
+  #   cellID
+  #   , seriesID
+  #   , eventNum
+  #   , relPeak
+  #   , amplitude
+  #   , fwhm
+  #   , decay9010
+  #   , riseTime
+  )
+
+```
+
+
+After getting avelist from Igor
+
+```{r}
+cellsWithDiffs <- pscProps_recalc %>%
+  group_by(
+    cellID
+  ) %>%
+  summarize(
+    n_recalc = n()
+  ) %>%
+  left_join(
+    pscProps %>%
+      group_by(
+        cellID
+      ) %>%
+      summarize(
+        n_igor = n()
+      )
+    , by = "cellID"
+  ) %>%
+  mutate(
+    diff = n_recalc - n_igor
+  ) %>%
+  filter(
+    diff != 0
+  )
+
+cellsWithDiffs
+```
+
+```{r}
+pscProps <- pscProps %>%
+  relocate(
+    eventNum
+    , .after = seriesID
+  )
+```
+
+```{r}
+pscProps %>%
+  filter(
+    riseTime < 0.1 | decay9010 < 2
+  ) %>%
+  relocate(
+    amplitude
+    , riseTime
+    , decay9010
+    , .after = eventNum
+  )
+```
+
+```{r}
+pscProps %>%
+  filter(
+    riseTime >= 0.1 & (decay9010 >= 2 & decay9010 <3)
+  ) %>%
+  relocate(
+    amplitude
+    , riseTime
+    , decay9010
+    , .after = eventNum
+  )
+```
+
+```{r}
+pscProps %>%
+  mutate(
+    decay9010 = ifelse(
+      decay9010 < 2
+      , NA
+      , decay9010
+    )
+  ) %>%
+  summarize(
+    numNAs = sum(is.na(decay9010))
+  )
+
+GABApscs_240FilteredPropsFreq %>%
+  select(
+    cellID
+    , amplitude
+    , amplitude_mean
+    , decay9010
+    , decay9010_mean
+  ) %>%
+  mutate(
+    diffAmp = round(amplitude - amplitude_mean, 3)
+    , diffDecay = round(decay9010 - decay9010_mean, 3)
+  ) %>%
+  filter(
+    diffDecay != 0
+  )
+```
+
+```{r}
+GABApscs_240FilteredPropsFreq
+```
+
+
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  pivot_longer(
+    cols = c(decay9010, decayTimes_9010, tauFits_9010)
+    , names_to = "decayType"
+    , values_to = "time"
+  ) %>%
+  mutate(
+    decayType = ifelse(
+      decayType == "decay9010"
+      , "individual\n90-10 decay"
+      , ifelse(
+        decayType == "decayTimes_9010"
+        , "cell avg\n90-10 decay"
+        , "cell avg\n90-10 time constant"
+      )
+    )
+    , decayType = factor(decayType, levels = c(
+      "individual\n90-10 decay"
+      , "cell avg\n90-10 decay"
+      , "cell avg\n90-10 time constant"
+      
+    ))
+  ) %>%
+  ggplot(
+    aes(
+      x = decayType
+      , y = time
+      , color = comboTrt
+      , group = cellID
+    )
+  ) +
+  geom_line(
+    
+  ) +
+  comboTrtLineColor() +
+  boxTheme() +
+  textTheme(boldXText = TRUE) +
+  theme(
+    axis.title.x = element_blank()
+  )
+```
+
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  pivot_longer(
+    cols = c(decay9010, decayTimes_8020, tauFits_8020)
+    , names_to = "decayType"
+    , values_to = "time"
+  ) %>%
+  mutate(
+    decayType = ifelse(
+      decayType == "decay9010"
+      , "individual\n90-10 decay"
+      , ifelse(
+        decayType == "decayTimes_8020"
+        , "cell avg\n80-20 decay"
+        , "cell avg\n80-20 time constant"
+      )
+    )
+    , decayType = factor(decayType, levels = c(
+      "individual\n90-10 decay"
+      , "cell avg\n80-20 decay"
+      , "cell avg\n80-20 time constant"
+      
+    ))
+  ) %>%
+  ggplot(
+    aes(
+      x = decayType
+      , y = time
+      , color = comboTrt
+      , group = cellID
+    )
+  ) +
+  geom_line(
+    
+  ) +
+  comboTrtLineColor() +
+  boxTheme() +
+  textTheme(boldXText = TRUE) +
+  theme(
+    axis.title.x = element_blank()
+  )
+```
+
+
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  mutate(
+    diffDecay_vs9010 = decay9010 - decayTimes_9010
+    , diffDecay_vs8020 = decay9010 - decayTimes_8020
+  ) %>%
+  scatterPlotComboTrt(yVar = diffDecay_vs9010, yLab = "difference in indiv and avg event decay time 90-10 (ms)", fontSize = textSize, addMeanSE = TRUE, forManuscript = FALSE)
+```
+
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  mutate(
+    diffDecay_vs9010 = decay9010 - decayTimes_9010
+    , diffDecay_vs8020 = decay9010 - decayTimes_8020
+  ) %>%
+  scatterPlotComboTrt(yVar = diffDecay_vs8020, yLab = "difference in indiv and avg event decay time (ms)", fontSize = textSize, addMeanSE = TRUE, forManuscript = FALSE)
+```
+
+```{r}
+cellMeanDecay_plot <- GABApscs_240FilteredPropsFreq %>%
+  scatterPlotComboTrt(
+    yVar = decay9010
+    , yLab = "mean decay time from 90-10% peak (ms)"
+    , fontSize = textSize, addMeanSE = TRUE
+    , forManuscript = FALSE
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 180
+  ) +
+  labs(title = "Decay time found for individual events,\nthen averaged by cell")
+
+cellMeanDecay_plot
+```
+
+```{r}
+cellAvgEvent_decayTime_plot <- GABApscs_240FilteredPropsFreq %>%
+  scatterPlotComboTrt(
+    yVar = decayTimes_9010
+    , yLab = "decay time from 90-10% peak (ms)"
+    , fontSize = textSize, addMeanSE = TRUE
+    , forManuscript = FALSE
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 180
+  ) +
+  labs(title = "Single decay time from 90-10\nfound for avg event from cell")
+
+cellAvgEvent_decayTime_plot
+```
+
+```{r}
+plot_grid(
+  cellMeanDecay_plot
+  , cellAvgEvent_decayTime_plot
+  , align = "hv"
+  , axis = "tlbr"
+  , nrow = 1
+)
+
+slideTitle = "Decay time comparisons, mean of individual event decay time vs cell avg event decay time (90-10)"
+ppt <- pptAddOneGraph()
+```
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  mutate(
+    diffDecay_vs9010 = decay9010 - decayTimes_9010
+    , diffDecay_vs8020 = decay9010 - decayTimes_8020
+  ) %>%
+  scatterPlotComboTrt(yVar = diffDecay_vs9010, yLab = "difference in indiv and avg event decay time 90-10 (ms)", fontSize = textSize, addMeanSE = TRUE, forManuscript = FALSE)
+
+slideTitle = "Difference between mean of individual event decay time and cell avg event decay time"
+ppt <- pptAddOneGraph()
+```
+
+
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  pivot_longer(
+    cols = c(decay9010, decayTimes_9010, tauFits_9010)
+    , names_to = "decayType"
+    , values_to = "time"
+  ) %>%
+  mutate(
+    decayType = ifelse(
+      decayType == "decay9010"
+      , "individual\n90-10 decay"
+      , ifelse(
+        decayType == "decayTimes_9010"
+        , "cell avg\n90-10 decay"
+        , "cell avg\n90-10 time constant"
+      )
+    )
+    , decayType = factor(decayType, levels = c(
+      "individual\n90-10 decay"
+      , "cell avg\n90-10 decay"
+      , "cell avg\n90-10 time constant"
+      
+    ))
+  ) %>%
+  ggplot(
+    aes(
+      x = decayType
+      , y = time
+      , color = comboTrt
+      , group = cellID
+    )
+  ) +
+  geom_line(
+    
+  ) +
+  comboTrtLineColor() +
+  boxTheme() +
+  textTheme(boldXText = TRUE) +
+  theme(
+    axis.title.x = element_blank()
+  )
+
+slideTitle = "Difference between mean of individual event decay time and cell avg event decay time (90-10)"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+cellAvgEvent_decayTime_plot <- GABApscs_240FilteredPropsFreq %>%
+  scatterPlotComboTrt(
+    yVar = decayTimes_8020
+    , yLab = "decay time from 80-20% peak (ms)"
+    , fontSize = textSize, addMeanSE = TRUE
+    , forManuscript = FALSE
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 180
+  ) +
+  labs(title = "Single decay time from 80-20\nfound for avg event from cell")
+
+cellAvgEvent_decayTime_plot
+```
+
+```{r}
+plot_grid(
+  cellMeanDecay_plot
+  , cellAvgEvent_decayTime_plot
+  , align = "hv"
+  , axis = "tlbr"
+  , nrow = 1
+)
+
+slideTitle = "Decay time comparisons, mean of individual event decay time vs cell avg event decay time (80-20)"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  mutate(
+    diffDecay_vs9010 = decay9010 - decayTimes_9010
+    , diffDecay_vs8020 = decay9010 - decayTimes_8020
+  ) %>%
+  scatterPlotComboTrt(yVar = diffDecay_vs8020, yLab = "difference in indiv and avg event decay time (ms)", fontSize = textSize, addMeanSE = TRUE, forManuscript = FALSE)
+
+slideTitle = "Decay time comparisons"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  mutate(
+    diffDecay_vs9010 = decay9010 - decayTimes_9010
+    , diffDecay_vs8020 = decay9010 - decayTimes_8020
+    , .after = cellID
+  ) %>%
+  filter(
+    diffDecay_vs9010 < -50
+  )
+```
+```{r}
+pscProps %>%
+  filter(
+    cellID == "20220516b"
+  ) %>%
+  scatterPlot_general(
+    xVar = cellID
+    , xLab = "cellID"
+    , yVar = decay9010
+    , yLab = "decay time from 90-10% peak"
+  )
+```
+
+```{r}
+pscProps %>%
+  filter(
+    cellID == "20220516b"
+  ) %>%
+  scatterPlot_general(
+    xVar = amplitude
+    , xLab = "amplitude (pA)"
+    , yVar = decay9010
+    , yLab = "decay time (ms)"
+    , addMean = FALSE
+    , addSE = FALSE
+  ) +
+  geom_smooth(
+    method = "lm"
+    , se = FALSE
+  ) +
+  theme(
+    axis.title.x = element_text()
+  )
+```
+
+```{r}
+pscProps %>%
+  filter(
+    cellID == "20230428b"
+  ) %>%
+  scatterPlot_general(
+    xVar = cellID
+    , xLab = "cellID"
+    , yVar = decay9010
+    , yLab = "decay time from 90-10% peak"
+  )
+```
+
+```{r}
+pscProps %>%
+  filter(
+    cellID == "20230428b"
+  ) %>%
+  scatterPlot_general(
+    xVar = amplitude
+    , xLab = "amplitude (pA)"
+    , yVar = decay9010
+    , yLab = "decay time (ms)"
+    , addMean = FALSE
+    , addSE = FALSE
+  ) +
+  geom_smooth(
+    method = "lm"
+    , se = FALSE
+  ) +
+  theme(
+    axis.title.x = element_text()
+  )
+```
+
+
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  pivot_longer(
+    cols = c(decay9010, decayTimes_8020, tauFits_8020)
+    , names_to = "decayType"
+    , values_to = "time"
+  ) %>%
+  mutate(
+    decayType = ifelse(
+      decayType == "decay9010"
+      , "individual\n90-10 decay"
+      , ifelse(
+        decayType == "decayTimes_8020"
+        , "cell avg\n80-20 decay"
+        , "cell avg\n80-20 time constant"
+      )
+    )
+    , decayType = factor(decayType, levels = c(
+      "individual\n90-10 decay"
+      , "cell avg\n80-20 decay"
+      , "cell avg\n80-20 time constant"
+      
+    ))
+  ) %>%
+  ggplot(
+    aes(
+      x = decayType
+      , y = time
+      , color = comboTrt
+      , group = cellID
+    )
+  ) +
+  geom_line(
+    
+  ) +
+  comboTrtLineColor() +
+  boxTheme() +
+  textTheme(boldXText = TRUE) +
+  theme(
+    axis.title.x = element_blank()
+  )
+
+slideTitle = "Difference between mean of individual event decay time and cell avg event decay time (80-20)"
+ppt <- pptAddOneGraph()
+```
+
+
+```{r}
+pscProps %>%
+  filter(
+    cellID == "20220115e"
+  ) %>%
+  scatterPlot_general(
+    xVar = cellID
+    , xLab = "cellID"
+    , yVar = decay9010
+    , yLab = "decay time from 90-10% peak"
+  )
+
+pscProps %>%
+  filter(
+    cellID == "20220115e"
+  ) %>%
+  summarize(
+    n = n()
+  )
+```
+
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  filter(
+    cellID == "20220115e"
+  ) %>%
+  select(
+    decay9010, decayTimes_9010, decayTimes_8020
+  )
+```
+
+```{r}
+allEventsRes <- runFourWayAD_allProps(pscProps)
+```
+
+
+```{r}
+bootstrapRes_iterations5000_maxPerCellNone <- pscProps %>%
+  select(
+    cellID
+    , seriesID
+    , eventNum
+    , earlyLifeTrt
+    , adultTrt
+    , comboTrt
+    , amplitude
+    , riseTime
+    , decay9010
+    , fwhm
+  ) %>%
+  analyzeBootstrapResults(
+    nBootstrap = 5000
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+  )
+```
+
+```{r}
+bootstrapRes_iterations5000_maxPerCellNone
+```
+
+```{r}
+plot_grid(
+  bootstrapRes_iterations5000_maxPerCellNone
+)
+```
+
+
+```{r}
+bootstrapRes_iterations5000_maxPerCell10 <- pscProps %>%
+  select(
+    cellID
+    , earlyLifeTrt
+    , adultTrt
+    , amplitude
+    , riseTime
+    , decay9010
+    , fwhm
+  ) %>%
+  analyzeBootstrapResults(
+    nBootstrap = 5000
+    , maxPerCell = 10
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+  )
+```
+
+```{r}
+bootstrapRes_iterations5000_maxPerCell10$plots$decayTime
+```
+
+Each dot is the mean cell value of decay time. The black line is the mean of the cell means
+The orange line is the mean +95% CI from limiting to 10 events/cell
+The blue line is the mean +95% CI from all events
+```{r}
+decayTime_cellMean_plot <- GABApscs_240FilteredPropsFreq %>%
+  scatterPlotComboTrt(
+    yVar = decay9010
+    , yLab = "decay time (ms)"
+    , fontSize = textSize
+    , forManuscript = FALSE
+    , addMeanSE = FALSE
+  ) +
+  addMeanHorizontalBar(
+    width = 0.25
+    , barPosition = position_nudge(0)
+  ) +
+  addMeanSE_vertBar(
+    barPosition = position_nudge(0)
+  )
+
+decayTime_cellMean_plot +
+  plotError_LMM(
+    bootstrapRes_iterations5000_maxPerCell10$errors$decayTime
+    , xVar = comboTrt
+    , color = "orange"
+    , nudgeErrorLine = 0.25
+    , nudgeMeanLine = 0.25
+    , meanBarWidth = 0.25
+  ) +
+  plotError_LMM(
+    bootstrapRes_iterations5000_maxPerCellNone$errors$decayTime
+    , xVar = comboTrt
+    , color = "blue"
+    , nudgeErrorLine = -0.25
+    , nudgeMeanLine = -0.25
+    , meanBarWidth = 0.25
+  )
+
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+slideTitle <- "mean individual decay times for cell"
+cellMeanDecay_plot
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  scatterPlotComboTrt(
+    yVar = decay9010
+    , yLab = "decay time (ms)"
+    , fontSize = textSize
+    , forManuscript = FALSE
+    , addMeanSE = TRUE
+  )
+
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+pscProps %>%
+  group_by(
+    cellID, earlyLifeTrt, adultTrt
+  ) %>%
+  summarize(
+    n = n()
+  ) %>%
+  filter(
+    n < 10
+  )
+```
+
+```{r}
+pscProps_isolatedEvents <- pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  summarize(
+    numIsolated = n()
+  )
+
+
+weightedAvg <- GABApscs_240FilteredPropsFreq %>%
+  left_join(
+    pscProps_isolatedEvents
+    , by = "cellID"
+  ) %>%
+  mutate(
+    weightedDecay = decay9010 * numIsolated
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  summarize(
+    weightedDecayAvg = sum(weightedDecay, na.rm = TRUE) / sum(numIsolated, na.rm = TRUE)
+    , .groups = "drop"
+  ) %>%
+  combineStress()
+```
+
+```{r}
+weightedAvg
+```
+
+
+
+```{r}
+decayTime_cellMean_plot +
+  geom_meanbar(
+    data = weightedAvg
+    , aes(
+      x = comboTrt
+      , y = weightedDecayAvg
+    )
+    , width = 0.25
+    , position = position_nudge(0.25)
+    , color = "purple"
+  ) +
+  # plotError_LMM(
+  #   bootstrapRes_iterations5000_maxPerCell10$errors$decayTime
+  #   , xVar = comboTrt
+  #   , color = "blue"
+  #   , nudgeErrorLine = 0.25
+  #   , nudgeMeanLine = 0.25
+  #   , meanBarWidth = 0.25
+  # ) +
+  plotError_LMM(
+    bootstrapRes_iterations5000_maxPerCellNone$errors$decayTime
+    , xVar = comboTrt
+    , color = "blue"
+    , nudgeErrorLine = -0.25
+    , nudgeMeanLine = -0.25
+    , meanBarWidth = 0.25
+  )
+
+ppt <- pptAddOneGraph()
+```
+
+
+
+```{r}
+pscAllEvents
+```
+
+```{r}
+GABApscs_2
+```
+
+
+```{r}
+plot_grid(
+ figGABAe_model
+ , figGABA_int_model
+ , nrow = 1
+)
+slideTitle <- "Frequency and interval by cell"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+bootstrapRes_iterations5000_maxPerCellNone_int <- pscAllEvents_filtered %>%
+  select(
+    cellID
+    , earlyLifeTrt
+    , adultTrt
+    , interval
+  ) %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+   analyzeBootstrapResults(
+    nBootstrap = 5000
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+    , forInterval = TRUE
+  )
+```
+
+```{r}
+plot_grid(
+  bootstrapRes_iterations5000_maxPerCellNone_int$errorPlots$interval +
+    scale_y_discrete(
+      labels = c(
+        "STD-CON"
+        , "LBN-CON"
+        , "STD-ALPS"
+        , "LBN-ALPS"
+      )
+      )
+  , bootstrapRes_iterations5000_maxPerCellNone_int$cumulativeFreqPlots$interval +
+    theme(
+      legend.position = "none"
+    )
+  , nrow = 2
+  , rel_heights = c(1, 2)
+  , align = "hv"
+  , axis = "ltbr"
+)
+
+slideTitle <- "interval cumulative frequency plot (all events)"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+plot_grid(
+ figGABA2a_model
+ , figGABA2c_model
+ , nrow = 1
+)
+slideTitle <- "Amplitude and decay time by cell"
+ppt <- pptAddOneGraph()
+```
+
+
+```{r}
+plot_grid(
+  bootstrapRes_iterations5000_maxPerCellNone$errorPlots$amplitude +
+    scale_y_discrete(
+      labels = c(
+        "STD-CON"
+        , "LBN-CON"
+        , "STD-ALPS"
+        , "LBN-ALPS"
+      )
+      ) +
+    theme(
+      axis.title.x = element_text()
+    )
+  , bootstrapRes_iterations5000_maxPerCellNone$cumulativeFreqPlots$amplitude +
+    theme(
+      legend.position = "none"
+    ) 
+  , nrow = 2
+  , rel_heights = c(1, 2)
+  , align = "hv"
+  , axis = "ltbr"
+)
+
+slideTitle <- "amplitude cumulative frequency plot (all events)"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+plot_grid(
+  bootstrapRes_iterations5000_maxPerCellNone$errorPlots$decayTime +
+    scale_y_discrete(
+      labels = c(
+        "STD-CON"
+        , "LBN-CON"
+        , "STD-ALPS"
+        , "LBN-ALPS"
+      )
+      ) +
+    theme(
+      axis.title.x = element_text()
+    )
+  , bootstrapRes_iterations5000_maxPerCellNone$cumulativeFreqPlots$decayTime +
+    theme(
+      legend.position = "none"
+    )
+  , nrow = 2
+  , rel_heights = c(1, 2)
+  , align = "hv"
+  , axis = "ltbr"
+)
+
+slideTitle <- "decay time cumulative frequency plot (all events)"
+ppt <- pptAddOneGraph()
+```
+
+
+I was trying to see if I could reconstruct a new cumulative frequency plot based off the sampled data, but right now, we're only keeping the mean from each run, not all of the values
+Would need to alter the internal bootstraping function to be able to do this
+```{r}
+bootstrapRes_iterations5000_maxPerCell10$results %>%
+  arrange(
+    decay9010
+  ) %>%
+  slice(
+    seq(1, n(), by = 5000)
+  )
+```
+
+```{r}
+bootstrapRes_iterations5000_maxPerCellNone$P_formatted %>%
+  filter(
+    variable == "amplitude" | variable == "decay9010"
+  )
+
+bootstrapRes_iterations5000_maxPerCellNone_int$P_formatted
 ```
 

@@ -775,7 +775,7 @@ propSurged_limitedSampling_glmm_emm.earlyLife <- emmeans(
 
 capacitance_lmm <- mixed(
   capacitance ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
-  , data = GABApscs_240FilteredFiring
+  , data = GABApscs_240FilteredPropsFreq
   , method = "KR"
 )
 
@@ -795,7 +795,7 @@ capacitance_lmm_errors <- capacitance_lmm %>%
 
 inputResistance_lmm <- mixed(
   Rinput ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
-  , data = GABApscs_240FilteredFiring
+  , data = GABApscs_240FilteredPropsFreq
   , method = "KR"
 )
 
@@ -814,7 +814,7 @@ inputResistance_lmm_errors <- inputResistance_lmm %>%
 
 seriesResistance_lmm <- mixed(
   Rseries ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
-  , data = GABApscs_240FilteredFiring
+  , data = GABApscs_240FilteredPropsFreq
   , method = "KR"
 )
 
@@ -833,7 +833,7 @@ seriesResistance_lmm_errors <- seriesResistance_lmm %>%
 
 holdingCurrent_lmm <- mixed(
   holdingCurrent ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
-  , data = GABApscs_240FilteredFiring
+  , data = GABApscs_240FilteredPropsFreq
   , method = "KR"
 )
 
@@ -900,7 +900,7 @@ numEvents_nb.GLMM_errors <- numEvents_nb.GLMM %>%
 
 interval_lmm <- mixed(
   log10(interval) ~ earlyLifeTrt * adultTrt + (1|damID) + (1|mouseID)
-  , data = GABApscs_240FilteredFiring
+  , data = GABApscs_240FilteredPropsFreq
   , method = "KR"
 )
 
@@ -928,7 +928,7 @@ interval_lmm_error <- interval_lmm_emm %>%
 relAmplitude_lmm <- mixed(
   # relPeak ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
   amplitude ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
-  , data = GABApscs_240FilteredFiring
+  , data = GABApscs_240FilteredPropsFreq
   , method = "KR"
 )
 
@@ -946,7 +946,7 @@ relAmplitude_lmm_errors <- relAmplitude_lmm %>%
 
 riseTime_lmm <- mixed(
   riseTime ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
-  , data = GABApscs_240FilteredFiring
+  , data = GABApscs_240FilteredPropsFreq
   , method = "KR"
 )
 
@@ -964,7 +964,7 @@ riseTime_lmm_errors <- riseTime_lmm %>%
 
 decayTime_lmm <- mixed(
   decay9010 ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
-  , data = GABApscs_240FilteredFiring
+  , data = GABApscs_240FilteredPropsFreq
   , method = "KR"
 )
 
@@ -982,7 +982,7 @@ decayTime_lmm_errors <- decayTime_lmm %>%
 
 fwhm_lmm <- mixed(
   fwhm ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
-  , data = GABApscs_240FilteredFiring
+  , data = GABApscs_240FilteredPropsFreq
   , method = "KR"
 )
 

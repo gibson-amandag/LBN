@@ -925,24 +925,61 @@ filterByFrequency <- function(df, doFilterByFreq = filterByFreq){
 filterByMinRecDuration <- TRUE
 minRecDuration <- 230 # buffer because not exact
 
-GABApscsFilteredFiring <- GABApscsFilteredProps %>%
+GABApscsFilteredPropsFreq <- GABApscsFilteredProps %>%
   filterByFrequency() 
-GABApscs_120FilteredFiring <- GABApscs_120FilteredProps %>%
+GABApscs_120FilteredPropsFreq <- GABApscs_120FilteredProps %>%
   filterByFrequency()
-GABApscs_240FilteredFiring <- GABApscs_240FilteredProps %>%
+GABApscs_240FilteredPropsFreq <- GABApscs_240FilteredProps %>%
   filterByFrequency()
 
 if(filterByMinRecDuration){
-  GABApscsFilteredFiring <- GABApscsFilteredFiring %>%
+  GABApscsFilteredPropsFreq <- GABApscsFilteredPropsFreq %>%
     filter(
       duration >= minRecDuration
     )
-  GABApscs_240FilteredFiring <- GABApscs_240FilteredFiring %>%
+  GABApscs_240FilteredPropsFreq <- GABApscs_240FilteredPropsFreq %>%
     filter(
       duration >= minRecDuration
     )
 }
 
+pscAllEvents_filtered <- pscAllEvents %>%
+  filter(
+    cellID %in% GABApscs_240FilteredPropsFreq$cellID
+  )
+
+pscProps <- pscAllEvents_filtered %>%
+  filter(
+    includeAvg > 0
+  ) %>%
+  mutate(
+    decay9010 = ifelse(
+      decay9010 < 2 # too short, due to noise
+      , NA
+      , decay9010
+    )
+  )
+
+pscProps_decayAvg <- pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  summarize(
+    decay9010 = mean(decay9010, na.rm = TRUE)
+  )
+
+GABApscs_240FilteredPropsFreq <- GABApscs_240FilteredPropsFreq %>%
+  select(
+    -decay9010
+  ) %>%
+  left_join(
+    pscProps_decayAvg
+    , by = "cellID"
+  ) %>%
+  relocate(
+    decay9010
+    , .after = riseTime
+  )
 
 # Male cort admin ---------------------------------------------------------
 

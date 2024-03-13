@@ -76,7 +76,7 @@ saveDFsToCSV(
     select(
       -cyclingFolderPath
     )
-  , "GABApscs" = GABApscsFilteredFiring %>%
+  , "GABApscs" = GABApscsFilteredPropsFreq %>%
     select(
       -cyclingFolderPath
     )

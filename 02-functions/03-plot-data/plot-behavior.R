@@ -75,6 +75,8 @@ plotDamBehavior <- function(
     , subset = FALSE
     , numPerGroup = 4
     , dotAlpha = 1
+    , colorPkg = "rainbow"
+    , useProvidedColor = TRUE
 ){
   df <- df %>%
     rename(
@@ -84,27 +86,29 @@ plotDamBehavior <- function(
     )
   
   if(colorByDam){
-    if(randomColor){
+    if(randomColor & !useProvidedColor){
       df <- df %>%
         addRandomColors(
           colorVar = !! enquo(yVar)
           , subjectVar = damID
           , colorByGroups = TRUE
-          , pkg = "rainbow"
+          , pkg = colorPkg
           , seedVal = 123
           , earlyLifeTrt
         )
     } else {
-      df <- df %>%
-        addOrderedColors(
-          orderVar = !! enquo(yVar)
-          , subjectVar = damID
-          , colorByGroups = FALSE
-          , pkg = "rainbow"
-          , byMax = FALSE
-          , revOrder = TRUE
-          , earlyLifeTrt
-        )
+      if(!useProvidedColor){
+        df <- df %>%
+          addOrderedColors(
+            orderVar = !! enquo(yVar)
+            , subjectVar = damID
+            , colorByGroups = FALSE
+            , pkg = colorPkg
+            , byMax = FALSE
+            , revOrder = TRUE
+            , earlyLifeTrt
+          )
+      }
     }
   }
   

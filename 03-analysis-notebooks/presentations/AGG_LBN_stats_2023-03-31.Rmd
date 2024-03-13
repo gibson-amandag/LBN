@@ -1293,13 +1293,13 @@ percDaysStage_1stL
 <!--   ) -->
 
 
-<!-- GABApscsFilteredFiring %>% -->
+<!-- GABApscsFilteredPropsFreq %>% -->
 <!--   anova_test( -->
 <!--     dv = frequency -->
 <!--     , between = c(earlyLifeTrt, adultTrt) -->
 <!--   ) -->
 
-<!-- GABApscsFilteredFiring %>% -->
+<!-- GABApscsFilteredPropsFreq %>% -->
 <!--   anova_test( -->
 <!--     dv = relPeak -->
 <!--     , between = c(earlyLifeTrt, adultTrt) -->

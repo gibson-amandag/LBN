@@ -1456,12 +1456,12 @@ holdingCurrPlot
 ```
 
 ```{r}
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   runLMM(
     frequency ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
   )
 
-GABApscsFilteredFiring %>%
+GABApscsFilteredPropsFreq %>%
   runLMM(
     frequency ~ earlyLifeTrt * adultTrt + (1|mouseID)
   )

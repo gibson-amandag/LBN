@@ -110,15 +110,15 @@ plotGABAamp <- plotCatVarFunc(
   , dotSize = dotSize
 )
 
-figGABAa <- GABApscsFilteredFiring %>%
+figGABAa <- GABApscsFilteredPropsFreq %>%
   plotCapacitance()
-figGABAc <- GABApscsFilteredFiring %>%
+figGABAc <- GABApscsFilteredPropsFreq %>%
   plotRseries()
-figGABAb <- GABApscsFilteredFiring %>%
+figGABAb <- GABApscsFilteredPropsFreq %>%
   plotRinput()
-figGABAd <- GABApscsFilteredFiring %>%
+figGABAd <- GABApscsFilteredPropsFreq %>%
   plotHoldingCurr()
-figGABAe <- GABApscsFilteredFiring %>%
+figGABAe <- GABApscsFilteredPropsFreq %>%
   plotGABAfreq(
     zoom_y = TRUE
     , ymin = 0
@@ -128,7 +128,7 @@ figGABAe <- GABApscsFilteredFiring %>%
     breaks = c(0, 1, 2, 3, 4, 5)
     , labels = c("0", "1.0", "2.0", "3.0", "4.0", "5.0")
   )
-figGABAf <- GABApscsFilteredFiring %>%
+figGABAf <- GABApscsFilteredPropsFreq %>%
   plotGABAamp() +
   ylab("amplitude (pA)")
 

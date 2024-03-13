@@ -5520,4 +5520,117 @@ pscProps %>%
   
 ```
 
+```{r}
+pscProps %>%
+  group_by(
+    cellID
+  ) %>%
+  arrange(
+    cellID
+  ) %>%
+  mutate(
+    eventNum = row_number() - 1
+    , .after = cellID
+  ) %>%
+  relocate(
+    riseTime
+    , .after = amplitude
+  ) %>%
+  filter(
+    riseTime < 0.1
+  )
+```
+
+
+```{r}
+allEventsRes$fwhm$plots$plotsQuartiles_log +
+  geom_hline(yintercept = 0.7)
+```
+
+```{r}
+pscProps %>%
+  filter(
+    fwhm < 0.7
+  ) %>%
+  quartilesSummary(riseTime)
+  summarize(
+    meanRiseTime = mean(riseTime, na.rm = TRUE)
+  )
+```
+
+```{r}
+allEventsRes$decayTime$plots$plotsQuartiles_log +
+  scale_y_log10(
+    breaks = c(0.15, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64, 128)
+  )
+```
+
+```{r}
+pscProps %>%
+  mutate(
+    smallRise = ifelse(riseTime < 0.2, "shorter rise", "larger rise")
+  ) %>%
+  combineStress() %>%
+  ggplot(
+    aes(
+      x = comboTrt
+      , y = decay9010
+    )
+  ) +
+  geom_quasirandom(shape = 16, aes(color = smallRise, size = smallRise)) +
+  scale_y_log10() +
+  boxTheme()+
+  textTheme(boldXText = TRUE) +
+  theme(
+    axis.title.x = element_blank()
+  ) +
+  scale_size_discrete(breaks = c("shorter rise", "larger rise"), range = c(0.85, 2)) +
+  scale_color_manual(values = c("shorter rise" = "red", "larger rise" = "grey50")) +
+  scale_y_log10(
+    breaks = c(0.15, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64, 128)
+  )
+  
+```
+
+```{r}
+pscProps %>%
+  mutate(
+    smallRise = ifelse(amplitude < 10, "<10pA", ">= 10pA")
+  ) %>%
+  combineStress() %>%
+  ggplot(
+    aes(
+      x = comboTrt
+      , y = decay9010
+    )
+  ) +
+  geom_quasirandom(shape = 16, aes(color = smallRise, size = smallRise)) +
+  scale_y_log10() +
+  boxTheme()+
+  textTheme(boldXText = TRUE) +
+  theme(
+    axis.title.x = element_blank()
+  ) +
+  scale_size_discrete(breaks = c("<10pA", ">= 10pA"), range = c(2, 0.85)) +
+  scale_color_manual(values = c("<10pA" = "red", ">= 10pA" = "grey50")) +
+  scale_y_log10(
+    breaks = c(0.15, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64, 128)
+  )
+  
+```
+
+```{r}
+pscProps %>%
+  group_by(
+    earlyLifeTrt
+    , adultTrt
+  ) %>%
+  mutate(
+    smallAmp = ifelse(amplitude < 10, TRUE, FALSE)
+  ) %>%
+  summarize(
+    numSmall = sum(smallAmp)
+    , propSmall = numSmall / n() * 100
+  )
+```
 

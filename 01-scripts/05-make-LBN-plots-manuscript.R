@@ -1197,17 +1197,17 @@ plotGABAamp <- plotCatVarFunc(
   , useFacetLabels = FALSE
 )
 
-figGABAa <- GABApscs_240FilteredFiring %>%
+figGABAa <- GABApscs_240FilteredPropsFreq %>%
   plotCapacitance()
-figGABAc <- GABApscs_240FilteredFiring %>%
+figGABAc <- GABApscs_240FilteredPropsFreq %>%
   plotRseries()
-figGABAb <- GABApscs_240FilteredFiring %>%
+figGABAb <- GABApscs_240FilteredPropsFreq %>%
   plotRinput()
-figGABAd <- GABApscs_240FilteredFiring %>%
+figGABAd <- GABApscs_240FilteredPropsFreq %>%
   plotHoldingCurr()
-figGABAe <- GABApscs_240FilteredFiring %>%
+figGABAe <- GABApscs_240FilteredPropsFreq %>%
   plotGABAfreq()
-figGABAf <- GABApscs_240FilteredFiring %>%
+figGABAf <- GABApscs_240FilteredPropsFreq %>%
   plotGABAamp()
 
 ## no mean -----
@@ -1266,34 +1266,34 @@ plotGABAamp_noMean <- plotCatVarFunc(
   , addMeanSE = FALSE
 )
 
-figGABAa_noMean <- GABApscs_240FilteredFiring %>%
+figGABAa_noMean <- GABApscs_240FilteredPropsFreq %>%
   plotCapacitance_noMean()
-figGABAc_noMean <- GABApscs_240FilteredFiring %>%
+figGABAc_noMean <- GABApscs_240FilteredPropsFreq %>%
   plotRseries_noMean()
-figGABAb_noMean <- GABApscs_240FilteredFiring %>%
+figGABAb_noMean <- GABApscs_240FilteredPropsFreq %>%
   plotRinput_noMean()
-figGABAd_noMean <- GABApscs_240FilteredFiring %>%
+figGABAd_noMean <- GABApscs_240FilteredPropsFreq %>%
   plotHoldingCurr_noMean()
-figGABAe_noMean <- GABApscs_240FilteredFiring %>%
+figGABAe_noMean <- GABApscs_240FilteredPropsFreq %>%
   plotGABAfreq_noMean(
     zoom_y = TRUE
     , ymin = 0
     , ymax = 10
   )
-figGABAf_noMean <- GABApscs_240FilteredFiring %>%
+figGABAf_noMean <- GABApscs_240FilteredPropsFreq %>%
   plotGABAamp_noMean()
 
-# figGABAa <- GABApscsFilteredFiring %>%
+# figGABAa <- GABApscsFilteredPropsFreq %>%
 #   plotCapacitance()
-# figGABAc <- GABApscsFilteredFiring %>%
+# figGABAc <- GABApscsFilteredPropsFreq %>%
 #   plotRseries()
-# figGABAb <- GABApscsFilteredFiring %>%
+# figGABAb <- GABApscsFilteredPropsFreq %>%
 #   plotRinput()
-# figGABAd <- GABApscsFilteredFiring %>%
+# figGABAd <- GABApscsFilteredPropsFreq %>%
 #   plotHoldingCurr()
-# figGABAe <- GABApscsFilteredFiring %>%
+# figGABAe <- GABApscsFilteredPropsFreq %>%
 #   plotGABAfreq()
-# figGABAf <- GABApscsFilteredFiring %>%
+# figGABAf <- GABApscsFilteredPropsFreq %>%
 #   plotGABAamp()
 
 

@@ -312,7 +312,7 @@ doAmpANOVA <- anovaComboTrtFunc(
   , addWVal = tableWVal
 )
 
-capacitanceANOVAs <- GABApscsFilteredFiring %>%
+capacitanceANOVAs <- GABApscsFilteredPropsFreq %>%
   doCapacitanceANOVA()
 
 capacitanceANOVA <- capacitanceANOVAs$flxTbl
@@ -320,7 +320,7 @@ capacitanceANOVA_df <- capacitanceANOVAs$anova
 capacitanceANOVA_text <- getComboTrtFResults(capacitanceANOVA_df)
 capacitanceANOVA_par <- capacitanceANOVA_text$paragraph
 
-RseriesANOVAs <- GABApscsFilteredFiring %>%
+RseriesANOVAs <- GABApscsFilteredPropsFreq %>%
   doRseriesANOVA()
 
 RseriesANOVA <- RseriesANOVAs$flxTbl
@@ -328,7 +328,7 @@ RseriesANOVA_df <- RseriesANOVAs$anova
 RseriesANOVA_text <- getComboTrtFResults(RseriesANOVA_df)
 RseriesANOVA_par <- RseriesANOVA_text$paragraph
 
-RinputANOVAs <- GABApscsFilteredFiring %>%
+RinputANOVAs <- GABApscsFilteredPropsFreq %>%
   doRinputANOVA()
 
 RinputANOVA <- RinputANOVAs$flxTbl
@@ -336,7 +336,7 @@ RinputANOVA_df <- RinputANOVAs$anova
 RinputANOVA_text <- getComboTrtFResults(RinputANOVA_df)
 RinputANOVA_par <- RinputANOVA_text$paragraph
 
-holdingCurrANOVAs <- GABApscsFilteredFiring %>%
+holdingCurrANOVAs <- GABApscsFilteredPropsFreq %>%
   doHoldingCurrANOVA()
 
 holdingCurrANOVA <- holdingCurrANOVAs$flxTbl
@@ -344,7 +344,7 @@ holdingCurrANOVA_df <- holdingCurrANOVAs$anova
 holdingCurrANOVA_text <- getComboTrtFResults(holdingCurrANOVA_df)
 holdingCurrANOVA_par <- holdingCurrANOVA_text$paragraph
 
-GABAfreqANOVAs <- GABApscsFilteredFiring %>%
+GABAfreqANOVAs <- GABApscsFilteredPropsFreq %>%
   doFreqANOVA()
 
 GABAfreqANOVA <- GABAfreqANOVAs$flxTbl
@@ -352,7 +352,7 @@ GABAfreqANOVA_df <- GABAfreqANOVAs$anova
 GABAfreqANOVA_text <- getComboTrtFResults(GABAfreqANOVA_df)
 GABAfreqANOVA_par <- GABAfreqANOVA_text$paragraph
 
-GABAampANOVAs <- GABApscsFilteredFiring %>%
+GABAampANOVAs <- GABApscsFilteredPropsFreq %>%
   doAmpANOVA()
 
 GABAampANOVA <- GABAampANOVAs$flxTbl

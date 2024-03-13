@@ -689,7 +689,6 @@ plotBootstrapErrors_xAxis <- function(
       axis.title.y = element_blank()
       , axis.text.y = element_text(face = "bold")
       , legend.position = "none"
-      , axis.title.x = element_blank()
     )
 }
 ```
@@ -2226,7 +2225,7 @@ ppt <- ph_with(
 savePPT <- makeSavePPTFunc(
   presPPT = ppt
   , presFolder = plotFolder
-  , presFileName = "AGG_LBN_dists"
+  , presFileName = "AGG_LBN_decayTimes"
   , addDate = TRUE
 )
 ```

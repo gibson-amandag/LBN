@@ -40,6 +40,10 @@ quartilesSummary <- function(df, col){
     get_summary_stats(
       {{ col }},
       type = "five_number"
+    ) %>%
+    relocate(
+      max
+      , .after = q3
     )
   return(sumDF)
 }

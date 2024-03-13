@@ -20,8 +20,54 @@ figDams_exits <- damBehavior_byPND %>%
     , ymin = 0
     , showMean = TRUE
     , addVertError = TRUE
-    , lineAlpha = 0.2
-    , dotAlpha = 0.5
+    , lineAlpha = 1
+    , dotAlpha = 1
+    , lineSize = 0.25
+  ) + 
+  theme(
+    strip.text.x.top = element_text(margin = margin(b=-10))
+  )
+
+figDams_exits_noDots <- damBehavior_byPND %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "mean # of exits / hr"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = 1
+    , zoom_y = TRUE
+    , ymax = 60
+    , ymin = 0
+    , showDots = FALSE
+    , showMean = TRUE
+    , addVertError = TRUE
+    , lineAlpha = 1
+    , dotAlpha = 1
+    , lineSize = 0.25
+  ) + 
+  theme(
+    strip.text.x.top = element_text(margin = margin(b=-10))
+  )
+
+figDams_exits_noDots_viridis <- damBehavior_byPND %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "mean # of exits / hr"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = 1
+    , zoom_y = TRUE
+    , ymax = 60
+    , ymin = 0
+    , showDots = FALSE
+    , showMean = TRUE
+    , addVertError = TRUE
+    , lineAlpha = 1
+    , dotAlpha = 1
+    , lineSize = 0.25
+    , colorPkg = "viridis"
   ) + 
   theme(
     strip.text.x.top = element_text(margin = margin(b=-10))
@@ -41,8 +87,33 @@ figDams_exitsRandom <- damBehavior_byPND %>%
     , ymin = 0
     , showMean = TRUE
     , addVertError = TRUE
-    , lineAlpha = 0.2
-    , dotAlpha = 0.5
+    , lineAlpha = 1
+    , dotAlpha = 1
+    , lineSize = 0.25
+  ) + 
+  theme(
+    strip.text.x.top = element_text(margin = margin(b=-10))
+  )
+
+figDams_exitsRandom_viridis <- damBehavior_byPND %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "mean # of exits / hr"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , randomColor = TRUE
+    , dotSize = 1
+    , zoom_y = TRUE
+    , ymax = 60
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = TRUE
+    , lineAlpha = 1
+    , dotAlpha = 1
+    , lineSize = 0.25
+    , showDots = FALSE
+    , colorPkg = "viridis"
   ) + 
   theme(
     strip.text.x.top = element_text(margin = margin(b=-10))
@@ -84,6 +155,28 @@ figDams_meanExits <- damBehavior_byDam %>%
     , ymin = 0
     , showMean = TRUE
     , addVertError = TRUE
+    , dotAlpha = 1
+  ) +
+  theme(
+    axis.text.x = element_text()
+    , axis.title.x = element_blank()
+  )
+
+figDams_meanExits_viridis <- damBehavior_byDam %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "mean # of exits / hr"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymax = 60
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = TRUE
+    , dotAlpha = 1
+    , colorPkg = "viridis"
   ) +
   theme(
     axis.text.x = element_text()
@@ -110,6 +203,27 @@ figDams_meanExits_random <- damBehavior_byDam %>%
     , axis.title.x = element_blank()
   )
 
+figDams_meanExits_random_viridis <- damBehavior_byDam %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "mean # of exits / hr"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , randomColor = TRUE
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymax = 60
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = TRUE
+    , colorPkg = "viridis"
+  ) +
+  theme(
+    axis.text.x = element_text()
+    , axis.title.x = element_blank()
+  )
+
 figDams_offNest <- damBehavior_byPND %>%
   plotDamBehavior(
     yVar = Perc_off_nest
@@ -123,8 +237,54 @@ figDams_offNest <- damBehavior_byPND %>%
     , ymin = 0
     , showMean = TRUE
     , addVertError = TRUE
-    , lineAlpha = 0.2
-    , dotAlpha = 0.5
+    , lineAlpha = 1
+    , dotAlpha = 1
+    , lineSize = 0.25
+  ) +
+  theme(
+    strip.text.x.top = element_text(margin = margin(b=-10))
+  )
+
+figDams_offNest_noDots <- damBehavior_byPND %>%
+  plotDamBehavior(
+    yVar = Perc_off_nest
+    , yLab = "mean % off nest"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , showDots = FALSE
+    , dotSize = 1
+    , zoom_y = TRUE
+    , ymax = 100
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = TRUE
+    , lineAlpha = 1
+    , dotAlpha = 1
+    , lineSize = 0.25
+  ) +
+  theme(
+    strip.text.x.top = element_text(margin = margin(b=-10))
+  )
+
+figDams_offNest_noDots_viridis <- damBehavior_byPND %>%
+  plotDamBehavior(
+    yVar = Perc_off_nest
+    , yLab = "mean % off nest"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , showDots = FALSE
+    , dotSize = 1
+    , zoom_y = TRUE
+    , ymax = 100
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = TRUE
+    , lineAlpha = 1
+    , dotAlpha = 1
+    , lineSize = 0.25
+    , colorPkg = "viridis"
   ) +
   theme(
     strip.text.x.top = element_text(margin = margin(b=-10))
@@ -143,8 +303,32 @@ figDams_offNest_random <- damBehavior_byPND %>%
     , ymin = 0
     , showMean = TRUE
     , addVertError = TRUE
-    , lineAlpha = 0.2
-    , dotAlpha = 0.5
+    , lineAlpha = 1
+    , dotAlpha = 1
+    , lineSize = 0.25
+  ) +
+  theme(
+    strip.text.x.top = element_text(margin = margin(b=-10))
+  )
+
+figDams_offNest_random_viridis <- damBehavior_byPND %>%
+  plotDamBehavior(
+    yVar = Perc_off_nest
+    , yLab = "mean % off nest"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = 1
+    , zoom_y = TRUE
+    , ymax = 100
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = TRUE
+    , showDots = FALSE
+    , lineAlpha = 1
+    , dotAlpha = 1
+    , lineSize = 0.25
+    , colorPkg = "viridis"
   ) +
   theme(
     strip.text.x.top = element_text(margin = margin(b=-10))
@@ -185,6 +369,28 @@ figDams_meanOffNest <- damBehavior_byDam %>%
     , ymin = 0
     , showMean = TRUE
     , addVertError = TRUE
+    , dotAlpha = 1
+  ) +
+  theme(
+    axis.text.x = element_text()
+    , axis.title.x = element_blank()
+  )
+
+figDams_meanOffNest_viridis <- damBehavior_byDam %>%
+  plotDamBehavior(
+    yVar = Perc_off_nest
+    , yLab = "mean % off exits"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymax = 100
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = TRUE
+    , dotAlpha = 1
+    , colorPkg = "viridis"
   ) +
   theme(
     axis.text.x = element_text()
@@ -205,6 +411,29 @@ figDams_meanOffNest_random <- damBehavior_byDam %>%
     , ymin = 0
     , showMean = TRUE
     , addVertError = TRUE
+    , dotAlpha = 1
+  ) +
+  theme(
+    axis.text.x = element_text()
+    , axis.title.x = element_blank()
+  )
+
+figDams_meanOffNest_random_viridis <- damBehavior_byDam %>%
+  plotDamBehavior(
+    yVar = Perc_off_nest
+    , yLab = "mean % off exits"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , randomColor = TRUE
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymax = 100
+    , ymin = 0
+    , showMean = TRUE
+    , addVertError = TRUE
+    , dotAlpha = 1
+    , colorPkg = "viridis"
   ) +
   theme(
     axis.text.x = element_text()
@@ -1186,7 +1415,7 @@ plotGABAinterval_noMean <- plotCatVarFunc(
   # , jitterWidth = 0.2
 )
 
-figGABAa_model <- GABApscs_240FilteredFiring %>%
+figGABAa_model <- GABApscs_240FilteredPropsFreq %>%
   plotCapacitance_noMean(
     zoom_y = TRUE
     , ymin = 0
@@ -1197,7 +1426,7 @@ figGABAa_model <- GABApscs_240FilteredFiring %>%
     , xVar = comboTrt
   )
 
-figGABAc_model <- GABApscs_240FilteredFiring %>%
+figGABAc_model <- GABApscs_240FilteredPropsFreq %>%
   plotRseries_noMean(
     zoom_y = TRUE
     , ymin = 0
@@ -1209,7 +1438,7 @@ figGABAc_model <- GABApscs_240FilteredFiring %>%
   )
 
 
-figGABAb_model <- GABApscs_240FilteredFiring %>%
+figGABAb_model <- GABApscs_240FilteredPropsFreq %>%
   plotRinput_noMean() +
   plotError_LMM(
     inputResistance_lmm_errors
@@ -1217,7 +1446,7 @@ figGABAb_model <- GABApscs_240FilteredFiring %>%
   )
 
 
-figGABAd_model <- GABApscs_240FilteredFiring %>%
+figGABAd_model <- GABApscs_240FilteredPropsFreq %>%
   plotHoldingCurr_noMean(
     zoom_y = TRUE
     , ymin = -100
@@ -1242,15 +1471,16 @@ figGABAe_model <- GABApscs_240Filtered %>% #changed 2024-03-11 from filtered fir
     , xVar = comboTrt
   )
 
-figGABA_int_model <- GABApscs_240FilteredFiring %>%
+figGABA_int_model <- GABApscs_240FilteredPropsFreq %>%
   plotGABAinterval_noMean(
-    
+
   ) +
   plotError_LMM(
-    
+    interval_lmm_error
+    , xVar = comboTrt
   )
 
-figGABA2a_model <- GABApscs_240FilteredFiring %>%
+figGABA2a_model <- GABApscs_240FilteredPropsFreq %>%
   plotGABAamp_noMean() +
   plotError_LMM(
     relAmplitude_lmm_errors
@@ -1270,7 +1500,7 @@ figGABA2a_model <- GABApscs_240FilteredFiring %>%
   #   , color = "grey40"
   )
 
-figGABA2b_model <- GABApscs_240FilteredFiring %>%
+figGABA2b_model <- GABApscs_240FilteredPropsFreq %>%
   plotGABAriseTime_noMean(
 
   ) +
@@ -1292,7 +1522,7 @@ figGABA2b_model <- GABApscs_240FilteredFiring %>%
   #   , color = "grey40"
   )
 
-figGABA2c_model <- GABApscs_240FilteredFiring %>%
+figGABA2c_model <- GABApscs_240FilteredPropsFreq %>%
   plotGABAdecayTime_noMean(
 
   ) +
@@ -1314,7 +1544,7 @@ figGABA2c_model <- GABApscs_240FilteredFiring %>%
   #   , color = "grey40"
   )
 
-figGABA2d_model <- GABApscs_240FilteredFiring %>%
+figGABA2d_model <- GABApscs_240FilteredPropsFreq %>%
   plotGABAfwhm_noMean(
 
   ) +

@@ -49,9 +49,10 @@ GABApscs <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs")
 GABApscs_120 <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs_120")
 GABApscs_240 <- loadExcelSheet(dataFolder, LBN_DataName, "GABAPSCs_240")
 
-pscProps <- loadExcelSheet(dataFolder, LBN_DataName, "pscProps")
-pscInt <- loadExcelSheet(dataFolder, LBN_DataName, "pscInt")
-pscRiseTime <- loadExcelSheet(dataFolder, LBN_DataName, "pscRiseTime")
+# pscProps <- loadExcelSheet(dataFolder, LBN_DataName, "pscProps")
+# pscInt <- loadExcelSheet(dataFolder, LBN_DataName, "pscInt")
+# pscRiseTime <- loadExcelSheet(dataFolder, LBN_DataName, "pscRiseTime")
+pscAllEvents <- loadExcelSheet(dataFolder, LBN_DataName, "allPSCs")
 
 cellInfo <- loadExcelSheet(dataFolder, LBN_DataName, "cellInfo")
 cellExclusion <- loadExcelSheet(dataFolder, LBN_DataName, "cellExclusion")
@@ -181,6 +182,8 @@ cellExclusion <- makeFactors(cellExclusion, c(cellID))
 GABApscs <- makeFactors(GABApscs, c(cellID))
 GABApscs_120 <- makeFactors(GABApscs_120, c(cellID))
 GABApscs_240 <- makeFactors(GABApscs_240, c(cellID))
+
+pscAllEvents <- makeFactors(pscAllEvents, c(cellID))
 
 # behaviorDFs <- list(
 #   behavior_ZT9
@@ -562,9 +565,38 @@ GABApscs_240 <- GABApscs_240 %>%
     -time, timeHr
   ) %>%
   mutate(
-    amplitude = -relPeak
+    amplitude = abs(relPeak)
     , .after = relPeak
   )
+
+pscAllEvents <- pscAllEvents %>%
+  left_join(
+    GABApscs_240 %>%
+      select(
+        cellID
+        , mouseID
+        , Sac_hr
+        , recHr
+        , timeSinceSac
+        , duration
+        , incCell
+        , exclude
+      )
+    , by = "cellID"
+  ) %>%
+  mutate(
+    amplitude = abs(relPeak)
+    , .after = relPeak
+  ) %>%
+  group_by(
+    cellID
+    , seriesID
+  ) %>%
+  mutate(
+    eventNum = row_number() - 1
+    , .after = seriesID
+  ) %>%
+  ungroup()
 
 # COMBINE ALL DFS INTO ONE ------------------------------------------------
 
@@ -683,6 +715,12 @@ GABApscs_240 <- GABApscs_240 %>%
     by = "mouseID"
   )
 
+pscAllEvents <- pscAllEvents %>%
+  left_join(
+    AcuteStress_off
+    , by = "mouseID"
+  )
+
 ChronicStress_off <- ChronicStress_off %>%
   addOffspringDemoData()
 
@@ -707,51 +745,6 @@ maleCortAdmin <- maleCortAdmin %>%
 
 maleCortAdmin_cort <- maleCortAdmin_cort %>%
   addOffspringDemoData(addBy = "mouseID")
-
-pscProps <- pscProps %>%
-  left_join(
-    GABApscs_240 %>%
-      select(
-        cellID
-        , mouseID
-        , damID
-        , earlyLifeTrt
-        , adultTrt
-      )
-    , by = "cellID"
-  ) %>%
-  mutate(
-    amplitude = -relPeak
-    , .after = relPeak
-  )
-
-pscInt <- pscInt %>%
-  left_join(
-    GABApscs_240 %>%
-      select(
-        cellID
-        , mouseID
-        , damID
-        , earlyLifeTrt
-        , adultTrt
-        , comboTrt
-      )
-    , by = "cellID"
-  )
-
-pscRiseTime <- pscRiseTime %>%
-  left_join(
-    GABApscs_240 %>%
-      select(
-        cellID
-        , mouseID
-        , damID
-        , earlyLifeTrt
-        , adultTrt
-        , comboTrt
-      )
-    , by = "cellID"
-  )
 
 # UPDATE COMBO FRAMES WITH MATURATION -------------------------------------
 LBN_all <- LBN_all %>%

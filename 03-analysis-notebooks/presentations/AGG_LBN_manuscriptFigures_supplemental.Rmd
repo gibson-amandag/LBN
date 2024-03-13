@@ -185,6 +185,199 @@ figDams <- plot_grid(
 figDams
 ```
 
+```{r}
+figDamsPlots <- cowplot::align_plots(
+  figDams_exits_noDots
+  , figDams_offNest_noDots
+  , align = "v"
+  , axis = "l"
+)
+
+figDamsBehaviorPlots <- cowplot::align_plots(figDamsPlots[[1]], figDams_meanExits, figDamsPlots[[2]], figDams_meanOffNest, align = "h", axis = "bt")
+
+figDamsRightPlots <- cowplot::align_plots(
+  figDamsBehaviorPlots[[2]]
+  , figDamsBehaviorPlots[[4]]
+  , figDamsD
+  , align = "v"
+  , axis = "lr"
+)
+
+figDams_row1 <- align_plots(
+  figDamsRightPlots[[3]]
+  , figDams_mass
+  , align = "h"
+  , axis = "tb"
+)
+
+figDams_left <- plot_grid(
+  plot_grid(
+    NULL
+    , figDams_row1[[2]]
+    , nrow = 1
+    , align = "h"
+    , axis = "bt"
+    , labels = c("A", "B")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+  )
+  , figDamsBehaviorPlots[[1]]
+  , figDamsBehaviorPlots[[3]]
+  , nrow = 3
+  , labels = c("", "D", "E")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figDams_right <- plot_grid(
+  figDams_row1[[1]]
+  , figDamsRightPlots[[1]]
+  , figDamsRightPlots[[2]]
+  , labels = c("C", "", "")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , nrow = 3
+)
+
+figDams_noDots <- plot_grid(
+  figDams_left
+  , figDams_right
+  , ncol = 2
+  , rel_widths = c(3, 1)
+)
+  
+figDams_noDots
+```
+
+```{r}
+figDamsPlots <- cowplot::align_plots(
+  figDams_exits_noDots_viridis
+  , figDams_offNest_noDots_viridis
+  , align = "v"
+  , axis = "l"
+)
+
+figDamsBehaviorPlots <- cowplot::align_plots(figDamsPlots[[1]], figDams_meanExits_viridis, figDamsPlots[[2]], figDams_meanOffNest_viridis, align = "h", axis = "bt")
+
+figDamsRightPlots <- cowplot::align_plots(
+  figDamsBehaviorPlots[[2]]
+  , figDamsBehaviorPlots[[4]]
+  , figDamsD
+  , align = "v"
+  , axis = "lr"
+)
+
+figDams_row1 <- align_plots(
+  figDamsRightPlots[[3]]
+  , figDams_mass
+  , align = "h"
+  , axis = "tb"
+)
+
+figDams_left <- plot_grid(
+  plot_grid(
+    NULL
+    , figDams_row1[[2]]
+    , nrow = 1
+    , align = "h"
+    , axis = "bt"
+    , labels = c("A", "B")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+  )
+  , figDamsBehaviorPlots[[1]]
+  , figDamsBehaviorPlots[[3]]
+  , nrow = 3
+  , labels = c("", "D", "E")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figDams_right <- plot_grid(
+  figDams_row1[[1]]
+  , figDamsRightPlots[[1]]
+  , figDamsRightPlots[[2]]
+  , labels = c("C", "", "")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , nrow = 3
+)
+
+figDams_noDots_viridis <- plot_grid(
+  figDams_left
+  , figDams_right
+  , ncol = 2
+  , rel_widths = c(3, 1)
+)
+  
+figDams_noDots_viridis
+```
+
+
+```{r}
+figDamsPlots <- cowplot::align_plots(
+  figDams_exits_select
+  , figDams_offNest_noDots_viridis
+  , align = "v"
+  , axis = "l"
+)
+
+figDamsBehaviorPlots <- cowplot::align_plots(figDamsPlots[[1]], figDams_meanExits_select, figDamsPlots[[2]], figDams_meanOffNest_viridis, align = "h", axis = "bt")
+
+figDamsRightPlots <- cowplot::align_plots(
+  figDamsBehaviorPlots[[2]]
+  , figDamsBehaviorPlots[[4]]
+  , figDamsD
+  , align = "v"
+  , axis = "lr"
+)
+
+figDams_row1 <- align_plots(
+  figDamsRightPlots[[3]]
+  , figDams_mass
+  , align = "h"
+  , axis = "tb"
+)
+
+figDams_left <- plot_grid(
+  plot_grid(
+    NULL
+    , figDams_row1[[2]]
+    , nrow = 1
+    , align = "h"
+    , axis = "bt"
+    , labels = c("A", "B")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+  )
+  , figDamsBehaviorPlots[[1]]
+  , figDamsBehaviorPlots[[3]]
+  , nrow = 3
+  , labels = c("", "D", "E")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figDams_right <- plot_grid(
+  figDams_row1[[1]]
+  , figDamsRightPlots[[1]]
+  , figDamsRightPlots[[2]]
+  , labels = c("C", "", "")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , nrow = 3
+)
+
+figDams_noDots_select <- plot_grid(
+  figDams_left
+  , figDams_right
+  , ncol = 2
+  , rel_widths = c(3, 1)
+)
+  
+figDams_noDots_select
+```
+
 
 ```{r}
 figDamsPlots <- cowplot::align_plots(
@@ -240,14 +433,78 @@ figDams_right <- plot_grid(
   , nrow = 3
 )
 
-figDams <- plot_grid(
+figDams_random <- plot_grid(
   figDams_left
   , figDams_right
   , ncol = 2
   , rel_widths = c(3, 1)
 )
   
-figDams
+figDams_random
+```
+
+```{r}
+figDamsPlots <- cowplot::align_plots(
+  figDams_exitsRandom_viridis
+  , figDams_offNest_random_viridis
+  , align = "v"
+  , axis = "l"
+)
+
+figDamsBehaviorPlots <- cowplot::align_plots(figDamsPlots[[1]], figDams_meanExits_random_viridis, figDamsPlots[[2]], figDams_meanOffNest_random_viridis, align = "h", axis = "bt")
+
+figDamsRightPlots <- cowplot::align_plots(
+  figDamsBehaviorPlots[[2]]
+  , figDamsBehaviorPlots[[4]]
+  , figDamsD
+  , align = "v"
+  , axis = "lr"
+)
+
+figDams_row1 <- align_plots(
+  figDamsRightPlots[[3]]
+  , figDams_mass
+  , align = "h"
+  , axis = "tb"
+)
+
+figDams_left <- plot_grid(
+  plot_grid(
+    NULL
+    , figDams_row1[[2]]
+    , nrow = 1
+    , align = "h"
+    , axis = "bt"
+    , labels = c("A", "B")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+  )
+  , figDamsBehaviorPlots[[1]]
+  , figDamsBehaviorPlots[[3]]
+  , nrow = 3
+  , labels = c("", "D", "E")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figDams_right <- plot_grid(
+  figDams_row1[[1]]
+  , figDamsRightPlots[[1]]
+  , figDamsRightPlots[[2]]
+  , labels = c("C", "", "")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , nrow = 3
+)
+
+figDams_random_viridis <- plot_grid(
+  figDams_left
+  , figDams_right
+  , ncol = 2
+  , rel_widths = c(3, 1)
+)
+  
+figDams_random_viridis
 ```
 
 
@@ -262,11 +519,56 @@ flexSave(
 )
 ```
 
+```{r}
+flexSave(
+  "figDams_allRainbow_noDots"
+  , plot = figDams_noDots
+  , width = twoCols
+  , height = fullLength - 0.1
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+
+```{r}
+flexSave(
+  "figDams_allViridis_noDots"
+  , plot = figDams_noDots_viridis
+  , width = twoCols
+  , height = fullLength - 0.1
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+```{r}
+flexSave(
+  "figDams_Viridis_select"
+  , plot = figDams_noDots_select
+  , width = twoCols
+  , height = fullLength - 0.1
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
 
 ```{r}
 flexSave(
   "figDams_allRainbow_random"
-  , plot = figDams
+  , plot = figDams_random
+  , width = twoCols
+  , height = fullLength - 0.1
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+```{r}
+flexSave(
+  "figDams_allViridis_random"
+  , plot = figDams_random_viridis
   , width = twoCols
   , height = fullLength - 0.1
   , units = "cm"
