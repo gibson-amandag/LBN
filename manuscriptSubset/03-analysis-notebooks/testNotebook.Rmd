@@ -18757,3 +18757,35 @@ bootstrapRes_iterations5000_maxPerCellNone$P_formatted %>%
 bootstrapRes_iterations5000_maxPerCellNone_int$P_formatted
 ```
 
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  filter(
+    comboTrt == "STD-CON"
+  ) %>%
+  arrange(
+    -(frequency)
+  )
+
+GABApscs_240FilteredPropsFreq %>%
+  summarize(
+    n = n()
+  )
+```
+
+```{r}
+plot_grid(
+  figGABAe_model
+  , figGABA_int_model
+  , nrow = 2
+  , align = "hv"
+  , axis = "tlbr"
+)
+```
+
+```{r}
+
+```
+
+
+
+

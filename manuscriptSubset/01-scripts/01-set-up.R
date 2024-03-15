@@ -42,6 +42,8 @@ if(!require(emmeans))install.packages('emmeans')
 if(!require(ggbeeswarm))install.packages('ggbeeswarm')
 if(!require(nparLD))install.packages('nparLD')
 if(!require(lspline))install.packages('lspline')
+if(!require(kSamples))install.packages('kSamples')
+if(!require(viridis))install.packages('viridis')
 # if(!require(gt))install.packages('gt')
 
 
@@ -84,7 +86,8 @@ library(emmeans)
 library(ggbeeswarm)
 library(nparLD)
 library(lspline)
-library(lqmm)
+library(kSamples)
+library(viridis)
 
 drive_auth(email = "*@umich.edu")
 gs4_auth(token = drive_token())
