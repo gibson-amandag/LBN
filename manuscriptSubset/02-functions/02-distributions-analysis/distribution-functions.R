@@ -17,7 +17,7 @@ calcCumFreq <- function(
       {{ varToSum }}
     ) %>%
     mutate(
-      cumFreq = ecdf({{ varToSum }})({{ varToSum }}) * 100
+      cumFreq = ecdf({{ varToSum }})({{ varToSum }})
     )
 }
 
@@ -25,13 +25,13 @@ plotCumulativeFreqDist <- function(
     df
     , xVar
     , xLab
-    , yLab = "cumulative frequency (%)"
+    , yLab = "cumulative probability"
     , zoom_x = FALSE
     , xmin = NA
     , xmax = NA
     , zoom_y = TRUE
     , ymin = 0
-    , ymax = 100
+    , ymax = 1
     , textSize = 11
     , legendPosition = c(0.6, 0.3)
     , scaleLog10 = FALSE
@@ -62,6 +62,7 @@ plotCumulativeFreqDist <- function(
   
   plot <- plot +
     expand_limits(y = 0) +
+    scale_y_continuous(breaks = seq(0, 1, by = 0.2)) +
     xlab(xLab) +
     ylab(yLab) +
     comboTrtLineColor() +
