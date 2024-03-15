@@ -577,12 +577,27 @@ dist_pairwise <- function(adRes, variable, isInt = FALSE){
 
 # Bootstrap -----------------------
 
+## summarize column means from vector of cols ------------
+
+summarize_means <- function(df, colsAsText) {
+  # Create a named list of expressions to be evaluated by summarize
+  summary_expressions <- sapply(colsAsText, function(col) {
+    expr(mean(!!sym(col), na.rm = TRUE))
+  }, simplify = FALSE)
+  names(summary_expressions) <- colsAsText
+  
+  # Use !!! to splice the list of expressions into summarize
+  df %>% summarize(!!!summary_expressions, .groups = "drop")
+}
+
+
 ## main bootstrapping functions --------------------
 
 getOneBootstrapMeans <- function(
     df
-    , maxPerCell = 100
+    , maxPerCell = NULL
     , groupingVars = exprs(earlyLifeTrt, adultTrt)
+    , propColsAsText = c("amplitude", "interval")
     , replace = TRUE
     , bootstrapIt = NA
 ){
@@ -601,47 +616,10 @@ getOneBootstrapMeans <- function(
   )
   
   sumDF <- df %>%
-    summarize(
-      amplitude = mean(amplitude, na.rm = TRUE)
-      , riseTime = mean(riseTime, na.rm = TRUE)
-      , decay9010 = mean(decay9010, na.rm = TRUE)
-      , fwhm = mean(fwhm, na.rm = TRUE)
-      , .groups = "drop"
+    summarize_means(
+      propColsAsText
     )
-  if(!is.na(bootstrapIt)){
-    sumDF <- sumDF %>%
-      mutate(
-        bootIt = bootstrapIt
-      )
-  }
-  return(sumDF)
-}
-getOneBootstrapMeans_int <- function(
-    df
-    , maxPerCell = 100
-    , groupingVars = exprs(earlyLifeTrt, adultTrt)
-    , replace = TRUE
-    , bootstrapIt = NA
-){
-  if(!is.null(maxPerCell)){
-    df <- df %>%
-      group_by(cellID) %>%
-      slice_sample(n = maxPerCell) %>%
-      ungroup()
-  }
-  
-  df <- slice_sample(
-    df %>%
-      group_by(!!! groupingVars)
-    , prop = 1
-    , replace = replace
-  )
-  
-  sumDF <- df %>%
-    summarize(
-      interval = mean(interval, na.rm = TRUE)
-      , .groups = "drop"
-    )
+    
   if(!is.na(bootstrapIt)){
     sumDF <- sumDF %>%
       mutate(
@@ -657,27 +635,18 @@ bootstrapGroup <- function(df
                            , groupingVars = exprs(earlyLifeTrt, adultTrt)
                            , replace = TRUE # only for sampling after picking events from each cell
                            , setSeed = NULL
-                           , forInterval = FALSE
+                           , propColsAsText = c("amplitude", "interval")
 ) {
   if (!is.null(setSeed)) {
     set.seed(setSeed)
   }
   
-  if(!forInterval){
-    bootstrapRes <- bind_rows(
-      map(
-        1:nBootstrap
-        , ~ getOneBootstrapMeans(df, replace = replace, bootstrapIt = .x, maxPerCell = maxPerCell, groupingVars = groupingVars)
-      )
+  bootstrapRes <- bind_rows(
+    map(
+      1:nBootstrap
+      , ~ getOneBootstrapMeans(df, replace = replace, bootstrapIt = .x, maxPerCell = maxPerCell, groupingVars = groupingVars, propColsAsText = propColsAsText)
     )
-  } else{
-    bootstrapRes <- bind_rows(
-      map(
-        1:nBootstrap
-        , ~ getOneBootstrapMeans_int(df, replace = replace, bootstrapIt = .x, maxPerCell = maxPerCell, groupingVars = groupingVars)
-      )
-    )
-  }
+  )
   
   return(bootstrapRes)
 }
@@ -904,32 +873,34 @@ analyzeBootstrapResults <- function(
     , setSeed = NULL
     , dotSize = 1
     , textSize = 11
-    , forInterval = FALSE
     , propDifferent = 0.15
     , CIprop = 0.05
     , legendPosition = c(0.7, 0.3)
+    , propCols = c(amplitude, interval)
+    , propColsAsText = c("amplitude", "interval") # also used to factor in order
 ){
-  bootstrapRes <- df %>% 
-    bootstrapGroup(nBootstrap = nBootstrap, maxPerCell = maxPerCell, groupingVars = groupingVars, replace = replace, setSeed = setSeed, forInterval = forInterval)
+  origMeans <- df %>%
+    group_by(
+      earlyLifeTrt
+      , adultTrt
+    ) %>%
+    summarize_means(propColsAsText)
   
-  if(!forInterval){
-    bootstrapMeans <- bootstrapRes %>%
-      pivot_longer(
-        cols = c(amplitude, riseTime, decay9010, fwhm)
-        , names_to = "variable"
-        , values_to = "mean"
-      ) %>%
-      mutate(
-        variable = factor(variable, levels = c("amplitude", "riseTime", "decay9010", "fwhm"))
-      )
-  } else {
-    bootstrapMeans <- bootstrapRes %>%
-      pivot_longer(
-        cols = c(interval)
-        , names_to = "variable"
-        , values_to = "mean"
-      )
-  }
+  bootstrapRes <- df %>% 
+    bootstrapGroup(nBootstrap = nBootstrap, maxPerCell = maxPerCell, groupingVars = groupingVars, replace = replace, setSeed = setSeed, propColsAsText = propColsAsText)
+  
+  
+  
+  bootstrapMeans <- bootstrapRes %>%
+    pivot_longer(
+      cols = propColsAsText
+      , names_to = "variable"
+      , values_to = "mean"
+    ) %>%
+    mutate(
+      variable = factor(variable, levels = propColsAsText)
+    )
+
   
   bootstrapMeanSum <- bootstrapMeans %>%
     group_by(variable, earlyLifeTrt, adultTrt) %>%
@@ -944,6 +915,7 @@ analyzeBootstrapResults <- function(
     relocate(
       mean, .before = lowerCI
     )
+  
   
   bootstrapMeanDiffs <- bootstrapMeans %>%
     pivot_wider(
@@ -997,70 +969,30 @@ analyzeBootstrapResults <- function(
   bootstrapDiffPs <- bootstrapMeanDiffsSum %>%
     formatBootstrapPvaluesCI()
   
-  if(!forInterval){
-    origMean <- pscProps %>%
-      group_by(
-        earlyLifeTrt
-        , adultTrt
-      ) %>%
-      summarize(
-        amplitude = mean(amplitude, na.rm = TRUE)
-        , riseTime = mean(riseTime, na.rm = TRUE)
-        , decay9010 = mean(decay9010, na.rm = TRUE)
-        , fwhm = mean(fwhm, na.rm = TRUE)
-        , .groups = "drop"
-      )
-    
-    getPerc_STD_CON_mean <- function(df, column, prop = propDifferent){
-      stdCon <- df %>%
-        filter(
-          earlyLifeTrt == "STD"
-          , adultTrt == "CON"
-        )
-      
-      stdConMean <- stdCon[[column]]
-      
-      return(stdConMean * prop)
-    }
-    
-    bootstrapCompDiffs <-  bootstrapMeanDiffs %>%
-      rowwise() %>%
-      mutate(
-        diffOfInterest = getPerc_STD_CON_mean(origMean, variable)
-        , .after = variable
-      ) %>%
-      mutate(
-        stdCONvALPS_isBigger = (stdCONvALPS <= -abs(diffOfInterest) | stdCONvALPS >= abs(diffOfInterest))
-        , lbnCONvALPS_isBigger = (lbnCONvALPS <= -abs(diffOfInterest) | lbnCONvALPS >= abs(diffOfInterest))
-        , conSTDvLBN_isBigger = (conSTDvLBN <= -abs(diffOfInterest) | conSTDvLBN >= abs(diffOfInterest))
-        , alpsSTDvLBN_isBigger = (alpsSTDvLBN <= -abs(diffOfInterest) | alpsSTDvLBN >= abs(diffOfInterest))
-        # , STD_CONvLBN_ALPS_isBigger = (STD_CONvLBN_ALPS <= -abs(diffOfInterest) | STD_CONvLBN_ALPS >= abs(diffOfInterest))
-        # , STD_ALPSvLBN_CON_isBigger = (STD_ALPSvLBN_CON <= -abs(diffOfInterest) | STD_ALPSvLBN_CON >= abs(diffOfInterest))
-      ) %>%
-      group_by(
-        variable
-      ) %>%
-      summarize( # these are p-values, 1 - proportion where larger than original difference
-        stdCONvALPS = 1 - mean(stdCONvALPS_isBigger)
-        , lbnCONvALPS = 1 - mean(lbnCONvALPS_isBigger)
-        , conSTDvLBN = 1 - mean(conSTDvLBN_isBigger)
-        , alpsSTDvLBN = 1- mean(alpsSTDvLBN_isBigger)
-        # , STD_CONvLBN_ALPS = 1 - mean(STD_CONvLBN_ALPS_isBigger)
-        # , STD_ALPSvLBN_CON = 1- mean(STD_ALPSvLBN_CON_isBigger)
-        , .groups = "drop"
-      ) %>%
-      pivot_longer(
-        cols = stdCONvALPS:alpsSTDvLBN
-        # cols = stdCONvALPS:STD_ALPSvLBN_CON
-        , names_to = "comparison"
-        , values_to = "p.value"
-      ) %>%
-      renameBootstrapComparisonGroups()
-    
-    # Errors 
-    amplitudeErrors <- bootstrapMeanSum %>%
+  bootOutput <- list(
+    "results" = bootstrapRes
+    , "originalMeans" = origMeans
+    , "meansCI" = bootstrapMeanSum
+    , "diffsCI" = bootstrapMeanDiffsSum
+    , "P_formatted" = bootstrapDiffPs
+    , "distPlots" = list()
+    , "plots" = list()
+    , "cumulativeFreqPlots" = list()
+    , "cumulativeFreqPlots_full" = list()
+    , "cumulativeFreqPlots_insets" = list()
+    , "errorPlots" = list()
+    , "errors" = list()
+    , "extra" = list(
+      "longMeans" = bootstrapMeans
+      , "meanDiffs" = bootstrapMeanDiffs_long
+    )
+  )
+  
+  for (propVar in propColsAsText) {
+    # errors -----
+    errors <- bootstrapMeanSum %>%
       filter(
-        variable == "amplitude"
+        variable == propVar
       ) %>%
       combineStress() %>%
       rename(
@@ -1069,349 +1001,121 @@ analyzeBootstrapResults <- function(
         , upper = upperCI
       )
     
-    riseTimeErrors <- bootstrapMeanSum %>%
-      filter(
-        variable == "riseTime"
-      ) %>%
-      combineStress() %>%
-      rename(
-        y = mean
-        , lower = lowerCI
-        , upper = upperCI
-      )
+    bootOutput$errors[[propVar]] = errors
     
-    decay9010Errors <- bootstrapMeanSum %>%
-      filter(
-        variable == "decay9010"
-      ) %>%
-      combineStress() %>%
-      rename(
-        y = mean
-        , lower = lowerCI
-        , upper = upperCI
-      )
+    # bootstrap plot ----
+    thisPropLab <- case_when(
+      propVar == "amplitude" ~ "amplitude (pA)"
+      , propVar == "interval" ~ "interevent interval (s)"
+      , propVar == "riseTime" ~ "rise time (ms)"
+      , propVar == "decay9010" ~ "decay time (ms)"
+      , propVar == "fwhm" ~ "fwhm (ms)"
+      , .default = propVar
+    )
     
-    fwhmErrors <- bootstrapMeanSum %>%
-      filter(
-        variable == "fwhm"
-      ) %>%
-      combineStress() %>%
-      rename(
-        y = mean
-        , lower = lowerCI
-        , upper = upperCI
-      )
-    
-    # Plots
-    amplitude_plot <- bootstrapRes %>%
+    bootPlot <- bootstrapRes %>%
       combineStress() %>%
       scatterPlotComboTrt(
-        yVar = amplitude
-        , yLab = "amplitude (pA)"
+        yVar = !! sym(propVar)
+        , yLab = thisPropLab
         , dotSize = dotSize
         , fontSize = textSize
         , addMeanSE = FALSE
       ) +
       plotError_LMM_comboTrt(
-        amplitudeErrors
+        errors
       )
     
+    bootOutput$plot[[propVar]] = bootPlot
     
-    riseTime_plot <- bootstrapRes %>%
-      combineStress() %>%
-      scatterPlotComboTrt(
-        yVar = riseTime
-        , yLab = "rise time (ms)"
-        , dotSize = dotSize
-        , fontSize = textSize
-      ) +
-      plotError_LMM_comboTrt(
-        riseTimeErrors
-      )
+    # cumulative probability plot ----
     
-    decay9010_plot <- bootstrapRes %>%
-      combineStress() %>%
-      scatterPlotComboTrt(
-        yVar = decay9010
-        , yLab = "decay time (ms)"
-        , dotSize = dotSize
-        , fontSize = textSize
-      ) +
-      plotError_LMM_comboTrt(
-        decay9010Errors
-      )
+    thisXMax <- case_when(
+      propVar == "amplitude" ~ 125
+      , propVar == "interval" ~ 10
+      , propVar == "riseTime" ~ 2.2
+      , propVar == "decay9010" ~ 80
+      , propVar == "fwhm" ~ 20
+      , .default = NA
+    )
     
-    fwhm_plot <- bootstrapRes %>%
-      combineStress() %>%
-      scatterPlotComboTrt(
-        yVar = fwhm
-        , yLab = "full width half maximum (ms)"
-        , dotSize = dotSize
-        , fontSize = textSize
-      ) +
-      plotError_LMM_comboTrt(
-        fwhmErrors
-      )
-    
-    amplitude_ecdfPlot <- plotCumulativeFreqDist(
+    ecdfPlot <- plotCumulativeFreqDist(
       df
-      , amplitude
-      , "amplitude (pA)"
+      , !! sym(propVar)
+      , thisPropLab
       , zoom_x = TRUE
       , xmin = 0
-      , xmax = 125
+      , xmax = thisXMax
       , textSize = textSize
       , legendPosition = legendPosition
     )
     
-    amplitude_ecdfPlot_full <- plotCumulativeFreqDist(
+    bootOutput$cumulativeFreqPlots[[propVar]] = ecdfPlot
+    
+    ecdfPlot_full <- plotCumulativeFreqDist(
       df
-      , amplitude
-      , "amplitude (pA)"
+      , !! sym(propVar)
+      , thisPropLab
       , textSize = textSize
       , legendPosition = legendPosition
     )
     
-    riseTime_ecdfPlot <- plotCumulativeFreqDist(
-      df
-      , riseTime
-      , "rise time (ms)"
-      , zoom_x = TRUE
-      , xmin = 0
-      , xmax = 2.2
-      , textSize = textSize
-      , legendPosition = legendPosition
-    )
+    bootOutput$cumulativeFreqPlots_full[[propVar]] = ecdfPlot_full
     
-    riseTime_ecdfPlot_full <- plotCumulativeFreqDist(
-      df
-      , riseTime
-      , "rise time (ms)"
-      , textSize = textSize
-      , legendPosition = legendPosition
-    )
+    # Errors on x axis plot --------
     
-    decay9010_ecdfPlot <- plotCumulativeFreqDist(
-      df
-      , decay9010
-      , "decay time (ms)"
-      , zoom_x = TRUE
-      , xmin = 0
-      , xmax = 80
-      , textSize = textSize
-      , legendPosition = legendPosition
-    )
-    
-    decay9010_ecdfPlot_full <- plotCumulativeFreqDist(
-      df
-      , decay9010
-      , "decay time (ms)"
-      , textSize = textSize
-      , legendPosition = legendPosition
-    )
-    
-    fwhm_ecdfPlot <- plotCumulativeFreqDist(
-      df
-      , fwhm
-      , "full width half maximum (ms)"
-      , zoom_x = TRUE
-      , xmin = 0
-      , xmax = 20
-      , textSize = textSize
-      , legendPosition = legendPosition
-    )
-    
-    fwhm_ecdfPlot_full <- plotCumulativeFreqDist(
-      df
-      , fwhm
-      , "full width half maximum (ms)"
-      , textSize = textSize
-      , legendPosition = legendPosition
-    )
-    
-    amplitude_errors_x <- amplitudeErrors %>%
+    errors_x_plot <- errors %>%
       plotBootstrapErrors_xAxis(
-        xLab = "amplitude (pA)"
+        xLab = thisPropLab
         , zoom_x = TRUE
         , xmin = 0
-        , xmax = 125
+        , xmax = thisXMax
       )
     
-    riseTime_errors_x <- riseTimeErrors %>%
-      plotBootstrapErrors_xAxis(
-        xLab = "rise time (ms)"
-        , zoom_x = TRUE
-        , xmin = 0
-        , xmax = 2.2
+    bootOutput$errorPlots[[propVar]] = errors_x_plot
+    
+    # combined distribution ----------
+    ecdf_inset <- ggdraw() +
+      draw_plot(ecdfPlot +theme(legend.position = "none")) +
+      draw_plot(
+        ecdfPlot_full+
+          theme(
+            legend.position = "none"
+            , axis.title.x = element_blank()
+            , axis.title.y = element_blank() )
+        , x = 0.5
+        , y = 0.1
+        , width = 0.5
+        , height = 0.6
       )
     
-    decay9010_errors_x <- decay9010Errors %>%
-      plotBootstrapErrors_xAxis(
-        xLab = "decay time (ms)"
-        , zoom_x = TRUE
-        , xmin = 0
-        , xmax = 80
-      )
+    bootOutput$cumulativeFreqPlots_inset[[propVar]] = ecdf_inset
     
-    fwhm_errors_x <- fwhmErrors %>%
-      plotBootstrapErrors_xAxis(
-        xLab = "full width half maximum (ms)"
-        , zoom_x = TRUE
-        , xmin = 0
-        , xmax = 20
-      )
-    
-    freqPlots_aligned <- align_plots(
-      amplitude_ecdfPlot
-      , riseTime_ecdfPlot
-      , decay9010_ecdfPlot
-      , fwhm_ecdfPlot
-      , align = "h"
-      , axis = "tb"
+    combinedDistPlot <- plot_grid(
+      errors_x_plot
+      , ecdfPlot + theme(legend.position = "none")
+      , nrow = 2
+      , rel_heights = c(1, 3)
+      , align = "hv"
+      , axis = "tlbr"
     )
     
-    distPlots <- plot_grid(
-      amplitude_errors_x
-      , riseTime_errors_x
-      , freqPlots_aligned[[1]]
-      , freqPlots_aligned[[2]]
-      , decay9010_errors_x
-      , fwhm_errors_x
-      , freqPlots_aligned[[3]]
-      , freqPlots_aligned[[4]]
-      , ncol = 2
-      , rel_heights = c(rep(c(0.4, 1), 4))
-      , align = "v"
-      , axis = "lr"
-      , labels = c("A", "B", "", "", "C", "D", "", "")
-      , label_fontfamily = "Arial"
-      , label_size = textSize
-    )
-    
-    return(
-      list(
-        "results" = bootstrapRes
-        , "meansCI" = bootstrapMeanSum
-        , "diffsCI" = bootstrapMeanDiffsSum
-        , "P_formatted" = bootstrapDiffPs
-        , "compDiffs" = bootstrapCompDiffs
-        , "distPlots" = distPlots
-        , "plots" = list(
-          "amplitude" = amplitude_plot
-          , "riseTime" = riseTime_plot
-          , "decayTime" = decay9010_plot
-          , "fwhm" = fwhm_plot
-        )
-        , "cumulativeFreqPlots" = list(
-          "amplitude" = amplitude_ecdfPlot
-          , "riseTime" = riseTime_ecdfPlot
-          , "decayTime" = decay9010_ecdfPlot
-          , "fwhm" = fwhm_ecdfPlot
-        )
-        , "cumulativeFreqPlots_full" = list(
-          "amplitude" = amplitude_ecdfPlot_full
-          , "riseTime" = riseTime_ecdfPlot_full
-          , "decayTime" = decay9010_ecdfPlot_full
-          , "fwhm" = fwhm_ecdfPlot_full
-        )
-        , "errorPlots" = list(
-          "amplitude" = amplitude_errors_x
-          , "riseTime" = riseTime_errors_x
-          , "decayTime" = decay9010_errors_x
-          , "fwhm" = fwhm_errors_x
-        )
-        , "errors" = list(
-          "amplitude" = amplitudeErrors
-          , "riseTime" = riseTimeErrors
-          , "decayTime" = decay9010Errors
-          , "fwhm" = fwhmErrors
-        )
-        , "extra" = list(
-          "longMeans" = bootstrapMeans
-          , "meanDiffs" = bootstrapMeanDiffs_long
-        )
-      )
-    )
-  } else {
-    intervalErrors <- bootstrapMeanSum %>%
-      filter(
-        variable == "interval"
-      ) %>%
-      combineStress() %>%
-      rename(
-        y = mean
-        , lower = lowerCI
-        , upper = upperCI
+    combinedDistPlot <- ggdraw() +
+      draw_plot(combinedDistPlot) +
+      draw_plot(
+        ecdfPlot_full+
+          theme(
+            legend.position = "none"
+            , axis.title.x = element_blank()
+            , axis.title.y = element_blank() )
+        , x = 0.5
+        , y = 0.1
+        , width = 0.5
+        , height = 0.4
       )
     
-    # Plots
-    interval_plot <- bootstrapRes %>%
-      combineStress() %>%
-      scatterPlotComboTrt(
-        yVar = interval
-        , yLab = "interval (s)"
-        , dotSize = dotSize
-        , fontSize = textSize
-        , addMeanSE = FALSE
-      ) +
-      plotError_LMM_comboTrt(
-        intervalErrors
-      )
-    
-    interval_ecdfPlot <- plotCumulativeFreqDist(
-      df
-      , interval
-      , "interval (s)"
-      , zoom_x = TRUE
-      , xmin = 0
-      , xmax = 20
-      , textSize = textSize
-      , legendPosition = legendPosition
-    )
-    
-    interval_ecdfPlot_full <- plotCumulativeFreqDist(
-      df
-      , interval
-      , "interval (s)"
-      , textSize = textSize
-      , legendPosition = legendPosition
-    )
-    
-    interval_errors_x <- intervalErrors %>%
-      plotBootstrapErrors_xAxis(
-        xLab = "interval (s)"
-        , zoom_x = TRUE
-        , xmin = 0
-        , xmax = 20
-      )
-    
-    return(
-      list(
-        "results" = bootstrapRes
-        , "meansCI" = bootstrapMeanSum
-        , "diffsCI" = bootstrapMeanDiffsSum
-        , "P_formatted" = bootstrapDiffPs
-        , "plots" = list(
-          "interval" = interval_plot
-        )
-        , "cumulativeFreqPlots" = list(
-          "interval" = interval_ecdfPlot
-        )
-        , "cumulativeFreqPlots_full" = list(
-          "interval" = interval_ecdfPlot_full
-        )
-        , "errorPlots" = list(
-          "interval" = interval_errors_x
-        )
-        , "errors" = list(
-          "interval" = intervalErrors
-        )
-        , "extra" = list(
-          "longMeans" = bootstrapMeans
-          , "meanDiffs" = bootstrapMeanDiffs_long
-        )
-      )
-    )
+    bootOutput$distPlots[[propVar]] = combinedDistPlot
   }
   
+  return(bootOutput)
 }
