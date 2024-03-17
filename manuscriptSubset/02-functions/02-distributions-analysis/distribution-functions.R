@@ -475,8 +475,8 @@ runFourWayAD_allProps <- function(df, colorCellByQuartiles = TRUE, appendToPCol 
 
 ## Pairwise KS/AD -----------------
 
-dist_pairwise <- function(adRes, variable, isInt = FALSE){
-  if(!isInt){
+dist_pairwise <- function(adRes, variable, singleRes = TRUE){
+  if(!singleRes){
     vectorList <- adRes[[variable]]$vectors
   } else{
     vectorList <- adRes$vectors
@@ -615,18 +615,25 @@ getOneBootstrapMeans <- function(
     , replace = replace
   )
   
+  if(!is.na(bootstrapIt)){
+    df <- df %>%
+      mutate(
+        bootIt = bootstrapIt
+      )
+    
+    propColsAsText <- c(propColsAsText, "bootIt")
+  }
+  
   sumDF <- df %>%
     summarize_means(
       propColsAsText
     )
-    
-  if(!is.na(bootstrapIt)){
-    sumDF <- sumDF %>%
-      mutate(
-        bootIt = bootstrapIt
-      )
-  }
-  return(sumDF)
+  
+  return(list(
+    "mean" = sumDF
+    , "all" = df
+    )
+  )
 }
 
 bootstrapGroup <- function(df
@@ -644,7 +651,8 @@ bootstrapGroup <- function(df
   bootstrapRes <- bind_rows(
     map(
       1:nBootstrap
-      , ~ getOneBootstrapMeans(df, replace = replace, bootstrapIt = .x, maxPerCell = maxPerCell, groupingVars = groupingVars, propColsAsText = propColsAsText)
+      , ~ getOneBootstrapMeans(df, replace = replace, bootstrapIt = .x, maxPerCell = maxPerCell, groupingVars = groupingVars, propColsAsText = propColsAsText)$all
+      , .progress = "bootstrap mean prog"
     )
   )
   
@@ -876,8 +884,9 @@ analyzeBootstrapResults <- function(
     , propDifferent = 0.15
     , CIprop = 0.05
     , legendPosition = c(0.7, 0.3)
-    , propCols = c(amplitude, interval)
     , propColsAsText = c("amplitude", "interval") # also used to factor in order
+    , makeBootPlots = FALSE
+    , plotEachIterMean = TRUE
 ){
   origMeans <- df %>%
     group_by(
@@ -886,10 +895,16 @@ analyzeBootstrapResults <- function(
     ) %>%
     summarize_means(propColsAsText)
   
-  bootstrapRes <- df %>% 
+  bootstrapRes_all <- df %>% 
     bootstrapGroup(nBootstrap = nBootstrap, maxPerCell = maxPerCell, groupingVars = groupingVars, replace = replace, setSeed = setSeed, propColsAsText = propColsAsText)
   
-  
+  bootstrapRes <- bootstrapRes_all %>%
+    group_by(
+      !!! groupingVars, bootIt
+    ) %>%
+    summarize_means(
+      propColsAsText
+    )
   
   bootstrapMeans <- bootstrapRes %>%
     pivot_longer(
@@ -980,6 +995,12 @@ analyzeBootstrapResults <- function(
     , "cumulativeFreqPlots" = list()
     , "cumulativeFreqPlots_full" = list()
     , "cumulativeFreqPlots_insets" = list()
+    , "boot_ecdf_plots" = list(
+      "distPlots" = list()
+      , "cumulativeFreqPlots" = list()
+      , "cumulativeFreqPlots_full" = list()
+      , "cumulativeFreqPlots_insets" = list()
+    )
     , "errorPlots" = list()
     , "errors" = list()
     , "extra" = list(
@@ -1021,12 +1042,24 @@ analyzeBootstrapResults <- function(
         , dotSize = dotSize
         , fontSize = textSize
         , addMeanSE = FALSE
+        , plotJitter = plotEachIterMean
       ) +
       plotError_LMM_comboTrt(
         errors
       )
     
-    bootOutput$plot[[propVar]] = bootPlot
+    # bootPlot <- ggplot(
+    #   aes(
+    #     x = comboTrt
+    #     , y = !!sym(propVar)
+    #   )
+    #   , data = bootstrapRes
+    # ) +
+    #   plotError_LMM_comboTrt(
+    #     errors
+    #   )
+    
+    bootOutput$plots[[propVar]] = bootPlot
     
     # cumulative probability plot ----
     
@@ -1049,7 +1082,7 @@ analyzeBootstrapResults <- function(
       , textSize = textSize
       , legendPosition = legendPosition
     )
-    
+
     bootOutput$cumulativeFreqPlots[[propVar]] = ecdfPlot
     
     ecdfPlot_full <- plotCumulativeFreqDist(
@@ -1115,7 +1148,82 @@ analyzeBootstrapResults <- function(
       )
     
     bootOutput$distPlots[[propVar]] = combinedDistPlot
+    
+    if(makeBootPlots){
+      smallerBootstrapRes_all <- bootstrapRes_all %>%
+        arrange(
+          propVar
+        ) %>%
+        filter(
+          row_number() %% nBootstrap == 0
+        )
+      # Boot plots -----
+      
+      boot_ecdfPlot <- plotCumulativeFreqDist(
+        smallerBootstrapRes_all
+        , !! sym(propVar)
+        , thisPropLab
+        , zoom_x = TRUE
+        , xmin = 0
+        , xmax = thisXMax
+        , textSize = textSize
+        , legendPosition = legendPosition
+      )
+      
+      boot_ecdfPlot_full <- plotCumulativeFreqDist(
+        smallerBootstrapRes_all
+        , !! sym(propVar)
+        , thisPropLab
+        , textSize = textSize
+        , legendPosition = legendPosition
+      )
+      
+      boot_ecdf_inset <- ggdraw() +
+        draw_plot(boot_ecdfPlot +theme(legend.position = "none")) +
+        draw_plot(
+          boot_ecdfPlot_full+
+            theme(
+              legend.position = "none"
+              , axis.title.x = element_blank()
+              , axis.title.y = element_blank() )
+          , x = 0.5
+          , y = 0.1
+          , width = 0.5
+          , height = 0.6
+        )
+      
+      boot_combinedDistPlot <- plot_grid(
+        errors_x_plot
+        , boot_ecdfPlot + theme(legend.position = "none")
+        , nrow = 2
+        , rel_heights = c(1, 3)
+        , align = "hv"
+        , axis = "tlbr"
+      )
+      
+      boot_combinedDistPlot <- ggdraw() +
+        draw_plot(boot_combinedDistPlot) +
+        draw_plot(
+          boot_ecdfPlot_full+
+            theme(
+              legend.position = "none"
+              , axis.title.x = element_blank()
+              , axis.title.y = element_blank() )
+          , x = 0.5
+          , y = 0.1
+          , width = 0.5
+          , height = 0.4
+        )
+      
+      bootOutput$boot_ecdf_plots$cumulativeFreqPlots[[propVar]] = boot_ecdfPlot
+      bootOutput$boot_ecdf_plots$cumulativeFreqPlots_full[[propVar]] = boot_ecdfPlot_full
+      bootOutput$boot_ecdf_plots$cumulativeFreqPlots_inset[[propVar]] = boot_ecdf_inset
+      bootOutput$boot_ecdf_plots$distPlots[[propVar]] = boot_combinedDistPlot
+      
+    }
   }
   
   return(bootOutput)
 }
+
+
