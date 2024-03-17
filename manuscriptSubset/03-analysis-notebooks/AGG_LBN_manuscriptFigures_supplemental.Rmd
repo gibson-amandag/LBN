@@ -21,6 +21,8 @@ source("./01-scripts/05-make-LBN-plots-modelError-manuscript.R")
 source("./01-scripts/06-make-LBN-tables.R")
 ```
 
+# Documents 
+
 ```{r}
 doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
 set_flextable_defaults(
@@ -30,12 +32,31 @@ set_flextable_defaults(
 
 doc <- read_docx("./manuscriptTemplate.docx")
 supDoc <- read_docx("./manuscriptTemplate.docx")
+pairsDoc <- read_docx("./manuscriptTemplate.docx")
 
 saveTables <- function(){
   print(doc, target = "my_report.docx")
-  print(supDoc, targe = "supplementalTable.docx")
+  print(supDoc, target = "supplementalTable.docx")
+  print(pairsDoc, target = "pairsTable.docx")
 }
 ```
+
+## Pairs table
+
+```{r}
+source("./01-scripts/06-make-LBN-table-pairs.R")
+tableCaption <- "Pairs table"
+tbl <- pairsFlextable
+tbl
+```
+
+```{r}
+pairsDoc <- addTableAndCaptionToDoc(tbl, tableCaption, 2, pairsDoc)
+```
+
+
+```
+
 
 # Column Sizes
 ```{r}
@@ -183,329 +204,6 @@ figDams <- plot_grid(
   
 figDams
 ```
-
-```{r}
-figDamsPlots <- cowplot::align_plots(
-  figDams_exits_noDots
-  , figDams_offNest_noDots
-  , align = "v"
-  , axis = "l"
-)
-
-figDamsBehaviorPlots <- cowplot::align_plots(figDamsPlots[[1]], figDams_meanExits, figDamsPlots[[2]], figDams_meanOffNest, align = "h", axis = "bt")
-
-figDamsRightPlots <- cowplot::align_plots(
-  figDamsBehaviorPlots[[2]]
-  , figDamsBehaviorPlots[[4]]
-  , figDamsD
-  , align = "v"
-  , axis = "lr"
-)
-
-figDams_row1 <- align_plots(
-  figDamsRightPlots[[3]]
-  , figDams_mass
-  , align = "h"
-  , axis = "tb"
-)
-
-figDams_left <- plot_grid(
-  plot_grid(
-    NULL
-    , figDams_row1[[2]]
-    , nrow = 1
-    , align = "h"
-    , axis = "bt"
-    , labels = c("A", "B")
-    , label_fontfamily = "Arial"
-    , label_size = textSize
-  )
-  , figDamsBehaviorPlots[[1]]
-  , figDamsBehaviorPlots[[3]]
-  , nrow = 3
-  , labels = c("", "D", "E")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-)
-
-figDams_right <- plot_grid(
-  figDams_row1[[1]]
-  , figDamsRightPlots[[1]]
-  , figDamsRightPlots[[2]]
-  , labels = c("C", "", "")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-  , nrow = 3
-)
-
-figDams_noDots <- plot_grid(
-  figDams_left
-  , figDams_right
-  , ncol = 2
-  , rel_widths = c(3, 1)
-)
-  
-figDams_noDots
-```
-
-```{r}
-figDamsPlots <- cowplot::align_plots(
-  figDams_exits_noDots_viridis
-  , figDams_offNest_noDots_viridis
-  , align = "v"
-  , axis = "l"
-)
-
-figDamsBehaviorPlots <- cowplot::align_plots(figDamsPlots[[1]], figDams_meanExits_viridis, figDamsPlots[[2]], figDams_meanOffNest_viridis, align = "h", axis = "bt")
-
-figDamsRightPlots <- cowplot::align_plots(
-  figDamsBehaviorPlots[[2]]
-  , figDamsBehaviorPlots[[4]]
-  , figDamsD
-  , align = "v"
-  , axis = "lr"
-)
-
-figDams_row1 <- align_plots(
-  figDamsRightPlots[[3]]
-  , figDams_mass
-  , align = "h"
-  , axis = "tb"
-)
-
-figDams_left <- plot_grid(
-  plot_grid(
-    NULL
-    , figDams_row1[[2]]
-    , nrow = 1
-    , align = "h"
-    , axis = "bt"
-    , labels = c("A", "B")
-    , label_fontfamily = "Arial"
-    , label_size = textSize
-  )
-  , figDamsBehaviorPlots[[1]]
-  , figDamsBehaviorPlots[[3]]
-  , nrow = 3
-  , labels = c("", "D", "E")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-)
-
-figDams_right <- plot_grid(
-  figDams_row1[[1]]
-  , figDamsRightPlots[[1]]
-  , figDamsRightPlots[[2]]
-  , labels = c("C", "", "")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-  , nrow = 3
-)
-
-figDams_noDots_viridis <- plot_grid(
-  figDams_left
-  , figDams_right
-  , ncol = 2
-  , rel_widths = c(3, 1)
-)
-  
-figDams_noDots_viridis
-```
-
-
-```{r}
-figDamsPlots <- cowplot::align_plots(
-  figDams_exits_select
-  , figDams_offNest_noDots_viridis
-  , align = "v"
-  , axis = "l"
-)
-
-figDamsBehaviorPlots <- cowplot::align_plots(figDamsPlots[[1]], figDams_meanExits_select, figDamsPlots[[2]], figDams_meanOffNest_viridis, align = "h", axis = "bt")
-
-figDamsRightPlots <- cowplot::align_plots(
-  figDamsBehaviorPlots[[2]]
-  , figDamsBehaviorPlots[[4]]
-  , figDamsD
-  , align = "v"
-  , axis = "lr"
-)
-
-figDams_row1 <- align_plots(
-  figDamsRightPlots[[3]]
-  , figDams_mass
-  , align = "h"
-  , axis = "tb"
-)
-
-figDams_left <- plot_grid(
-  plot_grid(
-    NULL
-    , figDams_row1[[2]]
-    , nrow = 1
-    , align = "h"
-    , axis = "bt"
-    , labels = c("A", "B")
-    , label_fontfamily = "Arial"
-    , label_size = textSize
-  )
-  , figDamsBehaviorPlots[[1]]
-  , figDamsBehaviorPlots[[3]]
-  , nrow = 3
-  , labels = c("", "D", "E")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-)
-
-figDams_right <- plot_grid(
-  figDams_row1[[1]]
-  , figDamsRightPlots[[1]]
-  , figDamsRightPlots[[2]]
-  , labels = c("C", "", "")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-  , nrow = 3
-)
-
-figDams_noDots_select <- plot_grid(
-  figDams_left
-  , figDams_right
-  , ncol = 2
-  , rel_widths = c(3, 1)
-)
-  
-figDams_noDots_select
-```
-
-
-```{r}
-figDamsPlots <- cowplot::align_plots(
-  figDams_exitsRandom
-  , figDams_offNest_random
-  , align = "v"
-  , axis = "l"
-)
-
-figDamsBehaviorPlots <- cowplot::align_plots(figDamsPlots[[1]], figDams_meanExits_random, figDamsPlots[[2]], figDams_meanOffNest_random, align = "h", axis = "bt")
-
-figDamsRightPlots <- cowplot::align_plots(
-  figDamsBehaviorPlots[[2]]
-  , figDamsBehaviorPlots[[4]]
-  , figDamsD
-  , align = "v"
-  , axis = "lr"
-)
-
-figDams_row1 <- align_plots(
-  figDamsRightPlots[[3]]
-  , figDams_mass
-  , align = "h"
-  , axis = "tb"
-)
-
-figDams_left <- plot_grid(
-  plot_grid(
-    NULL
-    , figDams_row1[[2]]
-    , nrow = 1
-    , align = "h"
-    , axis = "bt"
-    , labels = c("A", "B")
-    , label_fontfamily = "Arial"
-    , label_size = textSize
-  )
-  , figDamsBehaviorPlots[[1]]
-  , figDamsBehaviorPlots[[3]]
-  , nrow = 3
-  , labels = c("", "D", "E")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-)
-
-figDams_right <- plot_grid(
-  figDams_row1[[1]]
-  , figDamsRightPlots[[1]]
-  , figDamsRightPlots[[2]]
-  , labels = c("C", "", "")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-  , nrow = 3
-)
-
-figDams_random <- plot_grid(
-  figDams_left
-  , figDams_right
-  , ncol = 2
-  , rel_widths = c(3, 1)
-)
-  
-figDams_random
-```
-
-```{r}
-figDamsPlots <- cowplot::align_plots(
-  figDams_exitsRandom_viridis
-  , figDams_offNest_random_viridis
-  , align = "v"
-  , axis = "l"
-)
-
-figDamsBehaviorPlots <- cowplot::align_plots(figDamsPlots[[1]], figDams_meanExits_random_viridis, figDamsPlots[[2]], figDams_meanOffNest_random_viridis, align = "h", axis = "bt")
-
-figDamsRightPlots <- cowplot::align_plots(
-  figDamsBehaviorPlots[[2]]
-  , figDamsBehaviorPlots[[4]]
-  , figDamsD
-  , align = "v"
-  , axis = "lr"
-)
-
-figDams_row1 <- align_plots(
-  figDamsRightPlots[[3]]
-  , figDams_mass
-  , align = "h"
-  , axis = "tb"
-)
-
-figDams_left <- plot_grid(
-  plot_grid(
-    NULL
-    , figDams_row1[[2]]
-    , nrow = 1
-    , align = "h"
-    , axis = "bt"
-    , labels = c("A", "B")
-    , label_fontfamily = "Arial"
-    , label_size = textSize
-  )
-  , figDamsBehaviorPlots[[1]]
-  , figDamsBehaviorPlots[[3]]
-  , nrow = 3
-  , labels = c("", "D", "E")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-)
-
-figDams_right <- plot_grid(
-  figDams_row1[[1]]
-  , figDamsRightPlots[[1]]
-  , figDamsRightPlots[[2]]
-  , labels = c("C", "", "")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-  , nrow = 3
-)
-
-figDams_random_viridis <- plot_grid(
-  figDams_left
-  , figDams_right
-  , ncol = 2
-  , rel_widths = c(3, 1)
-)
-  
-figDams_random_viridis
-```
-
 
 ```{r}
 flexSave(

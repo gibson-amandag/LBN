@@ -135,9 +135,59 @@ simplifyEMMOutput <- function(emmTbl){
   return(tbl)
 }
 
+simplifyEMMPairsOutput_CI <- function(pairsTbl){
+  tbl <- pairsTbl %>%
+    summary(
+      infer = c(TRUE, TRUE)
+      , adjust = "holm"
+    ) %>%
+    as_tibble()
+  
+  tbl <- tbl %>%
+    mutate(
+      `95% CI` = paste0("[", roundDecimals(lower.CL, 2), ", ", roundDecimals(upper.CL, 2), "]")
+      , .before = SE
+    ) %>%
+    select(
+      -c(lower.CL, upper.CL)
+    ) %>%
+    rename(
+      SEM = SE
+      , t = t.ratio
+      , p = p.value
+    ) %>%
+    formatPCol()
+  
+  return(tbl)
+}
+
+addTableInfo <- function(tbl, figLab = thisFigureLab, outcomeLab = thisOutcomeLab, noGroup = TRUE){
+  tbl <- tbl %>%
+    mutate(
+      fig = figLab
+      , outcome = outcomeLab
+      , .before = contrast
+    )
+  
+  if(noGroup){
+    tbl <- tbl %>%
+      mutate(
+        `group level` = NA
+        , .before = contrast
+      )
+  }
+  return(tbl)
+}
+
+
+
+
 simplifyEMMPairsOutput <- function(pairsTbl){
   tbl <- pairsTbl %>%
     as_tibble() %>%
+    select(
+      -c(lower.CL, upper.CL)
+    ) %>%
     rename(
       SEM = SE
       , `t ratio` = t.ratio
