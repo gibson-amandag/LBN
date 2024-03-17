@@ -3194,15 +3194,15 @@ LHcount_di <- acuteStressFilteredDi %>%
     , .groups = "drop"
   )
 
-LHcount_ephys <- acuteStressFilteredPro_ephys %>%
-  group_by(
-    earlyLifeTrt, adultTrt
-  ) %>%
-  summarize(
-    litters = n_distinct(damID)
-    , mice = n()
-    , .groups = "drop"
-  )
+# LHcount_ephys <- acuteStressFilteredPro_ephys %>%
+#   group_by(
+#     earlyLifeTrt, adultTrt
+#   ) %>%
+#   summarize(
+#     litters = n_distinct(damID)
+#     , mice = n()
+#     , .groups = "drop"
+#   )
 
 LHcount_sampling <- acuteStressFilteredPro_sampling %>%
   group_by(
@@ -3217,8 +3217,8 @@ LHcount_sampling <- acuteStressFilteredPro_sampling %>%
 LHcount <- bind_rows(
   list(
     "diestrus" = LHcount_di
-    , "proestrus: ephys" = LHcount_ephys
-    , "proestrus: sampling" = LHcount_sampling
+    # , "proestrus: ephys" = LHcount_ephys
+    , "proestrus" = LHcount_sampling
   ),
   .id = "usage"
 ) %>%
@@ -3240,12 +3240,8 @@ LHCount_header <- data.frame(
 LHCount_flexTable <- LHcount %>%
   makeManuscriptFlexTable(
     headerDF = LHCount_header
-    # , vertLines = c(2, 4, 6, 8, 10, 12)
-    # , horzLines = c(2)
-    # , vertMergeCols = c("earlyLifeTrt")
     , vertLines = c(1, 3, 5, 7)
-    , horzLines = c(1, 2)
-    , vertMergeCols = c("usage")
+    , horzLines = c(1)
   )
 
 ## Diestrous - avg evening ------------
@@ -3258,182 +3254,6 @@ LH_diAfternoon_flexTable <- LH_diAfternoonLMM_tbl %>%
     vertLines = c(1)
     , fullWidth = FALSE
   )
-
-## Proestrous - max evening ----------
-
-LH_proEphysLMM_tbl <-  LH_proEphys_lmm$anova_table %>%
-  simplifyLMMOutput()
-
-LH_proSamplingLMM_tbl <-  LH_proSampling_lmm$anova_table %>%
-  simplifyLMMOutput()
-
-LH_pro_tbl <- bind_rows(
-  list(
-    "electrophysiology" = LH_proEphysLMM_tbl
-    , "sampling" = LH_proSamplingLMM_tbl
-  )
-  , .id = "model"
-) %>%
-  pivot_wider(
-    id_cols = variable, names_from = model, values_from = c("F", "df", "p")
-  )
-
-LH_pro_header <- data.frame(
-  col_keys = c("variable", "F_electrophysiology", "df_electrophysiology", "p_electrophysiology"
-               , "F_sampling", "df_sampling", "p_sampling"
-  )
-  , line2 = c("", rep("electrophysiology", 3), rep("sampling", 3))
-  , line3 = c("variable", "F", "df", "p"
-              , "F", "df", "p")
-)
-
-LH_pro_flexTable <- LH_pro_tbl %>%
-  makeManuscriptFlexTable(
-    headerDF = LH_pro_header
-    , vertLines = c(1, 4)
-  )
-
-LH_proSampling_peakTime_lmm_tbl <- LH_proSampling_peakTime_lmm$anova_table %>%
-  simplifyLMMOutput()
-
-LH_pro_peakTime_flexTable <- LH_proSampling_peakTime_lmm_tbl %>%
-  makeManuscriptFlexTable(
-    vertLines = c(1)
-  )
-
-## Combined LH di/pro/time ------------------
-
-combinedLH_tbl <- bind_rows(list(
-  "proestrus max LH\nextended sampling" = LH_proSamplingLMM_tbl
-  , "proestrus max LH\nlimited sampling" = LH_proEphysLMM_tbl
-  , "proestrus time of max LH\nextended sampling" = LH_proSampling_peakTime_lmm_tbl
-  , "diestrus avg LH" = LH_diAfternoonLMM_tbl
-), .id = "feature"
-) %>%
-  mutate(
-    variable = ifelse(
-      variable == "early-life treatment"
-      , "earlyLife"
-      , ifelse(
-        variable == "adult treatment"
-        , "adult"
-        , "int"
-      )
-    )
-  ) %>%
-  pivot_wider(
-    id_cols = "feature"
-    , names_from = "variable"
-    , values_from = c("F", "df", "p")
-  )
-
-combinedLH_header <- data.frame(
-  col_keys = c("feature"
-               , "F_earlyLife", "df_earlyLife", "p_earlyLife"
-               , "F_adult", "df_adult", "p_adult"
-               , "F_int", "df_int", "p_int"
-  )
-  , line1 = c(""
-              , rep("early-life treatment", 3)
-              , rep("adult treatment", 3)
-              , rep("early-life treatment * adult treatment", 3)
-  )
-  , line2 = c("feature"
-              , rep(c("F", "df", "p"), 3)
-  )
-)
-
-combinedLH_flexTable <- combinedLH_tbl %>%
-  makeManuscriptFlexTable(
-    headerDF = combinedLH_header
-    , round2Cols = c("F_earlyLife", "F_adult", "F_int")
-    , vertLines = c(1, 4, 7)
-  )
-
-
-### EMMs -----------------
-LH_proEphysLMM_emm_earlyLifeTrt_tbl <-  LH_proEphys_lmm_emm_earlyLifeTrt %>%
-  as_tibble() %>%
-  simplifyEMMOutput() %>%
-  mutate(
-    usage = "limited sampling"
-  )
-
-LH_proEphysLMM_emm_adultTrt_tbl <-  LH_proEphys_lmm_emm_adultTrt %>%
-  as_tibble() %>%
-  simplifyEMMOutput() %>%
-  mutate(
-    usage = "limited sampling"
-  )
-
-LH_proSamplingLMM_emm_adultTrt_tbl <-  LH_proSampling_lmm_emm_adultTrt %>%
-  as_tibble() %>%
-  simplifyEMMOutput() %>%
-  mutate(
-    usage = "extended sampling"
-  )
-
-LH_proLMM_EMM <- bind_rows(
-  LH_proSamplingLMM_emm_adultTrt_tbl
-  , LH_proEphysLMM_emm_earlyLifeTrt_tbl
-  , LH_proEphysLMM_emm_adultTrt_tbl
-) %>%
-  relocate(
-    usage
-    , earlyLifeTrt
-    , .before = adultTrt
-  )
-
-LH_proLMM_EMM_flexTable <- LH_proLMM_EMM %>%
-  makeManuscriptFlexTable(
-    vertLines = c(3)
-    , horzLines = c(2, 4)
-    , vertMergeCols = "usage"
-    , round1Cols = c("df")
-    , round2Cols = c("emmean")
-    , round3Cols = c("SEM")
-  )
-
-### Pairs ---------------
-
-LH_proEphysLMM_emm_earlyLifeTrt.pairs_tbl <-  LH_proEphys_lmm_emm_earlyLifeTrt.pairs %>%
-  simplifyEMMPairsOutput() %>%
-  mutate(
-    usage = "limited sampling"
-  )
-
-LH_proEphysLMM_emm_adultTrt.pairs_tbl <-  LH_proEphys_lmm_emm_adultTrt.pairs %>%
-  simplifyEMMPairsOutput() %>%
-  mutate(
-    usage = "limited sampling"
-  )
-
-LH_proSamplingLMM_emm_adultTrt.pairs_tbl <-  LH_proSampling_lmm_emm_adultTrt.pairs %>%
-  simplifyEMMPairsOutput() %>%
-  mutate(
-    usage = "extended sampling"
-  )
-
-LH_proLMM_EMM.pairs <- bind_rows(
-  LH_proEphysLMM_emm_earlyLifeTrt.pairs_tbl
-  , LH_proEphysLMM_emm_adultTrt.pairs_tbl
-  , LH_proSamplingLMM_emm_adultTrt.pairs_tbl
-) %>%
-  relocate(
-    usage
-    , .before = contrast
-  )
-
-LH_proLMM_EMM.pairs_flexTable <- LH_proLMM_EMM.pairs %>%
-  makeManuscriptFlexTable(
-    vertLines = c(2)
-    , horzLines = c(1, 2)
-    , vertMergeCols = "usage"
-    , round1Cols = c("df")
-    , round2Cols = c("estimate", "t ratio")
-    , round3Cols = c("SEM")
-  )
-
 
 ### Chi-sq ------------
 
@@ -3499,6 +3319,8 @@ decayTime_lmm_tbl <- decayTime_lmm$anova_table %>%
   simplifyLMMOutput()
 fwhm_lmm_tbl <- fwhm_lmm$anova_table %>%
   simplifyLMMOutput()
+interval_lmm_tbl <- interval_lmm$anova_table %>%
+  simplifyLMMOutput()
 
 pscLMMs_tbl <- bind_rows(
   list(
@@ -3506,10 +3328,11 @@ pscLMMs_tbl <- bind_rows(
     , `input resistance (MOhm)` = inputResistance_lmm_tbl
     , `series resistance (MOhm)` = seriesResistance_lmm_tbl
     , `holding current (pA)` = holdingCurrent_lmm_tbl
+    , `interevent interval (pA)` = interval_lmm_tbl
     , `amplitude (pA)` = relAmplitude_lmm_tbl
-    , `rise time (ms)` = riseTime_lmm_tbl
+    # , `rise time (ms)` = riseTime_lmm_tbl
     , `decay time (ms)` = decayTime_lmm_tbl
-    , `fwhm (ms)` = fwhm_lmm_tbl
+    # , `fwhm (ms)` = fwhm_lmm_tbl
   ), .id = "feature"
 ) %>%
   mutate(

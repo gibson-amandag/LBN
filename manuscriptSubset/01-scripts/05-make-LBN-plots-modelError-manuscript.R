@@ -10,28 +10,7 @@ isManuscript <- TRUE
 figDams_exits <- damBehavior_byPND %>%
   plotDamBehavior(
     yVar = Num_exits
-    , yLab = "mean # of exits / hr"
-    , fontSize = textSize
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
-    , dotSize = 1
-    , zoom_y = TRUE
-    , ymax = 60
-    , ymin = 0
-    , showMean = TRUE
-    , addVertError = TRUE
-    , lineAlpha = 1
-    , dotAlpha = 1
-    , lineSize = 0.25
-  ) + 
-  theme(
-    strip.text.x.top = element_text(margin = margin(b=-10))
-  )
-
-figDams_exits_noDots <- damBehavior_byPND %>%
-  plotDamBehavior(
-    yVar = Num_exits
-    , yLab = "mean # of exits / hr"
+    , yLab = "mean # of exits / h"
     , fontSize = textSize
     , addTriangleForMean = FALSE
     , colorByDam = TRUE
@@ -49,103 +28,11 @@ figDams_exits_noDots <- damBehavior_byPND %>%
   theme(
     strip.text.x.top = element_text(margin = margin(b=-10))
   )
-
-figDams_exits_noDots_viridis <- damBehavior_byPND %>%
-  plotDamBehavior(
-    yVar = Num_exits
-    , yLab = "mean # of exits / hr"
-    , fontSize = textSize
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
-    , dotSize = 1
-    , zoom_y = TRUE
-    , ymax = 60
-    , ymin = 0
-    , showDots = FALSE
-    , showMean = TRUE
-    , addVertError = TRUE
-    , lineAlpha = 1
-    , dotAlpha = 1
-    , lineSize = 0.25
-    , colorPkg = "viridis"
-  ) + 
-  theme(
-    strip.text.x.top = element_text(margin = margin(b=-10))
-  )
-
-figDams_exitsRandom <- damBehavior_byPND %>%
-  plotDamBehavior(
-    yVar = Num_exits
-    , yLab = "mean # of exits / hr"
-    , fontSize = textSize
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
-    , randomColor = TRUE
-    , dotSize = 1
-    , zoom_y = TRUE
-    , ymax = 60
-    , ymin = 0
-    , showMean = TRUE
-    , addVertError = TRUE
-    , lineAlpha = 1
-    , dotAlpha = 1
-    , lineSize = 0.25
-  ) + 
-  theme(
-    strip.text.x.top = element_text(margin = margin(b=-10))
-  )
-
-figDams_exitsRandom_viridis <- damBehavior_byPND %>%
-  plotDamBehavior(
-    yVar = Num_exits
-    , yLab = "mean # of exits / hr"
-    , fontSize = textSize
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
-    , randomColor = TRUE
-    , dotSize = 1
-    , zoom_y = TRUE
-    , ymax = 60
-    , ymin = 0
-    , showMean = TRUE
-    , addVertError = TRUE
-    , lineAlpha = 1
-    , dotAlpha = 1
-    , lineSize = 0.25
-    , showDots = FALSE
-    , colorPkg = "viridis"
-  ) + 
-  theme(
-    strip.text.x.top = element_text(margin = margin(b=-10))
-  )
-
-# figDams_meanExits <- damBehavior_byDam %>%
-#   scatterPlotLBN(
-#     yVar = Num_exits
-#     , yLab = "mean # of exits / hr"
-#     , addMean = FALSE
-#     , addSEM = FALSE
-#     , zoom_y = TRUE
-#     , ymax = 60
-#     , ymin = 0
-#     , dotSize = dotSize
-#     , textSize = textSize
-#   ) +
-#   addMeanHorizontalBar(
-#     width = .95
-#     , size = 0.6
-#     , meanColor = "#FF0099"
-#   ) +
-#   addMeanSE_vertBar(
-#     size = 0.6
-#     , barColor = "#FF0099"
-#   )
-
 
 figDams_meanExits <- damBehavior_byDam %>%
   plotDamBehavior(
     yVar = Num_exits
-    , yLab = "mean # of exits / hr"
+    , yLab = "mean # of exits / h"
     , fontSize = textSize
     , addTriangleForMean = FALSE
     , colorByDam = TRUE
@@ -156,68 +43,6 @@ figDams_meanExits <- damBehavior_byDam %>%
     , showMean = TRUE
     , addVertError = TRUE
     , dotAlpha = 1
-  ) +
-  theme(
-    axis.text.x = element_text()
-    , axis.title.x = element_blank()
-  )
-
-figDams_meanExits_viridis <- damBehavior_byDam %>%
-  plotDamBehavior(
-    yVar = Num_exits
-    , yLab = "mean # of exits / hr"
-    , fontSize = textSize
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
-    , dotSize = dotSize
-    , zoom_y = TRUE
-    , ymax = 60
-    , ymin = 0
-    , showMean = TRUE
-    , addVertError = TRUE
-    , dotAlpha = 1
-    , colorPkg = "viridis"
-  ) +
-  theme(
-    axis.text.x = element_text()
-    , axis.title.x = element_blank()
-  )
-
-figDams_meanExits_random <- damBehavior_byDam %>%
-  plotDamBehavior(
-    yVar = Num_exits
-    , yLab = "mean # of exits / hr"
-    , fontSize = textSize
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
-    , randomColor = TRUE
-    , dotSize = dotSize
-    , zoom_y = TRUE
-    , ymax = 60
-    , ymin = 0
-    , showMean = TRUE
-    , addVertError = TRUE
-  ) +
-  theme(
-    axis.text.x = element_text()
-    , axis.title.x = element_blank()
-  )
-
-figDams_meanExits_random_viridis <- damBehavior_byDam %>%
-  plotDamBehavior(
-    yVar = Num_exits
-    , yLab = "mean # of exits / hr"
-    , fontSize = textSize
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
-    , randomColor = TRUE
-    , dotSize = dotSize
-    , zoom_y = TRUE
-    , ymax = 60
-    , ymin = 0
-    , showMean = TRUE
-    , addVertError = TRUE
-    , colorPkg = "viridis"
   ) +
   theme(
     axis.text.x = element_text()
@@ -231,27 +56,6 @@ figDams_offNest <- damBehavior_byPND %>%
     , fontSize = textSize
     , addTriangleForMean = FALSE
     , colorByDam = TRUE
-    , dotSize = 1
-    , zoom_y = TRUE
-    , ymax = 100
-    , ymin = 0
-    , showMean = TRUE
-    , addVertError = TRUE
-    , lineAlpha = 1
-    , dotAlpha = 1
-    , lineSize = 0.25
-  ) +
-  theme(
-    strip.text.x.top = element_text(margin = margin(b=-10))
-  )
-
-figDams_offNest_noDots <- damBehavior_byPND %>%
-  plotDamBehavior(
-    yVar = Perc_off_nest
-    , yLab = "mean % off nest"
-    , fontSize = textSize
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
     , showDots = FALSE
     , dotSize = 1
     , zoom_y = TRUE
@@ -266,95 +70,6 @@ figDams_offNest_noDots <- damBehavior_byPND %>%
   theme(
     strip.text.x.top = element_text(margin = margin(b=-10))
   )
-
-figDams_offNest_noDots_viridis <- damBehavior_byPND %>%
-  plotDamBehavior(
-    yVar = Perc_off_nest
-    , yLab = "mean % off nest"
-    , fontSize = textSize
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
-    , showDots = FALSE
-    , dotSize = 1
-    , zoom_y = TRUE
-    , ymax = 100
-    , ymin = 0
-    , showMean = TRUE
-    , addVertError = TRUE
-    , lineAlpha = 1
-    , dotAlpha = 1
-    , lineSize = 0.25
-    , colorPkg = "viridis"
-  ) +
-  theme(
-    strip.text.x.top = element_text(margin = margin(b=-10))
-  )
-
-figDams_offNest_random <- damBehavior_byPND %>%
-  plotDamBehavior(
-    yVar = Perc_off_nest
-    , yLab = "mean % off nest"
-    , fontSize = textSize
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
-    , dotSize = 1
-    , zoom_y = TRUE
-    , ymax = 100
-    , ymin = 0
-    , showMean = TRUE
-    , addVertError = TRUE
-    , lineAlpha = 1
-    , dotAlpha = 1
-    , lineSize = 0.25
-  ) +
-  theme(
-    strip.text.x.top = element_text(margin = margin(b=-10))
-  )
-
-figDams_offNest_random_viridis <- damBehavior_byPND %>%
-  plotDamBehavior(
-    yVar = Perc_off_nest
-    , yLab = "mean % off nest"
-    , fontSize = textSize
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
-    , dotSize = 1
-    , zoom_y = TRUE
-    , ymax = 100
-    , ymin = 0
-    , showMean = TRUE
-    , addVertError = TRUE
-    , showDots = FALSE
-    , lineAlpha = 1
-    , dotAlpha = 1
-    , lineSize = 0.25
-    , colorPkg = "viridis"
-  ) +
-  theme(
-    strip.text.x.top = element_text(margin = margin(b=-10))
-  )
-
-# figDams_meanOffNest <- damBehavior_byDam %>%
-#   scatterPlotLBN(
-#     yVar = Perc_off_nest
-#     , yLab = "mean % off nest"
-#     , addMean = FALSE
-#     , addSEM = FALSE
-#     , zoom_y = TRUE
-#     , ymax = 100
-#     , ymin = 0
-#     , dotSize = dotSize
-#     , textSize = textSize
-#   ) +
-#   addMeanHorizontalBar(
-#     width = .95
-#     , size = 0.6
-#     , meanColor = "#FF0099"
-#   ) +
-#   addMeanSE_vertBar(
-#     size = 0.6
-#     , barColor = "#FF0099"
-#   )
 
 figDams_meanOffNest <- damBehavior_byDam %>%
   plotDamBehavior(
@@ -375,71 +90,6 @@ figDams_meanOffNest <- damBehavior_byDam %>%
     axis.text.x = element_text()
     , axis.title.x = element_blank()
   )
-
-figDams_meanOffNest_viridis <- damBehavior_byDam %>%
-  plotDamBehavior(
-    yVar = Perc_off_nest
-    , yLab = "mean % off exits"
-    , fontSize = textSize
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
-    , dotSize = dotSize
-    , zoom_y = TRUE
-    , ymax = 100
-    , ymin = 0
-    , showMean = TRUE
-    , addVertError = TRUE
-    , dotAlpha = 1
-    , colorPkg = "viridis"
-  ) +
-  theme(
-    axis.text.x = element_text()
-    , axis.title.x = element_blank()
-  )
-
-figDams_meanOffNest_random <- damBehavior_byDam %>%
-  plotDamBehavior(
-    yVar = Perc_off_nest
-    , yLab = "mean % off exits"
-    , fontSize = textSize
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
-    , randomColor = TRUE
-    , dotSize = dotSize
-    , zoom_y = TRUE
-    , ymax = 100
-    , ymin = 0
-    , showMean = TRUE
-    , addVertError = TRUE
-    , dotAlpha = 1
-  ) +
-  theme(
-    axis.text.x = element_text()
-    , axis.title.x = element_blank()
-  )
-
-figDams_meanOffNest_random_viridis <- damBehavior_byDam %>%
-  plotDamBehavior(
-    yVar = Perc_off_nest
-    , yLab = "mean % off exits"
-    , fontSize = textSize
-    , addTriangleForMean = FALSE
-    , colorByDam = TRUE
-    , randomColor = TRUE
-    , dotSize = dotSize
-    , zoom_y = TRUE
-    , ymax = 100
-    , ymin = 0
-    , showMean = TRUE
-    , addVertError = TRUE
-    , dotAlpha = 1
-    , colorPkg = "viridis"
-  ) +
-  theme(
-    axis.text.x = element_text()
-    , axis.title.x = element_blank()
-  )
-
 
 # Dam corticosterone ------------------------------------------------------
 
@@ -1109,38 +759,38 @@ figLH_diAfternoon <- acuteStressFilteredDi %>%
   labs(title = "diestrus")
 
 ### Pro - ephys -----------
-
-figLH_ephysMax <- acuteStressFilteredPro_ephys %>%
-  plotCatVarFunc(
-    expr(maxLH)
-    , thisYLab = "max evening LH (ng/mL)"
-    , fontSize = textSize
-    , dotSize = dotSize
-    , twoLineXLabs = TRUE
-    , useFacetLabels = FALSE
-    , addMeanSE = FALSE
-    , useSpecYLab = TRUE
-  )(
-    zoom_y = TRUE
-    , ymin = 0
-    , ymax = 40
-  ) +
-  geom_hline(yintercept = surgeMin, color = "grey") +
-  addMedianHorizontalBar(width = 0.9, size = 0.6, color = "black")+
-  stat_summary(fun.min = function(z) { quantile(z,0.25) },
-               fun.max = function(z) { quantile(z,0.75) }
-               , geom = "linerange") +
-  labs(title = "limited sampling")
+# 
+# figLH_ephysMax <- acuteStressFilteredPro_ephys %>%
+#   plotCatVarFunc(
+#     expr(maxLH)
+#     , thisYLab = "max evening LH (ng/mL)"
+#     , fontSize = textSize
+#     , dotSize = dotSize
+#     , twoLineXLabs = TRUE
+#     , useFacetLabels = FALSE
+#     , addMeanSE = FALSE
+#     , useSpecYLab = TRUE
+#   )(
+#     zoom_y = TRUE
+#     , ymin = 0
+#     , ymax = 40
+#   ) +
+#   geom_hline(yintercept = surgeMin, color = "grey") +
+#   addMedianHorizontalBar(width = 0.9, size = 0.6, color = "black")+
+#   stat_summary(fun.min = function(z) { quantile(z,0.25) },
+#                fun.max = function(z) { quantile(z,0.75) }
+#                , geom = "linerange") +
+#   labs(title = "limited sampling")
 
 ### Pro - ephys - surged ---------------
 
 
-figLH_ephysSurged <- acuteStressFilteredPro_ephys %>%
-  propSurgedPlotCombo_forSBN(
-    fontSize = textSize
-    , labelSize = 5
-  ) +
-  labs(title = "limited sampling")
+# figLH_ephysSurged <- acuteStressFilteredPro_ephys %>%
+#   propSurgedPlotCombo_forSBN(
+#     fontSize = textSize
+#     , labelSize = 5
+#   ) +
+#   labs(title = "limited sampling")
 
 ### Pro - sampling - over time -----------
 
@@ -1216,21 +866,24 @@ plotLH_overTime_color <-  function(df){
   df %>%
     LHPlot_noMean_lineColor(
       fontSize = textSize
-      , dotSize = .75
       , zoom_y = TRUE
       , ymin = 0
       , ymax = 40
-      , addPoint = TRUE
+      , addPoint = FALSE
     ) + theme(
       legend.position = "none"
     ) + facet_wrap(
       ~comboTrt,
-      scale = "free"
+      scales = "free"
+      , nrow = 1
     ) +
     theme(
-      strip.text.x.top = element_text(margin = margin(b = -2))
+      # strip.text.x.top = element_text(margin = margin(b = -2))
     )
 }
+
+figLH_samplingTime <- LHSamplingDF_color %>%
+  plotLH_overTime_color()
 
 figLH_samplingTime_STDCON <- LHSamplingDF_color %>%
   filter(
@@ -1278,8 +931,8 @@ figLH_samplingMax <- acuteStressFilteredPro_sampling %>%
   addMedianHorizontalBar(width = 0.9, size = 0.6, color = "black")+
   stat_summary(fun.min = function(z) { quantile(z,0.25) },
                fun.max = function(z) { quantile(z,0.75) }
-               , geom = "linerange") +
-  labs(title = "extended sampling")
+               , geom = "linerange", color = "black") +
+  labs(title = "proestrus")
 
 
 ### Pro - sampling - surged ---------------
@@ -1294,7 +947,7 @@ figLH_samplingSurged <- acuteStressFilteredPro_sampling %>%
     fontSize = textSize
     , labelSize = 5
   ) +
-  labs(title = "extended sampling")
+  labs(title = "proestrus")
 
 
 
@@ -1346,6 +999,7 @@ plotGABAfreq_noMean <- plotCatVarFunc(
   , fontSize = textSize
   , dotSize = dotSize
   , twoLineXLabs = TRUE
+  , tiltedXLabs = TRUE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -1356,12 +1010,11 @@ plotGABAamp_noMean <- plotCatVarFunc(
   , fontSize = textSize
   , dotSize = dotSize
   , twoLineXLabs = TRUE
-  , tiltedXLabs = FALSE
+  , tiltedXLabs = TRUE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
   , useSpecYLab = TRUE
   , thisYLab = "amplitude (pA)"
-  # , jitterWidth = 0.2
 )
 
 plotGABAriseTime_noMean <- plotCatVarFunc(
@@ -1372,21 +1025,18 @@ plotGABAriseTime_noMean <- plotCatVarFunc(
   , tiltedXLabs = FALSE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
-  # , jitterWidth = 0.2
 )
 
 plotGABAdecayTime_noMean <- plotCatVarFunc(
-  expr(decay9010)
+  expr(decayTimes_8020)
   , fontSize = textSize
   , dotSize = dotSize
   , twoLineXLabs = TRUE
-  , tiltedXLabs = FALSE
+  , tiltedXLabs = TRUE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
   , useSpecYLab = TRUE
-  # , thisYLab = "decay time (ms)\nfrom90% to 10% of peak"
   , thisYLab = "decay time (ms)"
-  # , jitterWidth = 0.2
 )
 
 plotGABAfwhm_noMean <- plotCatVarFunc(
@@ -1399,7 +1049,6 @@ plotGABAfwhm_noMean <- plotCatVarFunc(
   , addMeanSE = FALSE
   , useSpecYLab = TRUE
   , thisYLab = "fwhm (ms)"
-  # , jitterWidth = 0.2
 )
 
 plotGABAinterval_noMean <- plotCatVarFunc(
@@ -1407,12 +1056,11 @@ plotGABAinterval_noMean <- plotCatVarFunc(
   , fontSize = textSize
   , dotSize = dotSize
   , twoLineXLabs = TRUE
-  , tiltedXLabs = FALSE
+  , tiltedXLabs = TRUE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
   , useSpecYLab = TRUE
-  , thisYLab = "interval (s)"
-  # , jitterWidth = 0.2
+  , thisYLab = "interevent interval (s)"
 )
 
 figGABAa_model <- GABApscs_240FilteredPropsFreq %>%
@@ -1460,7 +1108,7 @@ figGABAd_model <- GABApscs_240FilteredPropsFreq %>%
     breaks = c(-100, -75, -50, -25, 0, 25)
   )
 
-figGABAe_model <- GABApscs_240Filtered %>% #changed 2024-03-11 from filtered firing
+figGABA_freq_model <- GABApscs_240FilteredPropsFreq %>%
   plotGABAfreq_noMean(
     zoom_y = TRUE
     , ymin = 0
@@ -1473,171 +1121,42 @@ figGABAe_model <- GABApscs_240Filtered %>% #changed 2024-03-11 from filtered fir
 
 figGABA_int_model <- GABApscs_240FilteredPropsFreq %>%
   plotGABAinterval_noMean(
-
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 30
   ) +
   plotError_LMM(
     interval_lmm_error
     , xVar = comboTrt
+  ) +
+  scale_y_continuous(
+    breaks = c(seq(0, 30, by = 5))
   )
 
-figGABA2a_model <- GABApscs_240FilteredPropsFreq %>%
-  plotGABAamp_noMean() +
+figGABA_amp_model <- GABApscs_240FilteredPropsFreq %>%
+  plotGABAamp_noMean(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 90
+  ) +
   plotError_LMM(
     relAmplitude_lmm_errors
     , xVar = comboTrt
-  #   , nudgeErrorLine = 0
-  #   , nudgeMeanLine = 0
-  #   , meanBarWidth = .4
-  #   , color = "#FF0099"
-  # ) +
-  # plotError_LMM(
-  #   amplitudeMedian_errors %>%
-  #     combineStress()
-  #   , xVar = comboTrt
-  #   , nudgeErrorLine = 0.3
-  #   , nudgeMeanLine = 0.3
-  #   , meanBarWidth = .4
-  #   , color = "grey40"
-  )
-
-figGABA2b_model <- GABApscs_240FilteredPropsFreq %>%
-  plotGABAriseTime_noMean(
-
   ) +
-  plotError_LMM(
-    riseTime_lmm_errors
-    , xVar = comboTrt
-  #   , nudgeErrorLine = 0
-  #   , nudgeMeanLine = 0
-  #   , meanBarWidth = .4
-  #   , color = "#FF0099"
-  # ) +
-  # plotError_LMM(
-  #   riseTimeMedian_errors %>%
-  #     combineStress()
-  #   , xVar = comboTrt
-  #   , nudgeErrorLine = 0.3
-  #   , nudgeMeanLine = 0.3
-  #   , meanBarWidth = .4
-  #   , color = "grey40"
+  scale_y_continuous(
+    breaks = c(seq(0, 90, by = 15))
   )
 
-figGABA2c_model <- GABApscs_240FilteredPropsFreq %>%
+figGABA_decayTime_model <- GABApscs_240FilteredPropsFreq %>%
   plotGABAdecayTime_noMean(
-
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 90
   ) +
   plotError_LMM(
     decayTime_lmm_errors
     , xVar = comboTrt
-  #   , nudgeErrorLine = 0
-  #   , nudgeMeanLine = 0
-  #   , meanBarWidth = .4
-  #   , color = "#FF0099
-  # ) +
-  # plotError_LMM(
-  #   decayTimeMedian_errors %>%
-  #     combineStress()
-  #   , xVar = comboTrt
-  #   , nudgeErrorLine = 0.3
-  #   , nudgeMeanLine = 0.3
-  #   , meanBarWidth = .4
-  #   , color = "grey40"
-  )
-
-figGABA2d_model <- GABApscs_240FilteredPropsFreq %>%
-  plotGABAfwhm_noMean(
-
   ) +
-  plotError_LMM(
-    fwhm_lmm_errors
-    , xVar = comboTrt
-  #   , nudgeErrorLine = 0
-  #   , nudgeMeanLine = 0
-  #   , meanBarWidth = .4
-  #   , color = "#FF0099"
-  # ) +
-  # plotError_LMM(
-  #   FWHMMedian_errors %>%
-  #     combineStress()
-  #   , xVar = comboTrt
-  #   , nudgeErrorLine = 0.3
-  #   , nudgeMeanLine = 0.3
-  #   , meanBarWidth = .4
-  #   , color = "grey40"
+  scale_y_continuous(
+    breaks = c(seq(0, 90, by = 15))
   )
-
-# ## Distribution plots ----------------
-# 
-# relPeak_byCell <- pscProps %>%
-#   plotPSCProp_log(
-#     yVar = amplitude
-#     , yLab = "amplitude (pA)"
-#     , logBreaks = c(5, 10, 20, 40, 80, 160, 320, 480)
-#     , logLabels = c("5", "10", "20", "40", "80", "160", "320", "480")
-#     , byCell = TRUE
-#   )
-# 
-# relPeak_byTrt <- pscProps %>%
-#   plotPSCProp_log(
-#     yVar = amplitude
-#     , yLab = "amplitude (pA)"
-#     , logBreaks = c(5, 10, 20, 40, 80, 160, 320, 480)
-#     , logLabels = c("5", "10", "20", "40", "80", "160", "320", "480")
-#     , byCell = FALSE
-#   )
-# 
-# riseTime_byCell <- pscProps %>%
-#   plotPSCProp_log(
-#     yVar = riseTime
-#     , yLab = "rise time (ms)"
-#     , logBreaks = c(0.00125, 0.0025, 0.005, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12)
-#     , logLabels = c("0.00125", "0.0025", "0.005", "0.01", "0.02", "0.04", "0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12")
-#     , byCell = TRUE
-#   )
-# 
-# riseTime_byTrt <- pscProps %>%
-#   plotPSCProp_log(
-#     yVar = riseTime
-#     , yLab = "rise time (ms)"
-#     , logBreaks = c(0.00125, 0.0025, 0.005, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12)
-#     , logLabels = c("0.00125", "0.0025", "0.005", "0.01", "0.02", "0.04", "0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12")
-#     , byCell = FALSE
-#   )
-# 
-# decayTime_byCell <- pscProps %>%
-#   plotPSCProp_log(
-#     yVar = decay9010
-#     , yLab = "decay time from 90% to 10% peak (ms)"
-#     , logBreaks = c(0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96, 81.92, 163.84)
-#     , logLabels = c("0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96", "81.92", "163.84")
-#     , byCell = TRUE
-#   )
-# 
-# decayTime_byTrt <- pscProps %>%
-#   plotPSCProp_log(
-#     yVar = decay9010
-#     , yLab = "decay time from 90% to 10% peak (ms)"
-#     , logBreaks = c(0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96, 81.92, 163.84)
-#     , logLabels = c("0.08", "0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96", "81.92", "163.84")
-#     , byCell = FALSE
-#   )
-# 
-# fwhm_byCell <- pscProps %>%
-#   plotPSCProp_log(
-#     yVar = fwhm
-#     , yLab = "full width at half maximum (ms)"
-#     , logBreaks = c(0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96)
-#     , logLabels = c("0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96")
-#     , byCell = TRUE
-#   ) +
-#   expand_limits(y = 0.16)
-# 
-# fwhm_byTrt <- pscProps %>%
-#   plotPSCProp_log(
-#     yVar = fwhm
-#     , yLab = "full width at half maximum (ms)"
-#     , logBreaks = c(0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96)
-#     , logLabels = c("0.16", "0.32", "0.64", "1.28", "2.56", "5.12", "10.24", "20.48", "40.96")
-#     , byCell = FALSE
-#   ) +
-#   expand_limits(y = 0.16)

@@ -309,6 +309,7 @@ scatterPlotComboTrt <- function(
   , jitterWidth = 0.42
   , alpha = 1
   , forManuscript = isManuscript
+  , plotJitter = TRUE # almost always going to be true. Want option for bootstrapping
 ){
   df <- df %>%
     filter(
@@ -337,12 +338,16 @@ scatterPlotComboTrt <- function(
       )
   }
   
+  if(plotJitter){
   viz <- viz +
     jitterGeom_shapeAes(
       size = dotSize
       , width = jitterWidth
       , alpha = alpha
-    ) +
+    ) 
+  }
+  
+  viz <- viz +
     labs(y = yLab)+
     comboTrtFillShape(fillAlpha = alpha, forManuscript = forManuscript) +
     theme_pubr()+

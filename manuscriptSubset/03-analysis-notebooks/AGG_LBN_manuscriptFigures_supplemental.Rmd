@@ -1333,7 +1333,7 @@ doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 
-# Figure 5 - Male masses - ALPS
+# Figure 4-1 - Male masses - ALPS
 
 4-by-2 layout, PM
 ```{r}
@@ -1476,8 +1476,196 @@ tableNum <- maleMass_ALPS_lmm_emm.pairs_num
 supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
+# Figure 4-2 - Female masses
 
-# Figure 6 - Male cort administration
+```{r}
+figFemalesMasses_plots <- align_plots(
+    femaleBodyMassAM_ALPS_plot + rremove("legend") 
+    , femalePercChangeBodyMass_ALPS_plot
+    , femaleAdrenalMass_ALPS_plot
+    , femaleUterineMass_ALPS_plot
+    , femaleRelAdrenalMassPM_ALPS_plot
+    , femaleRelUterineMassPM_ALPS_plot
+    , align = "hv"
+    , axis = "lrtb"
+)
+
+figFemalesMasses_plots_left <- align_plots(
+    femaleBodyMassAM_ALPS_plot + rremove("legend") 
+    , femaleAdrenalMass_ALPS_plot
+    , femaleUterineMass_ALPS_plot
+    , align = "hv"
+    , axis = "lrtb"
+)
+
+figFemalesMasses_plots_right <- align_plots(
+    femalePercChangeBodyMass_ALPS_plot
+    , femaleRelAdrenalMassPM_ALPS_plot
+    , femaleRelUterineMassPM_ALPS_plot
+    , align = "hv"
+    , axis = "lrtb"
+)
+
+figFemalesMasses <- plot_grid(
+  # get_legend(femaleBodyMassAM_ALPS_plot)
+  plot_grid(
+    figFemalesMasses_plots_left[[1]]
+    , figFemalesMasses_plots_right[[1]]
+    , ncol = 2
+    , labels = c("A", "B")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+    , rel_widths = c(0.95, 1)
+  )
+  , plot_grid(
+    figFemalesMasses_plots_left[[2]]
+    , figFemalesMasses_plots_right[[2]]
+    , ncol = 2
+    , labels = c("C", "D")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+    , rel_widths = c(0.95, 1)
+  )
+  , plot_grid(
+    figFemalesMasses_plots_left[[3]]
+    , figFemalesMasses_plots_right[[3]]
+    , ncol = 2
+    , labels = c("E", "F")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+    , rel_widths = c(0.95, 1)
+  )
+  , nrow = 3
+  , rel_heights = c(1, 1, 1)
+  # , nrow = 4
+  # , rel_heights = c(0.1, 1, 1, 1)
+)
+figFemalesMasses
+```
+
+```{r}
+flexSave(
+  "figFemalesMasses"
+  , plot = figFemalesMasses
+  , width = twoCols
+  , height = fullLength
+  , units = "cm"
+  , filePath = manuscriptFolder
+)
+```
+
+## Count
+
+```{r}
+tbl <- femaleMass_ALPSPM_counts_flexTable
+tbl
+```
+
+
+```{r}
+tableCaption <- "Number of litters and female mice with mass measurements on the day of adult treatment. Abbreviations: STD, standard-reared; LBN, limited bedding and nesting; CON, adult control; ALPS, acute, layered, psychosocial stress in adulthood."
+```
+
+```{r}
+femaleMass_ALPS_countsNum <- maleCortAdmin_mass_lmm_emm.pairs_num + 1
+# femaleMass_ALPS_countsNum <- maleCortAdmin_mass_lmm_emm_num + 1
+tableNum <- femaleMass_ALPS_countsNum
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+## LMM
+
+```{r}
+tbl <- femaleALPS_RelPM_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Statistics from linear mixed models of female masses on day of adult treatment. Data were fit with the formula `feature ~ early-life treatment * adult treatment * cycle stage + (1 | dam)`."
+```
+
+```{r}
+femaleMass_ALPS_lmm_num <- femaleMass_ALPS_countsNum + 1
+# femaleMass_ALPS_lmm_num <- maleCortAdmin_mass_lmm_emm.pairs_num + 1
+tableNum <- femaleMass_ALPS_lmm_num
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+### EMM
+
+```{r}
+tbl <- femaleALPS_RelPM_EMM_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Estimated marginal means (emmean) from linear mixed models of female masses on day of adult treatment. CI = confidence interval; STD = standard rearing; LBN = limited bedding and nesting; ALPS = adult stress."
+```
+
+
+```{r}
+femaleMass_ALPS_lmm_emm_num <- femaleMass_ALPS_lmm_num + 1
+# femaleMass_ALPS_lmm_emm_num <- femaleMass_ALPS_countsNum + 1
+tableNum <- femaleMass_ALPS_lmm_emm_num
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+### Pairs
+
+```{r}
+tbl <- femaleALPS_RelPM_EMM.pairs_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Pairwise comparison of estimated marginal means from linear mixed models of female masses on day of adult treatment. STD = standard rearing; LBN = limited bedding and nesting; ALPS = adult stress."
+```
+
+```{r}
+femaleMass_ALPS_lmm_emm.pairs_num <- femaleMass_ALPS_lmm_emm_num + 1
+# femaleMass_ALPS_lmm_emm.pairs_num <- femaleMass_ALPS_lmm_num + 1
+tableNum <- femaleMass_ALPS_lmm_emm.pairs_num
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+# Figure 4 - cort female emms
+
+```{r}
+tbl <- femaleCortLMM_emm_3way_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Estimated marginal means (emmean) in female mice from linear mixed model of serum corticosterone for adult treatment, time (hr), and estrous cycle stage. Results are averaged over the levels of early-life treatment. The emmeans and confidence intervals (CI) are back-transformed from the log scale to the response scale (ng/mL)."
+```
+
+```{r}
+femaleCortLMM_emm_num <- femaleMass_ALPS_lmm_emm.pairs_num + 1
+tableNum <- femaleCortLMM_emm_num
+```
+
+```{r}
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+```
+
+# Figure 4-3 - Male cort administration
 
 ```{r}
 figMaleCortAdmin_left <- align_plots(
@@ -1741,213 +1929,35 @@ tableNum <- maleCortAdmin_mass_lmm_emm.pairs_num
 supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
-# Figure 7 - Female masses
 
+
+# Figure 5 - LH
 ```{r}
-figFemalesMasses_plots <- align_plots(
-    femaleBodyMassAM_ALPS_plot + rremove("legend") 
-    , femalePercChangeBodyMass_ALPS_plot
-    , femaleAdrenalMass_ALPS_plot
-    , femaleUterineMass_ALPS_plot
-    , femaleRelAdrenalMassPM_ALPS_plot
-    , femaleRelUterineMassPM_ALPS_plot
-    , align = "hv"
-    , axis = "lrtb"
+figLH_left <- align_plots(
+  figLH_diAfternoon
+  , figLH_samplingTime
+  , align = "v"
+  , axis = "l"
 )
 
-figFemalesMasses_plots_left <- align_plots(
-    femaleBodyMassAM_ALPS_plot + rremove("legend") 
-    , femaleAdrenalMass_ALPS_plot
-    , femaleUterineMass_ALPS_plot
-    , align = "hv"
-    , axis = "lrtb"
-)
-
-figFemalesMasses_plots_right <- align_plots(
-    femalePercChangeBodyMass_ALPS_plot
-    , femaleRelAdrenalMassPM_ALPS_plot
-    , femaleRelUterineMassPM_ALPS_plot
-    , align = "hv"
-    , axis = "lrtb"
-)
-
-figFemalesMasses <- plot_grid(
-  # get_legend(femaleBodyMassAM_ALPS_plot)
-  plot_grid(
-    figFemalesMasses_plots_left[[1]]
-    , figFemalesMasses_plots_right[[1]]
-    , ncol = 2
-    , labels = c("A", "B")
-    , label_fontfamily = "Arial"
-    , label_size = textSize
-    , rel_widths = c(0.95, 1)
-  )
-  , plot_grid(
-    figFemalesMasses_plots_left[[2]]
-    , figFemalesMasses_plots_right[[2]]
-    , ncol = 2
-    , labels = c("C", "D")
-    , label_fontfamily = "Arial"
-    , label_size = textSize
-    , rel_widths = c(0.95, 1)
-  )
-  , plot_grid(
-    figFemalesMasses_plots_left[[3]]
-    , figFemalesMasses_plots_right[[3]]
-    , ncol = 2
-    , labels = c("E", "F")
-    , label_fontfamily = "Arial"
-    , label_size = textSize
-    , rel_widths = c(0.95, 1)
-  )
-  , nrow = 3
-  , rel_heights = c(1, 1, 1)
-  # , nrow = 4
-  # , rel_heights = c(0.1, 1, 1, 1)
-)
-figFemalesMasses
-```
-
-```{r}
-flexSave(
-  "figFemalesMasses"
-  , plot = figFemalesMasses
-  , width = twoCols
-  , height = fullLength
-  , units = "cm"
-  , filePath = manuscriptFolder
-)
-```
-
-## Count
-
-```{r}
-tbl <- femaleMass_ALPSPM_counts_flexTable
-tbl
-```
-
-
-```{r}
-tableCaption <- "Number of litters and female mice with mass measurements on the day of adult treatment. Abbreviations: STD, standard-reared; LBN, limited bedding and nesting; CON, adult control; ALPS, acute, layered, psychosocial stress in adulthood."
-```
-
-```{r}
-femaleMass_ALPS_countsNum <- maleCortAdmin_mass_lmm_emm.pairs_num + 1
-# femaleMass_ALPS_countsNum <- maleCortAdmin_mass_lmm_emm_num + 1
-tableNum <- femaleMass_ALPS_countsNum
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-## LMM
-
-```{r}
-tbl <- femaleALPS_RelPM_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Statistics from linear mixed models of female masses on day of adult treatment. Data were fit with the formula `feature ~ early-life treatment * adult treatment * cycle stage + (1 | dam)`."
-```
-
-```{r}
-femaleMass_ALPS_lmm_num <- femaleMass_ALPS_countsNum + 1
-# femaleMass_ALPS_lmm_num <- maleCortAdmin_mass_lmm_emm.pairs_num + 1
-tableNum <- femaleMass_ALPS_lmm_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-### EMM
-
-```{r}
-tbl <- femaleALPS_RelPM_EMM_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Estimated marginal means (emmean) from linear mixed models of female masses on day of adult treatment. CI = confidence interval; STD = standard rearing; LBN = limited bedding and nesting; ALPS = adult stress."
-```
-
-
-```{r}
-femaleMass_ALPS_lmm_emm_num <- femaleMass_ALPS_lmm_num + 1
-# femaleMass_ALPS_lmm_emm_num <- femaleMass_ALPS_countsNum + 1
-tableNum <- femaleMass_ALPS_lmm_emm_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-### Pairs
-
-```{r}
-tbl <- femaleALPS_RelPM_EMM.pairs_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Pairwise comparison of estimated marginal means from linear mixed models of female masses on day of adult treatment. STD = standard rearing; LBN = limited bedding and nesting; ALPS = adult stress."
-```
-
-```{r}
-femaleMass_ALPS_lmm_emm.pairs_num <- femaleMass_ALPS_lmm_emm_num + 1
-# femaleMass_ALPS_lmm_emm.pairs_num <- femaleMass_ALPS_lmm_num + 1
-tableNum <- femaleMass_ALPS_lmm_emm.pairs_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-# Figure 4 - cort female emms
-
-```{r}
-tbl <- femaleCortLMM_emm_3way_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Estimated marginal means (emmean) in female mice from linear mixed model of serum corticosterone for adult treatment, time (hr), and estrous cycle stage. Results are averaged over the levels of early-life treatment. The emmeans and confidence intervals (CI) are back-transformed from the log scale to the response scale (ng/mL)."
-```
-
-```{r}
-femaleCortLMM_emm_num <- femaleMass_ALPS_lmm_emm.pairs_num + 1
-tableNum <- femaleCortLMM_emm_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-# Figure 8 - LH
-```{r}
 figLH <- plot_grid(
-  figLH_samplingTime_STDCON
-  , figLH_samplingTime_STDALPS
-  , figLH_samplingMax
-  , figLH_samplingTime_LBNCON
-  , figLH_samplingTime_LBNALPS
-  , figLH_samplingSurged
-  , figLH_ephysMax
-  , figLH_ephysSurged
-  , figLH_diAfternoon
-  , nrow = 3
-  , align = "hv"
-  , axis = "tblr"
-  , labels = c("A", "", "B", "", "","C", "D", "E", "F")
+  plot_grid(
+    figLH_left[[1]]
+    , figLH_samplingMax
+    , figLH_samplingSurged
+    , align = "h"
+    , axis = "tb"
+    , labels = c("A", "B", "C")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+    , nrow = 1
+  )
+  , figLH_left[[2]]
+  , nrow = 2
+  , labels = c("", "D")
   , label_fontfamily = "Arial"
   , label_size = textSize
+  , rel_heights = c(1.2, 1)
 )
 
 figLH
@@ -1961,7 +1971,7 @@ flexSave(
   "figLH"
   , plot = figLH
   , width = twoCols
-  , height = fullLength
+  , height = twoThirdsLength
   , units = "cm"
   , filePath = manuscriptFolder
 )
@@ -1992,27 +2002,6 @@ tableNum <- LHCount_num
 # supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
-## Combined LH LMM
-
-```{r}
-tbl <- combinedLH_flexTable
-tbl
-```
-
-
-```{r}
-tableCaption <- "combined LH table"
-```
-
-```{r}
-combinedLH_num <- femaleCortLMM_emm_num.pairs + 1
-tableNum <- combinedLH_num
-```
-
-```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-```
-
 ## Di LMM
 ```{r}
 tbl <- LH_diAfternoon_flexTable
@@ -2025,82 +2014,18 @@ tableCaption <- "Statistics from linear mixed models of average afternoon (2.5h 
 ```
 
 ```{r}
-# LH_di_lmm_num <- LHCount_num + 1
-# LH_di_lmm_num <- femaleMass_ALPS_lmm_emm.pairs_num + 1
-# LH_di_lmm_num <- femaleCortLMM_emm_num.pairs + 1
-LH_di_lmm_num <- combinedLH_num
+LH_di_lmm_num <- femaleCortLMM_emm_num.pairs + 1
 tableNum <- LH_di_lmm_num
 ```
 
 ```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-```
-
-## Pro LMM
-
-```{r}
-tbl <- LH_pro_flexTable
-tbl
-```
-
-
-```{r}
-tableCaption <- "Statistics from linear mixed models of maximum evening LH on day of adult treatment in proestrous females. Proestrous animals were either used for later electrophysiology studies (sampled only 2.5 and 2hrs before lights out) or for repeated hourly LH sampling around the time of lights out. Data were fit with the formula `max LH ~ early-life treatment * adult treatment + (1 | dam)`."
-```
-
-```{r}
-# LH_pro_lmm_num <- LH_di_lmm_num + 1
-LH_pro_lmm_num <- LH_di_lmm_num
-tableNum <- LH_pro_lmm_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-```
-
-
-### EMM
-
-```{r}
-tbl <- LH_proLMM_EMM_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Estimated marginal means (emmean) from linear mixed models of maximum evening LH on day of adult treatment in proestrous females. Proestrous animals were either used for later electrophysiology studies (sampled only 2.5 and 2hrs before lights out) or for repeated hourly LH sampling around the time of lights out. CI = confidence interval; STD = standard rearing; LBN = limited bedding and nesting; ALPS = adult stress."
-```
-
-
-```{r}
-# LH_pro_lmm_emm_num <- LH_pro_lmm_num + 1
-LH_pro_lmm_emm_num <- LHCount_num + 1
-tableNum <- LH_pro_lmm_emm_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-### pairs
-
-```{r}
-tbl <- LH_proLMM_EMM.pairs_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Pairwise comparisons of estimated marginal means from linear mixed models of of maximum evening LH on day of adult treatment in proestrous females. Proestrous animals were either used for later electrophysiology studies (sampled only 2.5 and 2hrs before lights out) or for repeated hourly LH sampling around the time of lights out. STD = standard rearing; LBN = limited bedding and nesting; ALPS = adult stress."
-```
-
-```{r}
-# LH_pro_lmm_num <- LH_pro_lmm_emm_num + 1
-LH_pro_lmm_pairs_num <- LH_pro_lmm_num + 1
-tableNum <- LH_pro_lmm_pairs_num
-```
-
-```{r}
 doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+## Prop surged 
+
+```{r}
+propSurged_extendedSampling_glmm
 ```
 
 ## Chi-squared
@@ -2149,7 +2074,7 @@ tableNum <- LH_pro_peakTime_lmm_num
 ```
 
 
-# Figure 9 - GABA PSCs - passives and frequency
+# Figure 6 - GABA PSCs - passives
 
 ```{r}
 figGABA1stRow <- plot_grid(
@@ -2233,52 +2158,108 @@ tableNum <- numEvents_GLMM_num
 doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
+# Figure 7 - PSC properties
 
 ```{r}
-tbl <- psc_medianLQMMs_flexTable
-tbl
-```
+figGABA2_left <- align_plots(
+  figGABA_freq_model
+  , bootstrapRes_iterations5000_maxPerCellNone_interval$errorPlots$interval +
+    labs(
+      y = "mean\n95%CI"
+    ) +
+    theme(
+      axis.text.y = element_blank()
+      , axis.title.y = element_text(angle = 90)
+    )
+  , bootstrapRes_iterations5000_maxPerCellNone_interval$cumulativeFreqPlots$interval +
+    theme(
+      legend.position = "none"
+    )
+  , align = "v"
+  , axis = "l"
+)
 
-
-```{r}
-tableCaption <- paste0("Statistics for post-synaptic current (PSC) properties in GnRH neurons on the day of adult treatment. To test if treatments altered the median values of properties for all PSCs, linear quantile mixed models were fit with the model equation `log10(feature) ~ early-life treatment * adult treatment` using the package LQMM. The grouping factor was cell. The joint_tests function of the emmeans package was used to obtain these p-value estimates from the model." )
-```
-```{r}
-LQMM_medians_num <- numEvents_GLMM_num + 1
-tableNum <- LQMM_medians_num
-```
-
-```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-```
-
-
-# Figure 10 - PSC properties
-
-```{r}
+figGABA2_middle <- align_plots(
+  figGABA_amp_model
+  , bootstrapRes_iterations5000_maxPerCellNone_amplitude$errorPlots$amplitude +
+    labs(
+      y = "mean\n95%CI"
+    ) +
+    theme(
+      axis.text.y = element_blank()
+      , axis.title.y = element_text(angle = 90)
+    )
+  , bootstrapRes_iterations5000_maxPerCellNone_amplitude$cumulativeFreqPlots$amplitude +
+    theme(
+      legend.position = "none"
+    )
+  , align = "v"
+  , axis = "l"
+)
 
 figGABA2 <- plot_grid(
-  NULL
-  , plot_grid(
-    NULL
-    , figGABAe_model
-    , figGABA2a_model
-    , figGABA2b_model
-    , figGABA2c_model
-    , figGABA2d_model
-    , ncol = 3
-    , labels = c("B", "C", "D", "E", "F", "G")
+  plot_grid(
+    # figGABA_freq_model
+    figGABA2_left[[1]]
+    , figGABA_int_model
+    , figGABA2_middle[[1]]
+    , figGABA_decayTime_model
+    , nrow = 1
+    , labels = c("C", "D", "E", "F")
     , label_fontfamily = "Arial"
     , label_size = textSize
-    , align = "vh"
-    , axis = "lrtb"
+    , align = "h"
+    , axis = "tb"
   )
-  , nrow = 2
-  , rel_heights = c(1.1, 2)
-  , labels = c("A", "")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
+  , plot_grid(
+     figGABA2_left[[2]]
+    , figGABA2_middle[[2]]
+    , labels = c("G", "H")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+    , align = "h"
+    , axis = "tb"
+    , nrow = 1
+  )
+  , plot_grid(
+    figGABA2_left[[3]]
+    , figGABA2_middle[[3]]
+    , nrow = 1
+    , align = "h"
+    , axis = "tb"
+  )
+  , nrow = 3
+  , rel_heights = c(2.2, 1, 2)
 )
+
+figGABA2 <- ggdraw() +
+  draw_plot(
+    figGABA2
+  ) +
+  draw_plot(
+    bootstrapRes_iterations5000_maxPerCellNone_interval$cumulativeFreqPlots_full$interval +
+      theme(
+        legend.position = "none"
+        , axis.title.x = element_blank()
+        , axis.title.y = element_blank()
+      )
+    , x = 0.25
+    , y = 0.075
+    , width = 0.25
+    , height = 0.2
+  ) +
+  draw_plot(
+    bootstrapRes_iterations5000_maxPerCellNone_amplitude$cumulativeFreqPlots_full$amplitude +
+      theme(
+        legend.position = "none"
+        , axis.title.x = element_blank()
+        , axis.title.y = element_blank()
+      )
+    , x = 0.75
+    , y = 0.075
+    , width = 0.25
+    , height = 0.2
+  )
 
 figGABA2
 ```
@@ -2288,10 +2269,16 @@ flexSave(
   "figPSC_props"
   , plot = figGABA2
   , width = twoCols
-  , height = fullLength
+  , height = 12.3
   , units = "cm"
   , filePath = manuscriptFolder
 )
+```
+
+
+```{r}
+tbl <- psc_pairwisePs_flexTable
+tbl
 ```
 
 

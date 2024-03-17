@@ -948,6 +948,11 @@ pscAllEvents_filtered <- pscAllEvents %>%
     cellID %in% GABApscs_240FilteredPropsFreq$cellID
   )
 
+pscAmplitude <- pscAllEvents_filtered %>%
+  filter(
+    backInt >= 0.2
+  )
+
 pscProps <- pscAllEvents_filtered %>%
   filter(
     includeAvg > 0
@@ -968,9 +973,17 @@ pscProps_decayAvg <- pscProps %>%
     decay9010 = mean(decay9010, na.rm = TRUE)
   )
 
+pscProps_ampAvg <- pscAmplitude %>%
+  group_by(
+    cellID
+  ) %>%
+  summarize(
+    amplitude = mean(amplitude, na.rm = TRUE)
+  )
+
 GABApscs_240FilteredPropsFreq <- GABApscs_240FilteredPropsFreq %>%
   select(
-    -decay9010
+    -c(decay9010, amplitude, relPeak)
   ) %>%
   left_join(
     pscProps_decayAvg
@@ -979,6 +992,14 @@ GABApscs_240FilteredPropsFreq <- GABApscs_240FilteredPropsFreq %>%
   relocate(
     decay9010
     , .after = riseTime
+  ) %>%
+  left_join(
+    pscProps_ampAvg
+    , by = "cellID"
+  ) %>%
+  relocate(
+    amplitude
+    , .before = riseTime
   )
 
 # Male cort admin ---------------------------------------------------------

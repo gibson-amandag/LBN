@@ -550,6 +550,8 @@ LHPlot_noMean_lineColor <- function(
   , xBreaks = c(5, 5.5, 6.5, 7.5, 8.5, 9.5)
   , xLabels = c("", -2, -1, 0, 1, 2)
   , clipVar = "on"
+  , lineAlpha = 1
+  , lineSize = 0.3
 ){
   plot <- ggplot(
     df_long,
@@ -560,9 +562,10 @@ LHPlot_noMean_lineColor <- function(
     )
   ) +
     geom_line(
-      alpha = 0.8,
+      alpha = lineAlpha,
       aes(group = mouseID, color = color),
-      position = position_dodge(0.15)
+      position = position_dodge(0.15),
+      linewidth = lineSize
     )
   
   if(addPoint){
@@ -851,23 +854,15 @@ propSurgedPlotCombo_forSBN <- function(
   , labelSize = 12
   , forManuscript = isManuscript
 ){
-  viz <- df %>%
-    ggplot(aes(
-      x = comboTrt
-      , fill = interaction(comboTrt, surged)
-      , color = interaction(comboTrt, surged)
-      , linetype = interaction(comboTrt, surged)
-    ))+
-      geom_bar(position = "fill") +
-      geom_text(
-        aes(label = ..count..),
-        stat = "count",
-        vjust = 1.3,
-        colour = "grey70",
-        position = "fill",
-        size = labelSize
-      )+
-      labs(y = "% with LH surge") + 
+  if(!forManuscript){
+    viz <- df %>%
+      ggplot(aes(
+        x = comboTrt
+        , fill = interaction(comboTrt, surged)
+        , color = interaction(comboTrt, surged)
+        , linetype = interaction(comboTrt, surged)
+      )
+      ) +
       scale_color_manual(values = c(
         "STD-CON.FALSE"="grey20",
         "STD-ALPS.FALSE"="grey20",
@@ -875,8 +870,8 @@ propSurgedPlotCombo_forSBN <- function(
         "LBN-ALPS.FALSE"="grey20",
         "STD-CON.TRUE"="black",
         "STD-ALPS.TRUE"="black",
-        "LBN-CON.TRUE"="cyan3",
-        "LBN-ALPS.TRUE"="#FF0099"
+        "LBN-CON.TRUE"="black",
+        "LBN-ALPS.TRUE"="black"
       )) +
       scale_fill_manual(values = c(
         "STD-CON.FALSE"="white",
@@ -897,7 +892,39 @@ propSurgedPlotCombo_forSBN <- function(
         "STD-ALPS.TRUE"="solid",
         "LBN-CON.TRUE"="solid",
         "LBN-ALPS.TRUE"="solid"
-      )) +
+      ))
+  } else {
+    viz <- df %>%
+      ggplot(aes(
+        x = comboTrt
+        , fill = interaction(comboTrt, surged)
+      )
+      , color = NA
+      )+
+      scale_fill_manual(values = c(
+        "STD-CON.FALSE"="white",
+        "STD-ALPS.FALSE"="white",
+        "LBN-CON.FALSE"="white",
+        "LBN-ALPS.FALSE"="white",
+        "STD-CON.TRUE"="#CCCCCC",
+        "STD-ALPS.TRUE"="black",
+        "LBN-CON.TRUE"="cyan3",
+        "LBN-ALPS.TRUE"="#FF0099"
+      ))
+  }
+  
+  
+  viz <-viz +
+      geom_bar(position = "fill") +
+      geom_text(
+        aes(label = ..count..),
+        stat = "count",
+        vjust = 1.3,
+        colour = "grey70",
+        position = "fill",
+        size = labelSize
+      )+
+      labs(y = "% with LH surge") + 
       theme_pubr() +
       textTheme(size = fontSize, boldXText = TRUE)+
       boxTheme()+

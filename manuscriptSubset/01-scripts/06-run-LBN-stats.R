@@ -724,10 +724,10 @@ propSurged.Chi.Sq.res <- chisq_test(ALPS_contTable)
 
 propSurged.Chi.Sq.descriptives <-  chisq_descriptives(propSurged.Chi.Sq.res)
 
-
 ## Binomial logistic regression -----------
 propSurged_extendedSampling_glmm <- mixed(
-  surged ~ earlyLifeTrt * adultTrt + (1|damID)
+  # surged ~ earlyLifeTrt * adultTrt + (1|damID)
+  surged ~ earlyLifeTrt + adultTrt + (1|damID) # the interaction term leads to problems with the model fit, probably do not have enough data
   , data = acuteStressFilteredPro_sampling
   , family = binomial(link = "logit")
   , method = "LRT"
@@ -739,35 +739,9 @@ propSurged_extendedSampling_glmm_emm <- emmeans(
   , type = "response"
 )
 
-## this doesn't really seem to make much sense... don't kneed it to interpret results
-# propSurged_extendedSampling_glmm_emm.pairs <- contrast(
-#   propSurged_extendedSampling_glmm_emm
-#   , "pairwise"
-# )
-
-propSurged_limitedSampling_glmm <- mixed(
-  surged ~ earlyLifeTrt * adultTrt + (1|damID)
-  , data = acuteStressFilteredPro_ephys
-  , family = binomial(link = "logit")
-  , method = "LRT"
-)
-
-propSurged_limitedSampling_glmm_emm.adultTrt <- emmeans(
-  propSurged_limitedSampling_glmm
-  , "adultTrt"
-  , type = "response"
-)
-
-## this doesn't really seem to make much sense...but don't need it since just two groups
-# propSurged_limitedSampling_glmm_emm.pairs <- contrast(
-#   propSurged_limitedSampling_glmm_emm
-#   , "pairwise"
-# )
-
-propSurged_limitedSampling_glmm_emm.earlyLife <- emmeans(
-  propSurged_limitedSampling_glmm
-  , "earlyLifeTrt"
-  , type = "response"
+propSurged_extendedSampling_glmm_emm.pairs <- contrast(
+  propSurged_extendedSampling_glmm_emm
+  , "pairwise"
 )
 
 
@@ -855,7 +829,7 @@ holdingCurrent_lmm_errors <- holdingCurrent_lmm %>%
 
 # Negative binomial of counts of PSCs in 2 min
 
-GABApscs_240_count <- GABApscs_240Filtered %>% # this includes the cell that has no PSCs
+GABApscs_240_count <- GABApscs_240FilteredPropsFreq %>% # this includes the cell that has no PSCs
   mutate(
     numEvents = frequency * duration
     , .after = frequency
@@ -926,7 +900,6 @@ interval_lmm_error <- interval_lmm_emm %>%
 # GABA - PSC amplitude ----------------------------------------------------
 
 relAmplitude_lmm <- mixed(
-  # relPeak ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
   amplitude ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
   , data = GABApscs_240FilteredPropsFreq
   , method = "KR"
@@ -942,28 +915,10 @@ relAmplitude_lmm_errors <- relAmplitude_lmm %>%
   ) %>%
   combineStress()
 
-# GABA - Rise time ----------------------------------------------------
-
-riseTime_lmm <- mixed(
-  riseTime ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
-  , data = GABApscs_240FilteredPropsFreq
-  , method = "KR"
-)
-
-
-## Errors for graph --------------------------------------------------------
-
-riseTime_lmm_errors <- riseTime_lmm %>%
-  getErrorDF_LMM(
-    xVar = "earlyLifeTrt"
-    , panel = "adultTrt"
-  ) %>%
-  combineStress()
-
 # GABA - Decay time ----------------------------------------------------
 
 decayTime_lmm <- mixed(
-  decay9010 ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
+  decayTimes_8020 ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
   , data = GABApscs_240FilteredPropsFreq
   , method = "KR"
 )
@@ -972,24 +927,6 @@ decayTime_lmm <- mixed(
 ## Errors for graph --------------------------------------------------------
 
 decayTime_lmm_errors <- decayTime_lmm %>%
-  getErrorDF_LMM(
-    xVar = "earlyLifeTrt"
-    , panel = "adultTrt"
-  ) %>%
-  combineStress()
-
-# GABA - FWHM ----------------------------------------------------
-
-fwhm_lmm <- mixed(
-  fwhm ~ earlyLifeTrt * adultTrt + (1|mouseID) + (1|damID)
-  , data = GABApscs_240FilteredPropsFreq
-  , method = "KR"
-)
-
-
-## Errors for graph --------------------------------------------------------
-
-fwhm_lmm_errors <- fwhm_lmm %>%
   getErrorDF_LMM(
     xVar = "earlyLifeTrt"
     , panel = "adultTrt"

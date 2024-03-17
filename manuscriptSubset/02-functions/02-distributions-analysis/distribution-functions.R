@@ -8,6 +8,26 @@ getAD_Pval <- function(result, version = 1, fromPaired = FALSE){
   return(p_val)
 }
 
+getAD_vals <- function(result, version = 1, fromPaired = FALSE){
+  if(fromPaired){
+    result <- result$test_result
+  }
+  tbl <- result$ad
+  tbl_tibble <- tbl %>% as.tibble()
+  p_val <- tbl_tibble$` asympt. P-value`[[version]]
+  AD <- tbl_tibble$AD[[version]]
+  T.AD <- tbl_tibble$T.AD[[version]]
+  n1 <- result$ns[1]
+  n2 <- result$ns[2]
+  return(list(
+    "AD" = AD
+    , "T.AD" = T.AD
+    , "p" = p_val
+    , "n1" = n1
+    , "n2" = n2
+  ))
+}
+
 calcCumFreq <- function(
     df
     , varToSum
@@ -35,6 +55,7 @@ plotCumulativeFreqDist <- function(
     , textSize = 11
     , legendPosition = c(0.6, 0.3)
     , scaleLog10 = FALSE
+    , lineSize = 0.3
 ) {
   plot <- df %>%
     combineStress() %>%
@@ -48,7 +69,9 @@ plotCumulativeFreqDist <- function(
         , color = comboTrt
       )
     ) +
-    geom_line() +
+    geom_line(
+      linewidth = lineSize
+    ) +
     boxTheme() +
     textTheme(size = textSize)
   
@@ -498,6 +521,14 @@ dist_pairwise <- function(adRes, variable, singleRes = TRUE){
         , "LBN-CON vs LBN-ALPS"
         , "STD-ALPS vs LBN-ALPS"
       )
+      , "D" = c(
+        ks_SCvSA$statistic
+        , ks_SCvLC$statistic
+        # , ks_SCvLA$statistic
+        # , ks_LCvSA$statistic
+        , ks_LCvLA$statistic
+        , ks_SAvLA$statistic
+      )
       , "p" = c(
         ks_SCvSA$p.value
         , ks_SCvLC$p.value
@@ -528,23 +559,48 @@ dist_pairwise <- function(adRes, variable, singleRes = TRUE){
   ad_LCvLA <- ad.test(vectorList$LC, vectorList$LA)
   ad_SAvLA <- ad.test(vectorList$SA, vectorList$LA)
   
+  ad_SCvSA_res <- getAD_vals(ad_SCvSA)
+  ad_SCvLC_res <- getAD_vals(ad_SCvLC)
+  ad_LCvLA_res <- getAD_vals(ad_LCvLA)
+  ad_SAvLA_res <- getAD_vals(ad_SAvLA)
+  
   AD_res <- adjust_pvalue(
     data.frame(
       "comp" = c(
         "STD-CON vs STD-ALPS"
         , "STD-CON vs LBN-CON"
-        # , "STD-CON vs LBN-ALPS"
-        # , "STD-ALPS vs LBN-CON"
         , "LBN-CON vs LBN-ALPS"
         , "STD-ALPS vs LBN-ALPS"
       )
+      , "n group 1" = c(
+        ad_SCvSA_res$n1
+        , ad_SCvLC_res$n1
+        , ad_LCvLA_res$n1
+        , ad_SAvLA_res$n1
+      )
+      , "n group 2" = c(
+        ad_SCvSA_res$n2
+        , ad_SCvLC_res$n2
+        , ad_LCvLA_res$n2
+        , ad_SAvLA_res$n2
+      )
+      , "AD" = c(
+        ad_SCvSA_res$AD
+        , ad_SCvLC_res$AD
+        , ad_LCvLA_res$AD
+        , ad_SAvLA_res$AD
+      )
+      , "T.AD" = c(
+        ad_SCvSA_res$T.AD
+        , ad_SCvLC_res$T.AD
+        , ad_LCvLA_res$T.AD
+        , ad_SAvLA_res$T.AD
+      )
       , "p" = c(
-        getAD_Pval(ad_SCvSA)
-        , getAD_Pval(ad_SCvLC)
-        # , getAD_Pval(ad_SCvLA)
-        # , getAD_Pval(ad_LCvSA)
-        , getAD_Pval(ad_LCvLA)
-        , getAD_Pval(ad_SAvLA)
+        ad_SCvSA_res$p
+        , ad_SCvLC_res$p
+        , ad_LCvLA_res$p
+        , ad_SAvLA_res$p
       )
     )
     , p.col = "p"
@@ -888,15 +944,53 @@ analyzeBootstrapResults <- function(
     , makeBootPlots = FALSE
     , plotEachIterMean = TRUE
 ){
+  bootstrapRes_all <- df %>% 
+    bootstrapGroup(nBootstrap = nBootstrap, maxPerCell = maxPerCell, groupingVars = groupingVars, replace = replace, setSeed = setSeed, propColsAsText = propColsAsText)
+  
+  bootOutput <- analyzeExistingBootstrapRes(
+    df
+    , bootstrapRes_all
+    , nBootstrap = nBootstrap
+    , maxPerCell = maxPerCell
+    , groupingVars = groupingVars
+    , replace = replace
+    , setSeed = setSeed
+    , dotSize = dotSize
+    , textSize = textSize
+    , propDifferent = propDifferent
+    , CIprop = CIprop
+    , legendPosition = legendPosition
+    , propColsAsText = propColsAsText
+    , makeBootPlots = makeBootPlots
+    , plotEachIterMean = plotEachIterMean
+  )
+  
+  return(bootOutput)
+}
+
+analyzeExistingBootstrapRes <- function(
+    df
+    , bootstrapRes_all
+    , nBootstrap = 2000
+    , maxPerCell = 100
+    , groupingVars = exprs(earlyLifeTrt, adultTrt)
+    , replace = TRUE
+    , setSeed = NULL
+    , dotSize = 1
+    , textSize = 11
+    , propDifferent = 0.15
+    , CIprop = 0.05
+    , legendPosition = c(0.7, 0.3)
+    , propColsAsText = c("amplitude", "interval") # also used to factor in order
+    , makeBootPlots = FALSE
+    , plotEachIterMean = TRUE
+){
   origMeans <- df %>%
     group_by(
       earlyLifeTrt
       , adultTrt
     ) %>%
     summarize_means(propColsAsText)
-  
-  bootstrapRes_all <- df %>% 
-    bootstrapGroup(nBootstrap = nBootstrap, maxPerCell = maxPerCell, groupingVars = groupingVars, replace = replace, setSeed = setSeed, propColsAsText = propColsAsText)
   
   bootstrapRes <- bootstrapRes_all %>%
     group_by(
@@ -915,7 +1009,7 @@ analyzeBootstrapResults <- function(
     mutate(
       variable = factor(variable, levels = propColsAsText)
     )
-
+  
   
   bootstrapMeanSum <- bootstrapMeans %>%
     group_by(variable, earlyLifeTrt, adultTrt) %>%
@@ -1006,6 +1100,7 @@ analyzeBootstrapResults <- function(
     , "extra" = list(
       "longMeans" = bootstrapMeans
       , "meanDiffs" = bootstrapMeanDiffs_long
+      , "allBootRes" = bootstrapRes_all
     )
   )
   
@@ -1048,17 +1143,6 @@ analyzeBootstrapResults <- function(
         errors
       )
     
-    # bootPlot <- ggplot(
-    #   aes(
-    #     x = comboTrt
-    #     , y = !!sym(propVar)
-    #   )
-    #   , data = bootstrapRes
-    # ) +
-    #   plotError_LMM_comboTrt(
-    #     errors
-    #   )
-    
     bootOutput$plots[[propVar]] = bootPlot
     
     # cumulative probability plot ----
@@ -1082,7 +1166,7 @@ analyzeBootstrapResults <- function(
       , textSize = textSize
       , legendPosition = legendPosition
     )
-
+    
     bootOutput$cumulativeFreqPlots[[propVar]] = ecdfPlot
     
     ecdfPlot_full <- plotCumulativeFreqDist(
@@ -1133,19 +1217,20 @@ analyzeBootstrapResults <- function(
       , axis = "tlbr"
     )
     
-    combinedDistPlot <- ggdraw() +
-      draw_plot(combinedDistPlot) +
-      draw_plot(
-        ecdfPlot_full+
-          theme(
-            legend.position = "none"
-            , axis.title.x = element_blank()
-            , axis.title.y = element_blank() )
-        , x = 0.5
-        , y = 0.1
-        , width = 0.5
-        , height = 0.4
-      )
+    # can't align axes after making the inset
+    # combinedDistPlot <- ggdraw() +
+    #   draw_plot(combinedDistPlot) +
+    #   draw_plot(
+    #     ecdfPlot_full+
+    #       theme(
+    #         legend.position = "none"
+    #         , axis.title.x = element_blank()
+    #         , axis.title.y = element_blank() )
+    #     , x = 0.5
+    #     , y = 0.1
+    #     , width = 0.5
+    #     , height = 0.4
+    #   )
     
     bootOutput$distPlots[[propVar]] = combinedDistPlot
     
@@ -1225,5 +1310,3 @@ analyzeBootstrapResults <- function(
   
   return(bootOutput)
 }
-
-
