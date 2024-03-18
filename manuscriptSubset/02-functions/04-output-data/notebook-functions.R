@@ -185,9 +185,6 @@ addTableInfo <- function(tbl, figLab = thisFigureLab, outcomeLab = thisOutcomeLa
 simplifyEMMPairsOutput <- function(pairsTbl){
   tbl <- pairsTbl %>%
     as_tibble() %>%
-    select(
-      -c(lower.CL, upper.CL)
-    ) %>%
     rename(
       SEM = SE
       , `t ratio` = t.ratio

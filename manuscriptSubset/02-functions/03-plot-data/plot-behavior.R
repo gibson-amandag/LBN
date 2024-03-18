@@ -76,7 +76,7 @@ plotDamBehavior <- function(
     , numPerGroup = 4
     , dotAlpha = 1
     , colorPkg = "rainbow"
-    , useProvidedColor = TRUE
+    , useProvidedColor = FALSE
 ){
   df <- df %>%
     rename(

@@ -21,6 +21,11 @@ source("./01-scripts/05-make-LBN-plots-modelError-manuscript.R")
 source("./01-scripts/06-make-LBN-tables.R")
 ```
 
+```{r eval=FALSE, include=FALSE}
+source("./01-scripts/05.5-run-GABA-dist-analysis.R")
+```
+
+
 # Documents 
 
 ```{r}
@@ -52,9 +57,6 @@ tbl
 
 ```{r}
 pairsDoc <- addTableAndCaptionToDoc(tbl, tableCaption, 2, pairsDoc)
-```
-
-
 ```
 
 
@@ -216,69 +218,11 @@ flexSave(
 )
 ```
 
-```{r}
-flexSave(
-  "figDams_allRainbow_noDots"
-  , plot = figDams_noDots
-  , width = twoCols
-  , height = fullLength - 0.1
-  , units = "cm"
-  , filePath = manuscriptFolder
-)
-```
-
-
-```{r}
-flexSave(
-  "figDams_allViridis_noDots"
-  , plot = figDams_noDots_viridis
-  , width = twoCols
-  , height = fullLength - 0.1
-  , units = "cm"
-  , filePath = manuscriptFolder
-)
-```
-
-```{r}
-flexSave(
-  "figDams_Viridis_select"
-  , plot = figDams_noDots_select
-  , width = twoCols
-  , height = fullLength - 0.1
-  , units = "cm"
-  , filePath = manuscriptFolder
-)
-```
-
-
-```{r}
-flexSave(
-  "figDams_allRainbow_random"
-  , plot = figDams_random
-  , width = twoCols
-  , height = fullLength - 0.1
-  , units = "cm"
-  , filePath = manuscriptFolder
-)
-```
-
-```{r}
-flexSave(
-  "figDams_allViridis_random"
-  , plot = figDams_random_viridis
-  , width = twoCols
-  , height = fullLength - 0.1
-  , units = "cm"
-  , filePath = manuscriptFolder
-)
-```
-
-
 ## Table - counts of dams
 
 ```{r}
 damCountTblNum <- 1
-tableNum <- damCountTblNum
+tableNum <- "1-1"
 ```
 
 
@@ -290,8 +234,7 @@ tbl
 ```
 
 ```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 ## Table - dam mass
@@ -309,49 +252,8 @@ tbl
 ```
 
 ```{r}
-# damMassTblNum <- damCountTblNum + 1 #2
-damMassTblNum <- 1 # first non supplemental
+damMassTblNum <- "1-2"
 tableNum <- damMassTblNum
-```
-
-```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-```
-
-### emmeans
-
-```{r}
-tableCaption <- "Estimated marginal means (emmean) from linear mixed model of dam mass for early-life treatment and PND factors. CI = confidence interval; PND = postnatal day"
-
-tbl <- damMass_lmm_emm_flexTable
-
-tbl
-```
-
-```{r}
-# damMassEmmTblNum <- damMassTblNum + 1
-damMassEmmTblNum <- damCountTblNum + 1
-tableNum <- damMassEmmTblNum
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-### pairs
-
-```{r}
-# damMassEmmPairsTblNum <- damMassEmmTblNum + 1
-damMassEmmPairsTblNum <- damMassTblNum + 1
-tableNum <- damMassEmmPairsTblNum
-```
-
-```{r}
-tableCaption <- "Pairwise comparisons of contrasts from estimated marginal means of linear mixed model for dam mass. PND = postnatal day."
-
-tbl <- damMass_emmPairs_flexTable
-tbl
 ```
 
 ```{r}
@@ -361,54 +263,10 @@ doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ## Table - dam cort
 
 ```{r}
-# damCortTblNum <- damMassEmmPairsTblNum + 1
-damCortTblNum <- damMassEmmPairsTblNum # incorporate into text
-tableNum <- damCortTblNum
-```
-
-```{r}
 tableCaption <- "Two-sided t-test of the effect of limited bedding and nesting (LBN) on serum corticosterone in dams on postnatal day 11. CI = confidence interval"
 
 tbl <- damCort_flexTable
 tbl
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-```
-
-## Table - Dam behavior
-
-```{r}
-# damBehaviorTblNum <- damCortTblNum + 1
-damBehaviorTblNum <- damCortTblNum # incorporated in with dam mass table
-tableNum <- damBehaviorTblNum
-```
-
-```{r eval=FALSE, include=FALSE}
-tableCaption <- paste0("Dam behavior parameters analyzed with nonparametric longitudinal model using the nparLD package in R, with the ", numExits_nparLD$model.name, ". The subject variable was each dam, early-life treatment (standard or limited bedding and nesting cage) was the between-subject factor ('whole-plot' factor), and PND was the within-subject factor ('sub-plot' repeated factor). PND=postnatal day")
-
-tbl <- damBehavior_flexTable 
-tbl
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-```
-
-
-```{r eval=FALSE, include=FALSE}
-numExits_nparLD$ANOVA.test
-
-percOffNest_nparLD$ANOVA.test
-
-damMass_lmm
-
-damMass_lmm_EMM.earlyLifeTrt.pairs
-
-damMass_lmm_EMM.PND.pairs
-
-damCort_t.Test
 ```
 
 
@@ -486,27 +344,11 @@ flexSave(
 )
 ```
 
-
-
 ## Table - offspring counts
 
 ```{r}
 tbl <- massCount_flexTable
 tbl
-```
-
-```{r}
-# offMassCountTblNum <- damBehaviorTblNum + 1
-# offMassCountTblNum <- damMassEmmTblNum + 1 # don't add
-offMassCountTblNum <- damMassEmmTblNum  # not adding -> don't increment
-tableNum <- offMassCountTblNum
-tableCaption <- "Number of male and female offspring and litters with mass measurements at PND11, 21, 35, and 70. PND = postnatal day"
-```
-
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-# supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
 
@@ -519,8 +361,7 @@ tbl
 
 
 ```{r}
-# offMassTblNum <- offMassCountTblNum + 1
-offMassTblNum <- damBehaviorTblNum + 1
+offMassTblNum <- "2-1"
 tableNum <- offMassTblNum
 ```
 
@@ -532,74 +373,15 @@ testFormula <- gsub("\\s+", " ", testFormula)
 tableCaption <- paste0("Linear mixed model of the offspring mass from PND11-72 fit with the equation ", testFormula, ". PND@: Linear splines at PND21 and 35 allow the model to change the slope of the line for the segments between PND11-21, from 21-35, and from 35-72. Male and female offspring were fit with separate models. PND = postnatal day")
 ```
 
-
 ```{r}
 doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
-### Table - male emmeans
-
-```{r}
-tbl <- maleMass_emm_flexTable
-tbl
-```
-
-```{r}
-# offMassTblNum_emm <- offMassTblNum + 1
-offMassTblNum_emm <- offMassCountTblNum + 1 # not adding
-tableNum <- offMassTblNum_emm
-```
-
-```{r}
-tableCaption <- "Estimated marginal means (emmean) from linear mixed model of male offspring mass for the interaction of early-life treatment and PND factors. CI = confidence interval. PND = postnatal day"
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-### Table - male emmeans comp
-
-```{r}
-tbl <- maleMass_emm.pairs_flexTable
-tbl
-```
-
-```{r}
-# offMassTblNum_emm_pairs <- offMassTblNum_emm + 1
-offMassTblNum_emm_pairs <- offMassTblNum + 1
-tableNum <- offMassTblNum_emm_pairs
-```
-
-```{r}
-tableCaption <- "Pairwise comparisons of contrasts from estimated marginal means of linear mixed model for male offspring mass. PND = postnatal day."
-```
-
-```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-```
 
 ## Table - count maturation
 ```{r}
 tbl <- matCount_flexTable
 tbl
-```
-
-```{r}
-tableCaption <- "Number of offspring and litters with age and mass measurements for vaginal opening and first estrus in females and preputial separation in males"
-```
-
-```{r}
-# offMatCountTblNum <- offMassTblNum_emm_pairs + 1
-# offMatCountTblNum <- offMassTblNum_emm + 1
-offMatCountTblNum <- offMassTblNum_emm
-tableNum <- offMatCountTblNum
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-# supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
 
@@ -618,8 +400,7 @@ tableCaption <- paste0("Linear mixed models for maturation with the equation ", 
 ```
 
 ```{r}
-# offMatTblNum <- offMatCountTblNum + 1
-offMatTblNum <- offMassTblNum_emm_pairs + 1
+offMatTblNum <- "2-2"
 tableNum <- offMatTblNum
 ```
 
@@ -642,56 +423,12 @@ tableCaption <- paste0("Linear mixed models for anogenital distance (AGD) with t
 ```
 
 ```{r}
-AGDTblNum <- offMatTblNum + 1
+AGDTblNum <- "2-3"
 tableNum <- AGDTblNum
 ```
 
 ```{r}
 doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-```
-
-### Table - AGD emms
-
-```{r}
-tbl <- AGD_lmm_emm_sex_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Estimated marginal means (emmean) from linear mixed model of anogenital distance for early-life treatment and sex. CI = confidence interval"
-```
-
-```{r}
-# AGDTblNum_emm <- AGDTblNum + 1
-AGDTblNum_emm <- offMatCountTblNum + 1
-tableNum <- AGDTblNum_emm
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-### Table - AGD pairs
-
-```{r}
-tbl <- AGD_lmm_emm_sex.pairs_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Pairwise comparisons of contrasts from estimated marginal means of linear mixed model for anogenital distance."
-```
-
-```{r}
-# AGDTblNum_emm_pairs <- AGDTblNum_emm + 1
-# AGDTblNum_emm_pairs <- AGDTblNum + 1
-AGDTblNum_emm_pairs <- AGDTblNum # incorporated into text
-tableNum <- AGDTblNum_emm_pairs
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 # Figure 3 - Cycles
@@ -784,7 +521,7 @@ tableCaption <- paste0("Statistics for estrous cycles from postnatal days 70-90.
 
 
 ```{r}
-cyclesTblNum <- AGDTblNum_emm_pairs + 1
+cyclesTblNum <- "3-1"
 tableNum <- cyclesTblNum
 ```
 
@@ -793,52 +530,6 @@ doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 # Figure 4 - Corticosterone
-
-```{r}
-figCort <- plot_grid(
-  figCortA
-  , figCortB
-  , figCortC
-  , nrow = 3
-  , align = "vh", axis = "ltrb"
-  , labels = c("A", "B", "C")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-)
-
-figCort
-
-```
-```{r}
-flexSave(
-  "figCort"
-  , plot = figCort
-  , width = twoCols
-  , height = fullLength
-  , units = "cm"
-  , filePath = manuscriptFolder
-)
-```
-
-
-```{r}
-figCort_byAdult <- plot_grid(
-  figCortA_adult +
-    theme(
-      plot.margin = unit(c(0.3,0.1,0,0.1), "cm")
-    )
-  , NULL
-  , figCortC_adult
-  , figCortB_adult
-  , nrow = 2
-  , align = "vh", axis = "ltrb"
-  , labels = c("A", "", "B", "C")
-  , label_fontfamily = "Arial"
-  , label_size = textSize
-)
-
-figCort_byAdult
-```
 
 ```{r}
 figCort_byAdult <- plot_grid(
@@ -860,21 +551,10 @@ figCort_byAdult
 
 ```{r}
 flexSave(
-  "figCort_v2"
+  "figCort"
   , plot = figCort_byAdult
   , width = twoCols
   , height = fullLength
-  , units = "cm"
-  , filePath = manuscriptFolder
-)
-```
-
-```{r}
-flexSave(
-  "figCort_v3"
-  , plot = figCort_byAdult
-  , width = twoCols
-  , height = halfLength
   , units = "cm"
   , filePath = manuscriptFolder
 )
@@ -895,20 +575,17 @@ tbl <- cortCount_flexTable
 tbl
 ```
 
-
 ```{r}
 tableCaption <- "Number of litters and mice with serum corticosterone measurements before and after adult treatment. Abbreviations: STD, standard-reared; LBN, limited bedding and nesting; CON, adult control; ALPS, acute, layered, psychosocial stress in adulthood."
 ```
 
 ```{r}
-# cortCountNum <- cyclesTblNum + 1
-cortCountNum <- AGDTblNum_emm + 1
+cortCountNum <- "4-1"
 tableNum <- cortCountNum
 ```
 
 ```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 ## cort lmm 
@@ -933,103 +610,13 @@ tableCaption
 ```
 
 ```{r}
-# cortLMMNum <- cortCountNum + 1
-cortLMMNum <- cyclesTblNum + 1
+cortLMMNum <- "4-2"
 tableNum <- cortLMMNum
 ```
 
 ```{r}
 doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
-
-### Male - Adult trt + time emm
-
-```{r}
-tbl <- maleCortLMM_emm_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Estimated marginal means (emmean) from linear mixed model in male mice of corticosterone for adult treatment (CON: control; ALPS: adult stress) and time (hr). Results are averaged over the levels of early-life treatment. The emmeans and confidence intervals (CI) are back-transformed from the log scale to the response scale (ng/mL)."
-```
-
-```{r}
-# maleCortLMMNum_emm <- cortLMMNum + 1
-maleCortLMMNum_emm <- cortCountNum + 1
-tableNum <- maleCortLMMNum_emm
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-#### Male - Adult trt + time pairs
-
-```{r}
-tbl <- maleCortLMM_emm.pairs_flexTable
-tbl
-```
-
-Holm p-value adjustment for 4 tests and Kenward-Roger for DF
-```{r}
-tableCaption <- "Pairwise comparison of estimated marginal means in male mice from linear mixed model of serum corticosterone for adult treatment (CON: control; ALPS: adult stress) and time (hr). Results are averaged over the levels of early-life treatment. Tests were performed on the log scale."
-```
-
-```{r}
-# maleCortLMMNum_emm.pairs <- maleCortLMMNum_emm + 1
-maleCortLMMNum_emm.pairs <- cortLMMNum + 1
-tableNum <- maleCortLMMNum_emm.pairs
-```
-
-```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-```
-
-### Female - Adult trt, time, cycle stage
-
-```{r}
-tbl <- femaleCortLMM_emm_3way_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Estimated marginal means (emmean) in female mice from linear mixed model of serum corticosterone for adult treatment, time (hr), and estrous cycle stage. Results are averaged over the levels of early-life treatment. The emmeans and confidence intervals (CI) are back-transformed from the log scale to the response scale (ng/mL)."
-```
-
-```{r}
-# femaleCortLMM_emm_num <- maleCortLMMNum_emm.pairs + 1
-# femaleCortLMM_emm_num <- maleCortLMMNum_emm + 1
-femaleCortLMM_emm_num <- maleCortLMMNum_emm # not yet, put this after the tissue masses stuff
-tableNum <- femaleCortLMM_emm_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-#### Cycle stage + time pairs
-
-```{r}
-tbl <- femaleCortLMM_emm_3way.pairs_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Pairwise comparison of estimated marginal means in female mice from linear mixed model of serum corticosterone for adult treatment, time (hr), and estrous cycle stage. Results are averaged over the levels of early-life treatment. Tests were performed on the log scale."
-```
-
-```{r}
-# femaleCortLMM_emm_num.pairs <- femaleCortLMM_emm_num + 1
-femaleCortLMM_emm_num.pairs <- maleCortLMMNum_emm.pairs + 1
-tableNum <- femaleCortLMM_emm_num.pairs
-```
-
-```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-```
-
 
 # Figure 4-1 - Male masses - ALPS
 
@@ -1092,14 +679,12 @@ tableCaption <- "Number of litters and male mice with mass measurements on the d
 ```
 
 ```{r}
-# maleMass_ALPS_countsNum <- femaleCortLMM_emm_num.pairs + 1
-maleMass_ALPS_countsNum <- femaleCortLMM_emm_num + 1
+maleMass_ALPS_countsNum <- "4-3"
 tableNum <- maleMass_ALPS_countsNum
 ```
 
 ```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 
@@ -1116,62 +701,12 @@ tableCaption <- "Statistics from linear mixed models of male masses on day of ad
 ```
 
 ```{r}
-maleMass_ALPS_lmm_num <- maleMass_ALPS_countsNum + 1
-# maleMass_ALPS_lmm_num <- femaleCortLMM_emm_num.pairs + 1
+maleMass_ALPS_lmm_num <- "4-4"
 tableNum <- maleMass_ALPS_lmm_num
 ```
 
 ```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-### EMM
-```{r}
-tbl <- maleALPS_RelAM_EMM_flexTable
-tbl
-tbl <- maleALPS_RelPM_EMM_flexTable
-tbl
-```
-
-
-```{r}
-tableCaption <- "Estimated marginal means (emmean) from linear mixed models of male masses for the effects of early-life treatment (STD: standard rearing; LBN: limited bedding and nesting) and adult treatment (CON: control; ALPS: adult stress). CI = confidence interval."
-```
-
-```{r}
-maleMass_ALPS_lmm_emm_num <- maleMass_ALPS_lmm_num + 1
-# maleMass_ALPS_lmm_emm_num <- maleMass_ALPS_countsNum + 1
-tableNum <- maleMass_ALPS_lmm_emm_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-### Pairs
-
-```{r}
-tbl <- maleALPS_RelAM_EMM.pairs_flexTable
-tbl
-tbl <- maleALPS_RelPM_EMM.pairs_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Pairwise comparison of estimated marginal means from linear mixed models of male masses for the effects of early-life treatment (STD: standard rearing; LBN: limited bedding and nesting) and adult treatment (CON: control; ALPS: adult stress)."
-```
-
-```{r}
-maleMass_ALPS_lmm_emm.pairs_num <- maleMass_ALPS_lmm_emm_num + 1
-# maleMass_ALPS_lmm_emm.pairs_num <- maleMass_ALPS_lmm_num + 1
-tableNum <- maleMass_ALPS_lmm_emm.pairs_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 # Figure 4-2 - Female masses
@@ -1265,14 +800,12 @@ tableCaption <- "Number of litters and female mice with mass measurements on the
 ```
 
 ```{r}
-femaleMass_ALPS_countsNum <- maleCortAdmin_mass_lmm_emm.pairs_num + 1
-# femaleMass_ALPS_countsNum <- maleCortAdmin_mass_lmm_emm_num + 1
+femaleMass_ALPS_countsNum <- "4-5"
 tableNum <- femaleMass_ALPS_countsNum
 ```
 
 ```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 ## LMM
@@ -1287,80 +820,12 @@ tableCaption <- "Statistics from linear mixed models of female masses on day of 
 ```
 
 ```{r}
-femaleMass_ALPS_lmm_num <- femaleMass_ALPS_countsNum + 1
-# femaleMass_ALPS_lmm_num <- maleCortAdmin_mass_lmm_emm.pairs_num + 1
+femaleMass_ALPS_lmm_num <- "4-6"
 tableNum <- femaleMass_ALPS_lmm_num
 ```
 
 ```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-### EMM
-
-```{r}
-tbl <- femaleALPS_RelPM_EMM_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Estimated marginal means (emmean) from linear mixed models of female masses on day of adult treatment. CI = confidence interval; STD = standard rearing; LBN = limited bedding and nesting; ALPS = adult stress."
-```
-
-
-```{r}
-femaleMass_ALPS_lmm_emm_num <- femaleMass_ALPS_lmm_num + 1
-# femaleMass_ALPS_lmm_emm_num <- femaleMass_ALPS_countsNum + 1
-tableNum <- femaleMass_ALPS_lmm_emm_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-### Pairs
-
-```{r}
-tbl <- femaleALPS_RelPM_EMM.pairs_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Pairwise comparison of estimated marginal means from linear mixed models of female masses on day of adult treatment. STD = standard rearing; LBN = limited bedding and nesting; ALPS = adult stress."
-```
-
-```{r}
-femaleMass_ALPS_lmm_emm.pairs_num <- femaleMass_ALPS_lmm_emm_num + 1
-# femaleMass_ALPS_lmm_emm.pairs_num <- femaleMass_ALPS_lmm_num + 1
-tableNum <- femaleMass_ALPS_lmm_emm.pairs_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-# Figure 4 - cort female emms
-
-```{r}
-tbl <- femaleCortLMM_emm_3way_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Estimated marginal means (emmean) in female mice from linear mixed model of serum corticosterone for adult treatment, time (hr), and estrous cycle stage. Results are averaged over the levels of early-life treatment. The emmeans and confidence intervals (CI) are back-transformed from the log scale to the response scale (ng/mL)."
-```
-
-```{r}
-femaleCortLMM_emm_num <- femaleMass_ALPS_lmm_emm.pairs_num + 1
-tableNum <- femaleCortLMM_emm_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 # Figure 4-3 - Male cort administration
@@ -1443,28 +908,40 @@ flexSave(
 )
 ```
 
+## Mass count 
+
+```{r}
+tbl <- maleMassCortAM_counts_flexTable 
+tbl
+tbl <- maleMassCortPM_counts_flexTable
+tbl
+```
+
+## mass LMM
+
+```{r}
+tbl <- male_dosage_RelPM_flexTable
+tbl
+```
+
+```{r}
+tableCaption <- "Statistics from linear mixed models of male masses on day of vehicle (0mg/kg) or corticosterone (2mg/kg) treatment. Data were fit with the formula `feature ~ dosage + (1 | dam)`."
+```
+
+```{r}
+maleCortAdmin_mass_lmm_num <- "4-7"
+tableNum <- maleCortAdmin_mass_lmm_num
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
 ## Cort count
 
 ```{r}
 tbl <- malesCortAdmin_cortCount_flexTable
 tbl
-```
-
-```{r}
-tableCaption <- "Number of litters and mice with serum corticosterone measurements during male corticosterone administration studies in vehicle treated (0mg/kg) and corticsterone treated (2mg/kg) groups (Figure 6a)."
-```
-
-```{r}
-# malesCortAdmin_cortCount_num <- maleMass_ALPS_lmm_emm.pairs_num + 1
-# malesCortAdmin_cortCount_num <- maleMass_ALPS_lmm_emm_num + 1
-# malesCortAdmin_cortCount_num <- maleMass_ALPS_lmm_emm_num
-malesCortAdmin_cortCount_num <- maleMass_ALPS_lmm_emm.pairs_num
-tableNum <- malesCortAdmin_cortCount_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-# supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
 ```
 
 ## Cort LMM 
@@ -1480,154 +957,13 @@ maleCortAdmin_cort_formula <-  getLMMFormula(maleCortAdmin_cort_lmm)
 tableCaption <- paste0("Statistics for serum corticosterone in males with vehicle or corticosterone administration. Data were fit with the linear mixed model equation `", maleCortAdmin_cort_formula, "`.")
 ```
 ```{r}
-malesCortAdmin_cortLMM_num <- malesCortAdmin_cortCount_num + 1
-# malesCortAdmin_cortLMM_num <- maleMass_ALPS_lmm_emm.pairs_num + 1
+malesCortAdmin_cortLMM_num <- "4-8"
 tableNum <- malesCortAdmin_cortLMM_num
 ```
 
 ```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
-
-### EMM
-
-```{r}
-tbl <- maleCortAdmin_cortLMM_emm_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Estimated marginal means (emmean) from linear mixed model of serum corticosterone for the interaction of dosage (vehicle: 0mg/kg; corticosterone: 2mg/kg) and time. The emmeans and confidence intervals (CI) are back-transformed from the log scale to the response scale (ng/mL)."
-```
-
-```{r}
-malesCortAdmin_cortLMM_EMM_num <- malesCortAdmin_cortLMM_num + 1
-# malesCortAdmin_cortLMM_EMM_num <- malesCortAdmin_cortCount_num + 1
-tableNum <- malesCortAdmin_cortLMM_EMM_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-### pairs
-
-```{r}
-tbl <- maleCortAdmin_cortLMM_emm.pairs_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Pairwise comparison of estimated marginal means from linear mixed model of serum corticosterone for the interaction of dosage (vehicle: 0mg/kg; corticosterone: 2mg/kg) and time."
-```
-
-```{r}
-malesCortAdmin_cortLMM_EMM.pairs_num <- malesCortAdmin_cortLMM_EMM_num + 1
-# malesCortAdmin_cortLMM_EMM.pairs_num <- malesCortAdmin_cortLMM_num + 1
-tableNum <- malesCortAdmin_cortLMM_EMM.pairs_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-## Mass count 
-
-```{r}
-tbl <- maleMassCortAM_counts_flexTable 
-tbl
-tbl <- maleMassCortPM_counts_flexTable
-tbl
-```
-
-
-```{r}
-tableCaption <- "Number of litters and male mice with mass measurements on the day of vehicle (0mg/kg) or corticosterone (2mg/kg) treatment."
-```
-
-```{r}
-# maleCortAdmin_massCount_num <- malesCortAdmin_cortLMM_EMM.pairs_num + 1
-# maleCortAdmin_massCount_num <- malesCortAdmin_cortLMM_EMM_num + 1
-# maleCortAdmin_massCount_num <- malesCortAdmin_cortLMM_EMM_num
-maleCortAdmin_massCount_num <- malesCortAdmin_cortLMM_EMM.pairs_num
-tableNum <- maleCortAdmin_massCount_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-# supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-## mass LMM
-
-```{r}
-tbl <- male_dosage_RelPM_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Statistics from linear mixed models of male masses on day of vehicle (0mg/kg) or corticosterone (2mg/kg) treatment. Data were fit with the formula `feature ~ dosage + (1 | dam)`."
-```
-
-```{r}
-maleCortAdmin_mass_lmm_num <- maleCortAdmin_massCount_num + 1
-# maleCortAdmin_mass_lmm_num <- malesCortAdmin_cortLMM_EMM.pairs_num + 1
-tableNum <- maleCortAdmin_mass_lmm_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-### EMM
-
-```{r}
-tbl <- male_dosage_RelPM_EMM_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Estimated marginal means (emmean) from linear mixed models of male masses on day of vehicle (0mg/kg) or corticosterone (2mg/kg) treatment. CI = confidence interval."
-```
-
-```{r}
-maleCortAdmin_mass_lmm_emm_num <- maleCortAdmin_mass_lmm_num + 1
-# maleCortAdmin_mass_lmm_emm_num <- maleCortAdmin_massCount_num + 1
-tableNum <- maleCortAdmin_mass_lmm_emm_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-### Pairs
-
-```{r}
-tbl <- male_dosage_RelPM_EMM.pairs_flexTable
-tbl
-```
-
-```{r}
-tableCaption <- "Pairwise comparison of estimated marginal means from linear mixed models of male masses on day of vehicle (0mg/kg) or corticosterone (2mg/kg) treatment."
-```
-
-```{r}
-maleCortAdmin_mass_lmm_emm.pairs_num <- maleCortAdmin_mass_lmm_emm_num + 1
-# maleCortAdmin_mass_lmm_emm.pairs_num <- maleCortAdmin_mass_lmm_num + 1
-tableNum <- maleCortAdmin_mass_lmm_emm.pairs_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
-
-
 
 # Figure 5 - LH
 ```{r}
@@ -1663,7 +999,6 @@ figLH
 ```
 
 
-
 ```{r}
 flexSave(
   "figLH"
@@ -1682,23 +1017,6 @@ tbl <- LHCount_flexTable
 tbl
 ```
 
-```{r}
-tableCaption <- "Number of litters and mice with LH measurements following adult stress treatment for animals studied on diestrus or proestrus. Proestrous animals were either used for later electrophysiology (ephys) studies or for repeated hourly LH sampling around the time of lights out. (STD: standard rearing; LBN: limited bedding and nesting; CON: control; ALPS: adult stress)"
-```
-
-
-```{r}
-# LHCount_num <- femaleMass_ALPS_lmm_emm.pairs_num + 1
-# LHCount_num <- femaleMass_ALPS_lmm_emm_num + 1
-# LHCount_num <- femaleMass_ALPS_lmm_emm_num
-LHCount_num <- femaleMass_ALPS_lmm_emm.pairs_num
-tableNum <- LHCount_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-# supDoc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, supDoc)
-```
 
 ## Di LMM
 ```{r}
@@ -1712,7 +1030,7 @@ tableCaption <- "Statistics from linear mixed models of average afternoon (2.5h 
 ```
 
 ```{r}
-LH_di_lmm_num <- femaleCortLMM_emm_num.pairs + 1
+LH_di_lmm_num <- "5-1"
 tableNum <- LH_di_lmm_num
 ```
 
@@ -1725,52 +1043,6 @@ doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```{r}
 propSurged_extendedSampling_glmm
 ```
-
-## Chi-squared
-
-```{r}
-tbl <- propSurgedChiSq_flexTable
-tbl
-```
-
-```{r}
-propSurged_ChiSq_n <- propSurged.Chi.Sq.res$n[1]
-
-tableCaption <- paste0("Statistics for a Chi-squared test (n = ", propSurged_ChiSq_n, ") of the effect of early-life treatment on the proportion of animals stressed in adulthood with an LH surge.")
-```
-
-```{r}
-# propSurged_num <- LH_pro_lmm_pairs_num + 1
-propSurged_num <- LH_pro_lmm_pairs_num
-tableNum <- propSurged_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-```
-
-## Peak Time
-
-```{r}
-tbl <- LH_pro_peakTime_flexTable
-tbl
-```
-
-
-```{r}
-tableCaption <- "Statistics from linear mixed models of the time (h) of maximum evening LH on day of adult treatment in proestrous females with repeated hourly LH sampling around the time of lights out. Data were fit with the formula `time at max LH ~ early-life treatment * adult treatment + (1 | dam)`."
-```
-
-```{r}
-# LH_pro_peakTime_lmm_num <- propSurged_num + 1
-LH_pro_peakTime_lmm_num <- propSurged_num
-tableNum <- LH_pro_peakTime_lmm_num
-```
-
-```{r}
-# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
-```
-
 
 # Figure 6 - GABA PSCs - passives
 
@@ -1825,7 +1097,7 @@ tableCaption <- "Statistics from linear mixed models of electrophysiology proper
 ```
 
 ```{r}
-psc_LMM_num <- propSurged_num + 1
+psc_LMM_num <- "6-1"
 tableNum <- psc_LMM_num
 ```
 
@@ -1847,8 +1119,9 @@ numEvents_formula <- gsub("numEvents", "# events per 240s", numEvents_formula)
 
 tableCaption <- paste0("Statistics for number of post-synaptic current (PSC) events per 240s in GnRH neurons on the day of adult treatment. As the frequency data were skewed right and included zeros, a generalized linear mixed effects negative binomial model was used. Data were fit with the model equation `", numEvents_formula, "`. The joint_tests function of the emmeans package was used to obtain these p-value estimates from the model." )
 ```
+
 ```{r}
-numEvents_GLMM_num <- psc_LMM_num + 1
+numEvents_GLMM_num <- "7-1"
 tableNum <- numEvents_GLMM_num
 ```
 
@@ -1886,7 +1159,7 @@ figGABA2_middle <- align_plots(
     theme(
       axis.text.y = element_blank()
       , axis.title.y = element_text(angle = 90)
-    )
+  )
   , bootstrapRes_iterations5000_maxPerCellNone_amplitude$cumulativeFreqPlots$amplitude +
     theme(
       legend.position = "none"
@@ -1962,6 +1235,7 @@ figGABA2 <- ggdraw() +
 figGABA2
 ```
 
+
 ```{r}
 flexSave(
   "figPSC_props"
@@ -1979,7 +1253,14 @@ tbl <- psc_pairwisePs_flexTable
 tbl
 ```
 
+```{r}
+psc_pairwiseNum <- "7-2"
+tableNum <- psc_pairwiseNum
+```
 
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
 
 
 
