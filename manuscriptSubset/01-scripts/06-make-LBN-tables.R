@@ -3313,11 +3313,7 @@ holdingCurrent_lmm_tbl <- holdingCurrent_lmm$anova_table %>%
   simplifyLMMOutput()
 relAmplitude_lmm_tbl <- relAmplitude_lmm$anova_table %>%
   simplifyLMMOutput()
-riseTime_lmm_tbl <- riseTime_lmm$anova_table %>%
-  simplifyLMMOutput()
 decayTime_lmm_tbl <- decayTime_lmm$anova_table %>%
-  simplifyLMMOutput()
-fwhm_lmm_tbl <- fwhm_lmm$anova_table %>%
   simplifyLMMOutput()
 interval_lmm_tbl <- interval_lmm$anova_table %>%
   simplifyLMMOutput()
@@ -3330,9 +3326,7 @@ pscLMMs_tbl <- bind_rows(
     , `holding current (pA)` = holdingCurrent_lmm_tbl
     , `interevent interval (pA)` = interval_lmm_tbl
     , `amplitude (pA)` = relAmplitude_lmm_tbl
-    # , `rise time (ms)` = riseTime_lmm_tbl
     , `decay time (ms)` = decayTime_lmm_tbl
-    # , `fwhm (ms)` = fwhm_lmm_tbl
   ), .id = "feature"
 ) %>%
   mutate(

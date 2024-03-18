@@ -571,9 +571,9 @@ acuteStressFiltered_M_DiPro <- acuteStressFiltered %>%
       , "male"
       , as.character(Sac_cycle)
     )
+    , .after = mouseID
   ) %>% mutate(
     hormoneStatus = factor(hormoneStatus, c("male","diestrus", "proestrus"))
-    # hormoneStatus = factor(hormoneStatus, c("male","proestrus", "diestrus"))
   )
 
 acuteStressFilteredMales <- acuteStressFiltered %>%
@@ -684,12 +684,11 @@ cortFiltered_M_DiPro <- cortFiltered %>%
     hormoneStatus = ifelse(
       sex == "M"
       , "male"
-      , Sac_cycle
+      , as.character(Sac_cycle)
     )
-  ) %>%
-  mutate(
+    , .after = mouseID
+  ) %>% mutate(
     hormoneStatus = factor(hormoneStatus, c("male","diestrus", "proestrus"))
-    # hormoneStatus = factor(hormoneStatus, c("male","proestrus", "diestrus"))
   )
 
 cortFilteredMales <- cortFiltered %>%

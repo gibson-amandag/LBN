@@ -18783,9 +18783,418 @@ plot_grid(
 ```
 
 ```{r}
+summarize_means <- function(df, colsAsText) {
+  # Create a named list of expressions to be evaluated by summarize
+  summary_expressions <- sapply(colsAsText, function(col) {
+    expr(mean(!!sym(col), na.rm = TRUE))
+  }, simplify = FALSE)
+  names(summary_expressions) <- colsAsText
+  
+  # Use !!! to splice the list of expressions into summarize
+  df %>% summarize(!!!summary_expressions)
+}
 
+# Example usage
+propCols <- c("amplitude", "decay9010")
+df <- data.frame(amplitude = rnorm(100), decay9010 = rnorm(100))
+
+# Call the function
+result <- summarize_means(df, propCols)
+
+print(result)
 ```
 
 
+```{r}
+bootstrapRes_iterations10_maxPerCellNone_intAmp <- pscAllEvents_filtered %>%
+  select(
+    cellID
+    , earlyLifeTrt
+    , adultTrt
+    , interval
+    , amplitude
+  ) %>%
+  filter(
+    # !is.na(interval) - this will lead to some of the NAs being selecting in rows for the interval, but I think trade off is worth the same events
+  ) %>%
+  analyzeBootstrapResults(
+    nBootstrap = 10
+    , maxPerCell = NULL
+    , propDifferent = 0.15
+    , setSeed = 123
+    , CIprop = 0.05
+  )
+
+bootstrapRes_iterations10_maxPerCellNone_intAmp
+```
+
+
+```{r}
+ggdraw() +
+  draw_plot(bootstrapRes_iterations10_maxPerCellNone_intAmp$cumulativeFreqPlots$amplitude +theme(legend.position = "none")) +
+  draw_plot(bootstrapRes_iterations10_maxPerCellNone_intAmp$cumulativeFreqPlots_full$amplitude+theme(legend.position = "none", axis.title.x = element_blank(), axis.title.y = element_blank() ), x = 0.5, y = 0.1, width = 0.5, height = 0.6)
+```
+
+```{r}
+ggdraw() +
+  draw_plot(bootstrapRes_iterations10_maxPerCellNone_intAmp$cumulativeFreqPlots$interval +theme(legend.position = "none")) +
+  draw_plot(bootstrapRes_iterations10_maxPerCellNone_intAmp$cumulativeFreqPlots_full$interval+theme(legend.position = "none", axis.title.x = element_blank(), axis.title.y = element_blank() ), x = 0.5, y = 0.1, width = 0.5, height = 0.5)
+```
+
+```{r}
+pscAllEvents_filtered %>%
+  filter(
+    interval < 50 / 1000
+  ) 
+
+pscAllEvents_filtered %>%
+  summarize(
+    sum(interval < 50 / 1000, na.rm = TRUE) / n()
+  )
+```
+
+
+```{r}
+pscAllEvents_filtered %>%
+  filter(
+    interval < 7 / 1000 | lead(interval < 7 / 1000)
+  ) %>%
+  relocate(
+    amplitude
+    , interval
+    , .after = peakTime
+  ) %>%
+  mutate(
+    amplitude = round(amplitude, 1)
+    , interval = interval * 1000
+  )
+```
+
+
+```{r}
+pscProps %>%
+  plotCumulativeFreqDist(
+    xVar = decay9010
+    , xLab = "decay time (ms)"
+  )
+```
+
+```{r}
+pscAllEvents_filtered %>%
+  filter(
+    interval < 7 / 1000
+  )
+```
+
+```{r}
+ADres_amplitude$pVal
+ADres_interval$pVal
+AD_testPs
+```
+
+```{r}
+ bootstrapRes_iterations5000_maxPerCellNone_amplitude$P_formatted
+ bootstrapRes_iterations5000_maxPerCellNone_interval$P_formatted
+```
+
+```{r}
+bootstrapRes_iterations5000_maxPerCellNone_amplitude$plot$amplitude
+bootstrapRes_iterations5000_maxPerCellNone_amplitude$distPlots$amplitude
+```
+
+```{r}
+figGABA2a_model
+```
+
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  filter(
+  #   amplitude > 80
+    comboTrt == "STD-ALPS"
+  ) %>%
+  arrange(
+    - sumCount
+  )
+```
+
+
+```{r}
+bootstrapRes_iterations500_maxPerCell10_amplitude$boot_ecdf_plots
+
+bootstrapRes_iterations500_maxPerCell10_amplitude$plot$amplitude
+```
+
+```{r}
+figGABA2a_model +
+  plotError_LMM(
+    bootstrapRes_iterations500_maxPerCell10_amplitude$errors$amplitude
+    , comboTrt
+    , meanBarWidth = 0.5
+    , nudgeErrorLine = 0.25
+    , nudgeMeanLine = 0.25
+  )
+```
+
+
+```{r}
+pscProps_ampAvg %>%
+  rename(
+    newAmp = amplitude
+  ) %>%
+  left_join(
+    GABApscs_240
+    , by = "cellID"
+  ) %>%
+  relocate(
+    amplitude
+    , newAmp
+    , .after = cellID
+  ) %>%
+  mutate(
+    ampDiff = newAmp - amplitude
+    , .after = newAmp
+  ) %>%
+  arrange(
+    desc(ampDiff)
+  # ) %>%
+  # filter(
+  #   abs(ampDiff) > 1
+  ) %>%
+  scatterPlotComboTrt(
+    yVar = amplitude
+    , yLab = "amplitude"
+  )
+
+pscProps_ampAvg %>%
+  rename(
+    newAmp = amplitude
+  ) %>%
+  left_join(
+    GABApscs_240
+    , by = "cellID"
+  ) %>%
+  relocate(
+    amplitude
+    , newAmp
+    , .after = cellID
+  ) %>%
+  mutate(
+    ampDiff = newAmp - amplitude
+    , .after = newAmp
+  ) %>%
+  arrange(
+    desc(ampDiff)
+  # ) %>%
+  # filter(
+  #   abs(ampDiff) > 1
+  ) %>%
+  scatterPlotComboTrt(
+    yVar = newAmp
+    , yLab = "new amplitude"
+  )
+```
+
+```{r}
+pscAmplitude %>%
+  plotPSCProp_log(
+    yVar = amplitude
+    , yLab = "amplitude (pA)"
+    , logBreaks = 
+  )
+```
+
+```{r}
+bootstrapRes_iterations5000_maxPerCellNone_interval$plots$interval
+```
+
+```{r}
+
+bootstrapRes_iterations500_maxPerCell20_interval$plots$interval
+bootstrapRes_iterations500_maxPerCell20_interval$boot_ecdf_plots$distPlots
+```
+
+```{r}
+bootstrapRes_iterations500_maxPerCell20_interval$P_formatted
+```
+
+```{r}
+bootstrapRes_iterations5000_maxPerCellNone_amplitude$distPlots$amplitude
+```
+
+```{r}
+bootstrapRes_iterations5000_maxPerCellNone_amplitude$P_formatted
+```
+
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  scatterPlotComboTrt(
+    yVar = decayTimes_8020
+    , yLab = "decay time (ms)"
+  )
+```
+
+
+# prop surged, model checking
+
+```{r}
+propSurged_extendedSampling_glmm <- mixed(
+  surged ~ earlyLifeTrt * adultTrt + (1|damID)
+  , data = acuteStressFilteredPro_sampling
+  , family = binomial(link = "logit")
+  , method = "LRT"
+)
+
+propSurged_extendedSampling_glmm$full_model
+summary(propSurged_extendedSampling_glmm$full_model)
+
+isSingular(propSurged_extendedSampling_glmm$full_model)
+```
+
+2024-03-17 troubleshooting
+```{r}
+VarCorr(propSurged_extendedSampling_glmm$full_model)
+```
+
+```{r}
+propSurged_glm <- glm(surged ~ earlyLifeTrt * adultTrt, data=acuteStressFilteredPro_sampling, family=binomial)
+anova(propSurged_glm, propSurged_extendedSampling_glmm$full_model, test="Chisq")
+```
+
+```{r}
+# Assuming this is the GLMM with random effects
+propSurged_extendedSampling_glmm <- glmer(surged ~ earlyLifeTrt * adultTrt + (1|damID), 
+                                          data=acuteStressFilteredPro_sampling, family=binomial)
+
+# The GLM without random effects
+propSurged_glm <- glm(surged ~ earlyLifeTrt * adultTrt, 
+                      data=acuteStressFilteredPro_sampling, family=binomial)
+
+# Likelihood ratio test to compare the two models
+anova(propSurged_glm, propSurged_extendedSampling_glmm, test="Chisq")
+
+# Extract log-likelihoods
+logLik_glm <- logLik(propSurged_glm)
+logLik_glmm <- logLik(propSurged_extendedSampling_glmm)
+
+# Calculate test statistic
+LR_stat <- 2 * (logLik_glmm - logLik_glm)
+
+# Degrees of freedom is the difference in the number of parameters
+df <- attr(logLik_glmm, "df") - attr(logLik_glm, "df")
+
+# Calculate p-value
+p_value <- pchisq(LR_stat, df, lower.tail = FALSE)
+
+# Print the results
+cat("Likelihood ratio test statistic:", LR_stat, "\n")
+cat("Degrees of freedom:", df, "\n")
+cat("p-value:", p_value, "\n")
+```
+
+```{r}
+af <- allFit(propSurged_extendedSampling_glmm$full_model)
+print(af)
+```
+
+```{r}
+propSurged_extendedSampling_glmm
+```
+
+```{r}
+propSurged_extendedSampling_glmm_noInt <- mixed(
+  surged ~ earlyLifeTrt + adultTrt + (1|damID)
+  , data = acuteStressFilteredPro_sampling
+  , family = binomial(link = "logit")
+  , method = "LRT"
+)
+
+propSurged_extendedSampling_glmm_noInt
+
+summary(propSurged_extendedSampling_glmm_noInt$full_model)
+
+isSingular(propSurged_extendedSampling_glmm_noInt$full_model)
+```
+
+
+
+
+```{r}
+propSurged_glm <- glm(
+  surged ~ earlyLifeTrt * adultTrt,
+  data = acuteStressFilteredPro_sampling,
+  family = binomial(link = "logit")
+)
+
+
+summary(aov(propSurged_glm))
+
+summary(
+  propSurged_glm
+)
+
+# Model without interaction:
+propSurged_glm_no_interact <- glm(
+  surged ~ earlyLifeTrt + adultTrt,
+  data = acuteStressFilteredPro_sampling,
+  family = binomial(link = "logit")
+)
+
+summary(propSurged_glm_no_interact)
+
+# Likelihood ratio test:
+anova(propSurged_glm_no_interact, propSurged_glm, test = "Chisq")
+```
+
+```{r}
+pro_ALPS_only <- acuteStressFilteredPro_sampling %>%
+  filter(
+    adultTrt == "ALPS"
+  )
+
+ALPS_contTable <- table(
+  pro_ALPS_only$earlyLifeTrt
+  , pro_ALPS_only$surged
+)
+
+propSurged.Chi.Sq.res <- chisq_test(ALPS_contTable) 
+
+propSurged.Chi.Sq.descriptives <-  chisq_descriptives(propSurged.Chi.Sq.res)
+```
+
+
+```{r}
+pro_ALPS_only <- acuteStressFilteredPro_sampling %>%
+  filter(
+    adultTrt == "ALPS"
+  )
+
+proSurged_contTable <- table(
+  acuteStressFilteredPro_sampling$adultTrt
+  , acuteStressFilteredPro_sampling$surged
+)
+
+propSurged.Chi.Sq.res <- chisq_test(proSurged_contTable) 
+
+propSurged.Chi.Sq.descriptives <-  chisq_descriptives(propSurged.Chi.Sq.res)
+propSurged.Chi.Sq.res
+propSurged.Chi.Sq.descriptives
+
+```
+
+```{r}
+pair <- ad.test(ADres_interval$vectors$SC, ADres_interval$vectors$SA)
+
+pair$ns[2]
+
+length(ADres_interval$vectors$SC)
+```
+
+```{r}
+damMass_lmm_EMM.PND.pairs %>%
+  summary(
+    infer = c(TRUE, TRUE)
+    , adjust = "holm"
+  )
+```
 
 
