@@ -628,6 +628,12 @@ dist_pairwise <- function(adRes, variable, singleRes = TRUE){
     "KS" = KS_res
     , "AD" = AD_res
     , "joinedRes" = joinedRes
+    , "AD_out" = list(
+      "ad_SCvSA" = ad_SCvSA
+      , "ad_SCvLC" = ad_SCvLC
+      , "ad_LCvLA" = ad_LCvLA
+      , "ad_SAvLA" = ad_SAvLA
+    )
   ))
 }
 
