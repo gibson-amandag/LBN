@@ -133,10 +133,10 @@ addMeanSE_vertBar <- function(
 }
 
 addMedianHorizontalBar <- function(
-  width = 0.7,
-  size = 0.4,
-  color = "red",
-  alpha = 0.7
+  width = 0.9,
+  size = 0.6,
+  color = "black",
+  alpha = 1
 ){
   stat_summary(
     geom = "meanbar",

@@ -1,7 +1,7 @@
 cohorts <- c(7, 9, 10)
 minLitterSize <- 5
 damBehaviorTimes <- c(1, 15, 19)
-surgeMin <- 3
+surgeMin <- 3.8
 exclude9011 <- TRUE
 
 # This is a function that creates another function - makes it clearer what

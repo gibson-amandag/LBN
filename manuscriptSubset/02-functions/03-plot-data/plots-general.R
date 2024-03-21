@@ -253,6 +253,7 @@ scatterPlotTwoVars_byComboTrt <- function(
   ymax = NULL
   , xIsDate = FALSE
   , forManuscript = isManuscript
+  , dotAlpha = 1
 ){
   if(forManuscript){
     viz <- df %>%
@@ -288,7 +289,7 @@ scatterPlotTwoVars_byComboTrt <- function(
   
   viz <- viz +
     coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)}) +
-    comboTrtFillShape(forManuscript = forManuscript)+
+    comboTrtFillShape(forManuscript = forManuscript, colorAlpha = dotAlpha, fillAlpha = dotAlpha)+
     theme_pubr()+
     textTheme(size = fontSize)+
     boxTheme()

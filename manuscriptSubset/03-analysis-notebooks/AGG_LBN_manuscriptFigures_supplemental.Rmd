@@ -1041,6 +1041,8 @@ doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ## Prop surged 
 
 ```{r}
+summary(propSurged_extendedSampling_glmm$full_model)
+
 propSurged_extendedSampling_glmm
 ```
 

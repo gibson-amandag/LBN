@@ -15300,9 +15300,31 @@ proAMLH_summary <- LHFilteredPro %>%
 proAMLH_summary
 
 proAMLH_summary$mean[1] + proAMLH_summary$sd[1]*2
-
+proAMLH_summary$mean[1] + proAMLH_summary$sd[1]*3
 
 ```
+
+```{r}
+acuteStressFilteredPro_sampling %>%
+  filter(
+    LH_hr0 > 3
+  ) %>%
+  relocate(
+    LH_hr0,
+    .after = comboTrt
+  )
+```
+```{r}
+acuteStressFilteredDi %>%
+  filter(
+    LH_hr0 > 3
+  ) %>%
+  relocate(
+    LH_hr0,
+    .after = comboTrt
+  )
+```
+
 
 ```{r}
 cortFilteredPro %>%
@@ -19197,4 +19219,271 @@ damMass_lmm_EMM.PND.pairs %>%
   )
 ```
 
+```{r}
+preCortModel <- mixed(
+  cort ~ earlyLifeTrt * hormoneStatus + (1|damID)
+  , data = cortFiltered_M_DiPro %>%
+    filter(
+      time == 0
+    )
+)
+
+preCortModel
+
+contrast(
+  emmeans(
+  preCortModel
+  , "hormoneStatus"
+)
+, "pairwise"
+, adjust = "holm"
+)
+```
+
+```{r}
+combinedCort <- mixed(
+  log10(cort) ~ earlyLifeTrt * adultTrt * hormoneStatus * time + (1|damID)
+  , data = cortFiltered_M_DiPro
+)
+
+contrast(
+  emmeans(
+    combinedCort
+    , "hormoneStatus"
+    , by = "time"
+    , type = "response"
+  )
+  , combine = TRUE
+  , "pairwise"
+  , adjust = "holm"
+)
+```
+```{r}
+acuteStressFilteredDi$LH_hr5
+
+mixed(
+  LH_hr5 ~ earlyLifeTrt * adultTrt + (1|damID)
+  , acuteStressFilteredDi
+)
+mixed(
+  LH_hr7.5 ~ earlyLifeTrt * adultTrt + (1|damID)
+  , acuteStressFilteredDi
+)
+
+LHSamplingDF_color_di <- acuteStressFilteredDi %>%
+  group_by(earlyLifeTrt, adultTrt) %>%
+  mutate(
+    # rowNum = row_number()
+    rank = rank(
+      row_number()
+      , ties.method = "first"
+    )
+    , color = viridis::viridis(max(rank))[rank]
+  ) %>%
+  ungroup() %>%
+  select(
+    mouseID
+    , color
+  ) %>%
+  full_join(
+    LHFilteredDi %>%
+      filter(
+        time > 0
+      )
+    , by = c("mouseID")
+  )
+
+mixed(
+  LH ~ earlyLifeTrt * adultTrt * time + (1|damID)
+  , LHFilteredDi %>%
+    filter(
+      time %in% c(5, 7.5)
+    )
+)
+  
+
+plotLH_overTime_color_di <-  function(df){
+  df %>%
+    LHPlot_noMean_lineColor(
+      fontSize = textSize
+      , zoom_y = TRUE
+      , ymin = 0
+      , ymax = 3
+      , addPoint = FALSE
+    ) + theme(
+      legend.position = "none"
+    ) + facet_wrap(
+      ~comboTrt,
+      scales = "free"
+      , nrow = 1
+    ) +
+    addMeanHorizontalBar()+
+    addMeanSE_vertBar()+
+    theme(
+      # strip.text.x.top = element_text(margin = margin(b = -2))
+    )
+}
+
+figLH_samplingTime_di <- LHSamplingDF_color_di %>%
+  plotLH_overTime_color_di()
+
+figLH_samplingTime_di
+```
+# Amplitude and number of events
+
+```{r}
+pscAmplitude %>%
+  group_by(
+    cellID
+    # , earlyLifeTrt
+    # , adultTrt
+    # , comboTrt
+  ) %>%
+  summarize(
+    numEvents = n()
+    # , amplitude = mean(amplitude, na.rm = TRUE)
+    , .groups = "drop"
+  ) %>%
+  right_join(
+    pscAmplitude
+    , by = "cellID"
+  ) %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = amplitude
+    , yLab = "amplitude (pA)"
+    , xVar = numEvents
+    , xLab = "number of events in amp subset"
+    , fontSize = textSize
+    , dotSize = dotSize
+    , dotAlpha = 0.7
+    # , forManuscript = FALSE
+  ) +
+  geom_smooth(
+    method = "lm"
+    , se = FALSE
+  )
+```
+```{r}
+pscAmplitude %>%
+  group_by(
+    cellID
+    , earlyLifeTrt
+    , adultTrt
+    , comboTrt
+  ) %>%
+  summarize(
+    numEvents = n()
+    , amplitude = mean(amplitude, na.rm = TRUE)
+    , .groups = "drop"
+  ) %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = amplitude
+    , yLab = "amplitude (pA)"
+    , xVar = numEvents
+    , xLab = "number of events in amp subset"
+    , fontSize = textSize
+    , dotSize = dotSize
+    , dotAlpha = 1
+    # , forManuscript = FALSE
+  ) +
+  geom_smooth(
+    method = "lm"
+    , se = FALSE
+  )
+```
+
+```{r}
+GABApscs_240FilteredPropsFreq %>%
+  group_by(
+    comboTrt
+  ) %>%
+  meanSummary(amplitude)
+```
+
+```{r}
+bootstrapRes_iterations5000_maxPerCellNone_amplitude$meansCI
+```
+
+```{r}
+pscAmplitude %>%
+  group_by(
+    cellID
+  ) %>%
+  summarize(
+    numEventsAmp = n()
+    , .groups = "drop"
+  ) %>%
+  right_join(
+    GABApscs_240FilteredPropsFreq
+    , by = "cellID"
+  ) %>%
+  scatterPlotTwoVars_byComboTrt(
+    yVar = sumCount
+    , yLab = "total number of events"
+    , xVar = numEventsAmp
+    , xLab = "number of events in amp subset"
+    , fontSize = textSize
+    , dotSize = dotSize
+    , dotAlpha = 1
+    # , forManuscript = FALSE
+  ) +
+  geom_smooth(
+    method = "lm"
+    , se = FALSE
+  )
+```
+
+```{r}
+weightedAvg <- pscAmplitude %>%
+  group_by(
+    cellID
+  ) %>%
+  summarize(
+    numEventsAmp = n()
+    , .groups = "drop"
+  ) %>%
+  right_join(
+    GABApscs_240FilteredPropsFreq
+    , by = "cellID"
+  ) %>%
+  mutate(
+    weightedAmp = amplitude * numEventsAmp
+  ) %>%
+  group_by(
+    earlyLifeTrt, adultTrt
+  ) %>%
+  summarize(
+    weightedAmpAvg = sum(weightedAmp, na.rm = TRUE) / sum(numEventsAmp, na.rm = TRUE)
+    , .groups = "drop"
+  ) %>%
+  combineStress()
+```
+
+```{r}
+weightedAvg
+```
+
+```{r}
+figGABA_amp_model +
+  geom_meanbar(
+    data = weightedAvg
+    , aes(
+      x = comboTrt
+      , y = weightedAmpAvg
+    )
+    , width = 0.25
+    , position = position_nudge(0.25)
+    , color = "purple"
+  ) +
+  plotError_LMM(
+    bootstrapRes_iterations5000_maxPerCellNone_amplitude$errors$amplitude
+    , xVar = comboTrt
+    , color = "blue"
+    , nudgeErrorLine = -0.25
+    , nudgeMeanLine = -0.25
+    , meanBarWidth = 0.25
+  )
+
+```
+```
 
