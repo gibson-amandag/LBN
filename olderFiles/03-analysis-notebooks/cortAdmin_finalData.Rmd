@@ -1,0 +1,929 @@
+---
+title: "Nutella - Cort Admin"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+# Source files
+
+```{r include=FALSE}
+# If can't find it, be sure that the directory is the project directory
+# Arrow between notebook and settings gear -> Knit directory
+source("./01-scripts/01-set-up.R") ## IDK why, but doesn't seem to work the first time in new environment
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "cortAdmin-get-datasets.R"))
+```
+
+
+# Set-up
+```{r}
+figureNum <- 1
+
+pptBaseName <- makeBaseNameFunc("")
+
+plotFolder <- file.path(plotOutputFolder, "cortAdmin_Jan2023")
+
+imgType <-"png"
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotFolder
+  , compType = currentCompType
+)
+
+exportFullPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 11.5
+  #   , height = 5
+  # )
+}
+
+exportHalfPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 5.67
+  #   , height = 5
+  # )
+}
+
+exportThirdPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 3.6
+  #   , height = 5
+  # )
+}
+
+exportQuarterPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  # exportImg(
+  #   plot = plot
+  #   , fileBaseName = baseName
+  #   , figNum = figNum
+  #   , units = "in"
+  #   , width = 3.2
+  #   , height = 5
+  # )
+}
+
+editableImgs <- TRUE
+pptAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddOneTable <- function(
+    table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_oneTable(
+    officer_ppt, 
+    title, 
+    table, 
+    dontFormat = dontFormat
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoTables <- function(
+    table1
+    , table2
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_twoTables(
+    officer_ppt, 
+    title, 
+    table1, 
+    table2,
+    dontFormat = dontFormat
+  )
+  return(officer_ppt)
+}
+
+pptUneditAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = FALSE
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphs <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphsMoreLeft <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraphMoreLeft(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddGraphTable <- function(
+    plot
+    , table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_graphTable(
+    officer_ppt, 
+    title, 
+    plot, 
+    table,
+    makeEditable = editableImgs
+    , dontFormat = dontFormat
+    , textSize = textSize
+  )
+  return(officer_ppt)
+}
+
+pptAddFourGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , plot4
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_fourGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    plot4,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddThreeGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_threeGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddStats <- function(
+    statsText
+    , officer_ppt = ppt
+){
+  officer_ppt <- addStatsToBottom(
+    officer_ppt,
+    statsText
+  )
+}
+
+pptAddTwoStats <- function(
+    statsText1
+    , statsText2
+    , officer_ppt = ppt
+){
+  officer_ppt <- addTwoStatsToGraphs(
+    officer_ppt,
+    statsText1,
+    statsText2
+  )
+}
+
+pptAddSectionHead <- function(
+    title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_sectionHead(
+    officer_ppt
+    , title
+  )
+}
+```
+
+```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("genericPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+# layout_properties(ppt, layout="Title Slide")
+
+titleText <- "Effect of oral corticsterone administration on LH surge and ovulation"
+
+ppt <- ph_with(
+  ppt,
+  value = titleText
+  , location = ph_location_label("Title 1")
+)
+
+subText <- paste(dateToday)
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "cortAdmin_data"
+  , addDate = TRUE
+)
+```
+
+# Save data frames
+
+```{r}
+BD_samplingSave <- BD_sampling %>%
+  relocate(
+    starts_with("LH")
+    , maxLH
+    , timeAtMax
+    , surged
+    , .after = exclude_hr5.5
+  ) %>%
+  select(
+    - c(
+      earTag
+      , sacDateOff
+      , sacNotesOff
+      , dam
+      , damGeneration
+      , damDOB
+      , breedDate
+      , sire
+      , sireStrain
+      , plugDate
+      , litterSizeWean
+      , cyclingFolderPath
+    )
+  )
+
+BD_LH_save <- BD_LH %>%
+  select(
+    mouseID
+    , dosage
+    , sampleID
+    , time
+    , LH
+    , surged
+    , ovulated
+    , trust
+    
+  )
+
+BD_cort_save <- BD_cort %>%
+  select(
+    mouseID
+    , dosage
+    , time
+    , cort
+    , surged
+    , ovulated
+    , trust
+  )
+
+cortAdminPilot <- BD_offspringInfo %>%
+  filter(
+    Sac_date == date_parse("2022-05-26") | Sac_date == date_parse("2022-05-27")
+  )  %>%
+  select(
+    - c(
+      earTag
+      , sacDateOff
+      , sacNotesOff
+      , dam
+      , damGeneration
+      , damDOB
+      , breedDate
+      , sire
+      , sireStrain
+      , plugDate
+      , litterSizeWean
+      , cyclingFolderPath
+    )
+  )
+
+BD_samplingSave
+cortAdminPilot
+BD_LH_save
+BD_cort_save
+```
+
+
+
+# Determining cort dosage
+
+2 mg/kg corticosterone dosage administered at hours 0, 1, and 3h leads
+to similar serum corticosterone levels as the ALPS paradigm
+
+```{r}
+BD_comboNutALPS <- rbind(
+  BD_cortALPS %>%
+    mutate(
+      atePrevNutella = NA,
+      ateNutella = NA,
+      cortNutTrt = adultTrt
+    ), 
+  BD_cort4 %>% 
+    filter(Sac_date == date_parse("2022-05-27")) %>%
+    mutate(
+      cortNutTrt = dosage
+    )
+)
+```
+
+
+```{r}
+BD_comboNutALPS_meanSum <- BD_comboNutALPS %>%
+  group_by(
+    cortNutTrt
+    , time
+  ) %>%
+  meanSummary(
+    cort
+  )
+
+BD_comboNutALPS_meanSum
+```
+
+
+# Corticosterone response
+
+```{r}
+figureNum <- figureNum + 1
+```
+
+
+```{r}
+
+cortAdminCortDF <- BD_cort %>%
+  filter(
+    time %in% c(0, 5)
+    , is.na(exclude) | exclude == FALSE
+    , trust == TRUE
+  )
+
+cortAdmin_cort <- cortAdminCortDF %>%
+  cortPlot(
+    pointSize = 3,
+    fontSize = 16,
+    groupVar = dosage, # group by the dosage; this is why it needs to be a factor
+    lineTypeGuide = c("solid", "dotted"),
+    positionDodge = 0.2, #this controls the spread of the data visually
+    zoom_y = TRUE,
+    ymax = 500,
+    ymin = 0
+  ) +
+  facet_wrap(
+    ~ dosage,
+    labeller = labeller(dosage = c("0" = "0mg/kg", "2" = "2mg/kg"))
+  ) +
+  # labs(
+  #   x = "time since 1st administration (h)" # add a title to the x axis
+  # ) + 
+  theme(
+    legend.position = "none"
+  )  + 
+  dosageFillShape()
+```
+
+
+```{r}
+cortAdmin_cort
+fileBaseName <- "cortAdmin_cort"
+slideTitle <- "Oral corticosterone administration increases afternoon corticsterone"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+cortAdminCortDF_meanSum <- cortAdminCortDF %>%
+  group_by(
+    dosage
+    , time
+  ) %>%
+  meanSummary(cort)
+
+cortAdminCortDF_meanSum
+```
+
+
+```{r}
+cortAdminCortAnova <- cortAdminCortDF %>%
+  anova_test(
+    dv = cort,
+    between = dosage,
+    within = time,
+    wid = mouseID
+    , type = 3
+  ) %>%
+  get_anova_table() %>%
+  as_tibble()
+
+cortAdminCortAnova_flx <- cortAdminCortAnova %>%
+  formatAnova(16)
+
+cortAdminCortAnovas_postHoc <- cortAdminCortDF %>%
+  group_by(
+    time
+  ) %>%
+  anova_test(
+    dv = cort
+    , wid = mouseID
+    , between = dosage
+    , type = 3
+  ) %>%
+  adjust_pvalue(
+    method = "bonferroni"
+  ) %>%
+  get_anova_table() %>%
+  as_tibble()
+
+cortAdminCortAnovas_postHoc_flx <- cortAdminCortAnovas_postHoc %>%
+  formatAdjAnova(16)
+
+cortAdminCortAnova
+cortAdminCortAnovas_postHoc
+
+getFText(cortAdminCortAnova, "dosage:time")
+```
+
+```{r}
+ppt <- pptAddOneTable(
+  cortAdminCortDF_meanSum,
+  title = slideTitle,
+  dontFormat = FALSE
+)
+ppt <- pptAddTwoTables(
+  cortAdminCortAnova_flx,
+  cortAdminCortAnovas_postHoc_flx,
+  title = slideTitle
+)
+```
+
+# LH Surge
+
+```{r}
+figureNum <- figureNum + 1
+```
+
+```{r}
+cortAdmin_LH_trust <- BD_LH %>%
+  filter(
+    trust == TRUE
+    , !is.na(LH)
+  )
+cortAdmin_LHplot <- cortAdmin_LH_trust %>%
+  LHPlot_adultTrt(
+    trtVar = dosage
+    , trtName = "dosage (mg/kg)"
+    , trtLineGuide = c("0" = "dotted", "2" = "solid")
+    , trtFill = dosageFill()
+    , trtColor = dosageColor()
+    , fontSize = 16
+    , dotSize = 2.5
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 45
+  ) + facet_wrap(
+    ~ dosage
+    , ncol = 2
+    , labeller = labeller(
+      dosage = c("0" = "0 mg/kg", "2" = "2 mg/kg")
+    )
+  ) + 
+  rremove("legend")
+```
+
+
+```{r}
+cortAdmin_LHplot
+fileBaseName <- "cortAdmin_LH"
+slideTitle <- "Oral corticosterone administration does not alter pattern or amplitude of LH surge"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+cortAdmin_LH_meanSum <- cortAdmin_LH_trust %>%
+  mutate(
+    relTime = time - 7.5
+  ) %>%
+  group_by(
+    dosage
+    , relTime
+  ) %>%
+  meanSummary(
+    LH
+  )
+
+cortAdmin_LH_meanSum
+```
+
+
+Note - time and dosage/time are significant on Mauchly's Test for Sphericity.
+There is a sphericity corrected version of the ANOVA, still not significant
+
+```{r}
+cortAdmin_LH_anova <- cortAdmin_LH_trust %>%
+  anova_test(
+    dv = LH
+    , wid = mouseID
+    , between = dosage
+    , within = time
+    , type = 3
+  ) %>%
+  get_anova_table() %>%
+  as_tibble()
+
+cortAdmin_LH_anova_flx <- cortAdmin_LH_anova %>%
+  formatAnova(16)
+
+cortAdmin_LH_anova_flx
+```
+
+```{r}
+ppt <- pptAddOneTable(
+  cortAdmin_LH_meanSum
+  , title = slideTitle
+  , dontFormat = FALSE
+)
+ppt <- pptAddOneTable(
+  cortAdmin_LH_anova_flx
+  , title = slideTitle
+)
+```
+
+## Max LH
+
+```{r}
+cortAdmin_sampling_trust <- BD_sampling %>%
+  filter(
+    trust == TRUE
+    , !is.na(maxLH)
+  )
+
+cortAdmin_LHamp <- cortAdmin_sampling_trust %>%
+  plotLHAmp_dosage(
+    surgeMin = 3
+    , textSize = 16
+    , dotSize = 3
+  )
+```
+
+```{r}
+cortAdmin_LHamp
+fileBaseName <- "cortAdmin_LHamp"
+slideTitle <- "Oral corticosterone administration does not alter pattern or amplitude of LH surge"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+cortAdmin_LHamp_meanSum <- cortAdmin_sampling_trust %>%
+  group_by(
+    dosage
+  ) %>%
+  meanSummary(maxLH)
+
+cortAdmin_LHamp_bySurged_meanSum <- cortAdmin_sampling_trust %>%
+  group_by(
+    dosage,
+    surged
+  ) %>%
+  meanSummary(maxLH)
+
+cortAdmin_LHamp_meanSum
+cortAdmin_LHamp_bySurged_meanSum
+```
+
+```{r}
+ppt <- pptAddTwoTables(
+  cortAdmin_LHamp_meanSum
+  , cortAdmin_LHamp_bySurged_meanSum
+  , title = slideTitle
+  , dontFormat = FALSE
+)
+```
+
+```{r}
+cortAdmin_LHamp_anova <- cortAdmin_sampling_trust %>%
+  anova_test(
+    dv = maxLH
+    , between = dosage
+    , type = 3
+  ) %>%
+  get_anova_table() %>%
+  as_tibble()
+
+cortAdmin_LHamp_anova_flx <- cortAdmin_LHamp_anova %>%
+  formatAnova(16)
+
+cortAdmin_LHamp_anova
+```
+
+```{r}
+ppt <- pptAddOneTable(
+  cortAdmin_LHamp_anova_flx
+)
+```
+
+## Time at peak LH
+
+```{r}
+cortAdmin_LHtime <- cortAdmin_sampling_trust %>%
+  plotLHTime_dosage(
+    surgeMin = 3
+    , textSize = 16
+    , dotSize = 3
+  )
+```
+
+```{r}
+cortAdmin_LHtime
+fileBaseName <- "cortAdmin_LHtime"
+slideTitle <- "Oral corticosterone administration does not alter pattern or amplitude of LH surge"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+cortAdmin_LHtime_meanSum <- cortAdmin_sampling_trust %>%
+  group_by(
+    dosage
+  ) %>%
+  mutate(
+    relTimeMax = timeAtMax - 7.5
+  ) %>%
+  meanSummary(relTimeMax)
+
+cortAdmin_LHtime_bySurged_meanSum <- cortAdmin_sampling_trust %>%
+  group_by(
+    dosage,
+    surged
+  ) %>%
+  mutate(
+    relTimeMax = timeAtMax - 7.5
+  ) %>%
+  meanSummary(relTimeMax)
+
+cortAdmin_LHtime_meanSum
+cortAdmin_LHtime_bySurged_meanSum
+```
+
+```{r}
+ppt <- pptAddTwoTables(
+  cortAdmin_LHtime_meanSum
+  , cortAdmin_LHtime_bySurged_meanSum
+  , title = slideTitle
+  , dontFormat = FALSE
+)
+```
+
+```{r}
+cortAdmin_LHtime_anova <- cortAdmin_sampling_trust %>%
+  anova_test(
+    dv = timeAtMax
+    , between = dosage
+    , type = 3
+  ) %>%
+  get_anova_table() %>%
+  as_tibble()
+
+cortAdmin_LHtime_anova_flx <- cortAdmin_LHtime_anova %>%
+  formatAnova(16)
+
+cortAdmin_LHtime_anova
+```
+
+```{r}
+ppt <- pptAddOneTable(
+  cortAdmin_LHtime_anova_flx
+)
+```
+
+# Chi-squared for prop surged
+
+```{r}
+contTable <- table(
+  cortAdmin_sampling_trust$dosage
+  , cortAdmin_sampling_trust$surged
+)
+
+contTable
+
+propSurged.Chi.Sq.res <- chisq_test(contTable) 
+
+propSurged.Chi.Sq.descriptives <-  chisq_descriptives(propSurged.Chi.Sq.res)
+
+ppt <- pptAddTwoTables(
+  propSurged.Chi.Sq.res
+  , propSurged.Chi.Sq.descriptives
+  , title = slideTitle
+  , dontFormat = FALSE
+)
+```
+# Ovulation 
+
+```{r}
+figureNum <- figureNum + 1
+```
+
+
+```{r}
+BD_ovulation_plot <- BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+  propOvulatedPlot(
+    xVar = dosage,
+    fontSize = 16
+  )
+```
+
+```{r}
+fileBaseName <- "cortAdmin_propOvulated"
+slideTitle <- "Oral corticosterone administration does not alter proportion of animals that ovulated"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+BD_ovulation_plot
+```
+
+
+
+
+
+```{r}
+BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+scatterPlot_general(
+  xVar = cort_hr5,
+  xLab = "corticosterone (ng/mL)",
+  yVar = maxLH,
+  yLab = "LH (ng/mL)",
+  fillVar = dosage,
+  fillLimits = c(0, 2),
+  fillValues = c("white", "black")
+)
+
+BD_sampling %>%
+  filter(
+    cort_hr5 > 400
+  )
+```
+# number of oocytes
+
+```{r}
+numOocytesDF <- BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+  group_by(
+    dosage
+  ) %>%
+  meanSummary(numOocytes)
+
+numOocytesStats <- BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+  filter(
+    !is.na(numOocytes)
+  ) %>%
+  t_test(
+    numOocytes ~ dosage
+  )
+
+numOocytesDF
+
+numOocytesStats
+```
+
+```{r}
+BD_sampling %>%
+  filter(
+    trust == TRUE
+  ) %>%
+  scatterPlot_general(
+    xVar = dosage
+    , xLab = "dosage (mg/kg)"
+    , yVar = numOocytes
+    , yLab = "# of oocytes"
+    , fillVar = dosage
+    , fillLimits = c(0, 2)
+    , fillValues = c("white", "black")
+  )
+```
+
+
+
+```{r}
+saveDFsToExcel(
+  "nutellaCortAdmin"
+  , prefix = ""
+  , saveFolder = plotFolder
+  , "cortAdminSampling" = BD_samplingSave
+  , "cortAdminPilot" = cortAdminPilot
+  , "LH" = BD_LH_save
+  , "cort" = BD_cort_save
+  , "mean_cortAdminPilot" = BD_comboNutALPS_meanSum
+  , "mean_cort" = cortAdminCortDF_meanSum
+  , "anova_cort" = cortAdminCortAnova
+  , "mean_LH" = cortAdmin_LH_meanSum
+  , "anova_LH" = cortAdmin_LH_anova
+  , "mean_maxLH" = cortAdmin_LHamp_meanSum
+  , "anova_maxLH" = cortAdmin_LHamp_anova
+  , "mean_maxLH_bySurged" = cortAdmin_LHamp_bySurged_meanSum
+  , "mean_peakTime" = cortAdmin_LHtime_meanSum
+  , "anova_peakTime" = cortAdmin_LHtime_anova
+  , "mean_peakTime_bySurged" = cortAdmin_LHtime_bySurged_meanSum
+  , "propSurged_chi" = propSurged.Chi.Sq.res
+  , "propSurged_chi_descriptives" = propSurged.Chi.Sq.descriptives
+  , "numOocytes" = numOocytesDF
+  , "numOocytes_tTest" = numOocytesStats
+)
+```
+

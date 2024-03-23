@@ -99,6 +99,8 @@ AG_LBN_myPlot.png
 
 AG_LBN_testCort.png
 
+olderFiles/hello_files/*
+
 hello.qmd
 
 hello_files/figure-html/plot-penguins-1.png
@@ -138,3 +140,27 @@ testPPT.qmd
 03-analysis-notebooks/nul
 
 03-analysis-notebooks/presentations/AGG_ephys_2023-04-03_defFig.pptx
+
+olderFiles/03-analysis-notebooks/nul
+
+olderFiles/03-analysis-notebooks/presentations/AGG_ephys_2023-04-03_defFig.pptx
+
+olderFiles/03-analysis-notebooks/presentations/AGG_LBN_manuscriptFigures.qmd
+
+olderFiles/03-analysis-notebooks/presentations/nul
+
+olderFiles/03-analysis-notebooks/presentations/testQuarto.pptx
+
+olderFiles/03-analysis-notebooks/presentations/testQuarto2.pptx
+
+olderFiles/03-analysis-notebooks/presentations/testQuartoJS.qmd
+
+olderFiles/03-analysis-notebooks/presentations/testWordExport.Rmd
+
+olderFiles/03-analysis-notebooks/testReport.pdf
+
+olderFiles/AG_LBN_pscProps.csv
+
+olderFiles/AG_LBN_pscPropsOld.csv
+
+olderFiles/lqmmExampleCode.R
