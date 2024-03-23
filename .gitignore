@@ -69,6 +69,7 @@ Scripts/Old_files/
 #ignore the generated html output
 *.html
 *.docx
+!*manuscriptTemplate.docx
 
 *.tex
 
