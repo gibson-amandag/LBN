@@ -180,7 +180,7 @@ comboTrtLineColor <- function(
 
 
 dosageFillShape <- function(
-  color_0 = if(forManuscript){"#CCCCCC"}else{"black"},
+  color_0 = ifelse(forManuscript, "#CCCCCC", "black"),
   color_2 = "black",
   fill_0 = "white",
   fill_2 = "black"

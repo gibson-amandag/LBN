@@ -781,6 +781,7 @@ propOvulatedPlot <- function(
   xVar = comboTrt,
   fontSize = 11
   , labelFontSize = 10
+  , forManuscript = isManuscript
 ){
   viz <- ggplot(df, aes(x = {{ xVar }}, fill = ovulated, linetype = ovulated))+
     geom_bar(position = "fill", color = "black") +
@@ -794,9 +795,12 @@ propOvulatedPlot <- function(
     scale_fill_manual(values = c("white", "black")) +
     scale_linetype_manual(values = c("dotted", "solid"))+
     theme_pubr() +
-    textTheme(size = fontSize)+
+    textTheme(size = fontSize, boldXText = TRUE)+
     boxTheme()+
-    rremove("legend")
+    theme(
+      legend.position = "none",
+      axis.title.x = element_blank()
+    )
   return(viz)
 }
 
@@ -1046,12 +1050,76 @@ plotLHAmp <- function(
 
 plotLHAmp_dosage <- function(
   df, 
+  textSize = 11, 
+  dotSize = 2
+  , textAngle = 0
+  , forManuscript = isManuscript
+  , addMedianIQR = FALSE
+){
+  if(forManuscript){
+    plot <- df %>%
+      ggplot(
+        aes(
+          x = dosage
+          , y = maxLH
+          , shape = dosage
+          , color = dosage
+        )
+      )
+  } else {
+    plot <- df %>%
+      ggplot(
+        aes(
+          x = dosage
+          , y = maxLH
+          , shape = dosage
+          , fill = dosage
+        )
+      )
+  }
+
+  plot <- plot +
+    jitterGeom_shapeAes(
+      size = dotSize
+      , alpha = 1
+    ) +
+    geom_hline(yintercept = surgeMin, color = "grey")
+  
+  if(addMedianIQR){
+    plot <- plot +
+      addMedianHorizontalBar(width = 0.9, size = 0.6, color = "black")+
+      stat_summary(fun.min = function(z) { quantile(z,0.25) },
+                   fun.max = function(z) { quantile(z,0.75) }
+                   , geom = "linerange", color = "black")
+  }
+  
+  plot <- plot +
+    dosageFillShape(forManuscript = forManuscript)+
+    boxTheme()+
+    textTheme(textSize, boldXText = TRUE) +
+    ylab("max evening LH (ng/mL)")+
+    scale_x_discrete(
+      labels = c(
+        "0mg/kg"
+        , "2mg/kg"
+      )
+    )+
+    theme(
+      legend.position = "none",
+      axis.title.x = element_blank()
+    )
+  return(plot)
+}
+
+plotLHAmp_dosage_bySurgeStatus <- function(
+  df, 
   surgeMin, 
   textSize = 11, 
   dotSize = 2
   , textAngle = 45
+  , forManuscript = isManuscript
 ){
-  plot <- df %>%
+  df <- df %>%
     mutate(
       surgeStatus = 
         case_when(
@@ -1068,28 +1136,42 @@ plotLHAmp_dosage <- function(
         , "2 mg/kg surge"
         , "2 mg/kg no surge"
       ))
-    ) %>%
-    ggplot(
-      aes(
-        x = surgeStatus,
-        y = maxLH,
-        fill = dosage,
-        shape = dosage
+    ) 
+  
+  
+  if(forManuscript){
+    plot <- df %>%
+      ggplot(
+        aes(
+          x = surgeStatus
+          , y = maxLH
+          , shape = dosage
+          , color = dosage
+        )
       )
+  } else {
+    plot <- df %>%
+      ggplot(
+        aes(
+          x = surgeStatus
+          , y = maxLH
+          , shape = dosage
+          , fill = dosage
+        )
+      )
+  }
+
+  plot <- plot +
+    jitterGeom_shapeAes(
+      size = dotSize
+      , alpha = 1
     ) +
-    geom_point(
-      alpha = 1,
-      position = position_dodge2(0.4),
-      size = dotSize,
-      # shape = 21,
-      color = "black"
-    )+
     addMeanHorizontalBar(
       width = 0.85, 
       addLineType = FALSE
     ) +
     addMeanSE_vertBar()+
-    dosageFillShape()+
+    dosageFillShape(forManuscript = forManuscript)+
     boxTheme()+
     textTheme(textSize) +
     ylab("LH (ng/mL)")+

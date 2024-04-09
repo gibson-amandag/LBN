@@ -85,12 +85,6 @@ manuscriptFolder <- file.path(plotOutputFolder, "manuscript")
 # Comparison of cort from control and nutella mice
 ```{r}
 source(file.path(scriptsFolder, "cortAdmin-get-datasets.R"))
-cortAdminCortDF <- BD_cort %>%
-  filter(
-    time %in% c(0, 5)
-    , is.na(exclude) | exclude == FALSE
-    , trust == TRUE
-  )
 
 cortPro_Nutella <- cortFilteredPro %>%
   filter(

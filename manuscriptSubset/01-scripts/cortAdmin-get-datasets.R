@@ -1,4 +1,4 @@
-surgeMin <- 3
+surgeMin <- 3.8
 
 # LOAD EXCEL SHEETS -------------------------------------------------------
 
@@ -333,4 +333,38 @@ BD_offspringInfo <- BD_offspringInfo %>%
   left_join(
     BD_LH_wide,
     by = "mouseID"
+  )
+
+# Combine datasets -------------
+BD_comboNutALPS <- rbind(
+  BD_cortALPS %>%
+    mutate(
+      atePrevNutella = NA,
+      ateNutella = NA,
+      cortNutTrt = adultTrt
+    ), 
+  BD_cort4 %>% 
+    filter(Sac_date == date_parse("2022-05-27")) %>%
+    mutate(
+      cortNutTrt = dosage
+    )
+)
+BD_cort1 <- BD_cort1 %>%
+  mutate(ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella" ))
+BD_cort2 <- BD_cort2 %>%
+  mutate(ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella" ))
+BD_cort3 <- BD_cort3 %>%
+  mutate(ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella" ))
+BD_cort4 <- BD_cort4 %>%
+  filter(
+    Sac_date == "2022-05-27"
+  ) %>%
+  mutate(ateAllNutella = ifelse(is.na(ateNutella), "ate all Nutella", "did not eat all Nutella" ))
+
+## serum cort - final dataset ------
+cortAdminCortDF <- BD_cort %>%
+  filter(
+    time %in% c(0, 5)
+    , is.na(exclude) | exclude == FALSE
+    , trust == TRUE
   )
