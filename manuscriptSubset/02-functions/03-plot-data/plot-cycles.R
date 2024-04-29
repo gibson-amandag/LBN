@@ -185,23 +185,41 @@ plotCyclesPercent <- function(
   df,
   xVar = earlyLifeTrt,
   ylabel = "% days in stage",
-  alpha = 0.7, # changed 2023-06-18
+  alpha = 1, # changed 2023-06-18
   dotSize = 1.2,
-  barWidth = 0.7,
-  barSize = 0.4,
+  barWidth = 0.9,
+  barSize = ifelse(forManuscript, 0.6, 1),
   addMedian = FALSE,
   medianColor = "red",
   medianAlpha = 0.7,
   strip.position = "bottom",
   fontSize = 11,
-  fillScale = earlyLifeColor(colorAlpha = 1)
+  fillScale = if(forManuscript){earlyLifeColor(colorAlpha = 1)} else {earlyLifeFill(fillAlpha = 1)}
   , meanColor = "black"
   , barColor = "black"
+  , forManuscript = isManuscript
 ){
-  viz <- df %>%
-    ggplot(
-      aes(x = {{ xVar }}, y = percent, fill = {{ xVar }}, color = {{ xVar }})
-    ) +
+  if(forManuscript){
+    viz <- df %>%
+      ggplot(
+        aes(
+          x = {{ xVar }}
+          , y = percent
+          , color = {{ xVar }}
+        )
+      )
+  } else {
+    viz <- df %>%
+      ggplot(
+        aes(
+          x = {{ xVar }}
+          , y = percent
+          , fill = {{ xVar }}
+        )
+      )
+  }
+  
+  viz <- viz +
     facet_wrap(
       ~ stage,
       strip.position = strip.position
@@ -210,8 +228,8 @@ plotCyclesPercent <- function(
     fillScale +
     # scale_fill_manual(values = c("white", "black"))+
     jitterGeom(size = dotSize, alpha = alpha)+
-    addMeanHorizontalBar(width = 0.9, size = 0.6, meanColor = meanColor) +
-    addMeanSE_vertBar(size = 0.6, barColor = barColor)+
+    addMeanHorizontalBar(width = barWidth, size = barSize, meanColor = meanColor) +
+    addMeanSE_vertBar(size = barSize, barColor = barColor)+
     expand_limits(y = 0) +
     scale_x_discrete(expand = expansion(add = 0.52)) +
     theme_pubr()+

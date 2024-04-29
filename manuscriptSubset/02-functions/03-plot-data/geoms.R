@@ -79,7 +79,7 @@ jitterGeom_shapeAes <- function(
 
 addMeanHorizontalBar <- function(
   width = 0.9,
-  size = 0.6,
+  size = ifelse(isManuscript, 0.6, 1),
   addLineType = FALSE,
   lineTypeName = "early life trt",
   lineTypeGuide = c("STD" = "dotted", "LBN" = "solid"),
@@ -115,7 +115,7 @@ addMeanHorizontalBar <- function(
 }
 
 addMeanSE_vertBar <- function(
-  size = 0.6,
+  size = ifelse(isManuscript, 0.6, 1),
   barPosition = "identity",
   barColor = "black", # added 2023-11-22, possible that this will cause problems where the bar color is based on a group
   ... # into aes
@@ -134,7 +134,7 @@ addMeanSE_vertBar <- function(
 
 addMedianHorizontalBar <- function(
   width = 0.9,
-  size = 0.6,
+  size = ifelse(isManuscript, 0.6, 1),
   color = "black",
   alpha = 1
 ){

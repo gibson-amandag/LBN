@@ -188,12 +188,13 @@ scatterPlotTwoVars_byLBN <- function(
   LBNColor = "cyan4",
   xIsDate = FALSE
   , forManuscript = isManuscript
+  , fillAlpha = 1
 ){
   if(forManuscript){
     viz <- df %>%
       ggplot(
         aes(
-          x = earlyLifeTrt,
+          x = {{xVar }},
           y = {{ yVar }}
           , color = earlyLifeTrt
         )
@@ -203,7 +204,7 @@ scatterPlotTwoVars_byLBN <- function(
     viz <- df %>%
       ggplot(
         aes(
-          x = earlyLifeTrt,
+          x = {{xVar }},
           y = {{ yVar }},
           fill = earlyLifeTrt
         )

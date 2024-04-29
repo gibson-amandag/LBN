@@ -77,6 +77,7 @@ plotDamBehavior <- function(
     , dotAlpha = 1
     , colorPkg = "rainbow"
     , useProvidedColor = FALSE
+    , forManuscript = isManuscript
 ){
   df <- df %>%
     rename(
@@ -160,7 +161,7 @@ plotDamBehavior <- function(
         )
       ) +
       xlab("postnatal day") +
-      scale_x_continuous(breaks = c(4:11))
+      scale_x_continuous(limits = c(4-.45, 11+.45), breaks = c(4:11))
   } else if(includesZT){
     viz <- df %>%
       ggplot(
@@ -291,16 +292,26 @@ plotDamBehavior <- function(
     }
   } else {
     # if don't have a time-based x-asis, always show dots
-    viz <- viz + geom_point(
-      shape = 16,
-      alpha = dotAlpha, 
-      aes(
-        group=damID
-        # , fill=earlyLifeTrt ## taken care of above?
-      ), 
-      position = position_dodge(dodgeVal), 
-      size = dotSize
-    )
+    if(forManuscript){
+      viz <- viz + geom_point(
+        shape = 16,
+        alpha = dotAlpha, 
+        aes(
+          group=damID
+          # , fill=earlyLifeTrt ## taken care of above?
+        ), 
+        position = position_dodge(dodgeVal), 
+        size = dotSize
+      )
+    } else{
+      viz <- viz + geom_quasirandom(
+        shape = 21
+        , color = "black"
+        , size = dotSize
+        , alpha = dotAlpha
+        , width = dodgeVal
+      )
+    }
   }
   
   if(addVertError){

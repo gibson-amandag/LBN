@@ -143,6 +143,48 @@ damCort_t.Test <- t.test(
 
 # Offspring mass ----------------------------------------------------------
 
+## PND4 --------------
+
+mass_PND4_tTest <- t.test(
+  Mass_P4 ~ earlyLifeTrt, data = damFiltered
+  , var.equal = TRUE
+)
+
+## PND11 -------------
+
+mass_PND11_lmm <- mixed(
+  Mass_P11 ~ earlyLifeTrt * sex + (1|damID)
+  , data = massFiltered
+  , method = "KR"
+)
+
+### Post-hoc -----------
+
+mass_PND11_lmm_emm <- emmeans(
+  mass_PND11_LMM
+  , "earlyLifeTrt"
+)
+
+mass_PND11_lmm_emm.pairs <- contrast(
+  mass_PND11_lmm_emm
+  , "pairwise"
+)
+
+### Errors for graph ----------
+
+mass_PND11_lmm_errors_earlyLife <- mass_PND11_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+  )
+
+mass_PND11_lmm_errors <- mass_PND11_lmm %>%
+  getErrorDF_LMM(
+    xVar = "earlyLifeTrt"
+    , panel = "sex"
+  )
+
+
+
 ## Females -------------------
 female_mass_lmm <- mixed(
   mass ~ earlyLifeTrt * lspline(day, c(21, 35)) + (1|damID) + (1|mouseID)

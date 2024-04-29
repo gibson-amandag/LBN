@@ -22,7 +22,7 @@ plotError_LMM <- function(
     lmmData
     , xVar
     , meanBarWidth = 0.9
-    , barSize = 0.6
+    , barSize = ifelse(isManuscript, 0.6, 1)
     , color = "black" 
     , nudgeErrorLine = 0
     , nudgeMeanLine = 0
@@ -63,8 +63,8 @@ plotError_LMM <- function(
 plotError_LMM_aes <- function(
     lmmData
     , xVar
-    , meanBarWidth = 0.8 # make smaller in the end, but for now to compare
-    , barSize = 0.4
+    , meanBarWidth = 0.9
+    , barSize = ifelse(isManuscript, 0.6, 1)
     , nudgeErrorLine = 0.1 # to offset from current error bar. Remove
     , nudgeMeanLine = 0
     , ...

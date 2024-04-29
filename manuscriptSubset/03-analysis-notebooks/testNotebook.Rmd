@@ -15852,10 +15852,89 @@ saveDFsToExcel(
 
 saveManuscriptInfoDFsToExcel(
   "manuscriptDataSet"
-  , LBN_offspring = LBN_all_info_filtered
+  , offspring = LBN_all_info_filtered
+  , dams = damFiltered
+  , damBehavior_byPND = damBehavior_byPND %>%
+    select(
+      damID
+      , earlyLifeTrt
+      , cohort
+      , PND
+      , Duration:Avg_dur_on_nest
+    )
+  , GABApscInfo = GABApscs_240FilteredPropsFreq %>%
+      select(
+      cellID
+      , mouseID
+      , damID
+      , earlyLifeTrt
+      , adultTrt
+      , comboTrt
+      , Sac_hr
+      , recHr
+      , timeSinceSac
+      , duration
+      , frequency
+      , interval
+      , amplitude
+      , Rinput
+      , Rseries
+      , capacitance
+      , holdingCurrent
+      , sumCount
+      , decayTimes_8020
+      , cohort
+      , DOB
+      , Sac_date
+      , AgeInDays
+      , mouseID_spec
+      , num_ID
+    )
+  , pscsForInt = pscAllEvents_filtered %>%
+  select(
+    cellID
+    , seriesID
+    , eventNum
+    , interval
+    , backInt
+    , forInt
+    , mouseID
+    , damID
+    , earlyLifeTrt
+    , adultTrt
+    , comboTrt
+    , Sac_hr
+    , recHr
+    , timeSinceSac
+    , cohort
+    , DOB
+    , Sac_date
+    , AgeInDays
+    , mouseID_spec
+    , num_ID
+  )
+  , pscsForAmp = pscAmplitude %>%
+  select(
+    cellID
+    , seriesID
+    , eventNum
+    , amplitude
+    , mouseID
+    , damID
+    , earlyLifeTrt
+    , adultTrt
+    , comboTrt
+    , Sac_hr
+    , recHr
+    , timeSinceSac
+    , cohort
+    , DOB
+    , Sac_date
+    , AgeInDays
+    , mouseID_spec
+    , num_ID
+  )
 )
-
-
 ```
 
 # LH analysis prep
@@ -19485,5 +19564,719 @@ figGABA_amp_model +
   )
 
 ```
+
+```{r}
+Mass_off %>%
+  filter(
+    ParaType == 2
+  ) %>%
+  plot_mass_lines(
+    groupByDam = TRUE,
+    facetBySex = TRUE,
+    useLineType = FALSE,
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = damID,
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mean mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = TRUE, # plot individual lines
+    meanLines = FALSE, # plot mean lines with SE #2023-11-22 to add model error
+    zoom_x = TRUE, # Zoom to part of x axis
+    xmin = 0,
+    xmax = 72,
+    zoom_y = TRUE, # Zoom to part of y axis
+    ymin = 0,
+    ymax = 32,
+    indivLineAlpha = 0.9,
+    indivLineSize = 0.5,
+    errorBarWidth = 0,
+    meanLineSize = 0.5,
+    meanAlpha = 1,
+    errorBarSize = .5,
+    # errorBarColor = "grey10",
+    errorBarAlpha = 1,
+    textSize = textSize,
+    axisSize = 0.5,
+    legendPosition = "none",
+    STDColor = "grey80",
+    LBNColor = "#66CCCC"
+  ) +
+  facet_wrap(
+    facets = ~ damStrain + sex
+    , nrow = 1
+  )
+```
+
+```{r}
+Maturation_off %>%
+  filter(
+    # ParaType == 2
+    cohort %in% c(1, 7, 9, 10)
+  ) %>%
+  scatterPlotLBN(
+    yVar = VO_age
+    , yLab = "age at vaginal opening (days)"
+  ) +
+  facet_wrap(
+    ~ damStrain + ParaType
+  )
+```
+```{r}
+cortAdmin_cort_lmm <- mixed(
+  log10(cort) ~ dosage * time + (1|mouseID) + (1|damID)
+  , cortAdminCortDF
+  , method = "KR"
+)
+
+cortAdmin_cort_lmm$full_model
+
+
+cortAdmin_cort_lmm_emm <- emmeans(
+  cortAdmin_cort_lmm
+  , "dosage"
+  , by = "time"
+  , type = "response"
+)
+
+cortAdmin_cort_lmm_emm.pairs <- contrast(
+  cortAdmin_cort_lmm_emm
+  , "pairwise"
+  , simple = "each"
+  , combine = TRUE
+  , adjust = "holm"
+)
+
+## errors for graph ---------------
+cortAdmin_cort_lmm_error <- cortAdmin_cort_lmm_emm %>%
+  as_data_frame() %>%
+  rename(
+    y = response
+  ) %>%
+  mutate(
+    lower = y - SE
+    , upper = y + SE
+  )
+```
+
+```{r}
+cortAdmin_sampling_trust %>%
+  filter(
+    maxLH < surgeMin
+  ) %>%
+  select(
+    mouseID
+    , dosage
+    , cort_hr0
+    , cort_hr5
+    , maxLH
+  )
+
+cortAdmin_sampling_trust %>%
+  filter(
+    cort_hr0 > 50
+  ) %>%
+  select(
+    mouseID
+    , dosage
+    , cort_hr0
+    , cort_hr5
+    , maxLH
+  )
+```
+
+```{r}
+BD_comboNutALPS %>%
+  select(
+    mouseID
+    , dosage
+    , Sac_cycle
+  )
+```
+
+
+```{r}
+ggdraw() +
+  draw_plot(figOffA_group) +
+  draw_plot(
+    figOffA_indiv+
+      theme(
+        legend.position = "none"
+        , axis.title.x = element_blank()
+        , axis.title.y = element_blank() )
+    , x = 0.5
+    , y = 0.1
+    , width = 0.5
+    , height = 0.6
+  )
+      
+```
+```{r}
+Cycles_off_all %>%
+  makeCyclesLong() %>%
+  filter(
+    !is.na(stage)
+  ) %>%
+  summarize(
+    n()
+  )
+
+Mass_off %>%
+  makeOffMassLong() %>%
+  filter(
+    !is.na(mass)
+  ) %>%
+  summarize(
+    n()
+  )
+```
+
+```{r}
+cyclesAllFiltered %>%
+  makeCyclesLong() %>%
+  filter(
+    !is.na(stage)
+  ) %>%
+  summarize(
+    n()
+  )
+
+massFiltered %>%
+  makeOffMassLong() %>%
+  filter(
+    !is.na(mass)
+  ) %>%
+  summarize(
+    n()
+  )
+```
+
+```{r}
+damBehavior_byDam %>%
+  left_join(
+    damFiltered %>%
+      select(
+        damID
+        , Cort_dam_P11
+      )
+    , by = "damID"
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = Num_exits
+    , yLab = "mean # exits / h"
+    , xVar = Cort_dam_P11
+    , xLab = "corticosterone PND11 (ng/mL)"
+  ) +
+  geom_smooth(method='lm', se = FALSE, formula = y ~x, aes(color = earlyLifeTrt)) +
+  earlyLifeColor(STDColor = "grey50")
+```
+```{r}
+acuteStressFilteredMales %>%
+  left_join(
+    damFiltered %>%
+      select(
+        damID
+        , Cort_dam_P11
+      )
+    , by = "damID"
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = cort_hr0
+    , yLab = "offspring corticosterone (ng/mL)"
+    , xVar = Cort_dam_P11
+    , xLab = "dam corticosterone PND11 (ng/mL)"
+  ) +
+  geom_smooth(method='lm', se = FALSE, formula = y ~x, aes(color = earlyLifeTrt)) +
+  earlyLifeColor(STDColor = "grey50")
+```
+
+```{r}
+acuteStressFilteredDi %>%
+  left_join(
+    damFiltered %>%
+      select(
+        damID
+        , Cort_dam_P11
+      )
+    , by = "damID"
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = cort_hr0
+    , yLab = "offspring corticosterone (ng/mL)"
+    , xVar = Cort_dam_P11
+    , xLab = "dam corticosterone PND11 (ng/mL)"
+  ) +
+  geom_smooth(method='lm', se = FALSE, formula = y ~x, aes(color = earlyLifeTrt)) +
+  earlyLifeColor(STDColor = "grey50")
+```
+
+```{r}
+acuteStressFilteredPro %>%
+  left_join(
+    damFiltered %>%
+      select(
+        damID
+        , Cort_dam_P11
+      )
+    , by = "damID"
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = cort_hr0
+    , yLab = "offspring corticosterone (ng/mL)"
+    , xVar = Cort_dam_P11
+    , xLab = "dam corticosterone PND11 (ng/mL)"
+  ) +
+  geom_smooth(method='lm', se = FALSE, formula = y ~x, aes(color = earlyLifeTrt)) +
+  earlyLifeColor(STDColor = "grey50")
+```
+
+```{r}
+mass_byDam %>%
+  filter(
+    sex == "M"
+  ) %>%
+  t_test(
+    Mass_P11 ~ earlyLifeTrt
+    , detailed = TRUE
+  )
+```
+
+```{r}
+mass_byDam %>%
+  filter(
+    sex == "F"
+  ) %>%
+  t_test(
+    Mass_P11 ~ earlyLifeTrt
+    , detailed = TRUE
+  )
+```
+
+
+```{r}
+mass_PND11_LMM <- mixed(
+  Mass_P11 ~ earlyLifeTrt * sex + (1|damID)
+  , data = massFiltered
+  , method = "KR"
+)
+
+mass_PND11_LMM
+
+emmeans(
+  mass_PND11_LMM
+  , "earlyLifeTrt"
+)
+```
+
+```{r}
+mass_byDam %>%
+  scatterPlotLBN(
+    yVar = Mass_P11
+    , yLab = "mass (g) PND 11"
+  ) +
+  facet_wrap(
+    ~ sex
+  )
+```
+```{r}
+ADres_interval <- pscAllEvents_filtered %>%
+  select(
+    cellID
+    , earlyLifeTrt
+    , adultTrt
+    , interval
+  ) %>%
+  filter(
+    !is.na(interval)
+  ) %>%
+  mainEffectsAD(
+    interval
+    , "interval (s)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 20
+  )
+
+ADres_interval$plots
+```
+
+```{r}
+ADres_amplitude <- pscAmplitude %>%
+  select(
+    cellID
+    , earlyLifeTrt
+    , adultTrt
+    , amplitude
+  ) %>%
+  filter(
+    !is.na(amplitude)
+  ) %>%
+  mainEffectsAD(
+    amplitude
+    , "amplitude (pA)"
+    , zoom_x = TRUE
+    , xmin = 0
+    , xmax = 125
+  )
+
+ADres_amplitude
+```
+
+```{r}
+numEvents_nb.GLMM <- glmer.nb(
+  numEvents ~ adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240_count
+)
+
+numEvents_nb.GLMM_Anova <- joint_tests(
+  emmeans(
+    numEvents_nb.GLMM, ~adultTrt
+  )
+)
+```
+
+```{r}
+relAmplitude_lmm <- mixed(
+  amplitude ~ adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredPropsFreq
+  , method = "KR"
+)
+
+relAmplitude_lmm
+```
+
+
+```{r}
+mixed(
+  capacitance ~ adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredPropsFreq
+  , method = "KR"
+)
+mixed(
+  Rinput ~ adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredPropsFreq
+  , method = "KR"
+)
+mixed(
+  Rseries ~ adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredPropsFreq
+  , method = "KR"
+)
+mixed(
+  holdingCurrent ~ adultTrt + (1|mouseID) + (1|damID)
+  , data = GABApscs_240FilteredPropsFreq
+  , method = "KR"
+)
+```
+
+
+```{r}
+damFiltered %>%
+    select(
+      damID
+      , Cort_dam_P11
+    ) %>%
+  left_join(
+    mass_byDam %>%
+      filter(
+        sex == "M"
+      )
+    , by = "damID"
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = Mass_P11
+    , yLab = "mean mass PND11 (g)"
+    , xVar = Cort_dam_P11
+    , xLab = "corticosterone PND11 (ng/mL)"
+  ) +
+  geom_smooth(method='lm', se = FALSE, formula = y ~x, aes(color = earlyLifeTrt)) +
+  earlyLifeColor(STDColor = "grey50")
+```
+
+```{r}
+damFiltered %>%
+    select(
+      damID
+      , Cort_dam_P11
+    ) %>%
+  left_join(
+    mass_byDam %>%
+      filter(
+        sex == "F"
+      )
+    , by = "damID"
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = Mass_P11
+    , yLab = "mean mass PND11 (g)"
+    , xVar = Cort_dam_P11
+    , xLab = "corticosterone PND11 (ng/mL)"
+  ) +
+  geom_smooth(method='lm', se = FALSE, formula = y ~x, aes(color = earlyLifeTrt)) +
+  earlyLifeColor(STDColor = "grey50")
+```
+
+```{r}
+damBehavior_byDam %>%
+    select(
+      damID
+      , Num_exits
+    ) %>%
+  left_join(
+    mass_byDam %>%
+      filter(
+        sex == "M"
+      )
+    , by = "damID"
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = Mass_P11
+    , yLab = "mean mass PND11 (g)"
+    , xVar = Num_exits
+    , xLab = "mean # exits / hr"
+  ) +
+  geom_smooth(method='lm', se = FALSE, formula = y ~x, aes(color = earlyLifeTrt)) +
+  earlyLifeColor(STDColor = "grey50")
+```
+
+```{r}
+damBehavior_byDam %>%
+    select(
+      damID
+      , Num_exits
+    ) %>%
+  left_join(
+    mass_byDam %>%
+      filter(
+        sex == "F"
+      )
+    , by = "damID"
+  ) %>%
+  scatterPlotTwoVars_byLBN(
+    yVar = Mass_P11
+    , yLab = "mean mass PND11 (g)"
+    , xVar = Num_exits
+    , xLab = "mean # exits / hr"
+  ) +
+  geom_smooth(method='lm', se = FALSE, formula = y ~x, aes(color = earlyLifeTrt)) +
+  earlyLifeColor(STDColor = "grey50")
+```
+```{r}
+summary(lm(
+  Mass_P11 ~ Num_exits
+  , data = damBehavior_byDam %>%
+    select(
+      damID
+      , Num_exits
+    ) %>%
+  left_join(
+    mass_byDam %>%
+      filter(
+        sex == "F"
+      )
+    , by = "damID"
+  )
+  , subset = earlyLifeTrt == "LBN"
+))
+
+summary(lm(
+  Mass_P11 ~ Num_exits
+  , data = damBehavior_byDam %>%
+    select(
+      damID
+      , Num_exits
+    ) %>%
+  left_join(
+    mass_byDam %>%
+      filter(
+        sex == "F"
+      )
+    , by = "damID"
+  )
+  , subset = earlyLifeTrt == "STD"
+))
+```
+
+```{r}
+damFiltered %>%
+  group_by(earlyLifeTrt) %>%
+  summarize(
+    Dam_Mass_P4 = mean(Dam_Mass_P4)
+    , Dam_Mass_P11 = mean(Dam_Mass_P11)
+  )
+```
+
+```{r}
+damFiltered %>%
+  filter(
+    Dam_Mass_P4 > 35
+  )
+```
+
+```{r}
+damMass_lmm_exclude <- mixed(
+  mass ~ earlyLifeTrt * PND + (1|damID)
+  , data = damMassFiltered %>%
+    mutate(
+      PND = as.factor(day)
+    ) %>%
+    filter(
+      damID != "D078-01"
+    )
+  , method = "KR"
+)
+
+```
+
+
+```{r}
+maturation_byDam_f %>%
+  filter(
+    damID == "D078-01"
+  ) %>%
+  select(
+    VO_age
+    , VO_mass
+    , Estrus_age
+    , Estrus_mass
+  )
+
+maturation_byDam_m %>%
+  filter(
+    damID == "D078-01"
+  ) %>%
+  select(
+    PreputialSep_age
+    , PreputialSep_mass
+  )
+```
+
+
+```{r}
+massFiltered %>%
+  filter(
+    !is.na(Mass_P11)
+  ) %>%
+  group_by(
+    sex, earlyLifeTrt
+  ) %>%
+  summarize(
+    n = n()
+  )
+```
+
+```{r}
+massFiltered %>%
+ plot_mass_lines(
+    groupByDam = TRUE,
+    facetBySex = TRUE,
+    useLineType = FALSE,
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = damID,
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mean mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = TRUE, # plot individual lines
+    meanLines = TRUE, # plot mean lines with SE #2023-11-22 to add model error
+    zoom_x = TRUE, # Zoom to part of x axis
+    xmin = 0,
+    xmax = 15,
+    zoom_y = TRUE, # Zoom to part of y axis
+    ymin = 0,
+    ymax = 12,
+    indivLineAlpha = 0.9,
+    indivLineSize = 0.2,
+    errorBarWidth = 0,
+    meanLineSize = .7,
+    meanAlpha = 1,
+    errorBarSize = .5,
+    # errorBarColor = "grey10",
+    errorBarAlpha = 1,
+    textSize = textSize,
+    axisSize = 0.5,
+    legendPosition = "none",
+    STDColor = "grey80",
+    LBNColor = "#66CCCC"
+  # ) +
+  # plotError_LMM_meanLine_mass(
+  #   mass_lmm_errors
+  #   , xVar = day
+  #   , fill = earlyLifeTrt
+  #   , barSize = .4
+  #   , ribbonAlpha = 0.7
+  )
+```
+
+```{r}
+massFiltered %>%
+  group_by(damID, earlyLifeTrt) %>%
+  summarize(
+    Mass_P4 = mean(Mass_P4, na.rm = TRUE)
+    , Mass_P11 = mean(Mass_P11, na.rm = TRUE)
+    , .groups = "drop"
+  ) %>%
+  mutate(
+    percChange_para = (Mass_P11 - Mass_P4) / (Mass_P4) * 100
+  ) %>%
+  scatterPlotLBN(
+    yVar = percChange_para
+    , yLab = "% change body mass"
+  )
+```
+
+```{r}
+massFiltered %>%
+  group_by(damID, earlyLifeTrt) %>%
+  summarize(
+    Mass_P4 = mean(Mass_P4, na.rm = TRUE)
+    , Mass_P11 = mean(Mass_P11, na.rm = TRUE)
+    , .groups = "drop"
+  ) %>%
+  mutate(
+    diff_para = (Mass_P11 - Mass_P4)
+  ) %>%
+  scatterPlotLBN(
+    yVar = diff_para
+    , yLab = "change body mass (g)"
+  )
+```
+
+```{r}
+damFiltered %>%
+  t_test(
+    Mass_P4 ~ earlyLifeTrt
+  )
+```
+
+```{r}
+mass_byDam %>%
+  ggplot(
+    aes(
+      x = earlyLifeTrt
+      , y = Mass_P11
+      , shape = sex
+      , color = earlyLifeTrt
+    )
+  ) +
+  jitterGeom_shapeAes(
+    
+  )+ 
+  labs(y = "mean mass (g)", title = "PND11")+
+  # theme_pubr(margin = FALSE)+
+  theme_pubr()+
+  expand_limits(y=0)+
+  scale_x_discrete(expand = expansion(add = 0.52))+
+  textTheme(size = textSize, boldXText = TRUE)+
+  boxTheme() +
+  theme(
+    axis.title.x = element_blank(),
+    legend.position = c(0.1, 0.4)
+  ) +
+  earlyLifeColor() +
+  coord_cartesian(ylim = c(0, 10))+
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10)) +
+  plotError_LMM (
+    mass_PND11_lmm_errors
+    , xVar = earlyLifeTrt
+  )
 ```
 

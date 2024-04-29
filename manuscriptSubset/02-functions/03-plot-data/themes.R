@@ -71,7 +71,7 @@ adultTrtFill <- function(
   ALPSColor = "black"
 ){
   fill <- scale_fill_manual(
-    "early life trt", 
+    "adult trt", 
     values = c(CON=CONColor, ALPS=ALPSColor)
   )
   return(fill)
@@ -84,7 +84,7 @@ adultTrtColor <- function(
   ALPSColor = "black"
 ){
   color <- scale_color_manual(
-    "early life trt", 
+    "adult trt", 
     values = c(CON = CONColor, ALPS = ALPSColor)
   )
   return(color)

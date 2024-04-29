@@ -23,9 +23,25 @@ pairsTable <- bind_rows(
 
 horzLines <- c(1, 4)
 
-# Male mass ----------------
+# PND11 mass----
 
 thisFigureLab <- "2A"
+thisOutcomeLab <- "PND11 mass"
+
+mass_PND11_emmPairsTbl.CI <- mass_PND11_lmm_emm.pairs %>%
+  simplifyEMMPairsOutput_CI() %>%
+  addTableInfo()
+
+pairsTable <- bind_rows(
+  pairsTable
+  , mass_PND11_emmPairsTbl.CI
+)
+
+horzLines <- addToHorzLines(1)
+
+# Male mass ----------------
+
+thisFigureLab <- "2B"
 thisOutcomeLab <- "male mass"
 
 maleMass_emmPairsTbl.CI <- male_mass_lmm_emm.pairs %>%
@@ -46,7 +62,7 @@ horzLines <- addToHorzLines(5)
 
 # AGD -------------
 
-thisFigureLab <- "2D"
+thisFigureLab <- ""
 thisOutcomeLab <- "anogenital distance"
 
 AGD_emmPairsTbl.CI <- AGD_lmm_emm_sex.pairs %>%

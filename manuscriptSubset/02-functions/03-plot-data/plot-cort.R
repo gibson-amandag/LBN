@@ -1083,7 +1083,7 @@ plotLHAmp_dosage <- function(
       size = dotSize
       , alpha = 1
     ) +
-    geom_hline(yintercept = surgeMin, color = "grey")
+    geom_hline(yintercept = surgeMin, color = "grey", linewidth = ifelse(forManuscript, 1, 1.5))
   
   if(addMedianIQR){
     plot <- plot +

@@ -317,6 +317,56 @@ figOff
 ```
 
 ```{r}
+figOffLeftPlots <- cowplot::align_plots(
+  figOff_PND4
+  , figOff_PND11
+  # figOff_PND11_females
+  # , figOff_PND11_males
+  , figOffA_group
+  , align = "v", axis = "l"
+)
+
+figOffRightPlots <- cowplot::align_plots(
+  figOffAge_model
+  , figOffMass_model
+  , align = "vh", axis = "ltrb"
+)
+
+figOffMat <- plot_grid(
+  plot_grid(
+      figOffLeftPlots[[1]]
+      , figOffRightPlots[[1]]
+      , ncol = 2
+      , rel_widths = c(1, 3)
+      , labels = c("A", "B")
+      , label_fontfamily = "Arial"
+      , label_size = textSize
+  )
+  , plot_grid(
+      figOffLeftPlots[[2]]
+      , figOffRightPlots[[2]]
+      , ncol = 2
+      , rel_widths = c(1, 3)
+      , labels = c("", "C")
+      , label_fontfamily = "Arial"
+      , label_size = textSize
+  )
+  , nrow = 2
+)
+
+figOff <- plot_grid(
+  figOffMat
+  , figOffLeftPlots[[3]]
+  , nrow = 2
+  , labels = c("", "D")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , rel_heights = c(2, 1.5)
+)
+figOff
+```
+
+```{r}
 flexSave(
   "figOff"
   , plot = figOff
@@ -345,6 +395,35 @@ tbl <- massCount_flexTable
 tbl
 ```
 
+## PND4
+```{r}
+offMass_PND4_flexTable
+
+damFiltered %>%
+  group_by(earlyLifeTrt) %>%
+  meanSummary(Mass_P4)
+```
+
+
+## Table - PND11
+
+```{r}
+tbl <- mass_AGD_flexTable
+tbl
+```
+
+```{r}
+offMassPND11TblNum <- "2-1"
+tableNum <- offMassPND11TblNum
+```
+
+```{r}
+tableCaption <- ""
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
 
 ## Table - offspring mass
 
@@ -355,7 +434,7 @@ tbl
 
 
 ```{r}
-offMassTblNum <- "2-1"
+offMassTblNum <- "2-2"
 tableNum <- offMassTblNum
 ```
 
@@ -422,7 +501,7 @@ tableNum <- AGDTblNum
 ```
 
 ```{r}
-doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+# doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
 ```
 
 # Figure 3 - Cycles

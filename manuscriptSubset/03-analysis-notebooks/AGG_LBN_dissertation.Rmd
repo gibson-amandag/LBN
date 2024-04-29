@@ -1,0 +1,742 @@
+---
+title: "AGG Dissertation"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# options(digits=3)
+```
+
+```{r eval=FALSE, include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/06-run-LBN-stats.R")
+source("./01-scripts/05-make-LBN-plots-modelError-manuscript.R")
+```
+
+```{r}
+doc.type <- knitr::opts_knit$get('rmarkdown.pandoc.to')
+```
+
+# Set-up
+```{r}
+figureNum <- 1
+
+pptBaseName <- makeBaseNameFunc("")
+
+plotFolder <- file.path(plotOutputFolder, "dissertation")
+
+imgType <-"pdf"
+
+exportImg <- exportImg_forPurposeFunc(
+  imgType = imgType
+  , figNumFunc = pptBaseName
+  , plotFolder = plotFolder
+  , compType = currentCompType
+)
+
+exportFullPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+    , width = 11.5
+    , height = 5
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = width
+    , height = height
+  )
+}
+
+exportHalfPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 5.67
+    , height = 5
+  )
+}
+
+exportThirdPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 3.6
+    , height = 5
+  )
+}
+
+exportQuarterPPTSlide <- function(
+    plot = last_plot()
+    , baseName = fileBaseName
+    , figNum = figureNum
+){
+  exportImg(
+    plot = plot
+    , fileBaseName = baseName
+    , figNum = figNum
+    , units = "in"
+    , width = 3.2
+    , height = 5
+  )
+}
+
+editableImgs <- TRUE
+pptAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddOneTable <- function(
+    table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_oneTable(
+    officer_ppt, 
+    title, 
+    table, 
+    dontFormat = dontFormat
+  )
+  return(officer_ppt)
+}
+
+pptUneditAddOneGraph <- function(
+    title = slideTitle
+    , plot = last_plot()
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_oneGraph(
+    officer_ppt, 
+    title, 
+    plot, 
+    makeEditable = FALSE
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphs <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddTwoGraphsMoreLeft <- function(
+    plot1
+    , plot2
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_twoGraphMoreLeft(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2,
+    makeEditable = editableImgs
+  )
+  return(officer_ppt)
+}
+
+pptAddGraphTable <- function(
+    plot
+    , table
+    , title = slideTitle
+    , officer_ppt = ppt
+    , dontFormat = TRUE
+){
+  officer_ppt <- addSlide_graphTable(
+    officer_ppt, 
+    title, 
+    plot, 
+    table,
+    makeEditable = editableImgs
+    , dontFormat = dontFormat
+    , textSize = textSize
+  )
+  return(officer_ppt)
+}
+
+pptAddFourGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , plot4
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_fourGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    plot4,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddThreeGraphs <- function(
+    plot1
+    , plot2
+    , plot3
+    , title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_threeGraph(
+    officer_ppt, 
+    title, 
+    plot1, 
+    plot2, 
+    plot3,
+    makeEditable = editableImgs
+    )
+  return(officer_ppt)
+}
+
+pptAddStats <- function(
+    statsText
+    , officer_ppt = ppt
+){
+  officer_ppt <- addStatsToBottom(
+    officer_ppt,
+    statsText
+  )
+}
+
+pptAddTwoStats <- function(
+    statsText1
+    , statsText2
+    , officer_ppt = ppt
+){
+  officer_ppt <- addTwoStatsToGraphs(
+    officer_ppt,
+    statsText1,
+    statsText2
+  )
+}
+
+pptAddSectionHead <- function(
+    title = slideTitle
+    , officer_ppt = ppt
+){
+  officer_ppt <- addSlide_sectionHead(
+    officer_ppt
+    , title
+  )
+}
+
+
+
+```
+
+```{r}
+# make powerpoint and title slide
+ppt <- read_pptx("genericPPT.pptx")
+ppt <- add_slide(ppt, layout = "Title Slide")
+
+# layout_properties(ppt, layout="Title Slide")
+
+subText <- "Amanda Gibson\nDissertation"
+ppt <- ph_with(
+  ppt,
+  value = subText,
+  location = ph_location_label("Subtitle 2")
+)
+
+
+# Run this function to save the PPT file to the disk
+# On windows, don't run if the PPT file is open
+savePPT <- makeSavePPTFunc(
+  presPPT = ppt
+  , presFolder = plotFolder
+  , presFileName = "AGG_Dissertation_Figs"
+  , addDate = TRUE
+)
+```
+
+
+# Dam exits - demo
+```{r}
+fig_demoDamBehavior_byDay <- damBehavior_byPND %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "mean # of exits / h"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = 1
+    , zoom_y = TRUE
+    , ymax = 60
+    , ymin = 0
+    , showDots = FALSE
+    , showMean = FALSE
+    , addVertError = FALSE
+    , subset = TRUE
+    , numPerGroup = 4
+    , lineAlpha = 1
+    , dotAlpha = 1
+    , lineSize = 0.25
+  ) +
+  theme(
+    strip.text.x.top = element_text(margin = margin(b=-10))
+  )
+
+fig_demoDamBehavior_mean <- damBehavior_byDam %>%
+  plotDamBehavior(
+    yVar = Num_exits
+    , yLab = "mean # of exits / h"
+    , fontSize = textSize
+    , addTriangleForMean = FALSE
+    , colorByDam = TRUE
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymax = 60
+    , ymin = 0
+    , showMean = FALSE
+    , addVertError = FALSE
+    , subset = TRUE
+    , numPerGroup = 4
+  ) +
+  theme(
+    axis.text.x = element_text(face = "bold")
+    , axis.title.x = element_blank()
+  )
+
+figDemoDamBehavior <- plot_grid(
+  fig_demoDamBehavior_byDay
+  , fig_demoDamBehavior_mean
+  , rel_widths = c(3, 1)
+  , align = c("h")
+  , axis = c("tb")
+)
+
+figDemoDamBehavior
+
+fileBaseName <- "demoDamBehavior"
+slideTitle <- "Behavior of dams is averaged across days"
+exportFullPPTSlide()
+ppt <- pptAddOneGraph()
+```
+
+
+# Dam exits - all
+
+```{r}
+figDamBehavior <- plot_grid(
+  figDams_exits
+  , figDams_meanExits
+  , rel_widths = c(3, 1)
+  , align = c("h")
+  , axis = c("tb")
+)
+
+figDamBehavior
+
+fileBaseName <- "damBehavior"
+slideTitle <- "LBN dams make more exits from the nest"
+ppt <- pptAddOneGraph()
+```
+
+# Offspring mass
+
+```{r}
+figOffA_indiv_females <- massFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  plot_mass_lines(
+    groupByDam = TRUE,
+    facetBySex = TRUE,
+    useLineType = FALSE,
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = damID,
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mean mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = TRUE, # plot individual lines
+    meanLines = FALSE, # plot mean lines with SE #2023-11-22 to add model error
+    zoom_x = TRUE, # Zoom to part of x axis
+    xmin = 0,
+    xmax = 72,
+    zoom_y = TRUE, # Zoom to part of y axis
+    ymin = 0,
+    ymax = 32,
+    indivLineAlpha = 0.9,
+    indivLineSize = 0.2,
+    errorBarWidth = 0,
+    meanLineSize = 0.5,
+    meanAlpha = 1,
+    errorBarSize = .5,
+    # errorBarColor = "grey10",
+    errorBarAlpha = 1,
+    textSize = textSize,
+    axisSize = 0.5,
+    legendPosition = "none",
+    STDColor = "grey80",
+    LBNColor = "#66CCCC"
+  ) +
+  theme(
+    legend.key = element_rect(fill = NA)
+    , strip.text = element_blank()
+    , axis.title.x = element_blank()
+    , axis.title.y = element_blank()
+  )
+```
+
+```{r}
+figOffA_indiv_males <- massFiltered %>%
+  filter(
+    sex == "M"
+  ) %>%
+  plot_mass_lines(
+    groupByDam = TRUE,
+    facetBySex = TRUE,
+    useLineType = FALSE,
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = damID,
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mean mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = TRUE, # plot individual lines
+    meanLines = FALSE, # plot mean lines with SE #2023-11-22 to add model error
+    zoom_x = TRUE, # Zoom to part of x axis
+    xmin = 0,
+    xmax = 72,
+    zoom_y = TRUE, # Zoom to part of y axis
+    ymin = 0,
+    ymax = 32,
+    indivLineAlpha = 0.9,
+    indivLineSize = 0.2,
+    errorBarWidth = 0,
+    meanLineSize = 0.5,
+    meanAlpha = 1,
+    errorBarSize = .5,
+    # errorBarColor = "grey10",
+    errorBarAlpha = 1,
+    textSize = textSize,
+    axisSize = 0.5,
+    legendPosition = "none",
+    STDColor = "grey80",
+    LBNColor = "#66CCCC"
+  ) +
+  theme(
+    legend.key = element_rect(fill = NA)
+    , strip.text = element_blank()
+    , axis.title.x = element_blank()
+    , axis.title.y = element_blank()
+  )
+```
+
+
+```{r}
+figOff_mass <- ggdraw() +
+  draw_plot(figOffA_group)+
+  draw_plot(figOffA_indiv_females
+            , x = 0.29
+            , y = 0.14
+            , width = 0.23
+            , height = 0.52) +
+  draw_plot(figOffA_indiv_males
+            , x = 0.77
+            , y = 0.14
+            , width = 0.23
+            , height = 0.52)
+
+figOff_mass
+fileBaseName <- "offMass"
+slideTitle <- "LBN does not lead to biologically meaningful differences in body mass of CBA/Bl6F1 mice"
+ppt <- pptAddOneGraph()
+      
+```
+
+# Offspring maturation
+
+```{r}
+figOffAge_model
+
+fileBaseName <- "matAge"
+
+exportFullPPTSlide()
+slideTitle <- "LBN does not alter age for external markers of sexual maturation"
+ppt <- pptAddOneGraph()
+```
+
+# Cycles
+
+## Demonstration
+
+```{r}
+fig_cyclesDemo <- cyclesLong %>% 
+  filter(mouseID == 903) %>%
+  addCycleStartCol() %>%
+  addPNDForCyles() %>%
+  plotCycleTraces_single(day = PND, fontSize =  textSize)
+
+fig_cyclesDemo_red <- fig_cyclesDemo +
+  geom_point(aes(color = isStartCycle, alpha = isStartCycle))+
+  scale_color_manual(values = c("FALSE" = "black", "TRUE" = "red", "STD" = "grey", "LBN" = "black"))+
+  scale_alpha_manual(values = c("FALSE" = .2, "TRUE" = 1))
+
+fig_cyclesDemo
+slideTitle <- "903"
+ppt <- pptAddOneGraph()
+ppt <- pptAddTwoGraphsMoreLeft(fig_cyclesDemo, fig_cyclesDemo)
+
+fig_cyclesDemo_red
+ppt <- pptAddOneGraph()
+ppt <- pptAddTwoGraphsMoreLeft(fig_cyclesDemo_red, fig_cyclesDemo_red)
+```
+
+```{r}
+cyclesFiltered %>%
+  filter(
+    numCycles < 3.1 & numCycles > 2.9
+    , cycleLength <= 6 & cycleLength >= 5
+    , earlyLifeTrt == "LBN"
+    )
+
+cyclesFiltered %>%
+  filter(
+    numCycles < 2.1 & numCycles > 1.9
+    , cycleLength <= 6 & cycleLength >= 5
+    , earlyLifeTrt == "LBN"
+    )
+
+c(718, 901, 921, 964, 967, 918)
+```
+
+
+
+## Example traces 
+```{r}
+STD_cycles <- cyclesFiltered %>%
+  filter(
+    # numCycles < 3.1 & numCycles > 2.9
+    # , cycleLength <= 6 & cycleLength >= 5
+    earlyLifeTrt == "STD"
+  ) %>%
+  group_by(earlyLifeTrt) %>%
+  getRandomSubjects(mouseID, 6, seed = 42) %>%
+  arrange(
+    earlyLifeTrt
+  ) %>%
+  mutate(
+    mouseByRow = row_number()
+  ) %>%
+  makeCyclesLong() %>%
+  addCycleStartCol() %>%
+  addPNDForCyles() %>%
+  plotCycleTraces(
+    colorValues = c("grey30", "cyan3")
+    , fontSize = textSize
+    , removeFacets = TRUE
+    , ncol = 2
+    , nrow = 3
+    , day = PND
+    , breakSeq = seq(70, 90, 5)
+    , MouseID = mouseByRow
+    , facetDir = "v"
+  ) + theme(
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+    , panel.spacing.x=unit(2, "lines")
+    , plot.margin = margin(0, 1, 0, 1, "cm")
+  ) +
+  xlab("postnatal day")
+
+LBN_cycles <- cyclesFiltered %>%
+  filter(
+    # mouseID %in% c(718, 901, 921, 964, 967, 918)
+    earlyLifeTrt == "LBN"
+  ) %>%
+  group_by(earlyLifeTrt) %>%
+  getRandomSubjects(mouseID, 6, seed = 42) %>%
+  arrange(
+    earlyLifeTrt
+  ) %>%
+  mutate(
+    mouseByRow = row_number()
+  ) %>%
+  makeCyclesLong() %>%
+  addCycleStartCol() %>%
+  addPNDForCyles() %>%
+  plotCycleTraces(
+    colorValues = c("grey30", "cyan3")
+    , fontSize = textSize
+    , removeFacets = TRUE
+    , ncol = 2
+    , nrow = 3
+    , day = PND
+    , breakSeq = seq(70, 90, 5)
+    , MouseID = mouseByRow
+    , facetDir = "v"
+  ) + theme(
+    panel.border = element_rect(color = "lightgrey", fill = NA)
+    , panel.spacing.x=unit(2, "lines")
+    , plot.margin = margin(0, 1, 0, 1, "cm")
+  ) +
+  xlab("postnatal day")
+
+STD_cycles
+LBN_cycles
+
+slideTitle <- "LBN did not change estrous cycles"
+ppt <- pptAddTwoGraphs(
+  STD_cycles
+  , LBN_cycles
+)
+```
+## summary
+
+```{r}
+plot_grid(
+  figCycles_numCycles_model
+  , figCycles_lengthLog_model
+  , figCyclesD
+  , ncol = 3
+  , align = "h"
+  , axis = "bt"
+  , rel_widths = c(1, 1, 2)
+)
+
+fileBaseName <- "cyclesFeatures"
+
+exportFullPPTSlide()
+slideTitle <- "LBN does not alter estrous cyclicity"
+ppt <- pptAddOneGraph()
+```
+
+
+# Corticosterone
+```{r}
+figCortC +
+  scale_y_continuous(
+    breaks = seq(0, 500, by = 100)
+  ) +
+  labs(title = NULL)
+
+slideTitle <- "pro cort"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+figCortC_adult +
+  scale_y_continuous(
+    breaks = seq(0, 500, by = 100)
+  ) +
+  labs(title = NULL) +
+  theme(
+    legend.position = c(0.2, 0.8)
+    , legend.title = element_blank()
+  )
+fileBaseName = "cortPro"
+exportFullPPTSlide()
+```
+
+
+# LH
+
+```{r}
+plot_grid(
+  figLH_samplingMax +
+    scale_x_discrete(
+      labels = c("STD-CON", "LBN-CON", "STD-ALPS", "LBN-ALPS")
+    )
+  , figLH_samplingSurged +
+    scale_x_discrete(
+      labels = c("STD-CON", "LBN-CON", "STD-ALPS", "LBN-ALPS")
+    )
+  , nrow = 1
+  , rel_widths = c(1.8, 1)
+)
+
+slideTitle <- "LH"
+ppt <- pptAddOneGraph()
+```
+# Cort administration
+
+```{r}
+nutellaALPS_cortPlot_ALPSonly
+
+slideTitle <- "ALPS only"
+ppt <- pptAddOneGraph()
+```
+
+
+```{r}
+nutellaALPS_cortPlot
+
+slideTitle <- "Cort admin females"
+ppt <- pptAddOneGraph()
+```
+
+```{r}
+plot_grid(
+  cortAdmin_pro_cort + theme(strip.text = element_blank())
+  , cortAdmin_LHamp
+  , cortAdmin_ovulation_plot
+  , nrow = 1
+  , align = "h"
+  , axis = "tb"
+)
+
+ppt <- pptAddOneGraph()
+```
+
+# GABA PSC Freq
+
+```{r}
+figGABA_freq_model_Pres
+
+fileBaseName <- "GABAfreq"
+exportHalfPPTSlide()
+
+slideTitle <- "Neither LBN nor adult stress altered the frequency of GABA PSCs in GnRH neurons"
+
+figGABA_amp_model_Pres
+fileBaseName <- "GABAfreq"
+exportHalfPPTSlide()
+ppt <- pptAddTwoGraphs(
+  figGABA_freq_model_Pres
+  , figGABA_amp_model_Pres
+)
+```
+

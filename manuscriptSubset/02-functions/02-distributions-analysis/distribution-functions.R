@@ -96,6 +96,63 @@ plotCumulativeFreqDist <- function(
   return(plot)
 }
 
+plotCumulativeFreqDist_defVar <- function(
+    df
+    , xVar
+    , xLab
+    , yLab = "cumulative probability"
+    , zoom_x = FALSE
+    , xmin = NA
+    , xmax = NA
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 1
+    , textSize = 11
+    , legendPosition = c(0.6, 0.3)
+    , scaleLog10 = FALSE
+    , lineSize = 0.3
+    , groupVar = adultTrt
+) {
+  plot <- df %>%
+    group_by( {{ groupVar }} ) %>%
+    calcCumFreq({{ xVar }}) %>%
+    ggplot(
+      aes(
+        x = {{ xVar }}
+        , y = cumFreq
+        , group = {{ groupVar}}
+        , color = {{ groupVar}}
+      )
+    ) +
+    geom_line(
+      linewidth = lineSize
+    ) +
+    boxTheme() +
+    textTheme(size = textSize)
+  
+  if(scaleLog10){
+    plot <- plot + scale_x_log10()
+  } else {
+    plot <- plot + 
+      expand_limits(x = 0) +
+      coord_cartesian(if(zoom_x){xlim = c(xmin, xmax)}, if(zoom_y){ylim = c(ymin, ymax)})
+  }
+  
+  plot <- plot +
+    expand_limits(y = 0) +
+    scale_y_continuous(breaks = seq(0, 1, by = 0.2)) +
+    xlab(xLab) +
+    ylab(yLab) +
+    theme(
+      legend.position = legendPosition 
+      , legend.key = element_blank()
+    )
+  
+  plot <- plot + labs(color = "treatment")
+  
+  return(plot)
+}
+
 plotDensityDistribution <- function(
     df
     , xVar
@@ -303,7 +360,7 @@ fourWayAD <- function(
     , xmax = NA
     , zoom_y = TRUE
     , ymin = 0
-    , ymax = 100
+    , ymax = 1
     , textSize = 11
     , legendPosition = c(0.6, 0.3)
     , STD_CON_fill = "lightgrey" # for density plot
@@ -462,6 +519,201 @@ fourWayAD <- function(
         , "SA" = SA
         , "LC" = LC
         , "LA" = LA
+      )
+    )
+  )
+}
+
+mainEffectsAD <- function(
+    df
+    , feature
+    , xLab
+    , testVersion = 1
+    , zoom_x = FALSE
+    , xmin = NA
+    , xmax = NA
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 1
+    , textSize = 11
+    , legendPosition = c(0.6, 0.3)
+    , STD_CON_fill = "lightgrey" # for density plot
+    , STD_CON_color = "grey30"
+    , colorCellByQuartiles = TRUE
+){
+  STD <- df %>%
+    filter(
+      earlyLifeTrt == "STD"
+    ) %>%
+    select(
+      {{ feature }}
+    ) %>% 
+    pull()
+  
+  LBN <- df %>%
+    filter(
+      earlyLifeTrt == "LBN"
+    ) %>%
+    select(
+      {{ feature }}
+    ) %>% 
+    pull()
+  
+  CON <- df %>%
+    filter(
+      adultTrt == "CON"
+    ) %>%
+    select(
+      {{ feature }}
+    ) %>% 
+    pull()
+  
+  ALPS <- df %>%
+    filter(
+      adultTrt == "ALPS"
+    ) %>%
+    select(
+      {{ feature }}
+    ) %>% 
+    pull()
+  
+  earlyLifeAdTestResult <- ad.test(
+    STD
+    , LBN
+  )
+ 
+   adultAdTestResult <- ad.test(
+    CON
+    , ALPS
+  )
+  
+  earlyLifePVal <- getAD_Pval(earlyLifeAdTestResult, version = testVersion)
+  adultPVal <- getAD_Pval(adultAdTestResult, version = testVersion)
+  
+  earlyLifeCumFreqPlot <- plotCumulativeFreqDist_defVar(
+    df
+    , {{ feature }}
+    , xLab
+    , zoom_x = zoom_x
+    , xmin = xmin
+    , xmax = xmax
+    , zoom_y = zoom_y
+    , ymin = ymin
+    , ymax = ymax
+    , textSize = textSize
+    , legendPosition = legendPosition
+    , groupVar = earlyLifeTrt
+  ) +
+    earlyLifeColor(STDColor = "#CCCCCC")
+  
+  adultCumFreqPlot <- plotCumulativeFreqDist_defVar(
+    df
+    , {{ feature }}
+    , xLab
+    , zoom_x = zoom_x
+    , xmin = xmin
+    , xmax = xmax
+    , zoom_y = zoom_y
+    , ymin = ymin
+    , ymax = ymax
+    , textSize = textSize
+    , legendPosition = legendPosition
+    , groupVar = adultTrt
+  ) +
+    adultTrtColor(CONColor = "#CCCCCC")
+  
+  # fullDistCumFreqPlot <- plotCumulativeFreqDist(
+  #   df
+  #   , {{ feature }}
+  #   , xLab
+  #   , textSize = textSize
+  #   , legendPosition = legendPosition
+  # )
+  # 
+  # cumFreqPlot_log <- plotCumulativeFreqDist(
+  #   df
+  #   , {{ feature }}
+  #   , xLab
+  #   , textSize = textSize
+  #   , legendPosition = c(0.1, 0.6)
+  #   , scaleLog10 = TRUE
+  # )
+  # 
+  # densityPlot <- plotDensityDistribution(
+  #   df
+  #   , {{ feature }}
+  #   , xLab
+  #   , zoom_x = zoom_x
+  #   , xmin = xmin
+  #   , xmax = xmax
+  #   , textSize = textSize
+  #   , legendPosition = legendPosition
+  #   , STD_CON_fill = STD_CON_fill
+  #   , STD_CON_color = STD_CON_color
+  # )
+  # 
+  # fullDensityPlot <- plotDensityDistribution(
+  #   df
+  #   , {{ feature }}
+  #   , xLab
+  #   , textSize = textSize
+  #   , legendPosition = legendPosition
+  #   , STD_CON_fill = STD_CON_fill
+  #   , STD_CON_color = STD_CON_color
+  # )
+  # 
+  # densityPlot_log <- plotDensityDistribution(
+  #   df
+  #   , {{ feature }}
+  #   , xLab
+  #   , textSize = textSize
+  #   , legendPosition = legendPosition
+  #   , STD_CON_fill = STD_CON_fill
+  #   , STD_CON_color = STD_CON_color
+  #   , scaleLog10 = TRUE
+  # )
+  # 
+  # plotByCell_log <- plotPSCProp_log(
+  #   df
+  #   , {{ feature }}
+  #   , xLab
+  #   , textSize = textSize
+  #   , byQuartiles = colorCellByQuartiles
+  #   , sortByQuartile = colorCellByQuartiles
+  # )
+  # 
+  # plotQuartiles_log <- plotPSCProp_log(
+  #   df
+  #   , {{ feature }}
+  #   , xLab
+  #   , textSize = textSize
+  #   , byQuartiles = colorCellByQuartiles
+  #   , sortByQuartile = colorCellByQuartiles
+  #   , byCell = FALSE
+  # )
+  
+  return(
+    list(
+      "earlyLifeAdTest" = earlyLifeAdTestResult
+      , "adultAdTest" = adultAdTestResult
+      , "earlyLifePVal" = earlyLifePVal
+      , "adultPVal" = adultPVal
+      , "plots" = list(
+        "earlyLifeCumulativeFreqPlot" = earlyLifeCumFreqPlot
+        , "adultCumulativeFreqPlot" = adultCumFreqPlot
+        # , "fullCumulativeFreqPlot" = fullDistCumFreqPlot
+        # , "cumulativeFreqPlot_log" = cumFreqPlot_log
+        # , "densityPlot" = densityPlot
+        # , "fullDensityPlot" = fullDensityPlot
+        # , "densityPlot_log" = densityPlot_log
+        # , "plotByCell_log" = plotByCell_log
+        # , "plotsQuartiles_log" = plotQuartiles_log
+      )
+      , "vectors" = list(
+        "STD" = STD
+        , "LBN" = LBN
+        , "CON" = CON
+        , "ALPS" = ALPS
       )
     )
   )

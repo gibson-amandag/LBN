@@ -110,7 +110,7 @@ nutellaALPS_cortPlot <- BD_comboNutALPS %>%
     x = "time since 1st administration (h)" # add a title to the x axis
   ) + 
   theme(
-    legend.position = c(c(0.3, 1))
+    legend.position = c(0.5, 0.98)
     , legend.direction = "horizontal"
   ) +
   scale_y_continuous(
@@ -185,31 +185,128 @@ nutellaALPS_cortPlot <- nutellaALPS_cortPlot +
     )
   )
 
+nutellaALPS_cortPlot_ALPSonly <- BD_comboNutALPS %>%
+  filter(
+    adultTrt == "ALPS"
+  ) %>%
+  cortPlot(
+    pointSize = dotSize,
+    fontSize = textSize,
+    plotMean = FALSE,
+    plotSE = FALSE,
+    groupVar = cortNutTrt, 
+    xBreaks = c(0, 0.5, 1, 3, 5),
+    xLabels = c("0", "0.5", "1", "3", "5"),
+    lineTypeGuide = "",
+    positionDodge = 0.2,
+    zoom_y = TRUE,
+    ymax = 720,
+    ymin = 0
+  ) +
+  labs(
+    x = "time since 1st administration (h)" # add a title to the x axis
+  ) + 
+  theme(
+    legend.position = c(0.5, .98)
+    , legend.direction = "horizontal"
+  ) +
+  scale_y_continuous(
+    breaks = seq(0, 750, 125)
+  )
+
+scaleLabels <- c(
+  "ALPS" = "ALPS",
+  "0" = "0mg/kg",
+  "2" = "2mg/kg"
+)
+
+if(isManuscript){
+  nutellaALPS_cortPlot_ALPSonly <- nutellaALPS_cortPlot_ALPSonly +
+    scale_color_manual(
+      "treatment",
+      labels = scaleLabels,
+      values = c(
+        "ALPS"="cyan3",
+        "0" = "#CCCCCC",
+        "2" = "#666666"
+      )
+    ) +
+    scale_shape_manual(
+      "treatment",
+      labels = scaleLabels,
+      values = c(
+        "ALPS"=18,
+        "0" = 16,
+        "2" = 16
+      )
+    )
+} else{
+  nutellaALPS_cortPlot_ALPSonly <- nutellaALPS_cortPlot_ALPSonly +
+    scale_color_manual(
+      "treatment",
+      labels = scaleLabels,
+      values = c(
+        "ALPS"="black",
+        "0" = "black",
+        "2" = "black"
+      )
+    ) +
+    scale_fill_manual(
+      "treatment",
+      labels = scaleLabels,
+      values = c(
+        "ALPS"="cyan3",
+        "0" = "white",
+        "2" = "#666666"
+      )
+    )+
+    scale_shape_manual(
+      "treatment",
+      labels = scaleLabels,
+      values = c(
+        "ALPS"=23,
+        "0" = 21,
+        "2" = 21
+      )
+    )
+}
+
+nutellaALPS_cortPlot_ALPSonly <- nutellaALPS_cortPlot_ALPSonly +
+  scale_linetype_manual(
+    "treatment",
+    labels = scaleLabels,
+    values = c(
+      "ALPS"="dotted",
+      "0" = "solid",
+      "2" = "solid"
+    )
+  )
+
 # Cort LMM ----------
 
-cortAdmin_cort_lmm <- mixed(
+cortAdmin_pro_cort_lmm <- mixed(
   log10(cort) ~ dosage * time + (1|mouseID) + (1|damID)
   , cortAdminCortDF
   , method = "KR"
 )
 
 
-cortAdmin_cort_lmm_emm <- emmeans(
-  cortAdmin_cort_lmm
+cortAdmin_pro_cort_lmm_emm <- emmeans(
+  cortAdmin_pro_cort_lmm
   , "dosage"
   , by = "time"
   , type = "response"
 )
 
-cortAdmin_cort_lmm_emm.pairs <- contrast(
-  cortAdmin_cort_lmm_emm
+cortAdmin_pro_cort_lmm_emm.pairs <- contrast(
+  cortAdmin_pro_cort_lmm_emm
   , "pairwise"
   , simple = "each"
   , combine = TRUE
   , adjust = "holm"
 )
 
-cortAdmin_cort_lmm_emm.pairs %>%
+cortAdmin_pro_cort_lmm_emm.pairs %>%
   simplifyEMMPairsOutput() %>%
   makeManuscriptFlexTable(
     round2Cols = c("ratio", "t ratio")
@@ -218,7 +315,7 @@ cortAdmin_cort_lmm_emm.pairs %>%
   )
 
 ## errors for graph ---------------
-cortAdmin_cort_lmm_error <- cortAdmin_cort_lmm_emm %>%
+cortAdmin_pro_cort_lmm_error <- cortAdmin_pro_cort_lmm_emm %>%
   as_data_frame() %>%
   rename(
     y = response
@@ -231,7 +328,7 @@ cortAdmin_cort_lmm_error <- cortAdmin_cort_lmm_emm %>%
 # Final dataset ------------
 
 
-cortAdmin_cort <- cortAdminCortDF %>%
+cortAdmin_pro_cort <- cortAdminCortDF %>%
   left_join(
     cortAdmin_sampling_trust %>%
       select(
@@ -315,7 +412,7 @@ cortAdmin_cort <- cortAdminCortDF %>%
     )
   ) +
   plotError_LMM(
-    cortAdmin_cort_lmm_error
+    cortAdmin_pro_cort_lmm_error
     , xVar = time
     , meanBarWidth = 2.8
   ) 
@@ -413,7 +510,7 @@ propSurged.Chi.Sq.descriptives <-  chisq_descriptives(propSurged.Chi.Sq.res)
 
 cortAdminLeft <- align_plots(
   nutellaALPS_cortPlot
-  , cortAdmin_cort
+  , cortAdmin_pro_cort
   , align = "v"
   , axis = "l"
 )
@@ -460,7 +557,7 @@ flexSave(
 )
 
 # cortAdminLeft <- align_plots(
-#   cortAdmin_cort
+#   cortAdmin_pro_cort
 #   , cortAdmin_LH_overTime
 #   , align = "v"
 #   , axis = "l"

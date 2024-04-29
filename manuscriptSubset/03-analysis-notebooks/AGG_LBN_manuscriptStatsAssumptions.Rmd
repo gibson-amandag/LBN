@@ -81,6 +81,13 @@ damTable_earlyLifePND_flexTable
 
 # Figure 2 - Offspring maturation figOff
 
+# Offspring mass PND4
+
+```{r}
+shapiro.test(x = damFiltered$Mass_P4)
+```
+
+
 ```{r}
 figOff
 ```

@@ -298,6 +298,88 @@ massCount_flexTable <- massCountTbl %>%
     , vertLines = c(1, 3, 5, 7)
   )
 
+## PND4 t-test ----------
+
+offMass_PND4T <- damFiltered %>%
+  t_test(
+    Mass_P4 ~ earlyLifeTrt
+    , var.equal = TRUE
+    , detailed = TRUE
+  )
+
+offMass_PND4T <- offMass_PND4T %>%
+  select(
+    `.y.`
+    , group1
+    , group2
+    # , n1
+    # , n2
+    , statistic
+    , df
+    , p
+    , estimate
+    , conf.low
+    , conf.high
+  )
+
+offMass_PND4CohensD <- damFiltered %>%
+  cohens_d(
+    Mass_P4 ~ earlyLifeTrt
+    , var.equal = TRUE
+  )
+
+offMass_PND4_tbl <- offMass_PND4T %>%
+  left_join(
+    offMass_PND4CohensD %>%
+      select(
+        `.y.`
+        , effsize
+      )
+    , by = ".y."
+  ) %>%
+  mutate(
+    comparison = paste0(group1, " - ", group2)
+    , .after = `.y.`
+  ) %>%
+  mutate(
+    `95% CI` = paste0("[", format(round(conf.low, 2), nsmall = 2, trim = TRUE), ", ", format(round(conf.high, 2), nsmall = 2, trim = TRUE), "]")
+    , .after = estimate
+  ) %>%
+  rename(
+    t = statistic
+    , difference = estimate
+    , `Cohen's d` = effsize 
+  ) %>%
+  select(
+    -c(`.y.`, group1, group2, conf.low, conf.high)
+  )
+
+offMass_PND4_flexTable <- offMass_PND4_tbl %>%
+  makeManuscriptFlexTable(
+    round2Cols = c("t", "difference", "Cohen's d")
+    , fullWidth = FALSE
+  )
+
+
+## PND mass LMM --------------
+
+mass_PND11_tbl <- mass_PND11_LMM$anova_table %>%
+  simplifyLMMOutput()
+
+mass_PND11_header <- data.frame(
+  col_keys = c("variable", "F", "df", "p"
+  ),
+  line2 = c("", rep("PND11 mass", 3)),
+  line3 = c("variable", "F", "df", "p"),
+  stringsAsFactors = FALSE
+)
+
+mass_PND11_flexTable <- mass_PND11_tbl %>%
+  makeManuscriptFlexTable(
+    headerDF = mass_PND11_header
+    , fullWidth = FALSE
+  )
+
 ## Offspring mass LMM ------------
 
 femaleMass_tbl <- female_mass_lmm$anova_table %>%
@@ -554,6 +636,40 @@ AGD_flexTable <- AGD_tbl %>%
   makeManuscriptFlexTable(
     headerDF = AGD_header
     , fullWidth = FALSE
+  )
+
+
+mass_AGD_tbl <- bind_rows(
+  list(
+    "PND11 mass" = mass_PND11_tbl
+    , "anogenital distance" = AGD_tbl
+  )
+  , .id = "feature" 
+)%>%
+  mutate(
+    variable = ifelse(variable == "early-life treatment", "earlyLife"
+                      , ifelse(variable == "sex", "sex", "int"))
+  ) %>%
+  pivot_wider(
+    id_cols = feature, names_from = variable, values_from = c("F", "df", "p")
+  )
+
+mass_AGD_header <- data.frame(
+  col_keys = c("feature"
+               , "F_earlyLife", "df_earlyLife", "p_earlyLife"
+               , "F_sex", "df_sex", "p_sex"
+               , "F_int", "df_int", "p_int"
+  ),
+  line2 = c("", rep("early-life treatment", 3), rep("sex", 3), rep("early-life treatment * sex", 3)),
+  line3 = c("feature", rep(c("F", "df", "p"), 3)),
+  stringsAsFactors = FALSE
+)
+
+mass_AGD_flexTable <- mass_AGD_tbl %>%
+  makeManuscriptFlexTable(
+    headerDF = mass_AGD_header
+    , vertLines = c(1, 4, 7)
+    , vertMergeCols = c("feature")
   )
 
 ### emmeans ------

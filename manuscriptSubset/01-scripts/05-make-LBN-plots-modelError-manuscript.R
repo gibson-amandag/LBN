@@ -45,14 +45,14 @@ figDams_meanExits <- damBehavior_byDam %>%
     , dotAlpha = 1
   ) +
   theme(
-    axis.text.x = element_text()
+    axis.text.x = element_text(face = "bold")
     , axis.title.x = element_blank()
   )
 
 figDams_offNest <- damBehavior_byPND %>%
   plotDamBehavior(
     yVar = Perc_off_nest
-    , yLab = "mean % off nest"
+    , yLab = "mean % time off nest"
     , fontSize = textSize
     , addTriangleForMean = FALSE
     , colorByDam = TRUE
@@ -74,7 +74,7 @@ figDams_offNest <- damBehavior_byPND %>%
 figDams_meanOffNest <- damBehavior_byDam %>%
   plotDamBehavior(
     yVar = Perc_off_nest
-    , yLab = "mean % off exits"
+    , yLab = "mean % time off nest"
     , fontSize = textSize
     , addTriangleForMean = FALSE
     , colorByDam = TRUE
@@ -169,6 +169,55 @@ figDams_mass <- damFiltered %>%
 
 # Offspring mass ----------------------------------------------------------
 
+figOff_PND4 <- damFiltered %>%
+  mutate(
+    dayForFacet = "PND4"
+  ) %>%
+  scatterPlotLBN(
+    yVar = Mass_P4
+    , yLab = "mean mass (g)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+    , addMean = TRUE
+    , addSEM = TRUE
+  ) +
+  facet_wrap(
+    ~ dayForFacet
+  ) +
+  scale_y_continuous(
+    breaks = c(0, 2, 4, 6, 8, 10)
+  )
+
+figOff_PND11 <- massFiltered %>%
+  getAvgByDam() %>%
+  mutate(
+    dayForFacet = "PND11"
+  ) %>%
+  scatterPlotLBN(
+    yVar = Mass_P11
+    , yLab = "mean mass (g)"
+    , textSize = textSize
+    , dotSize = dotSize
+    , zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+    , addMean = FALSE
+    , addSEM = FALSE
+  ) +
+  facet_wrap(
+    ~ dayForFacet
+  ) +
+  scale_y_continuous(
+    breaks = c(0, 2, 4, 6, 8, 10)
+  ) +
+  plotError_LMM (
+    mass_PND11_lmm_errors_earlyLife
+    , xVar = earlyLifeTrt
+  )
+
 figOffA_indiv <- massFiltered %>%
   plot_mass_lines(
     groupByDam = TRUE,
@@ -236,12 +285,12 @@ figOffA_group <- massFiltered %>%
     textSize = textSize,
     axisSize = 0.5,
     # legendPosition = "bottom",
-    legendPosition = c(0.1, 0.6),
+    legendPosition = c(0.1, 0.8),
     STDColor = "grey20",
     LBNColor = "darkcyan"
   ) +
   theme(
-    legend.key = element_rect(fill = NA)
+    legend.key = element_rect(fill = NA, colour = NA)
   ) + 
   plotError_LMM_meanLine_mass(
     mass_lmm_errors
@@ -461,7 +510,7 @@ plotCort_long <- manuscriptCortPlotFunc(
   # , zoom_y = FALSE
   , zoom_y = TRUE
   , ymin = 0
-  , ymax = 450
+  , ymax = ifelse(isManuscript, 450, 500)
   , plotMean = FALSE
   , plotSE = FALSE
 )
@@ -927,17 +976,21 @@ figLH_samplingMax <- acuteStressFilteredPro_sampling %>%
     , ymin = 0
     , ymax = 40
   ) +
-  geom_hline(yintercept = surgeMin, color = "grey")+
-  addMedianHorizontalBar(width = 0.9, size = 0.6, color = "black")+
+  geom_hline(yintercept = surgeMin, color = "grey", linewidth = ifelse(isManuscript, 1, 1.5))+
+  addMedianHorizontalBar(width = 0.9, size = ifelse(isManuscript, 0.6, 1), color = "black")+
   stat_summary(fun.min = function(z) { quantile(z,0.25) },
                fun.max = function(z) { quantile(z,0.75) }
-               , geom = "linerange", color = "black") +
-  labs(title = "proestrus")
+               , geom = "linerange", color = "black"
+               , linewidth = ifelse(isManuscript, 0.6, 1)
+               )
+
+if(isManuscript){
+  figLH_samplingMax <- figLH_samplingMax +
+    labs(title = "proestrus")
+}
 
 
 ### Pro - sampling - surged ---------------
-
-
 
 figLH_samplingSurged <- acuteStressFilteredPro_sampling %>%
   filter(
@@ -946,11 +999,12 @@ figLH_samplingSurged <- acuteStressFilteredPro_sampling %>%
   propSurgedPlotCombo_forSBN(
     fontSize = textSize
     , labelSize = 5
-  ) +
-  labs(title = "proestrus")
+  )
 
-
-
+if(isManuscript){
+  figLH_samplingSurged <- figLH_samplingSurged +
+    labs(title = "proestrus")
+}
 
 # GABA PSCs ---------------------------------------------------------------
 
@@ -1000,6 +1054,26 @@ plotGABAfreq_noMean <- plotCatVarFunc(
   , dotSize = dotSize
   , twoLineXLabs = TRUE
   , tiltedXLabs = TRUE
+  , useFacetLabels = FALSE
+  , addMeanSE = FALSE
+)
+
+plotGABAfreq_noMean_Pres <- plotCatVarFunc(
+  expr(frequency)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , tiltedXLabs = FALSE
+  , useFacetLabels = FALSE
+  , addMeanSE = FALSE
+)
+
+plotGABAamp_noMean_Pres <- plotCatVarFunc(
+  expr(amplitude)
+  , fontSize = textSize
+  , dotSize = dotSize
+  , twoLineXLabs = TRUE
+  , tiltedXLabs = FALSE
   , useFacetLabels = FALSE
   , addMeanSE = FALSE
 )
@@ -1119,6 +1193,17 @@ figGABA_freq_model <- GABApscs_240FilteredPropsFreq %>%
     , xVar = comboTrt
   )
 
+figGABA_freq_model_Pres <- GABApscs_240FilteredPropsFreq %>%
+  plotGABAfreq_noMean_Pres(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 10
+  ) +
+  plotError_LMM(
+    numEvents_nb.GLMM_errors
+    , xVar = comboTrt
+  )
+
 figGABA_int_model <- GABApscs_240FilteredPropsFreq %>%
   plotGABAinterval_noMean(
     zoom_y = TRUE
@@ -1135,6 +1220,20 @@ figGABA_int_model <- GABApscs_240FilteredPropsFreq %>%
 
 figGABA_amp_model <- GABApscs_240FilteredPropsFreq %>%
   plotGABAamp_noMean(
+    zoom_y = TRUE
+    , ymin = 0
+    , ymax = 90
+  ) +
+  plotError_LMM(
+    relAmplitude_lmm_errors
+    , xVar = comboTrt
+  ) +
+  scale_y_continuous(
+    breaks = c(seq(0, 90, by = 15))
+  )
+
+figGABA_amp_model_Pres <- GABApscs_240FilteredPropsFreq %>%
+  plotGABAamp_noMean_Pres(
     zoom_y = TRUE
     , ymin = 0
     , ymax = 90
