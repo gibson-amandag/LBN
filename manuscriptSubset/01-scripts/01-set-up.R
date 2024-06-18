@@ -152,6 +152,7 @@ LBN_0006_CyclingFolder <- normalizePath(Sys.getenv("LBN_0006_CYCLING_FOLDER"))
 LBN_ServerFolder <- normalizePath(Sys.getenv("LBN_SERVER_FOLDER"))
 LBN_uterinePicsFolder <- normalizePath(file.path(LBN_ServerFolder, "uterinePics"))
 
+summer2024_ServerFolder <- normalizePath(Sys.getenv("SUMMER2024_SERVER_FOLDER"))
 #Where output should be saved
 outputFolder <- normalizePath(Sys.getenv("OUTPUT_FOLDER"))
 

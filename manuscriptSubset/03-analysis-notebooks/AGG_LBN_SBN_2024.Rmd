@@ -1,0 +1,727 @@
+---
+title: "R Notebook"
+output: html_notebook
+# fig-width: 11.5
+# fig-height: 5
+df-print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+# knitr::opts_chunk$set(fig.width=11.5, fig.height=5) 
+# options(digits=3)
+```
+
+```{r include=FALSE}
+source("./01-scripts/01-set-up.R")
+source(file.path(scriptsFolder, "02-get-datasets.R"))
+source("./01-scripts/04-filter-datasets.R")
+source("./01-scripts/06-run-LBN-stats.R")
+source("./01-scripts/05-make-LBN-plots-modelError-manuscript.R")
+```
+
+```{r eval=FALSE, include=FALSE}
+source("./01-scripts/05.5-run-GABA-dist-analysis.R")
+```
+
+
+```{r}
+posterFolder <- file.path(plotOutputFolder, "SBN-2024")
+```
+
+# Figure 1 - Dams figDams
+
+```{r}
+set_null_device("png") 
+```
+
+```{r}
+figDams_meanExits +
+  coord_cartesian(ylim = c(0, 30))
+
+flexSave(
+  "meanExits"
+  , width = 5.6
+  , height = 6.5
+  , units = "in"
+  , filePath = posterFolder
+)
+```
+
+```{r}
+figDamsD
+
+flexSave(
+  "damCort"
+  , width = 5.6
+  , height = 6.5
+  , units = "in"
+  , filePath = posterFolder
+)
+```
+
+
+```{r}
+figDamsPlots <- cowplot::align_plots(
+  figDams_exits
+  , figDams_offNest
+  , align = "v"
+  , axis = "l"
+)
+
+figDamsBehaviorPlots <- cowplot::align_plots(figDamsPlots[[1]], figDams_meanExits, figDamsPlots[[2]], figDams_meanOffNest, align = "h", axis = "bt")
+
+figDamsRightPlots <- cowplot::align_plots(
+  figDamsBehaviorPlots[[2]]
+  , figDamsBehaviorPlots[[4]]
+  , figDamsD
+  , align = "v"
+  , axis = "lr"
+)
+
+figDams_row1 <- align_plots(
+  figDamsRightPlots[[3]]
+  , figDams_mass
+  , align = "h"
+  , axis = "tb"
+)
+
+figDams_left <- plot_grid(
+  plot_grid(
+    NULL
+    , figDams_row1[[2]]
+    , nrow = 1
+    , align = "h"
+    , axis = "bt"
+    , labels = c("A", "B")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+  )
+  , figDamsBehaviorPlots[[1]]
+  , figDamsBehaviorPlots[[3]]
+  , nrow = 3
+  , labels = c("", "D", "E")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+)
+
+figDams_right <- plot_grid(
+  figDams_row1[[1]]
+  , figDamsRightPlots[[1]]
+  , figDamsRightPlots[[2]]
+  , labels = c("C", "", "")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , nrow = 3
+)
+
+figDams <- plot_grid(
+  figDams_left
+  , figDams_right
+  , ncol = 2
+  , rel_widths = c(3, 1)
+)
+  
+figDams
+```
+
+```{r}
+flexSave(
+  "figDams_allRainbow"
+  , plot = figDams
+  , width = twoCols
+  , height = fullLength - 0.1
+  , units = "cm"
+  , filePath = posterFolder
+)
+```
+
+# Figure 2 - Offspring maturation figOff
+
+```{r}
+figOff_PND4
+
+flexSave(
+  baseName = "PND4"
+  , width = 5.6
+  , height = 4
+  , units = "in"
+  , filePath = posterFolder
+)
+```
+```{r}
+figOff_PND11
+
+flexSave(
+  baseName = "PND11"
+  , width = 5.6
+  , height = 4
+  , units = "in"
+  , filePath = posterFolder
+)
+```
+female mass
+```{r}
+figFemaleMass_indiv <- massFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  plot_mass_lines(
+    groupByDam = TRUE,
+    facetBySex = FALSE,
+    useLineType = FALSE,
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = damID,
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mean mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = TRUE, # plot individual lines
+    meanLines = FALSE, # plot mean lines with SE #2023-11-22 to add model error
+    zoom_x = TRUE, # Zoom to part of x axis
+    xmin = 0,
+    xmax = 72,
+    zoom_y = TRUE, # Zoom to part of y axis
+    ymin = 0,
+    ymax = 32,
+    indivLineAlpha = 0.9,
+    indivLineSize = 0.2,
+    errorBarWidth = 0,
+    meanLineSize = 0.5,
+    meanAlpha = 1,
+    errorBarSize = .5,
+    # errorBarColor = "grey10",
+    errorBarAlpha = 1,
+    textSize = textSize,
+    axisSize = 0.5,
+    legendPosition = "none",
+    STDColor = "grey80",
+    LBNColor = "#66CCCC"
+  ) +
+  theme(
+    legend.key = element_rect(fill = NA)
+    , strip.text = element_blank()
+    , axis.title.x = element_blank()
+  )
+
+figFemaleMass_group <- massFiltered %>%
+  filter(
+    sex == "F"
+  ) %>%
+  plot_mass_lines(
+    groupByDam = TRUE,
+    facetBySex = FALSE,
+    useLineType = FALSE,
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = damID,
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mean mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = FALSE, # plot individual lines
+    meanLines = FALSE, # plot mean lines with SE #2023-11-22 to add model error
+    zoom_x = TRUE, # Zoom to part of x axis
+    xmin = 0,
+    xmax = 72,
+    zoom_y = TRUE, # Zoom to part of y axis
+    ymin = 0,
+    ymax = 30,
+    indivLineAlpha = 1,
+    indivLineSize = 0.2,
+    errorBarWidth = 0,
+    meanLineSize = 0.5,
+    meanAlpha = 1,
+    errorBarSize = .5,
+    # errorBarColor = "grey10",
+    errorBarAlpha = 1,
+    textSize = textSize,
+    axisSize = 0.5,
+    # legendPosition = "bottom",
+    legendPosition = c(0.15, 0.12),
+    STDColor = "grey20",
+    LBNColor = "darkcyan"
+  ) +
+  theme(
+    legend.key = element_rect(fill = NA, colour = NA)
+  ) + 
+  plotError_LMM_meanLine_mass(
+    mass_lmm_errors %>%
+      filter(
+        sex == "F"
+      )
+    , xVar = day
+    , fill = earlyLifeTrt
+    , barSize = .4
+    , ribbonAlpha = 0.7
+  ) +
+  scale_fill_manual(
+    values = c("STD" = "grey70", "LBN" = "cyan3") # might need to be different
+    , "early-life trt"
+  )
+```
+
+male mass
+```{r}
+figMaleMass_indiv <- massFiltered %>%
+  filter(
+    sex == "M"
+  ) %>%
+  plot_mass_lines(
+    groupByDam = TRUE,
+    facetBySex = FALSE,
+    useLineType = FALSE,
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = damID,
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mean mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = TRUE, # plot individual lines
+    meanLines = FALSE, # plot mean lines with SE #2023-11-22 to add model error
+    zoom_x = TRUE, # Zoom to part of x axis
+    xmin = 0,
+    xmax = 72,
+    zoom_y = TRUE, # Zoom to part of y axis
+    ymin = 0,
+    ymax = 32,
+    indivLineAlpha = 0.9,
+    indivLineSize = 0.2,
+    errorBarWidth = 0,
+    meanLineSize = 0.5,
+    meanAlpha = 1,
+    errorBarSize = .5,
+    # errorBarColor = "grey10",
+    errorBarAlpha = 1,
+    textSize = textSize,
+    axisSize = 0.5,
+    legendPosition = "none",
+    STDColor = "grey80",
+    LBNColor = "#66CCCC"
+  ) +
+  theme(
+    legend.key = element_rect(fill = NA)
+    , strip.text = element_blank()
+    , axis.title.x = element_blank()
+  )
+
+figMaleMass_group <- massFiltered %>%
+  filter(
+    sex == "M"
+  ) %>%
+  plot_mass_lines(
+    groupByDam = TRUE,
+    facetBySex = FALSE,
+    useLineType = FALSE,
+    lineTypeVar = earlyLifeTrt,
+    lineGroupVar = damID,
+    xtitle = "postnatal day", #x axis label
+    ytitle = "mean mass (g)", #y axis label
+    title = NULL, # plot title
+    individualLines = FALSE, # plot individual lines
+    meanLines = FALSE, # plot mean lines with SE #2023-11-22 to add model error
+    zoom_x = TRUE, # Zoom to part of x axis
+    xmin = 0,
+    xmax = 72,
+    zoom_y = TRUE, # Zoom to part of y axis
+    ymin = 0,
+    ymax = 30,
+    indivLineAlpha = 1,
+    indivLineSize = 0.2,
+    errorBarWidth = 0,
+    meanLineSize = 0.5,
+    meanAlpha = 1,
+    errorBarSize = .5,
+    # errorBarColor = "grey10",
+    errorBarAlpha = 1,
+    textSize = textSize,
+    axisSize = 0.5,
+    # legendPosition = "bottom",
+    legendPosition = "none",
+    STDColor = "grey20",
+    LBNColor = "darkcyan"
+  ) +
+  theme(
+    legend.key = element_rect(fill = NA, colour = NA)
+  ) + 
+  plotError_LMM_meanLine_mass(
+    mass_lmm_errors %>%
+      filter(
+        sex == "M"
+      )
+    , xVar = day
+    , fill = earlyLifeTrt
+    , barSize = .4
+    , ribbonAlpha = 0.7
+  ) +
+  scale_fill_manual(
+    values = c("STD" = "grey70", "LBN" = "cyan3") # might need to be different
+    , "early-life trt"
+  )
+```
+
+```{r}
+ggdraw() +
+  draw_plot(
+    figFemaleMass_group
+  ) +
+  draw_plot(
+    figFemaleMass_indiv +
+      theme(
+        axis.title.y = element_blank()
+      )
+    , x = 0.55
+    , y = 0.1
+    , width = 0.45
+    , height = 0.6
+  )
+
+flexSave(
+  baseName = "femaleMass"
+  , width = 8.6
+  , height = 8.5
+  , units = "in"
+  , filePath = posterFolder
+)
+```
+
+```{r}
+ggdraw() +
+  draw_plot(
+    figMaleMass_group
+  ) +
+  draw_plot(
+    figMaleMass_indiv +
+      theme(
+        axis.title.y = element_blank()
+      )
+    , x = 0.55
+    , y = 0.1
+    , width = 0.45
+    , height = 0.6
+  )
+
+flexSave(
+  baseName = "maleMass"
+  , width = 8.6
+  , height = 8.5
+  , units = "in"
+  , filePath = posterFolder
+)
+```
+
+```{r}
+figOffAge_model
+
+flexSave(
+  baseName = "maturationAge"
+  , width = 11.6
+  , height = 5
+  , units = "in"
+  , filePath = posterFolder
+)
+```
+# Figure 3 - Cycles
+
+```{r}
+figCycles <- plot_grid(
+  figCycles_numCycles_model
+  , figCycles_lengthLog_model
+  , figCyclesD
+  , ncol = 3
+  , labels = c("", "", "")
+  , label_fontfamily = "Arial"
+  , label_size = textSize
+  , align = "h"
+  , axis = "bt"
+  , rel_widths = c(1, 1, 2)
+)
+```
+```{r}
+figCycles
+
+flexSave(
+  baseName = "cycles"
+  , width = 11.6
+  , height = 5
+  , units = "in"
+  , filePath = posterFolder
+)
+```
+
+# Figure 4 - Corticosterone
+
+```{r}
+combinedCortError <- male_cort_lmm_error %>%
+  mutate(
+    sex = "M"
+  ) %>%
+  bind_rows(
+    female_cort_lmm_error %>%
+      mutate(
+        sex = "F"
+      )
+  ) %>%
+  mutate(
+    time = ifelse(
+      (time == 0 & earlyLifeTrt == "STD")
+      , time - 2.0
+      , ifelse(
+        (time == 0 & earlyLifeTrt == "LBN")
+        , time - 1.5
+        , ifelse(
+          (time == 5 & earlyLifeTrt == "STD")
+          , time + 1.4
+          , time + 1.9
+        )
+      )
+    )
+  ) %>%
+  mutate(
+    hormoneStatus = ifelse(
+      sex == "M"
+      , "male"
+      , as.character(Sac_cycle)
+    )
+    , .after = Sac_cycle
+  ) %>% mutate(
+    hormoneStatus = factor(hormoneStatus, c("male","diestrus", "proestrus"))
+  )
+```
+
+
+```{r}
+figCort <- cortFiltered_M_DiPro %>%
+  plotCort_adultSep() +
+  cortScale +
+  facet_wrap(
+    ~ hormoneStatus + adultTrt
+    , nrow = 1
+  ) +
+  plotError_LMM_aes(
+    combinedCortError
+    , xVar = time
+    , nudgeErrorLine = 0
+    , nudgeMeanLine = 0
+    , meanBarWidth = 0.7
+    , color = comboTrt
+  )
+```
+
+```{r}
+figCort
+
+flexSave(
+  baseName = "cort"
+  , width = 15.6
+  , height = 7
+  , units = "in"
+  , filePath = posterFolder
+)
+```
+
+# Figure 5 - LH
+
+```{r}
+figLH_samplingSurged +
+  labs(title = "")
+
+flexSave(
+  "LH_surged"
+  , width = 7.6
+  , height = 7
+  , units = "in"
+  , filePath = posterFolder
+)
+```
+```{r}
+indivLines <- plot_grid(
+  figLH_samplingTime_STDCON
+  , figLH_samplingTime_LBNCON
+  , figLH_samplingTime_STDALPS
+  , figLH_samplingTime_LBNALPS
+  , nrow = 2
+  , align = "hv"
+  , axis = "tlbr"
+)
+
+indivLines
+
+flexSave(
+  "LH_individualPlots"
+  , width = 15.6
+  , height = 7.6
+  , units = "in"
+  , filePath = posterFolder
+)
+```
+
+```{r}
+figLH_samplingMax +
+  labs(title = "")
+
+flexSave(
+  "LH_max"
+  , width = 7.6
+  , height = 7.6
+  , units = "in"
+  , filePath = posterFolder
+)
+```
+
+# Figure 7 - PSC properties
+
+```{r}
+figGABA_freq_model_Pres
+
+flexSave(
+  "PSCfreq"
+  , width = 5.6
+  , height = 6.5
+  , units = "in"
+  , filePath = posterFolder
+)
+```
+
+```{r}
+figGABA_amp_model_Pres
+
+flexSave(
+  "PSCamp"
+  , width = 5.6
+  , height = 6.5
+  , units = "in"
+  , filePath = posterFolder
+)
+```
+
+
+```{r}
+figGABA2_left <- align_plots(
+  figGABA_freq_model
+  , bootstrapRes_iterations5000_maxPerCellNone_interval$errorPlots$interval +
+    labs(
+      y = "mean\n95%CI"
+    ) +
+    theme(
+      axis.text.y = element_blank()
+      , axis.title.y = element_text(angle = 90)
+    )
+  , bootstrapRes_iterations5000_maxPerCellNone_interval$cumulativeFreqPlots$interval +
+    theme(
+      legend.position = "none"
+    )
+  , align = "v"
+  , axis = "l"
+)
+
+figGABA2_middle <- align_plots(
+  figGABA_amp_model
+  , bootstrapRes_iterations5000_maxPerCellNone_amplitude$errorPlots$amplitude +
+    labs(
+      y = "mean\n95%CI"
+    ) +
+    theme(
+      axis.text.y = element_blank()
+      , axis.title.y = element_text(angle = 90)
+  )
+  , bootstrapRes_iterations5000_maxPerCellNone_amplitude$cumulativeFreqPlots$amplitude +
+    theme(
+      legend.position = "none"
+    )
+  , align = "v"
+  , axis = "l"
+)
+
+figGABA2 <- plot_grid(
+  plot_grid(
+    # figGABA_freq_model
+    figGABA2_left[[1]]
+    , figGABA_int_model
+    , figGABA2_middle[[1]]
+    , figGABA_decayTime_model
+    , nrow = 1
+    , labels = c("C", "D", "E", "F")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+    , align = "h"
+    , axis = "tb"
+  )
+  , plot_grid(
+     figGABA2_left[[2]]
+    , figGABA2_middle[[2]]
+    , labels = c("G", "H")
+    , label_fontfamily = "Arial"
+    , label_size = textSize
+    , align = "h"
+    , axis = "tb"
+    , nrow = 1
+  )
+  , plot_grid(
+    figGABA2_left[[3]]
+    , figGABA2_middle[[3]]
+    , nrow = 1
+    , align = "h"
+    , axis = "tb"
+  )
+  , nrow = 3
+  , rel_heights = c(2.2, 1, 2)
+)
+
+figGABA2 <- ggdraw() +
+  draw_plot(
+    figGABA2
+  ) +
+  draw_plot(
+    bootstrapRes_iterations5000_maxPerCellNone_interval$cumulativeFreqPlots_full$interval +
+      theme(
+        legend.position = "none"
+        , axis.title.x = element_blank()
+        , axis.title.y = element_blank()
+      )
+    , x = 0.25
+    , y = 0.075
+    , width = 0.25
+    , height = 0.2
+  ) +
+  draw_plot(
+    bootstrapRes_iterations5000_maxPerCellNone_amplitude$cumulativeFreqPlots_full$amplitude +
+      theme(
+        legend.position = "none"
+        , axis.title.x = element_blank()
+        , axis.title.y = element_blank()
+      )
+    , x = 0.75
+    , y = 0.075
+    , width = 0.25
+    , height = 0.2
+  )
+
+figGABA2
+```
+
+
+```{r}
+flexSave(
+  "figPSC_props"
+  , plot = figGABA2
+  , width = twoCols
+  , height = 12.3
+  , units = "cm"
+  , filePath = posterFolder
+)
+```
+
+
+```{r}
+tbl <- psc_pairwisePs_flexTable
+tbl
+```
+
+```{r}
+psc_pairwiseNum <- "7-2"
+tableNum <- psc_pairwiseNum
+```
+
+```{r}
+doc <- addTableAndCaptionToDoc(tbl, tableCaption, tableNum, doc)
+```
+
+
+
