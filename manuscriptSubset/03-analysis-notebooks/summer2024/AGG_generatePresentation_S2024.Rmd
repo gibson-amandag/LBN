@@ -753,3 +753,53 @@ AVPVfiring_s24 %>%
   write.table("clipboard", sep = "\t", row.names = FALSE, col.names = FALSE)
 ```
 
+```{r}
+AVPV_nice <- AVPVfiring_s24 %>%
+  mutate(
+    recClockTime = timeHr
+    , recHrSinceLightsOff = recHr
+    , sacHrSinceLightsOff = Sac_hr
+    , generation = damCage
+  ) %>%
+  select(
+    cellID
+    , mouseID
+    , Sac_cycle
+    , adultTrt
+    , Sac_date
+    , recHrSinceLightsOff
+    , timeSinceSac
+    , AgeInDays
+    , duration:singleSpikeFlags
+    , sacHrSinceLightsOff
+    , DOB
+    , generation
+    , earTag
+    , weanCage
+    , strain
+    , sex
+    , Body_mass_AM
+    , Body_mass_sac
+    , bodyMass_diff
+    , ReproTract_mass
+    , ReproTract_mass_perBodyAM_g
+    , ReproTract_mass_perBody_g
+  ) %>%
+  mutate(
+    didRec = ifelse(is.na(frequency), FALSE, TRUE)
+  ) %>%
+  arrange(
+    desc(didRec)
+  ) %>%
+  select(
+    -didRec
+  )
+
+saveDFsToExcel(
+  "cellInfo"
+  , "AGG_AVPV_ALPS_"
+  , cellInfo = AVPV_nice
+)
+```
+
+
