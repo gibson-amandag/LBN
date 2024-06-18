@@ -446,7 +446,7 @@ figCycles_numCycles_model <- cyclesFiltered %>%
     , dotSize = dotSize
     , addMean = FALSE
     , addSEM = FALSE
-    , forManuscript = FALSE
+    , forManuscript = isManuscript
   ) + 
   plotError_LMM(
     numCycles_lmm_error

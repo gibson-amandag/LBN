@@ -161,7 +161,7 @@ mass_PND11_lmm <- mixed(
 ### Post-hoc -----------
 
 mass_PND11_lmm_emm <- emmeans(
-  mass_PND11_LMM
+  mass_PND11_lmm
   , "earlyLifeTrt"
 )
 
