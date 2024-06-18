@@ -20,11 +20,27 @@ addDamDemoData <- function(
     left_join(damDemo_forOff, by = damIDName) %>%
     relocate(
       dam,
-      cohort,
       DOB,
-      earlyLifeTrt:ParaType,
       .after = damID
     )
+  
+  if ("cohort" %in% colnames(df)) {
+    df <- df %>%
+      relocate(
+        cohort
+        , .after = dam
+      )
+  }
+  
+  if ("earlyLifeTrt" %in% colnames(df)) {
+    df <- df %>%
+      relocate(
+        earlyLifeTrt:ParaType
+        , .after = DOB
+      )
+  }
+  
+  
   return(df)
 }
 
@@ -48,12 +64,30 @@ addOffspringDemoData <- function(
   df <- df %>%
     left_join(offDemo_toAdd, by = addBy) %>%
     relocate( # move to start
-      mouseID_spec,
       mouseID,
-      num_ID,
-      sex,
-      earlyLifeTrt
+      sex
     )
+  
+  if ("mouseID_spec" %in% colnames(df)) {
+    df <- df %>%
+      relocate(
+        mouseID_spec
+      )
+  }
+  if ("num_ID" %in% colnames(df)) {
+    df <- df %>%
+      relocate(
+        num_ID
+        , .after = mouseID
+      )
+  }
+  if ("earlyLifeTrt" %in% colnames(df)) {
+    df <- df %>%
+      relocate(
+        earlyLifeTrt
+        , .after = sex
+      )
+  }
   
   return(df)
 }

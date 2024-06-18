@@ -437,6 +437,8 @@ addSamplingSlidesFromDF <- function(
   
   # print(paste("maxLH", samplingDF$maxLH))
   # print(paste("cyclingDF", cyclingDF$mouseID))
+  # print(paste("numID/cycleID", samplingDF$num_ID))
+  # print(paste("cyclingLong", cyclingDF_long$mouseID))
   
   pwalk(
     list(

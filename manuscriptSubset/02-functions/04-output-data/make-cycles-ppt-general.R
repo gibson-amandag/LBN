@@ -527,11 +527,21 @@ addSamplingSlidesFromDFGen <- function(
   , cyclingLineColorVar = NULL
 ){
   print("addSamplingSlidesFromDF")
-  cyclingDF_long <- cyclingDF %>%
-    makeCyclesLong(
-      afterVar = cohort ## hard coded
-    ) %>%
-    addPNDForCyles()
+  cohortExists <- ("cohort" %in% colnames(cyclingDF))
+  if(cohortExists){
+    cyclingDF_long <- cyclingDF %>%
+      makeCyclesLong(
+        afterVar = cohort
+      ) %>%
+      addPNDForCyles()
+  } else{
+    cyclingDF_long <- cyclingDF %>%
+      makeCyclesLong(
+        afterVar = {{ IDVar }}
+      ) %>%
+      addPNDForCyles()
+    
+  }
   
   samplingDF <- samplingDF %>%
     mutate(

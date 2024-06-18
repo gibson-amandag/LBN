@@ -869,7 +869,7 @@ cortEIAServer <- function(
             x = "cort (pg/well)",
             y = "% B/B0"
           ) +
-          textTheme(size = 16) +
+          textTheme(size = 16, forManuscript = FALSE) +
           boxTheme() +
           scale_x_log10(
             breaks = c(c(500, 250, 125, 62, 31, 15, 8, 4, 2))

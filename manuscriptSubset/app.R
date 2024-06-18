@@ -14,6 +14,7 @@ source(file.path(scriptsFolder, "02-get-datasets.R"))
 source(file.path(scriptsFolder, "04-filter-datasets.R"))
 library(shinyFiles)
 
+isManuscript = FALSE
 
 moduleFiles <- list.files(
     appScriptsFolder, 
